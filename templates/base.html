@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>SAT - {% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    
+    
+    <style>
+        :root { --sat-orange: #ff6b00; --sat-bg: #05070a; --sat-card: #0d1117; --sat-border: #30363d; }
+        body { background: var(--sat-bg); color: #ffffff; font-family: 'Inter', sans-serif; display: flex; margin: 0; }
+        
+        /* Sidebar Profissional */
+        .sidebar { width: 280px; background: #010409; height: 100vh; position: fixed; border-right: 1px solid var(--sat-border); padding: 30px 20px; z-index: 100; }
+        .sidebar .nav-link { color: #8b949e; font-weight: 600; padding: 14px; border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; transition: 0.3s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255, 107, 0, 0.1); color: var(--sat-orange); }
+        .sidebar .nav-link.active { border-left: 4px solid var(--sat-orange); }
+
+        .main-content { margin-left: 280px; width: calc(100% - 280px); padding: 40px; min-height: 100vh; }
+        
+        /* Utilitários Premium */
+        .sat-card { 
+            background: var(--sat-card) !important; 
+            border-radius: 20px; 
+            border: 1px solid var(--sat-border); 
+            padding: 30px;
+            backdrop-filter: none !important; /* Remove o efeito de vidro embaçado */
+            opacity: 1 !important;
+        }
+
+        .fw-black { font-family: 'Montserrat', sans-serif; 
+            font-weight: 900; text-transform: uppercase; 
+            letter-spacing: -1px; 
+        }
+        
+        /* No seu <style> dentro do base.html */
+        .sidebar .nav-link.active { 
+            background: rgba(255, 107, 0, 0.15) !important; 
+            color: var(--sat-orange) !important; 
+            border-left: 4px solid var(--sat-orange);
+            opacity: 1 !important;
+        }
+
+        .sidebar .nav-link.text-danger { 
+            color: var(--sat-orange) !important; /* Remove o vermelho do Sair */
+        }
+
+        /* Override Global de Vermelho para Laranja SAT */
+        .text-danger, .text-orange-sat, .text-orange { 
+            color: #ff6b00 !important; 
+        }
+
+        .bg-danger, .bg-orange-sat, .bg-orange { 
+            background-color: #ff6b00 !important; 
+        }
+
+        .btn-danger { 
+            background-color: #ff6b00 !important; 
+            border-color: #ff6b00 !important; 
+            color: #000 !important; 
+        }
+
+        .border-danger, .border-orange-sat { 
+            border-color: #ff6b00 !important; 
+        }
+            
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <img src="/static/img/logo_sat.png" class="img-fluid mb-5 px-2">
+        <nav>
+            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-grid-1x2-fill"></i> Dashboard
+            </a>
+            
+            <a href="{% url 'noticias' %}" class="nav-link {% if request.resolver_match.url_name == 'noticias' %}active{% endif %}">
+                <i class="bi bi-megaphone-fill"></i> Notícias
+            </a>
+            
+            <a href="{% url 'loja' %}" class="nav-link {% if request.resolver_match.url_name == 'loja' %}active{% endif %}">
+                <i class="bi bi-bag-heart-fill"></i> Loja Oficial
+            </a>
+            
+            <a href="{% url 'perfil' %}" class="nav-link {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">
+                <i class="bi bi-person-circle"></i> Meu Perfil
+            </a>
+            
+            <a href="{% url 'torcida' %}" class="nav-link {% if request.resolver_match.url_name == 'torcida' %}active{% endif %}">
+                <i class="bi bi-shield-shaded"></i> Minha Torcida
+            </a>
+            
+            <a href="{% url 'seja_socio' %}" class="nav-link {% if request.resolver_match.url_name == 'seja_socio' %}active{% endif %}">
+                <i class="bi bi-person-vcard-fill"></i> Seja Sócio
+            </a>
+
+            <a href="{% url 'bet' %}" class="nav-link {% if request.resolver_match.url_name == 'bet' %}active{% endif %}">
+                <i class="bi bi-dice-5-fill"></i> Área Bet 
+                <span class="badge rounded-pill bg-warning text-dark ms-2" style="font-size: 0.6rem;">EM BREVE</span>
+            </a>
+
+            <a href="{% url 'beneficios' %}" class="nav-link {% if request.resolver_match.url_name == 'beneficios' %}active{% endif %}">
+                <i class="bi bi-gift-fill"></i> Benefícios
+            </a>
+
+            <div class="mt-5">
+                <a href="{% url 'logout' %}" class="nav-link" style="color: #ff4d4d;">
+                    <i class="bi bi-power"></i> Sair
+                </a>
+            </div>
+        </nav>
+    </div>
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
+

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4 animate-ui">
+    <h1 class="text-white fw-bold mb-4">ÁREA DE NOTÍCIAS</h1>
+    <div class="row g-4">
+        {% for post in noticias %}
+        <div class="col-md-6">
+            <div class="sat-card p-0 overflow-hidden h-100 border-orange">
+                <img src="{{ post.imagem.url|default:'https://placehold.co/800x400/0b0e14/ff4d00?text=SAT+NEWS' }}" class="img-fluid w-100">
+                <div class="p-4">
+                    <span class="badge bg-orange text-black mb-2">{{ post.torcida.nome }}</span>
+                    <h3 class="fw-bold text-white">{{ post.titulo }}</h3>
+                    <p class="opacity-75">{{ post.conteudo|truncatechars:150 }}</p>
+                    <a href="#" class="btn btn-sat btn-sm">Ler Matéria Completa</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted">Nenhuma notícia cadastrada para sua torcida.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

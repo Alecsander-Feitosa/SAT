@@ -1,0 +1,212 @@
+/* ==========================================================================
+   SAT CORE - ESTÉTICA CYBERPUNK & SPORTS UI (REAL SPORTS)
+   ========================================================================== */
+
+:root {
+    --sat-orange: #ff6b00;      /* Laranja Neon Principal */
+    --sat-bg: #05070a;          /* Preto Profundo para Contraste */
+    --sat-card: #0d1117;        /* Cinza Escuro dos Cards */
+    --sat-border: #30363d;      /* Cor das Bordas de Segurança */
+    --sat-text-primary: #ffffff; /* Branco Puro para Leitura */
+    --sat-text-muted: #d1d5db;   /* Cinza Claro para Descrições */
+}
+
+/* Base e Tipografia */
+body {
+    background-color: var(--sat-bg);
+    color: var(--sat-text-primary);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .fw-black {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900 !important;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+}
+
+/* ==========================================================================
+   ANIMAÇÕES DE ENTRADA (O FIM DO ESTÁTICO)
+   ========================================================================== */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+        filter: blur(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 5px rgba(255, 107, 0, 0.2); }
+    50% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.6); }
+    100% { box-shadow: 0 0 5px rgba(255, 107, 0, 0.2); }
+}
+
+/* Classes de Delay para Efeito Cascata */
+.animate-1 { animation: fadeInUp 0.5s ease forwards; }
+.animate-2 { animation: fadeInUp 0.5s ease 0.2s forwards; opacity: 0; }
+.animate-3 { animation: fadeInUp 0.5s ease 0.4s forwards; opacity: 0; }
+
+/* ==========================================================================
+   COMPONENTES PREMIUM
+   ========================================================================== */
+
+/* Cards com Micro-interações */
+.sat-card {
+    background: var(--sat-card);
+    border: 1px solid var(--sat-border);
+    border-radius: 20px;
+    padding: 30px;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.sat-card:hover {
+    transform: scale(1.02) translateY(-5px);
+    border-color: var(--sat-orange);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+
+/* Card Especial de Sócio */
+.sat-card-gold {
+    background: linear-gradient(135deg, #1c1605 0%, #05070a 100%);
+    border: 1px solid var(--sat-orange);
+    border-radius: 20px;
+    padding: 35px;
+    animation: pulseGlow 3s infinite ease-in-out;
+}
+
+/* Botões com Brilho e Impacto */
+.btn-sat {
+    background: var(--sat-orange);
+    color: #000 !important;
+    font-weight: 800;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 30px;
+    text-transform: uppercase;
+    transition: 0.3s;
+}
+
+.btn-sat:hover {
+    box-shadow: 0 0 25px rgba(255, 107, 0, 0.5);
+    transform: scale(1.05);
+}
+
+/* ==========================================================================
+   VISIBILIDADE E GAMIFICAÇÃO
+   ========================================================================== */
+
+.text-orange { color: var(--sat-orange) !important; }
+.text-white { color: var(--sat-text-primary) !important; }
+.text-muted { color: var(--sat-text-muted) !important; }
+
+/* Barra de Progresso Futurista */
+.progress {
+    background-color: #000;
+    border-radius: 20px;
+    border: 1px solid var(--sat-border);
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #ff4d00, #ff9e00);
+    box-shadow: 0 0 15px var(--sat-orange);
+}
+
+/* Ações Rápidas */
+.btn-dark-sat {
+    background: #0d1117;
+    border: 1px solid var(--sat-border);
+    border-radius: 14px;
+    color: white;
+    font-weight: 700;
+    transition: 0.3s;
+}
+
+.btn-dark-sat:hover {
+    background: #161b22;
+    border-color: var(--sat-orange);
+}
+
+/* Efeito de Gradiente no Banner */
+.bg-gradient-dark {
+    background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+}
+
+.sat-info-card {
+    background: rgba(10, 0, 0, 0.9);
+    border: 1px solid #330000;
+    border-radius: 12px;
+    padding: 25px;
+    height: 100%;
+    transition: 0.3s ease;
+}
+
+.sat-info-card i {
+    color: #ff9e00;
+    font-size: 2rem;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.sat-info-card h5 {
+    color: #ff9e00;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.sat-info-card p {
+    color: #888;
+    font-size: 0.85rem;
+}
+
+.sat-info-card:hover {
+    border-color: #ff9e00;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+    transform: translateY(-5px);
+}
+
+.highlight-socio {
+    border: 1px solid #ff9e00 !important;
+    background: linear-gradient(145deg, #2a0000, #1a0000) !important;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
+}
+
+/* Efeito de borda tracejada para Upload */
+.border-sat-dashed {
+    border: 2px dashed #30363d;
+    border-radius: 15px;
+    transition: 0.3s;
+}
+.border-sat-dashed:hover {
+    border-color: var(--sat-orange);
+    background: rgba(255, 107, 0, 0.02);
+}
+
+/* Alerta personalizado SAT */
+.alert-sat-dark {
+    background: rgba(255, 107, 0, 0.08);
+    border-left: 4px solid var(--sat-orange);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Botão de Scanner com Gradiente */
+.btn-facial-sat {
+    background: linear-gradient(135deg, #ff6b00 0%, #ff9e00 100%);
+    color: #000;
+    border: none;
+    letter-spacing: 1px;
+}
+
+/* Preview de imagem com brilho */
+.preview-container img {
+    box-shadow: 0 0 20px rgba(255, 107, 0, 0.2);
+}

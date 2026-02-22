@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="text-center sat-card p-5" style="border: 1px solid {{ cor_tema }}; max-width: 600px;">
+        <i class="bi bi-tools display-1 mb-4" style="color: {{ cor_tema }};"></i>
+        <h1 class="fw-black mb-3">ÁREA BET</h1>
+        <h4 class="text-white-50 mb-4">ESTAMOS EM MANUTENÇÃO</h4>
+        
+        <p class="text-muted mb-5">
+            Estamos preparando uma plataforma de apostas exclusiva para os sócios da torcida. 
+            Em breve você poderá usar seu XP e moedas SAT para palpitar nos jogos!
+        </p>
+        
+        <div class="progress mb-4" style="height: 10px; background: #1f2937;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                 role="progressbar" 
+                 style="width: 75%; background-color: {{ cor_tema }};"></div>
+        </div>
+        
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-light px-5 fw-bold">VOLTAR AO DASHBOARD</a>
+    </div>
+</div>
+{% endblock %}

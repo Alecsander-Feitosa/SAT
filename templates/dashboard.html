@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="sat-card p-0 border-0 overflow-hidden position-relative" style="height: 400px; box-shadow: 0 30px 60px rgba(0,0,0,0.5);">
+                {% if noticias.0.urlToImage %}
+                    <img src="{{ noticias.0.urlToImage }}" class="w-100 h-100 object-fit-cover" style="filter: brightness(0.4) contrast(1.1);">
+                {% else %}
+                    <img src="{% static 'img/hero-stadium.jpg' %}" class="w-100 h-100 object-fit-cover" style="filter: brightness(0.3) contrast(1.2);">
+                {% endif %}
+                <div class="position-absolute bottom-0 start-0 p-5 w-100" style="background: linear-gradient(transparent, #000);">
+                    <span class="badge bg-sat text-dark">DESTAQUE SAT</span>
+                    <h1 class="display-4 fw-black text-white m-0">{{ noticias.0.title|upper|default:"ÚLTIMAS DO CLUBE" }}</h1>
+                    <a href="{{ noticias.0.url }}" target="_blank" class="btn btn-danger mt-3 rounded-pill px-4">LER MAIS</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="sat-card mb-4 border-0" style="background: #111827;">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="rounded-circle bg-orange d-flex align-items-center justify-content-center fw-black fs-2 text-dark" style="width: 80px; height: 80px; box-shadow: 0 0 30px rgba(255, 107, 0, 0.3);">
+                        {{ user.first_name|first|upper }}
+                    </div>
+                    <div>
+                        <h2 class="fw-black m-0 text-white">BEM-VINDO, {{ user.first_name|upper }}!</h2>
+                        <p class="text-white-50 small m-0">Torcida: {{ torcida.nome|default:"Não vinculada" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="text-white fw-bold mb-4"><i class="bi bi-newspaper text-danger me-2"></i> NOTÍCIAS DO FUTEBOL</h5>
+            <div class="row g-3">
+                {% for noticia in noticias|slice:"1:5" %}
+                <div class="col-md-6">
+                    <div class="sat-card h-100 p-0 overflow-hidden border-0 bg-dark">
+                        <img src="{{ noticia.urlToImage }}" class="card-img-top object-fit-cover" style="height: 180px;">
+                        <div class="p-3">
+                            <h6 class="text-white fw-bold">{{ noticia.title|truncatechars:60 }}</h6>
+                            <a href="{{ noticia.url }}" target="_blank" class="text-danger small fw-bold text-decoration-none">LER COMPLETA <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="sat-card mb-4 text-center border-orange-subtle position-relative overflow-hidden">
+                <div class="xp-pulse"></div> <h6 class="text-white fw-bold small text-uppercase mb-4 opacity-75">Sua Evolução</h6>
+                
+                <div class="mb-4">
+                    <h1 class="display-1 fw-black text-white m-0 xp-number" id="xp-counter" data-target="{{ perfil_game.xp_total|default:0 }}">0</h1>
+                    <p class="small fw-bold text-orange text-uppercase">XP ACUMULADO</p>
+                </div>
+                
+                <div class="progress bg-black mb-3" style="height: 12px; border-radius: 20px; border: 1px solid #30363d;">
+                    <div id="xp-bar-fill" 
+                        class="progress-bar progress-bar-striped progress-bar-animated bg-orange" 
+                        role="progressbar" 
+                        style="width: 0%; transition: width 2s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 0 15px #ff6b00;">
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between fw-bold small">
+                    <span class="text-white opacity-75">{{ perfil_game.nivel.nome|upper|default:"INICIANTE" }}</span>
+                    <span class="text-orange">FALTAM {{ xp_faltante }} XP</span>
+                </div>
+            </div>
+
+            <div class="sat-card">
+                <h6 class="text-white fw-bold small text-uppercase mb-3 opacity-75">Acesso Rápido</h6>
+                <div class="d-grid gap-3">
+                    <a href="{% url 'loja' %}" class="btn btn-dark-sat text-start p-3 d-flex justify-content-between align-items-center">
+                        <span class="text-white"><i class="bi bi-cart3 me-3 text-orange"></i> LOJA OFICIAL</span>
+                        <i class="bi bi-chevron-right text-orange"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-5">
+    <div class="col-12">
+       
+        
+        <div class="row mt-5">
+    <div class="col-12">
+        <h5 class="text-white fw-bold mb-4">
+            <i class="bi bi-calendar-check text-orange me-2"></i> PRÓXIMOS EVENTOS
+        </h5>
+        
+        <div class="row g-3">
+            {% for evento in eventos %}
+                <div class="col-md-4">
+                    <div class="sat-card border-orange-subtle h-100 d-flex flex-column">
+                        <a href="{% url 'detalhe_evento' evento.id %}" class="text-decoration-none flex-grow-1">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge bg-orange text-dark fw-bold">{{ evento.data_evento|date:"d/m" }}</span>
+                                <small class="text-muted">{{ evento.data_evento|date:"H:i" }}</small>
+                            </div>
+                            <h6 class="text-white fw-bold m-0">{{ evento.titulo|upper }}</h6>
+                            <p class="small text-white-50 mt-2">
+                                <i class="bi bi-geo-alt-fill text-orange"></i> {{ evento.local }}
+                            </p>
+                        </a>
+
+                        <div class="mt-3">
+                            {% if evento.id in user_presencas %}
+                                <button class="btn btn-sm btn-success w-100 fw-bold disabled" style="background-color: #198754 !important; border: none;">
+                                    CONFIRMADO ✓
+                                </button>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-orange w-100 fw-bold btn-confirmar" data-id="{{ evento.id }}">
+                                    CONFIRMAR PRESENÇA
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-muted small italic">Nenhum evento agendado.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    /* Define a cor do nível vindo do Admin como a cor principal do tema */
+    --nivel-color: {{ cor_tema|default:"#ff6b00" }};
+}
+
+.fw-black { font-weight: 900; }
+
+/* Aplica a cor do nível em todos os elementos de destaque */
+.text-orange { color: var(--nivel-color) !important; }
+.bg-orange { background-color: var(--nivel-color) !important; }
+.border-orange-subtle { border: 1px solid var(--nivel-color) !important; opacity: 0.3; }
+
+xp-number { 
+    color: #ffffff !important;
+    text-shadow: 0 0 20px var(--sat-orange); /* Brilho neon nítido */
+    font-weight: 900;
+    opacity: 1 !important; /* Tira o aspecto fosco/cinza */
+}
+
+.opacity-75 { 
+    opacity: 1 !important; /* Garante que os textos pequenos fiquem brancos e nítidos */
+    color: #fff;
+}
+
+.progress {
+    background: #000 !important;
+    border: 1px solid #444 !important;
+}
+
+/* Configuração da Barra de Progresso */
+.progress-bar { 
+    box-shadow: 0 0 15px var(--nivel-color);
+    position: relative;
+    overflow: visible !important;
+}
+
+/* Efeito de brilho pulsante (Shine) na ponta da barra */
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; height: 100%; width: 10px;
+    background: #fff; filter: blur(5px); opacity: 0.5;
+    animation: bar-shine 2s infinite;
+}
+
+@keyframes bar-shine {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.7; }
+}
+
+/* Pulso de fundo no card */
+.xp-pulse {
+    position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, var(--nivel-color) 0%, transparent 70%);
+    opacity: 0.05;
+    animation: pulse-ring 4s infinite; z-index: 0;
+}
+@keyframes pulse-ring { 0%, 100% { transform: scale(0.8); } 50% { transform: scale(1); } }
+
+.btn-dark-sat { background: #161b22; border: 1px solid #30363d; border-radius: 12px; transition: 0.3s; }
+.btn-dark-sat:hover { border-color: var(--nivel-color); transform: translateX(5px); }
+
+/* Estilo para o botão usar a cor do nível */
+.btn-outline-orange {
+    color: var(--nivel-color);
+    border-color: var(--nivel-color);
+}
+.btn-outline-orange:hover {
+    background-color: var(--nivel-color);
+    color: #000;
+}
+
+.shadow-hover {
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+.shadow-hover:hover {
+    transform: translateY(-8px);
+    border-color: var(--nivel-color) !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Pega o valor da porcentagem forçando número inteiro para o JS não dar erro
+    const progressoReal = parseInt("{{ xp_progresso|floatformat:0|default:0 }}");
+    const elementoBarra = document.getElementById('xp-bar-fill');
+
+    // 2. Dispara a animação com um delay para garantir que o estilo 0% foi aplicado antes
+    if (elementoBarra) {
+        setTimeout(() => {
+            elementoBarra.style.width = progressoReal + "%";
+        }, 600);
+    }
+
+    // 3. Animação do número (Counter)
+    const counter = document.getElementById('xp-counter');
+    const target = parseInt(counter.getAttribute('data-target'));
+    let current = 0;
+    
+    const updateCounter = () => {
+        if (current < target) {
+            current += Math.ceil(target / 60);
+            if (current > target) current = target;
+            counter.innerText = current;
+            requestAnimationFrame(updateCounter);
+        } else {
+            counter.innerText = target;
+        }
+    };
+    updateCounter();
+});
+
+document.querySelectorAll('.btn-confirmar').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const eventoId = this.getAttribute('data-id');
+        const button = this;
+
+        fetch(`/confirmar-presenca/${eventoId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'sucesso') {
+                button.innerText = "CONFIRMADO ✓";
+                button.classList.replace('btn-outline-orange', 'btn-success');
+                button.disabled = true;
+                alert(data.mensagem);
+            } else {
+                alert(data.mensagem);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

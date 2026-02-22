@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+
+    {% if perfil.torcida %}
+        <div class="mb-4">
+            <h2 class="btn btn-sat fw-bold">{{ perfil.torcida.nome }}</h2>
+            <p class="text-white small">Bem-vindo ao quartel general da sua organizada.</p>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="mural-card">
+                    <i class="bi bi-camera"></i>
+                    <div>
+                        <h5>Galeria de Fotos</h5>
+                        <p>Momentos da nossa torcida</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="mural-card">
+                    <i class="bi bi-people"></i>
+                    <div>
+                        <h5>Diretoria</h5>
+                        <p>Liderança e contatos</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="mural-card">
+                    <i class="bi bi-bus-front"></i>
+                    <div>
+                        <h5>Viagens e Caravanas</h5>
+                        <p>Próximos deslocamentos</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{% url 'carteirinha' %}" class="text-decoration-none">
+                    <div class="mural-card highlight">
+                        <i class="bi bi-wallet2"></i>
+                        <div>
+                            <h5>Carteirinha Virtual</h5>
+                            <p>Sua identidade digital</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+    {% else %}
+        <div class="text-center mb-5">
+            <h2 class="fw-bold text-white">ESCOLHA SUA ORGANIZADA</h2>
+            <p class="text-muted">Selecione a torcida que você faz parte para acessar o mural.</p>
+        </div>
+
+        <div class="row justify-content-center g-4">
+            {% for torcida in torcidas %}
+            <div class="col-md-6 col-lg-4">
+                <div class="sat-card text-center p-4">
+                    <h3 class="fw-bold text-white mb-4">{{ torcida.nome|upper }}</h3>
+                    <a href="{% url 'vincular_torcida' torcida.id %}" class="btn btn-sat w-100 py-3 fw-bold">
+                        SELECIONAR TORCIDA
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+
+<style>
+/* Estilo para os Cards do Mural (Padrão SAT) */
+.mural-card {
+    /* Trocado fundo avermelhado por cinza escuro do tema */
+    background: #161b22; 
+    border: 1px solid var(--sat-border);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    height: 100%;
+    transition: 0.3s;
+}
+
+/* Ícones e Títulos usando a cor Ouro/Laranja */
+.mural-card i { color: var(--sat-gold); font-size: 1.8rem; }
+.mural-card h5 { color: var(--sat-gold); font-weight: bold; margin-bottom: 4px; }
+.mural-card p { color: #aaa; font-size: 0.8rem; margin: 0; }
+
+/* Highlight agora usa o laranja neon */
+.mural-card.highlight { 
+    border-color: var(--sat-orange); 
+    box-shadow: 0 0 15px rgba(255, 107, 0, 0.1); 
+}
+
+.mural-card:hover { 
+    transform: translateY(-5px); 
+    border-color: var(--sat-orange); 
+}
+</style>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Seja Sócio Torcedor{% endblock %}
+
+{% block content %}
+<div class="container py-4 animate-fade-in">
+    <div class="sat-card border-sat-glow mb-5 animate-slide-up" style="background: linear-gradient(145deg, #161b22, #0b0e14);">
+        <div class="row align-items-center p-3">
+            <div class="col-md-8">
+                <h1 class="fw-black text-white display-5">APOIE SUA TORCIDA. <span class="text-sat">GANHE XP.</span></h1>
+                <p class="opacity-75 text-white fs-5">Sócios têm prioridade em ingressos, descontos na loja e XP em dobro.</p>
+            </div>
+            <div class="col-md-4 text-center text-md-end d-none d-md-block">
+                <i class="bi bi-gem display-1 text-sat animate-pulse-slow"></i>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="fw-black text-uppercase small text-sat mb-4 animate-slide-up" style="animation-delay: 0.1s;">Escolha seu Plano de Paixão</h5>
+    
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-4 animate-slide-up" style="animation-delay: 0.2s;">
+            <div class="sat-card text-center h-100 card-hover-premium">
+                <h5 class="fw-black text-white-50">PLANO BRONZE</h5>
+                <h2 class="my-4 fw-black text-white">R$ 19,90<small class="fs-6 opacity-50">/mês</small></h2>
+                <ul class="list-unstyled text-start mb-5">
+                    <li class="mb-3 text-white-50"><i class="bi bi-patch-check text-sat me-2"></i> Carteirinha Digital</li>
+                    <li class="mb-3 text-white-50"><i class="bi bi-patch-check text-sat me-2"></i> 5% OFF na Loja</li>
+                    <li class="mb-3 text-white-50"><i class="bi bi-patch-check text-sat me-2"></i> Rede Social Exclusiva</li>
+                </ul>
+                <button class="btn btn-outline-sat w-100 py-3 fw-black">ASSINAR AGORA</button>
+            </div>
+        </div>
+        
+        <div class="col-md-4 animate-slide-up" style="animation-delay: 0.3s;">
+            <div class="sat-card text-center h-100 border-sat-glow position-relative overflow-hidden card-hover-premium active-plan">
+                <div class="badge-destaque">MAIS POPULAR</div>
+                <h5 class="fw-black text-sat">PLANO DIAMANTE</h5>
+                <h2 class="my-4 fw-black text-white">R$ 59,90<small class="fs-6 opacity-50">/mês</small></h2>
+                <ul class="list-unstyled text-start mb-5">
+                    <li class="mb-3 text-white"><i class="bi bi-stars text-sat me-2"></i> Certificado Blockchain</li>
+                    <li class="mb-3 text-white"><i class="bi bi-stars text-sat me-2"></i> 20% OFF na Loja</li>
+                    <li class="mb-3 text-white"><i class="bi bi-stars text-sat me-2"></i> Prioridade em Caravanas</li>
+                </ul>
+                <button class="btn btn-sat w-100 py-3 fw-black btn-glow-action">ASSINAR AGORA</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root { 
+        --sat-orange: #ff6b00; 
+        --sat-glow: rgba(255, 107, 0, 0.4);
+    }
+
+    /* Animações de Entrada */
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulseSlow { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } }
+
+    .animate-fade-in { animation: fadeIn 0.8s ease-out; }
+    .animate-slide-up { animation: slideUp 0.6s ease-out backwards; }
+    .animate-pulse-slow { animation: pulseSlow 3s infinite ease-in-out; }
+
+    /* Classes de Estilo SAT */
+    .text-sat { color: var(--sat-orange) !important; }
+    .border-sat-glow { border: 2px solid var(--sat-orange) !important; box-shadow: 0 0 20px var(--sat-glow); }
+    
+    .sat-card {
+        background: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 24px;
+        padding: 35px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .card-hover-premium:hover {
+        transform: translateY(-15px) scale(1.02);
+        border-color: var(--sat-orange);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 25px var(--sat-glow);
+    }
+
+    .btn-sat {
+        background: var(--sat-orange) !important;
+        border: none;
+        color: #000 !important;
+        box-shadow: 0 0 15px var(--sat-glow);
+    }
+
+    .btn-outline-sat {
+        color: var(--sat-orange) !important;
+        border: 2px solid var(--sat-orange) !important;
+        background: transparent;
+    }
+
+    .btn-outline-sat:hover {
+        background: var(--sat-orange) !important;
+        color: #000 !important;
+    }
+
+    .badge-destaque {
+        background: var(--sat-orange);
+        color: #000;
+        font-weight: 900;
+        font-size: 0.7rem;
+        padding: 5px 20px;
+        position: absolute;
+        top: 20px;
+        right: -30px;
+        transform: rotate(45deg);
+        width: 150px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .active-plan {
+        background: linear-gradient(145deg, #161b22, #05070a);
+    }
+</style>
+{% endblock %}

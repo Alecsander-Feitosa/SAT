@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <h1 class="display-4">Loja Oficial</h1>
+            <p class="text-muted">Equipamentos licenciados da {{ torcida.nome }}.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for produto in produtos %}
+        <div class="col-md-3">
+            <div class="sat-card p-2">
+                <div class="bg-black rounded mb-3 overflow-hidden" style="height: 250px;">
+                    <img src="{{ produto.imagem.url }}" class="w-100 h-100 shadow-sm" style="object-fit: contain;">
+                </div>
+                <div class="px-2">
+                    <span class="text-orange small fw-bold">{{ produto.categoria }}</span>
+                    <h5 class="fw-bold my-1">{{ produto.nome }}</h5>
+                    <h4 class="mb-3">R$ {{ produto.preco }}</h4>
+                    <button class="btn btn-sat w-100 btn-sm">Comprar</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Acesso ao Sistema SAT{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-md-5 col-lg-4">
+        <div class="sat-card border-warning p-4 shadow-lg" style="border-top: 4px solid var(--primary-orange);">
+            <div class="text-center mb-4">
+                <i class="bi bi-shield-lock display-4 text-warning"></i>
+                <h4 class="fw-bold text-white mt-2">ÁREA DO TORCEDOR</h4>
+                <p class="small text-muted">Acesse para gerir seu perfil e engajamento </p>
+            </div>
+
+            {% if form.errors %}
+                <div class="alert alert-danger small py-2">
+                    Usuário ou senha incorretos. Tente novamente.
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="id_username" class="small fw-bold opacity-50 mb-1">NOME DE USUÁRIO</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-person"></i></span>
+                        <input type="text" name="username" id="id_username" 
+                               class="form-control bg-dark text-white border-secondary" 
+                               placeholder="Seu usuário" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="id_password" class="small fw-bold opacity-50 mb-1">SENHA</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password" id="id_password" 
+                               class="form-control bg-dark text-white border-secondary" 
+                               placeholder="Sua senha" required>
+                    </div>
+                </div>
+
+                <input type="hidden" name="next" value="{{ next }}">
+                
+                <button type="submit" class="btn btn-warning w-100 fw-bold py-2 mb-3">
+                    ENTRAR NO SISTEMA
+                </button>
+
+                <div class="text-center">
+                    <a href="{% url 'cadastro' %}" class="small text-warning text-decoration-none">
+                        Ainda não faz parte? Cadastre-se aqui
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
