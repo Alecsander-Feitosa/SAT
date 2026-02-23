@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking da Torcida - SAT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-white font-sans">
+
+    <div class="max-w-md mx-auto p-4">
+        <header class="flex items-center justify-between mb-8">
+            <h1 class="text-2xl font-bold italic tracking-tighter text-orange-500">SAT RANKING</h1>
+            <div class="bg-gray-800 p-2 rounded-lg">
+                <i class="fas fa-trophy text-yellow-400"></i>
+            </div>
+        </header>
+
+        <div class="space-y-3">
+            {% for perfil in ranking %}
+            <div class="bg-gray-800 rounded-xl p-4 flex items-center justify-between border-l-4 shadow-lg" 
+                 style="border-color: {{ perfil.nivel.cor_tema|default:'#e67e22' }};">
+
+                <div class="flex items-center gap-4">
+                    <span class="text-lg font-black w-6 text-center">
+                        {% if forloop.counter == 1 %}
+                            <i class="fas fa-medal text-yellow-400"></i>
+                        {% elif forloop.counter == 2 %}
+                            <i class="fas fa-medal text-gray-400"></i>
+                        {% elif forloop.counter == 3 %}
+                            <i class="fas fa-medal text-amber-600"></i>
+                        {% else %}
+                            <span class="text-gray-500 text-sm">#{{ forloop.counter }}</span>
+                        {% endif %}
+                    </span>
+
+                    <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center border-2" 
+                        style="border-color: {{ perfil.nivel.cor_tema|default:'#e67e22' }};">
+                        <i class="fas fa-user text-gray-400"></i>
+                    </div>
+
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <h2 class="font-bold text-gray-100 uppercase tracking-tight text-sm">
+                                {{ perfil.user.username }}
+                            </h2>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full text-white uppercase" 
+                                style="background-color: {{ perfil.nivel.cor_tema|default:'#e67e22' }};">
+                                {{ perfil.nivel.nome|default:"Torcedor" }}
+                            </span>
+                        </div>
+
+                        <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1 overflow-hidden">
+                            <div class="h-full transition-all duration-500 rounded-full" 
+                                style="width: 75%; background-color: {{ perfil.nivel.cor_tema|default:'#e67e22' }}; shadow: 0 0 8px {{ perfil.nivel.cor_tema|default:'#e67e22' }}88;">
+                            </div>
+                        </div>
+                        <p class="text-[9px] text-gray-400 mt-1 italic">Rumo ao próximo nível...</p>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <p class="text-sm font-bold text-orange-500">{{ perfil.xp_total }} XP</p>
+                    <p class="text-[10px] text-gray-400 uppercase">Pontos Totais</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-10 text-gray-500">
+                <p>Nenhum torcedor pontuou ainda. <br>Seja o primeiro!</p>
+            </div>
+            {% endfor %}
+        </div>
+
+
+        {% if meu_rank %}
+        <div class="mb-6 p-4 rounded-xl bg-orange-600/20 border border-orange-500/50 shadow-[0_0_15px_rgba(255,107,0,0.2)]">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl font-black text-orange-500">#{{ meu_rank.rank }}</span>
+                    <div>
+                        <p class="text-xs uppercase font-bold text-orange-400">Sua Posição</p>
+                        <p class="font-bold text-white">{{ request.user.username|upper }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-black text-white">{{ meu_rank.perfil.xp_total }} XP</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <footer class="mt-10">
+            <a href="{% url 'dashboard' %}" class="block w-full text-center bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-lg transition-colors">
+                VOLTAR PARA MEU PERFIL
+            </a>
+        </footer>
+    </div>
+
+</body>
+</html>

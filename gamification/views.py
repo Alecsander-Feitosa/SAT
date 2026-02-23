@@ -1,29 +1,28 @@
 import math
-from django.http import JsonResponse
-from .models import CheckIn, PerfilGamificacao
-from organizadas.models import Evento
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Perfil
-from gamification.models import PerfilGamificacao, CheckIn, BadgeUsuario
-from store.models import Produto
+from django.http import JsonResponse
+from django.utils import timezone
+# Importações de outros apps
+from accounts.models import Perfil 
+from organizadas.models import Evento
+
+# Importações deste app (gamification)
+from .models import PerfilGamificacao, CheckIn, BadgeUsuario, Nivel, Partida
 
 @login_required
 def dashboard(request):
-    """
-    Página principal que exibe os pontos, nível e o resumo do torcedor.
-    """
-    # Garante que o perfil de gamificação existe para evitar erro 500 no dashboard
-    perfil_game, created = PerfilGamificacao.objects.get_or_create(user=request.user)
+    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
     
-    # Busca os últimos 5 check-ins e conquistas do usuário
-    ultimos_checkins = CheckIn.objects.filter(user=request.user).order_by('-data')
-    conquistas = BadgeUsuario.objects.filter(user=request.user).select_related('badge')
+    # Se você usa o app 'content' para notícias:
+    from content.models import Noticia # Verifique se este é o nome do seu model
+    noticias_lista = Noticia.objects.all().order_by('-data_publicacao')[:5]
     
     context = {
-        'perfil': perfil_game,
-        'checkins': ultimos_checkins,
-        'conquistas': conquistas,
+        'perfil_game': perfil_game,
+        'noticias': noticias_lista,
+        'xp_faltante': 100, # Adicione sua lógica de cálculo aqui
+        'xp_progresso': perfil_game.progresso_nivel(),
     }
     return render(request, 'dashboard.html', context)
 
@@ -65,27 +64,90 @@ def calcular_distancia(lat1, lon1, lat2, lon2):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return raio_terra * c * 1000  # Retorna em metros
 
+
 @login_required
 def validar_checkin_estadio(request):
+    """
+    View atualizada com os campos corretos do modelo Evento.
+    """
     if request.method == 'POST':
-        lat_user = float(request.POST.get('latitude'))
-        lon_user = float(request.POST.get('longitude'))
-        evento_id = request.POST.get('evento_id')
-        
-        evento = Evento.objects.get(id=evento_id)
-        
-        # Distância máxima permitida: 500 metros do centro do estádio 
-        distancia = calcular_distancia(lat_user, lon_user, evento.latitude, evento.longitude)
-        
-        if distancia <= 500:
-            # Cria o registro de presença e dispara o ganho de XP 
-            CheckIn.objects.create(
-                user=request.user,
-                evento=evento,
-                latitude=lat_user,
-                longitude=lon_user,
-                validado=True
-            )
-            return JsonResponse({'status': 'sucesso', 'mensagem': 'Check-in realizado! +50 XP'})
-        else:
-            return JsonResponse({'status': 'erro', 'mensagem': 'Você não está no estádio!'}, status=400)
+        try:
+            lat_user = float(request.POST.get('latitude'))
+            lon_user = float(request.POST.get('longitude'))
+            evento_id = request.POST.get('evento_id')
+            foto_arquivo = request.FILES.get('foto')
+
+            from organizadas.models import Evento 
+            evento = Evento.objects.get(id=evento_id)
+            
+            # Nota: Certifique-se que o modelo Evento tenha campos 'latitude' e 'longitude'
+            # Caso contrário, precisaremos ajustar a função calcular_distancia
+            distancia = calcular_distancia(lat_user, lon_user, evento.latitude, evento.longitude)
+            
+            if distancia <= 500:
+                CheckIn.objects.create(
+                    user=request.user,
+                    evento=evento,
+                    latitude=lat_user,
+                    longitude=lon_user,
+                    foto=foto_arquivo,
+                    validado=True
+                )
+                return JsonResponse({'status': 'sucesso', 'mensagem': 'Check-in realizado! +50 XP'})
+            else:
+                return JsonResponse({'status': 'erro', 'mensagem': 'Você está longe demais do local.'}, status=400)
+
+        except Exception as e:
+            return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=500)
+
+    # --- CORREÇÃO DO MÉTODO GET ---
+    from organizadas.models import Evento
+    from django.utils import timezone
+
+    # Ajustado de 'data_hora' para 'data_evento' conforme o erro reportado
+    proximo_evento = Evento.objects.filter(
+        data_evento__gte=timezone.now()
+    ).order_by('data_evento').first()
+    
+    return render(request, 'checkin.html', {'evento': proximo_evento})
+    # --- LÓGICA PARA O MÉTODO GET (Evita o erro anterior) ---
+    from organizadas.models import Evento
+    
+    # Busca o evento mais próximo que ainda não aconteceu
+    proximo_evento = Evento.objects.filter(
+        data_hora__gte=timezone.now()
+    ).order_by('data_hora').first()
+    
+    context = {
+        'evento': proximo_evento,
+    }
+    
+    return render(request, 'checkin.html', context)
+
+
+@login_required
+def ranking_torcida(request):
+    # Top 10 geral
+    top_torcedores = PerfilGamificacao.objects.select_related('user', 'nivel').order_by('-xp_total')[:10]
+    
+    # Posição do usuário logado
+    todos = PerfilGamificacao.objects.order_by('-xp_total')
+    posicao_usuario = None
+    count = 1
+    for p in todos:
+        if p.user == request.user:
+            posicao_usuario = {'perfil': p, 'rank': count}
+            break
+        count += 1
+
+    return render(request, 'ranking.html', {
+        'ranking': top_torcedores,
+        'meu_rank': posicao_usuario
+    })
+
+@login_required
+def mural_presenca(request):
+    # Pegamos os últimos 20 check-ins validados
+    checkins = CheckIn.objects.filter(validado=True).select_related('user', 'user__perfil_game', 'evento').order_by('-data')[:20]
+    
+    return render(request, 'mural_presenca.html', {'checkins': checkins})

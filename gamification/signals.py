@@ -1,21 +1,16 @@
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.auth.models import User # Importação que faltava
-from .models import CheckIn, Badge, BadgeUsuario
-
-# Importe os modelos dos outros apps
+from django.contrib.auth.models import User
+from .models import CheckIn, Badge, BadgeUsuario, Nivel, PerfilGamificacao
 from accounts.models import Perfil 
-from gamification.models import PerfilGamificacao
 from content.models import Notificacao
-
 
 @receiver(post_save, sender=User)
 def configurar_novo_torcedor(sender, instance, created, **kwargs):
     if created:
-        # Agora as chamadas abaixo funcionarão corretamente
-        Perfil.objects.create(user=instance)
-        PerfilGamificacao.objects.create(user=instance)
+        Perfil.objects.get_or_create(user=instance)
+        PerfilGamificacao.objects.get_or_create(user=instance)
         Notificacao.objects.create(
             user=instance, 
             titulo="Bem-vindo ao SAT!",
@@ -26,19 +21,13 @@ def configurar_novo_torcedor(sender, instance, created, **kwargs):
 @receiver(post_save, sender=CheckIn)
 def processar_conquistas(sender, instance, created, **kwargs):
     if created and instance.validado:
-        perfil_game = PerfilGamificacao.objects.get(user=instance.user)
+        perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=instance.user)
         
-        # 1. Adiciona XP por presença [cite: 92]
+        # Adiciona 50 XP por presença confirmada
         perfil_game.xp_total += 50
-        perfil_game.save()
         
-        # 2. Lógica para Badge "Viajante" 
-        if instance.evento.tipo == 'FORA':
-            badge_viajante = Badge.objects.get(slug='viajante')
-            BadgeUsuario.objects.get_or_create(user=instance.user, badge=badge_viajante)
-            
-        # 3. Lógica para "Invicto" (10 jogos seguidos) 
-        total_seguidos = CheckIn.objects.filter(user=instance.user, validado=True).count()
-        if total_seguidos >= 10:
-            badge_invicto = Badge.objects.get(slug='invicto')
-            BadgeUsuario.objects.get_or_create(user=instance.user, badge=badge_invicto)
+        # Lógica de atualização de nível
+        novo_nivel = Nivel.objects.filter(xp_minimo__lte=perfil_game.xp_total).order_by('-xp_minimo').first()
+        if novo_nivel:
+            perfil_game.nivel = novo_nivel
+        perfil_game.save()

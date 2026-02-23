@@ -70,9 +70,11 @@
     </style>
 </head>
 <body>
+    {% if user.is_authenticated %}
     <div class="sidebar">
         <img src="/static/img/logo_sat.png" class="img-fluid mb-5 px-2">
         <nav>
+            <nav>
             <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <i class="bi bi-grid-1x2-fill"></i> Dashboard
             </a>
@@ -93,6 +95,11 @@
                 <i class="bi bi-shield-shaded"></i> Minha Torcida
             </a>
             
+            <a href="{% url 'ranking' %}" class="bg-orange-500 text-white p-3 rounded-lg flex items-center justify-between">
+                <span>Ver Ranking da Torcida</span>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+
             <a href="{% url 'seja_socio' %}" class="nav-link {% if request.resolver_match.url_name == 'seja_socio' %}active{% endif %}">
                 <i class="bi bi-person-vcard-fill"></i> Seja Sócio
             </a>
@@ -106,6 +113,11 @@
                 <i class="bi bi-gift-fill"></i> Benefícios
             </a>
 
+            <a href="{% url 'dashboard' %}">Meu Painel</a>
+            <a href="{% url 'ranking' %}">Ranking</a>
+            <a href="{% url 'perfil_gamificacao' %}">Minhas Conquistas</a>
+            <a href="{% url 'validar_checkin' %}" class="btn-checkin">Fazer Check-in</a>
+
             <div class="mt-5">
                 <a href="{% url 'logout' %}" class="nav-link" style="color: #ff4d4d;">
                     <i class="bi bi-power"></i> Sair
@@ -113,9 +125,11 @@
             </div>
         </nav>
     </div>
-    <main class="main-content">
+    {% endif %}
+
+
+    <main class="main-content" style="{% if request.resolver_match.url_name == 'login' or request.resolver_match.url_name == 'cadastro' %} margin-left: 0; width: 100%; {% endif %}">
         {% block content %}{% endblock %}
     </main>
 </body>
 </html>
-

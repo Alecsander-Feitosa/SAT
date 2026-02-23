@@ -1,0 +1,35 @@
+<div class="container mt-4">
+    <h2 class="mb-4">Mural de Presença - SAT</h2>
+    <div class="row">
+        {% for checkin in checkins %}
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-sm" style="border-left: 5px solid {{ checkin.user.perfil_game.nivel.cor_tema|default:'#ccc' }};">
+                {% if checkin.foto %}
+                    <img src="{{ checkin.foto.url }}" class="card-img-top" alt="Selfie" style="height: 200px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-light text-center py-5">Sem Foto</div>
+                {% endif %}
+                
+                <div class="card-body p-2">
+                    <h6 class="card-title mb-1">
+                        {% if checkin.user %}
+                            {{ checkin.user.username }} 
+                            <span class="badge" style="background-color: {{ checkin.user.perfil_game.nivel.cor_tema }};">
+                                {{ checkin.user.perfil_game.nivel.nome }}
+                            </span>
+                        {% else %}
+                            {{ checkin.nome_visitante }} (Visitante)
+                        {% endif %}
+                    </h6>
+                    <p class="card-text small text-muted">
+                        <i class="bi bi-calendar-event"></i> {{ checkin.evento.nome }}<br>
+                        <i class="bi bi-clock"></i> {{ checkin.data|date:"H:i" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center">Nenhum check-in realizado ainda.</p>
+        {% endfor %}
+    </div>
+</div>
