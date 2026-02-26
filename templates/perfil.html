@@ -2,281 +2,104 @@
 {% load static %}
 
 {% block content %}
-<div class="container py-4 animate-fade-in">
-    <div class="header-perfil mb-4 animate-slide-up">
-        <h1 class="text-white fw-black m-0">Meu Perfil</h1>
-        <p class="text-sat fw-bold opacity-75">Complete suas informações para ter acesso total à plataforma</p>
+<style>
+/* Estilo para os inputs gerados pelo Django Form */
+.sat-input {
+    background-color: #161b22 !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 16px !important;
+    color: white !important;
+    padding: 12px 20px !important;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.sat-input:focus {
+    border-color: #D37129 !important;
+    outline: none;
+    box-shadow: 0 0 10px rgba(211, 113, 41, 0.2);
+}
+
+/* Ajuste para labels */
+label {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-left: 10px;
+    margin-bottom: 5px;
+    display: block;
+}
+</style>
+
+<div class="min-h-screen bg-[#0c0d0e] pb-32 px-6 pt-10">
+    <div class="flex items-center gap-3 mb-8">
+        <a href="{% url 'dashboard' %}" class="text-gray-400"><i class="bi bi-chevron-left text-xl"></i></a>
+        <h1 class="text-xl font-black text-white uppercase italic">Configurações de <span class="text-[#D37129]">Perfil</span></h1>
     </div>
 
-    <div class="sat-card mb-4 border-0 card-hover-glow" style="background: #161b22;">
-        <div class="d-flex align-items-center gap-4">
-            <div class="position-relative">
-                <label for="id_foto" style="cursor: pointer;">
-                    {% if perfil.foto %}
-                        <img src="{{ perfil.foto.url }}" class="rounded-circle border-sat-glow" width="120" height="120" style="object-fit: cover;">
-                    {% else %}
-                        <div class="rounded-circle bg-sat d-flex align-items-center justify-content-center text-dark fs-1 fw-bold border-sat-glow" style="width: 120px; height: 120px;">
-                            {{ user.first_name|first|upper }}
-                        </div>
-                    {% endif %}
-                    <div class="btn-sat-circle position-absolute bottom-0 end-0 rounded-circle p-2 shadow animate-pulse">
-                        <i class="bi bi-camera-fill text-dark"></i>
-                    </div>
-                </label>
-                <input type="file" name="foto" id="id_foto" class="d-none" accept="image/*" onchange="this.form.submit()">
-            </div>
-            <div>
-                <h5 class="text-white fw-bold mb-1">Foto de Perfil</h5>
-                <p class="small text-sat mb-2">Clique na imagem para alterar</p>
-                <label for="id_foto" class="btn btn-outline-sat btn-sm px-4 fw-bold" style="cursor: pointer;">SELECIONAR ARQUIVO</label>
-            </div>
-        </div>
-    </div>
-    <form method="POST" enctype="multipart/form-data" class="animate-slide-up" style="animation-delay: 0.2s;">
+    <form method="POST" enctype="multipart/form-data" class="space-y-8">
         {% csrf_token %}
 
-        <div class="sat-card mb-4 card-hover-glow">
-            <h6 class="text-white mb-4"><i class="bi bi-person-vcard text-sat me-2"></i> Dados Pessoais</h6>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label small text-sat fw-bold">NOME COMPLETO *</label>
-                    <input type="text" class="form-control sat-input" value="{{ user.first_name }} {{ user.last_name }}">
+        <div class="text-center">
+            <div class="relative w-32 h-32 mx-auto mb-4">
+                <img src="{% if perfil.foto %}{{ perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=D37129&color=fff{% endif %}" class="w-full h-full rounded-full object-cover border-4 border-[#D37129]">
+                <label for="id_foto" class="absolute bottom-0 right-0 bg-[#D37129] w-10 h-10 rounded-full flex items-center justify-center cursor-pointer border-4 border-[#0c0d0e]">
+                    <i class="bi bi-camera-fill text-white"></i>
+                </label>
+                <input type="file" name="foto" id="id_foto" class="hidden">
+            </div>
+            <p class="text-[10px] text-gray-500 uppercase font-black">Toque na câmera para mudar o avatar</p>
+        </div>
+
+        <div class="space-y-4">
+            <h3 class="text-[#D37129] font-black text-xs uppercase tracking-widest border-l-4 border-[#D37129] pl-3">Dados Pessoais</h3>
+            <div class="grid grid-cols-1 gap-4">
+                <div><label>Data de Nascimento</label>{{ form.data_nascimento }}</div>
+                <div><label>RG ou CNH</label>{{ form.rg_cnh }}</div>
+                <div><label>Órgão Expedidor</label>{{ form.orgao_expedidor }}</div>
+                <div><label>WhatsApp / Telefone</label>{{ form.whatsapp }}</div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <h3 class="text-[#D37129] font-black text-xs uppercase tracking-widest border-l-4 border-[#D37129] pl-3">Endereço</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2"><label>CEP</label>{{ form.cep }}</div>
+                <div class="col-span-2"><label>Rua</label>{{ form.rua }}</div>
+                <div><label>Número</label>{{ form.numero }}</div>
+                <div><label>Bairro</label>{{ form.bairro }}</div>
+                <div><label>Cidade</label>{{ form.cidade }}</div>
+                <div><label>UF</label>{{ form.uf }}</div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <h3 class="text-[#D37129] font-black text-xs uppercase tracking-widest border-l-4 border-[#D37129] pl-3">Documentação</h3>
+            <div class="grid grid-cols-1 gap-4">
+                <div class="border-2 border-dashed border-gray-800 p-4 rounded-2xl">
+                    <label>Frente do Documento</label>
+                    {{ form.foto_documento_frente }}
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label small text-sat fw-bold">EMAIL *</label>
-                    <input type="email" class="form-control sat-input" value="{{ user.email }}">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small text-sat fw-bold">CPF *</label>
-                    <input type="text" class="form-control sat-input" value="{{ perfil.cpf }}">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small text-sat fw-bold">DATA DE NASCIMENTO *</label>
-                    <input type="date" class="form-control sat-input">
+                <div class="border-2 border-dashed border-gray-800 p-4 rounded-2xl">
+                    <label>Selfie (Verificação Facial)</label>
+                    {{ form.verificacao_facial }}
                 </div>
             </div>
         </div>
 
-        <div class="sat-card mb-4 card-hover-glow">
-            <h6 class="text-white mb-4"><i class="bi bi-geo-alt-fill text-sat me-2"></i> Endereço</h6>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label small text-sat fw-bold">CEP *</label>
-                    <div class="input-group">
-                        <input type="text" name="cep" id="id_cep" class="form-control sat-input" placeholder="00000-000">
-                        <button class="btn btn-sat px-3 fw-bold" type="button" onclick="buscarCEP()">BUSCAR</button>
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    <label class="form-label small text-sat fw-bold">RUA *</label>
-                    <input type="text" name="rua" id="id_rua" class="form-control sat-input">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small text-sat fw-bold">NÚMERO *</label>
-                    <input type="text" name="numero" class="form-control sat-input">
-                </div>
-                <div class="col-md-9">
-                    <label class="form-label small text-sat fw-bold">BAIRRO *</label>
-                    <input type="text" name="bairro" id="id_bairro" class="form-control sat-input">
-                </div>
-            </div>
-        </div>
-        <div class="sat-card mb-4 card-hover-glow animate-slide-up" style="animation-delay: 0.3s;">
-            <h6 class="text-white mb-2"><i class="bi bi-file-earmark-arrow-up-fill text-sat me-2"></i> DOCUMENTAÇÃO DE IDENTIDADE</h6>
-            <p class="small text-sat mb-4 opacity-75">Envie fotos nítidas (RG ou CNH) para liberar sua carteirinha virtual.</p>
-            
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <div class="upload-zone p-3 text-center border-sat-dashed">
-                        {% if perfil.foto_documento_frente %}
-                            <div class="preview-container mb-3 position-relative">
-                                <img src="{{ perfil.foto_documento_frente.url }}" class="img-fluid rounded border-sat-glow" style="max-height: 120px;">
-                                <span class="badge bg-success position-absolute top-0 start-50 translate-middle mt-2">ENVIADO ✓</span>
-                            </div>
-                        {% endif %}
-                        <label for="id_foto_documento_frente" class="btn btn-outline-sat w-100 py-3 fw-bold">
-                            <i class="bi bi-camera me-2"></i> FRENTE DO DOC
-                        </label>
-                        <input type="file" name="foto_documento_frente" id="id_foto_documento_frente" class="d-none" accept="image/*">
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="upload-zone p-3 text-center border-sat-dashed">
-                        {% if perfil.foto_documento_verso %}
-                            <div class="preview-container mb-3 position-relative">
-                                <img src="{{ perfil.foto_documento_verso.url }}" class="img-fluid rounded border-sat-glow" style="max-height: 120px;">
-                                <span class="badge bg-success position-absolute top-0 start-50 translate-middle mt-2">ENVIADO ✓</span>
-                            </div>
-                        {% endif %}
-                        <label for="id_foto_documento_verso" class="btn btn-outline-sat w-100 py-3 fw-bold">
-                            <i class="bi bi-camera me-2"></i> VERSO DO DOC
-                        </label>
-                        <input type="file" name="foto_documento_verso" id="id_foto_documento_verso" class="d-none" accept="image/*">
-                    </div>
-                </div>
+        <div class="space-y-4">
+            <h3 class="text-[#D37129] font-black text-xs uppercase tracking-widest border-l-4 border-[#D37129] pl-3">Torcida</h3>
+            <div class="grid grid-cols-1 gap-4">
+                <div><label>Vulgo</label>{{ form.vulgo }}</div>
+                <div><label>Pelotão</label>{{ form.pelotao }}</div>
+                <div><label>Rede Social</label>{{ form.rede_social }}</div>
             </div>
         </div>
 
-
-
-        <div class="sat-card mb-4 card-hover-glow">
-            <h6 class="text-white mb-2"><i class="bi bi-microsoft-teams text-sat me-2"></i> Identidade na Organizada</h6>
-            <p class="small text-sat mb-4 opacity-75">Como você é reconhecido dentro da {{ torcida.nome|default:"SAT" }}.</p>
-            
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label small text-sat fw-bold">VULGO / APELIDO</label>
-                    <input type="text" name="vulgo" class="form-control sat-input" placeholder="Como a torcida te chama" value="{{ perfil.vulgo|default:'' }}">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small text-sat fw-bold">INSTAGRAM / X (@USUARIO)</label>
-                    <input type="text" name="rede_social" class="form-control sat-input" placeholder="@seuusuario" value="{{ perfil.rede_social|default:'' }}">
-                </div>
-                <div class="col-md-12">
-                    <label class="form-label small text-sat fw-bold">SEU PELOTÃO *</label>
-                    <select name="pelotao" class="form-select sat-input">
-                        <option value="" disabled {% if not perfil.pelotao %}selected{% endif %}>Selecione seu pelotão</option>
-                        <option value="1" {% if perfil.pelotao == '1' %}selected{% endif %}>1º Pelotão (Vanguarda)</option>
-                        <option value="2" {% if perfil.pelotao == '2' %}selected{% endif %}>2º Pelotão (Linha de Frente)</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="sat-card mb-4 card-hover-glow animate-slide-up" style="animation-delay: 0.3s;">
-            <h6 class="text-white mb-2"><i class="bi bi-file-earmark-arrow-up-fill text-sat me-2"></i> DOCUMENTAÇÃO</h6>
-            <p class="small text-sat mb-4 opacity-75">Envie fotos nítidas do seu RG ou CNH para validação.</p>
-            
-            <div class="row g-4">
-                <div class="col-md-6 text-center">
-                    {% if perfil.foto_documento_frente %}
-                        <img src="{{ perfil.foto_documento_frente.url }}" class="img-fluid rounded border-sat-glow mb-2" style="max-height: 100px;">
-                    {% endif %}
-                    <label for="id_foto_documento_frente" class="btn btn-outline-sat w-100 py-3">
-                        <i class="bi bi-camera me-2"></i> FRENTE DO DOC
-                    </label>
-                    <input type="file" name="foto_documento_frente" id="id_foto_documento_frente" class="d-none">
-                </div>
-                <div class="col-md-6 text-center">
-                    {% if perfil.foto_documento_verso %}
-                        <img src="{{ perfil.foto_documento_verso.url }}" class="img-fluid rounded border-sat-glow mb-2" style="max-height: 100px;">
-                    {% endif %}
-                    <label for="id_foto_documento_verso" class="btn btn-outline-sat w-100 py-3">
-                        <i class="bi bi-camera me-2"></i> VERSO DO DOC
-                    </label>
-                    <input type="file" name="foto_documento_verso" id="id_foto_documento_verso" class="d-none">
-                </div>
-            </div>
-        </div>
-
-        <div class="sat-card mb-4 border-sat-glow animate-bounce-subtle">
-            <div class="d-flex align-items-center mb-3">
-                <div class="p-2 rounded bg-sat-low me-3">
-                    <i class="bi bi-person-bounding-box text-sat fs-4"></i>
-                </div>
-                <div>
-                    <h6 class="text-white m-0 fw-bold">BIOMETRIA FACIAL</h6>
-                    <small class="text-sat opacity-75">AUTENTICAÇÃO DE SEGURANÇA</small>
-                </div>
-            </div>
-            
-            <div class="alert-sat-dark mb-4">
-                <p class="small m-0 text-white">
-                    <i class="bi bi-shield-fill-exclamation text-sat me-2"></i>
-                    A verificação é obrigatória para liberar a <strong>Carteirinha Virtual</strong>.
-                </p>
-            </div>
-
-            <button type="button" class="btn btn-facial-sat w-100 py-3 fw-black btn-glow-action">
-                INICIAR SCANNER FACIAL
-            </button>
-        </div>
-
-        </div> </div> <div class="text-end mb-5">
-            <button type="submit" class="btn btn-sat px-5 py-3 fw-black btn-glow-action">
-                SALVAR INFORMAÇÕES
-            </button>
-        </div>
+        <button type="submit" class="w-full bg-[#D37129] text-white font-black py-4 rounded-2xl uppercase italic tracking-widest shadow-lg shadow-[#D37129]/20 active:scale-95 transition-all">
+            Salvar Alterações
+        </button>
     </form>
 </div>
-
-<style>
-    :root { 
-        --sat-orange: #ff6b00; 
-        --sat-glow: rgba(255, 107, 0, 0.4);
-    }
-
-    /* Animações de Entrada */
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 5px var(--sat-orange); } 50% { box-shadow: 0 0 20px var(--sat-orange); } }
-    
-    .animate-fade-in { animation: fadeIn 0.8s ease-out; }
-    .animate-slide-up { animation: slideUp 0.6s ease-out; }
-    .animate-pulse { animation: pulseGlow 2s infinite; }
-
-    /* Efeitos de Hover e Glow nos Cards */
-    .card-hover-glow {
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        border: 1px solid #30363d !important;
-    }
-    .card-hover-glow:hover {
-        transform: translateY(-5px);
-        border-color: var(--sat-orange) !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 15px var(--sat-glow);
-    }
-
-    .fw-black { font-family: 'Montserrat', sans-serif; font-weight: 900; }
-    .text-sat { color: var(--sat-orange) !important; }
-    .bg-sat { background-color: var(--sat-orange) !important; }
-
-    /* Estilização dos Inputs */
-    .sat-input {
-        background: #161b22 !important;
-        border: 1px solid #30363d;
-        color: #fff !important;
-        padding: 12px;
-        transition: 0.3s;
-    }
-    .sat-input:focus {
-        border-color: var(--sat-orange);
-        box-shadow: 0 0 15px var(--sat-glow);
-        background: #1c2128 !important;
-    }
-
-    /* Botão Salvar Premium */
-    .btn-glow-action {
-        background: var(--sat-orange) !important;
-        border: none;
-        color: #000 !important;
-        box-shadow: 0 0 10px var(--sat-glow);
-        transition: 0.4s;
-    }
-    .btn-glow-action:hover {
-        box-shadow: 0 0 30px var(--sat-orange);
-        transform: scale(1.05);
-    }
-
-    .border-sat-glow {
-        border: 3px solid var(--sat-orange) !important;
-        box-shadow: 0 0 15px var(--sat-glow);
-    }
-
-    .btn-sat-circle {
-        background-color: var(--sat-orange) !important;
-        border: 2px solid #161b22;
-    }
-
-    .btn-outline-sat {
-        color: var(--sat-orange);
-        border: 1px solid var(--sat-orange);
-        transition: 0.3s;
-    }
-    .btn-outline-sat:hover {
-        background: var(--sat-orange);
-        color: #000;
-        box-shadow: 0 0 15px var(--sat-glow);
-    }
-</style>
 {% endblock %}

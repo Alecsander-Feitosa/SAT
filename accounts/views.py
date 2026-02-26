@@ -7,7 +7,7 @@ import qrcode
 from io import BytesIO
 import base64
 import requests
-
+from django.db import models
 # Importações de outros Apps (Cada uma no seu lugar correto)
 from .models import Perfil, Presenca               # Modelos do App Accounts
 from .forms import CadastroForm, PerfilCompletoForm 
@@ -16,8 +16,11 @@ from content.api import api_noticias
 from gamification.models import PerfilGamificacao, Nivel # Modelos do App Gamification
 from organizadas.models import Torcida, Evento
 from django.core.cache import cache
-
-
+from organizadas.models import Noticia
+from organizadas.models import Evento
+from django.utils import timezone
+from .models import Conquista
+from django.contrib.auth.views import LoginView
 
 
 def cadastro(request):
@@ -38,76 +41,57 @@ def dashboard(request):
     perfil = request.user.perfil
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
     
-    # --- LÓGICA DE NOTÍCIAS COM ATUALIZAÇÃO AUTOMÁTICA ---
-    # Tentamos buscar as notícias guardadas no cache primeiro
-    noticias_reais = cache.get('noticias_futebol')
-
-    if not noticias_reais:
-        # Se não estiver no cache (ou o tempo expirou), busca na API
-        api_key = api_noticias
-        url = f"https://newsapi.org/v2/everything?q=futebol&language=pt&sortBy=publishedAt&pageSize=5&apiKey={api_key}"
-        
+    # 1. Busca Notícias da API focadas em Futebol
+    noticias_api = cache.get('news_api_futebol')
+    if not noticias_api:
         try:
+            # Filtro focado em futebol brasileiro e notícias esportivas
+            url = f'https://newsapi.org/v2/everything?q=futebol+brasileiro+brasileirao&language=pt&sortBy=publishedAt&pageSize=5&apiKey={api_noticias}'
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
-                noticias_reais = response.json().get('articles', [])
-                # Guarda no cache por 2 horas (7200 segundos)
-                cache.set('noticias_futebol', noticias_reais, 7200)
-        except Exception as e:
-            print(f"Erro na API de notícias: {e}")
-            noticias_reais = []
+                noticias_api = response.json().get('articles', [])
+                cache.set('news_api_futebol', noticias_api, 900) # 15 min de cache
+        except Exception:
+            noticias_api = []
 
-    # --- LÓGICA DE XP E CORES DINÂMICAS ---
+    # 2. Dados de XP e Eventos (mantendo sua lógica atual)
     xp_atual = perfil_game.xp_total or 0
-    
-    # CORREÇÃO: Verificamos se o atributo 'nivel' existe e se não é nulo
-    cor_tema = "#ff6b00" # Cor padrão (laranja)
-    if hasattr(perfil_game, 'nivel') and perfil_game.nivel:
-        cor_tema = perfil_game.nivel.cor_tema
-    
-    # Busca o PRÓXIMO nível para a barra
-    proximo_nivel_obj = Nivel.objects.filter(xp_minimo__gt=xp_atual).order_by('xp_minimo').first()
-    
-    meta_xp = proximo_nivel_obj.xp_minimo if proximo_nivel_obj else (xp_atual if xp_atual > 0 else 1000)
+    cor_tema = perfil_game.nivel.cor_tema if perfil_game.nivel else "#D37129"
+    eventos_torcida = Evento.objects.filter(torcida=perfil.torcida).order_by('data_evento')[:3] if perfil.torcida else []
 
-    xp_progresso = min((xp_atual / meta_xp) * 100, 100)
-    xp_faltante = max(meta_xp - xp_atual, 0)
+    proximos_eventos = Evento.objects.filter(
+        data_evento__gte=timezone.now()
+    ).order_by('data_evento')[:3]
 
-
-    eventos_torcida = []
-    if perfil.torcida:
-        # Buscamos os eventos vinculados à torcida do perfil
-        eventos_torcida = Evento.objects.filter(torcida=perfil.torcida).order_by('data_evento')[:3]
-
-    # --- NOVA LÓGICA: Busca IDs dos eventos que o usuário já confirmou ---
-    user_presencas = Presenca.objects.filter(user=request.user).values_list('evento_id', flat=True)
+    conquistas = Conquista.objects.all()
 
     context = {
+        'conquistas': conquistas,
+        'eventos': proximos_eventos,
         'perfil': perfil,
-        'torcida': perfil.torcida,
         'perfil_game': perfil_game,
-        'noticias': noticias_reais,
-        'xp_progresso': xp_progresso,
-        'xp_faltante': xp_faltante,
+        'noticias': noticias_api, # Enviando a lista da API
         'cor_tema': cor_tema,
+        'xp_atual': xp_atual,
         'eventos': eventos_torcida,
-        'user_presencas': user_presencas,
     }
     return render(request, 'dashboard.html', context)
 
 @login_required
 def editar_perfil(request):
-    perfil, _ = Perfil.objects.get_or_create(user=request.user)
+    # O use de get_or_create evita que o erro ocorra se o perfil sumir do banco
+    perfil, created = Perfil.objects.get_or_create(user=request.user) 
+    
     if request.method == 'POST':
         form = PerfilCompletoForm(request.POST, request.FILES, instance=perfil)
         if form.is_valid():
             form.save()
-            messages.success(request, "Perfil atualizado!")
-            return redirect('dashboard')
+            messages.success(request, "Perfil atualizado com sucesso!")
+            return redirect('perfil')
     else:
         form = PerfilCompletoForm(instance=perfil)
+    
     return render(request, 'perfil.html', {'form': form, 'perfil': perfil})
-
 @login_required
 def carteirinha(request):
     perfil = get_object_or_404(Perfil, user=request.user)
@@ -117,11 +101,50 @@ def carteirinha(request):
     qr_base64 = base64.b64encode(buffer.getvalue()).decode()
     return render(request, 'carteirinha.html', {'perfil': perfil, 'qr_code': qr_base64, 'torcida': perfil.torcida})
 
-@login_required
+
+# accounts/views.py
+import requests
+from django.shortcuts import render
+
+# accounts/views.py
+import requests
+from django.shortcuts import render
+
+# accounts/views.py
 def noticias(request):
-    perfil = get_object_or_404(Perfil, user=request.user)
-    noticias = Post.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')
-    return render(request, 'noticias.html', {'noticias': noticias, 'torcida': perfil.torcida})
+    api_key = "pub_629d163494fb4b3c9f19c706166a65e9"
+    url_api = f"https://newsdata.io/api/1/news?apikey={api_key}&country=br&category=sports&language=pt"
+    
+    lista_final = []
+    
+    # 1. Notícia da Fábrica com campos padronizados
+    lista_final.append({
+        'url': '#',
+        'title': 'NOVA COLEÇÃO DE BONÉS DA BONELARIA',
+        'description': 'Garanta o novo modelo oficial da SAT produzido na nossa fábrica.',
+        'image': 'https://placehold.co/600x400/D37129/white?text=BONELARIA+SAT',
+        'source': 'DIRETORIA'
+    })
+
+    try:
+        response = requests.get(url_api, timeout=5)
+        data = response.json()
+        results = data.get('results', [])
+        
+        for art in results:
+            # 2. Padronizamos os dados da API para os mesmos nomes
+            lista_final.append({
+                'url': art.get('link') or '#',
+                'title': art.get('title') or 'Notícia SAT',
+                'description': art.get('description') or '',
+                'image': art.get('image_url') or 'https://placehold.co/600x400/4A4D4E/white?text=SAT+NEWS',
+                'source': art.get('source_id') or 'FUTEBOL'
+            })
+    except Exception as e:
+        print(f"Erro: {e}")
+
+    return render(request, 'noticias.html', {'noticias': lista_final})
+
 
 @login_required
 def seja_socio(request):
@@ -143,7 +166,7 @@ def torcidas(request):
     
     # Se ele já escolheu, mostramos o Mural (image_e9dbf7.png)
     if perfil.torcida:
-        return render(request, 'mural_torcida.html', {'torcida': perfil.torcida})
+        return render(request, 'mural.html', {'torcida': perfil.torcida})
     
     # Caso contrário, mostramos a lista de escolha
     lista_de_torcidas = Torcida.objects.all()
@@ -178,38 +201,66 @@ def mural_torcida(request):
         'torcida': perfil.torcida,
         'perfil': perfil
     }
-    return render(request, 'mural_torcida.html', context)
+    return render(request, 'mural.html', context)
 
-def regras_view(request):
-    # Renderiza o template com o regulamento da organizada
-    return render(request, 'regras.html')
 
 def socio_view(request):
     # Explica os planos e benefícios de ser sócio
     return render(request, 'seja_socio.html')
 
-def carteirinha_view(request):
+@login_required
+def carteirinha(request):
+    # 1. Busca o perfil básico do usuário (onde está a torcida)
+    perfil = get_object_or_404(Perfil, user=request.user)
+    
+    # 2. Busca o perfil de gamificação (onde estão o nível e o XP)
+    from gamification.models import PerfilGamificacao, BadgeUsuario # Certifique-se dos imports
+    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+    
+    # 3. Busca as medalhas para exibir no destaque da carteirinha
+    badges = BadgeUsuario.objects.filter(user=request.user).select_related('badge')
 
-    perfil = request.user.perfil
-    # Renderiza a carteirinha digital do torcedor
-    return render(request, 'carteirinha.html', {'perfil': perfil})
+    # 4. Lógica de geração do QR Code (sua lógica original preservada)
+    img = qrcode.make(f"SAT-{request.user.id}")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+    
+    # 5. Organiza o contexto com TODOS os dados para o template
+    context = {
+        'perfil': perfil,
+        'perfil_game': perfil_game,
+        'qr_code': qr_base64,
+        'torcida': perfil.torcida,
+        'badges_conquistadas': badges
+    }
+    
+    return render(request, 'carteirinha.html', context)
 
 @login_required
 def confirmar_presenca(request, evento_id):
     if request.method == "POST":
         evento = get_object_or_404(Evento, id=evento_id)
-        # Verifica se já confirmou para não duplicar
-        presenca, created = Presenca.objects.get_or_create(user=request.user, evento=evento)
         
-        if created:
-            # Lógica opcional: dar XP por confirmar presença
-            perfil_game = request.user.perfil_game
-            perfil_game.xp_total += 50
-            perfil_game.save()
-            return JsonResponse({'status': 'sucesso', 'mensagem': 'Presença confirmada! +50 XP'})
+        # 1. Captura os dados do formulário
+        lat = request.POST.get('latitude')
+        lon = request.POST.get('longitude')
+        foto = request.FILES.get('foto')
+
+        # 2. Registra o Check-in (O Signal no models.py dará os 50 XP)
+        checkin = CheckIn.objects.create(
+            user=request.user,
+            evento=evento,
+            latitude=float(lat) if lat else 0.0,
+            longitude=float(lon) if lon else 0.0,
+            foto=foto,
+            validado=True # Aqui você pode adicionar lógica de conferência depois
+        )
         
-        return JsonResponse({'status': 'erro', 'mensagem': 'Você já confirmou presença.'})
-    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido.'})
+        messages.success(request, f"Presença confirmada no {evento.titulo}! +50 XP")
+        return redirect('dashboard')
+    
+    return redirect('detalhe_evento', evento_id=evento_id)
 
 @login_required
 def detalhe_evento(request, evento_id):
@@ -234,13 +285,8 @@ def detalhe_evento(request, evento_id):
     }
     return render(request, 'detalhe_evento.html', context)
 
-@login_required
-def bet_view(request):
-    # Recupera a cor do tema para manter a identidade visual
-    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
-    cor_tema = perfil_game.nivel.cor_tema if perfil_game.nivel else "#ff6b00"
-    
-    return render(request, 'bet_manutencao.html', {'cor_tema': cor_tema})
+def bet_manutencao(request):
+    return render(request, 'bet_manutencao.html', {'cor_tema': '#D37129'})
 
 @login_required
 def beneficios_view(request):
@@ -272,3 +318,79 @@ def perfil_view(request):
         form = PerfilCompletoForm(instance=perfil)
     
     return render(request, 'perfil.html', {'form': form, 'perfil': perfil})
+
+@login_required
+def ranking_torcida(request):
+    from gamification.models import PerfilGamificacao
+    # Busca os top 10 torcedores com mais XP, trazendo o usuário e o nível junto
+    lideres = PerfilGamificacao.objects.select_related('user', 'nivel').order_by('-xp_total')[:10]
+    
+    context = {
+        'lideres': lideres,
+        'cor_tema': "#D37129" # Laranja oficial da SAT
+    }
+    return render(request, 'ranking.html', context)
+
+class Noticia(models.Model):
+    titulo = models.CharField("Título", max_length=200)
+    subtitulo = models.CharField("Subtítulo", max_length=255, blank=True)
+    conteudo = models.TextField("Conteúdo")
+    imagem = models.ImageField("Imagem de Capa", upload_to='noticias/')
+    data_publicacao = models.DateTimeField(auto_now_add=True)
+    autor = models.CharField("Autor", max_length=100, default="Imprensa SAT")
+
+    class Meta:
+        verbose_name = "Notícia"
+        verbose_name_plural = "Notícias" 
+
+    def __str__(self):
+        return self.titulo
+
+@login_required
+def games_hub(request):
+    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+    return render(request, 'games_menu.html', {
+        'perfil_game': perfil_game,
+        'progresso': perfil_game.progresso_nivel()
+    })
+
+
+
+@login_required
+def cartao_socio_view(request):
+    # Esta view renderiza especificamente o cartão estilo banco
+    return render(request, 'torcida/cartao_socio.html')
+
+def area_torcida(request):
+    """Abre o mural.html (Hub com ícones)"""
+    return render(request, 'mural.html')
+
+def galeria_fotos(request):
+    return render(request, 'torcida/galeria.html')
+
+def diretoria_view(request):
+    return render(request, 'torcida/diretoria.html')
+
+def mural_conquistas(request):
+    return render(request, 'torcida/conquistas.html')
+
+def cancoes_torcida(request):
+    return render(request, 'torcida/cancoes.html')
+
+def aliadas_view(request):
+    return render(request, 'torcida/aliadas.html')
+
+def viagens_view(request):
+    return render(request, 'torcida/viagens.html')
+
+def regras_view(request):
+    return render(request, 'torcida/regras.html')
+
+def lista_eventos(request):
+    """Abre o eventos.html puxando do banco"""
+    # Corrigido para 'data_evento' conforme seu modelo
+    eventos = Evento.objects.all().order_by('data_evento')
+    return render(request, 'eventos.html', {'eventos': eventos})
+
+class MyCustomLoginView(LoginView):
+    template_name = 'registration/login.html'

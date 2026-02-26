@@ -1,23 +1,45 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block content %}
-<div class="container py-4 animate-ui">
-    <h1 class="text-white fw-bold mb-4">ÁREA DE NOTÍCIAS</h1>
-    <div class="row g-4">
-        {% for post in noticias %}
-        <div class="col-md-6">
-            <div class="sat-card p-0 overflow-hidden h-100 border-orange">
-                <img src="{{ post.imagem.url|default:'https://placehold.co/800x400/0b0e14/ff4d00?text=SAT+NEWS' }}" class="img-fluid w-100">
-                <div class="p-4">
-                    <span class="badge bg-orange text-black mb-2">{{ post.torcida.nome }}</span>
-                    <h3 class="fw-bold text-white">{{ post.titulo }}</h3>
-                    <p class="opacity-75">{{ post.conteudo|truncatechars:150 }}</p>
-                    <a href="#" class="btn btn-sat btn-sm">Ler Matéria Completa</a>
+<style>
+    .hero-card { position: relative; height: 380px; border-radius: 30px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+    .hero-overlay { position: absolute; bottom: 0; padding: 25px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%); width: 100%; }
+    .news-item { background: white; border-radius: 20px; padding: 12px; display: flex; gap: 15px; align-items: center; border: 1px solid rgba(0,0,0,0.05); }
+    .img-box { width: 90px; height: 90px; border-radius: 15px; overflow: hidden; flex-shrink: 0; }
+</style>
+
+<div class="bg-[#F8F9FB] min-h-screen pb-32 px-6">
+    <div class="pt-8 pb-6">
+        <h1 class="text-3xl font-black italic text-[#1A1C1E]">SAT <span class="text-[#D37129]">NEWS</span></h1>
+    </div>
+
+    {% if noticias %}
+        {% with d=noticias|first %}
+        <a href="{{ d.url }}" target="_blank" class="no-underline block mb-8">
+            <div class="hero-card">
+                <img src="{{ d.image }}" class="w-full h-full object-cover">
+                <div class="hero-overlay">
+                    <span class="bg-[#D37129] text-white text-[9px] font-black px-3 py-1 rounded-full uppercase mb-2 inline-block">Destaque</span>
+                    <h2 class="text-white text-xl font-bold uppercase italic leading-tight">{{ d.title }}</h2>
                 </div>
             </div>
+        </a>
+        {% endwith %}
+
+        <div class="space-y-4">
+            {% for n in noticias|slice:"1:" %}
+            <a href="{{ n.url }}" target="_blank" class="no-underline block news-item shadow-sm">
+                <div class="img-box">
+                    <img src="{{ n.image }}" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-grow">
+                    <span class="text-[9px] font-black text-[#D37129] uppercase">{{ n.source }}</span>
+                    <h4 class="text-[#1A1C1E] text-sm font-bold leading-tight uppercase italic line-clamp-2 mt-1">{{ n.title }}</h4>
+                </div>
+            </a>
+            {% endfor %}
         </div>
-        {% empty %}
-        <p class="text-muted">Nenhuma notícia cadastrada para sua torcida.</p>
-        {% endfor %}
-    </div>
+    {% endif %}
 </div>
 {% endblock %}

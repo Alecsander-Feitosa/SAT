@@ -1,69 +1,66 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <a href="{% url 'dashboard' %}" class="text-decoration-none small mb-4 d-block" style="color: {{ cor_tema }};">
-                <i class="bi bi-arrow-left"></i> VOLTAR AO DASHBOARD
-            </a>
+<style>
+    .event-detail-bg { background: #121212; min-height: 100vh; color: white; }
+    .hero-banner { height: 350px; position: relative; }
+    .hero-banner img { width: 100%; height: 100%; object-fit: cover; }
+    .detail-card { 
+        background: #1A1C1E; 
+        border-radius: 40px 40px 0 0; 
+        margin-top: -40px; 
+        position: relative; 
+        padding: 40px 24px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+</style>
 
-            <div class="sat-card p-0 overflow-hidden border-0 shadow-lg" style="background: #111827;">
-                {% if evento.imagem_capa %}
-                    <div style="height: 350px; width: 100%;">
-                        <img src="{{ evento.imagem_capa.url }}" class="w-100 h-100 object-fit-cover" style="filter: brightness(0.7);">
-                    </div>
-                {% endif %}
+<div class="event-detail-bg pb-32">
+    <div class="hero-banner">
+        <img src="{{ evento.imagem.url|default:'https://placehold.co/600x400/1A1C1E/white?text=SAT+EVENTO' }}">
+        <a href="{% url 'lista_eventos' %}" class="absolute top-6 left-6 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+    </div>
 
-                <div class="p-5">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h1 class="text-white fw-black m-0 display-5">{{ evento.titulo|upper }}</h1>
-                        <span class="badge p-3 px-4 fs-5 rounded-pill" style="background-color: {{ cor_tema }}; color: #000;">
-                            {{ evento.data_evento|date:"d/m" }}
-                        </span>
-                    </div>
-
-                    <div class="row g-4 mb-5">
-                        <div class="col-md-4">
-                            <div class="p-3 rounded-3" style="background: #1f2937;">
-                                <small class="text-muted d-block text-uppercase fw-bold">Horário</small>
-                                <span class="text-white fs-5"><i class="bi bi-clock me-2" style="color: {{ cor_tema }};"></i> {{ evento.data_evento|date:"H:i" }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="p-3 rounded-3" style="background: #1f2937;">
-                                <small class="text-muted d-block text-uppercase fw-bold">Localização</small>
-                                <span class="text-white fs-5"><i class="bi bi-geo-alt me-2" style="color: {{ cor_tema }};"></i> {{ evento.local }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="informativo-section">
-                        <h5 class="text-white fw-bold mb-3 d-flex align-items-center">
-                            <span style="width: 4px; height: 20px; background: {{ cor_tema }}; display: inline-block; margin-right: 10px;"></span>
-                            INFORMAÇÕES IMPORTANTES
-                        </h5>
-                        <div class="text-white-50 leading-relaxed fs-5">
-                            {{ evento.informativo|linebreaks|default:"Nenhum informativo adicional cadastrado para este evento." }}
-                        </div>
-                    </div>
-
-                    <div class="mt-5 pt-4 border-top border-secondary text-center">
-                        {% if confirmado %}
-                            <div class="alert alert-success bg-success text-white border-0 py-3 fw-bold">
-                                <i class="bi bi-check-circle-fill me-2"></i> VOCÊ JÁ CONFIRMOU PRESENÇA!
-                            </div>
-                        {% else %}
-                            <button class="btn btn-lg w-100 py-3 fw-black btn-confirmar" 
-                                    style="background-color: {{ cor_tema }}; color: #000; border-radius: 12px;"
-                                    data-id="{{ evento.id }}">
-                                CONFIRMAR PRESENÇA E GANHAR XP
-                            </button>
-                        {% endif %}
-                    </div>
-                </div>
+    <div class="detail-card">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <span class="text-[#D37129] font-black text-[10px] uppercase tracking-widest">Informações Gerais</span>
+                <h1 class="text-3xl font-black italic uppercase leading-tight">{{ evento.titulo }}</h1>
             </div>
         </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div class="bg-white/5 p-4 rounded-2xl">
+                <i class="bi bi-calendar-check text-[#D37129] block mb-2"></i>
+                <span class="text-[10px] text-gray-500 uppercase font-bold">Data</span>
+                <p class="text-sm font-bold">{{ evento.data_evento|date:"d/m/Y" }}</p>
+            </div>
+            <div class="bg-white/5 p-4 rounded-2xl">
+                <i class="bi bi-clock text-[#D37129] block mb-2"></i>
+                <span class="text-[10px] text-gray-500 uppercase font-bold">Horário</span>
+                <p class="text-sm font-bold">{{ evento.data_evento|date:"H:i" }}</p>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-xs font-black uppercase text-gray-500 mb-2 tracking-widest">Localização</h3>
+            <div class="flex items-center gap-2 text-gray-300">
+                <i class="bi bi-geo-alt-fill text-[#D37129]"></i>
+                <p class="text-sm font-medium italic">{{ evento.local }}</p>
+            </div>
+        </div>
+
+        <div class="mb-10">
+            <h3 class="text-xs font-black uppercase text-gray-500 mb-2 tracking-widest">Sobre o Evento</h3>
+            <p class="text-gray-400 text-sm leading-relaxed italic">
+                {{ evento.descricao|default:"Nenhuma descrição adicional foi fornecida para este evento." }}
+            </p>
+        </div>
+
+        <a href="{% url 'validar_checkin' %}" class="block w-full py-4 bg-[#D37129] text-white text-center rounded-2xl font-black uppercase italic tracking-widest shadow-lg shadow-[#D37129]/20 active:scale-95 transition-all">
+            Fazer Check-in no Local
+        </a>
     </div>
 </div>
 {% endblock %}

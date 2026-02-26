@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen bg-[#0c0d0e] px-5 pt-10 pb-40">
+    <div class="flex items-center gap-4 mb-8">
+       <a href="{% url 'torcida' %}" class="text-white text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-white">CÓDIGO DE <span class="text-[#D37129]">CONDUTA</span></h1>
+    </div>
+
+    <div class="space-y-3">
+        <div class="bg-[#161b22] p-5 rounded-[28px] border-l-4 border-[#D37129]">
+            <span class="text-[10px] font-black text-[#D37129] uppercase tracking-widest">Regra #01</span>
+            <h4 class="text-white font-bold text-sm mt-1 uppercase">Lealdade Total</h4>
+            <p class="text-gray-400 text-[11px] mt-2 leading-relaxed">Apoiar a SAT e o time em qualquer circunstância, dentro e fora do estádio.</p>
+        </div>
+
+        <div class="bg-[#161b22] p-5 rounded-[28px] border-l-4 border-gray-600">
+            <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Regra #02</span>
+            <h4 class="text-white font-bold text-sm mt-1 uppercase">Respeito às Aliadas</h4>
+            <p class="text-gray-400 text-[11px] mt-2 leading-relaxed">Manter a união e o respeito com todas as torcidas do nosso bloco de alianças.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

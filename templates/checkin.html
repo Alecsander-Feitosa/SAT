@@ -1,77 +1,53 @@
-<div id="checkin-container" style="text-align: center;">
-    <h3>Check-in no Estádio</h3>
-    
-    {% if not user.is_authenticated %}
-        <input type="text" id="nome_visitante" placeholder="Seu Nome/Apelido" class="form-control mb-2">
+{% extends "base.html" %}
+{% block content %}
+<div class="bg-[#121212] min-h-screen pb-32 px-6 flex flex-col items-center justify-center text-center">
+    {% if evento %}
+        <div class="mb-8">
+            <span class="text-[#D37129] font-black text-xs uppercase tracking-[4px]">Próximo Desafio</span>
+            <h1 class="text-white text-3xl font-black italic uppercase mt-2">{{ evento.titulo }}</h1>
+            <p class="text-gray-400 text-sm mt-1">{{ evento.local }}</p>
+        </div>
+
+        <button onclick="fazerCheckIn()" id="btnCheckin" class="w-48 h-48 rounded-full bg-transparent border-4 border-[#D37129] flex flex-col items-center justify-center shadow-[0_0_30px_rgba(211,113,41,0.3)] hover:scale-105 transition-all">
+            <i class="bi bi-geo-alt-fill text-5xl text-[#D37129] mb-2"></i>
+            <span class="text-white font-black text-xs uppercase tracking-widest">Validar<br>Presença</span>
+        </button>
+
+        <p id="status" class="text-gray-500 text-[10px] mt-6 uppercase font-bold tracking-tighter">
+            Toque para ativar o radar de localização
+        </p>
+    {% else %}
+        <p class="text-gray-500 font-bold uppercase">Nenhum evento ativo para check-in no momento.</p>
     {% endif %}
-
-    <div id="camera-area" style="width: 100%; max-width: 400px; margin: auto;">
-        <video id="video" width="100%" autoplay playsinline style="border-radius: 10px; background: #000;"></video>
-        <canvas id="canvas" style="display:none;"></canvas>
-    </div>
-
-    <button id="btn-capturar" class="btn btn-primary mt-3">Confirmar Presença (Foto + GPS)</button>
-    <p id="status-msg" class="mt-2"></p>
 </div>
 
 <script>
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const btnCapturar = document.getElementById('btn-capturar');
-const statusMsg = document.getElementById('status-msg');
-
-// 1. Iniciar Câmera ao carregar a página
-navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
-    .then(stream => { video.srcObject = stream; })
-    .catch(err => { statusMsg.innerText = "Erro ao acessar câmera: " + err; });
-
-btnCapturar.addEventListener('click', () => {
-    statusMsg.innerText = "Localizando e processando...";
+function fazerCheckIn() {
+    const status = document.getElementById('status');
+    status.innerText = "LOCALIZANDO...";
     
-    // 2. Pegar Geolocalização
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(enviarCheckin, (erro) => {
-            statusMsg.innerText = "Erro ao obter GPS. Ative a localização.";
+        navigator.geolocation.getCurrentPosition((pos) => {
+            // Aqui enviamos para a sua view 'validar_checkin_estadio'
+            const formData = new FormData();
+            formData.append('latitude', pos.coords.latitude);
+            formData.append('longitude', pos.coords.longitude);
+            formData.append('evento_id', "{{ evento.id }}");
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            fetch("{% url 'validar_checkin' %}", {
+                method: 'POST',
+                body: formData
+            }).then(r => r.json()).then(data => {
+                if(data.status == 'sucesso') {
+                    alert('BOA GUERREIRO! +50 XP NA CONTA!');
+                    window.location.href = "{% url 'ranking' %}";
+                } else {
+                    alert(data.mensagem);
+                }
+            });
         });
     }
-});
-
-function enviarCheckin(position) {
-    const lat = position.coords.latitude;
-    const lng = position.coords.longitude;
-
-    // 3. Capturar frame do vídeo como imagem
-    const context = canvas.getContext('2d');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    canvas.toBlob((blob) => {
-        const formData = new FormData();
-        formData.append('latitude', lat);
-        formData.append('longitude', lng);
-        formData.append('foto', blob, 'selfie.jpg');
-        formData.append('evento_id', "{{ evento.id }}"); // Passado pelo context do Django
-        
-        const nomeVisitante = document.getElementById('nome_visitante');
-        if(nomeVisitante) formData.append('nome', nomeVisitante.value);
-
-        // 4. Enviar para a View Django (CSRF Token necessário)
-        fetch("{% url 'validar_checkin' %}", {
-            method: 'POST',
-            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'sucesso') {
-                statusMsg.style.color = "green";
-                statusMsg.innerText = data.mensagem;
-            } else {
-                statusMsg.style.color = "red";
-                statusMsg.innerText = data.mensagem;
-            }
-        });
-    }, 'image/jpeg');
 }
 </script>
+{% endblock %}

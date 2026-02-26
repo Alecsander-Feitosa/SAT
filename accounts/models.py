@@ -79,3 +79,13 @@ class Presenca(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.evento.titulo}"
+
+class Conquista(models.Model):
+    titulo = models.CharField(max_length=100)
+    descricao = models.TextField()
+    icone = models.CharField(max_length=50, help_text="Nome do ícone do Bootstrap (ex: bi-award)")
+    xp_necessario = models.IntegerField(default=0)
+    cor_hex = models.CharField(max_length=7, default="#D37129")
+
+    def __str__(self):
+        return self.titulo

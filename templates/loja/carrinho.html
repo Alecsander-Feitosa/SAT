@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .cart-bg { background-color: #0c0d0e; min-height: 100vh; color: #f8f9fa; }
+    .cart-item { background: #1A1C1E; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
+    .btn-delete { 
+        background: rgba(255, 0, 0, 0.1); 
+        color: #ff4444; 
+        width: 35px; height: 35px; 
+        border-radius: 12px; 
+        display: flex; align-items: center; justify-content: center;
+    }
+</style>
+
+<div class="cart-bg pb-40" id="cart-container">
+    <div class="px-5 pt-10 mb-8 flex items-center gap-4">
+        <a href="{% url 'loja_view' %}" class="text-white text-2xl"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter">Meu <span class="text-[#D37129]">Carrinho</span></h1>
+    </div>
+
+    <div class="px-5 space-y-4" id="items-list">
+        {% for item in itens %}
+        <div class="cart-item p-4 flex items-center gap-4" id="item-{{ item.id }}">
+            <div class="w-16 h-16 bg-[#25282b] rounded-xl overflow-hidden flex-none">
+                <img src="{{ item.produto.imagem.url }}" class="w-full h-full object-contain p-1">
+            </div>
+            <div class="flex-grow">
+                <h4 class="text-[11px] font-bold uppercase">{{ item.produto.nome }}</h4>
+                <p class="text-[#D37129] font-black text-sm">R$ {{ item.produto.preco }}</p>
+            </div>
+            <button onclick="excluirItem({{ item.id }})" class="btn-delete border-0">
+                <i class="bi bi-trash3-fill"></i>
+            </button>
+        </div>
+        {% empty %}
+        <div class="text-center py-20" id="empty-msg">
+            <i class="bi bi-cart-x text-6xl text-gray-800"></i>
+            <p class="text-gray-500 font-bold uppercase italic mt-4">Carrinho vazio</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if itens %}
+    <div class="fixed bottom-0 left-0 w-full bg-[#1A1C1E] p-6 rounded-t-[32px] border-t-2 border-[#D37129] shadow-2xl">
+        <div class="flex justify-between items-center mb-6 px-2">
+            <span class="text-gray-400 font-bold uppercase text-[10px]">Total</span>
+            <span class="text-2xl font-black text-white">R$ <span id="total-cart">{{ total }}</span></span>
+        </div>
+        <button class="w-full bg-[#D37129] text-white py-4 rounded-2xl font-black uppercase italic tracking-widest active:scale-95 transition-all">
+            Finalizar Pedido
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function excluirItem(itemId) {
+    if(!confirm('Remover este item?')) return;
+
+    fetch(`/loja/remover/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'sucesso') {
+            document.getElementById(`item-${itemId}`).remove();
+            document.getElementById('total-cart').innerText = data.novo_total;
+            
+            if(data.carrinho_vazio) {
+                location.reload(); // Recarrega para mostrar a tela de vazio
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

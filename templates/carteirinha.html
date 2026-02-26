@@ -2,210 +2,98 @@
 {% load static %}
 
 {% block content %}
-<div class="wallet-wrapper animate-fade-in">
-    <div class="card-container">
+<style>
+    .card-canvas {
+        background: linear-gradient(145deg, #4A4D4E, #2A2C2D);
+        border-radius: 30px;
+        padding: 30px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        color: white;
+    }
+    .card-glow {
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        background: rgba(211, 113, 41, 0.2);
+        filter: blur(50px);
+        border-radius: 50%;
+    }
+    .qr-container {
+        background: white;
+        padding: 15px;
+        border-radius: 20px;
+        display: inline-block;
+    }
+    .medal-slot {
+        width: 40px;
+        height: 40px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(211, 113, 41, 0.3);
+    }
+</style>
+
+<div class="px-6 py-8 pb-32">
+    <div class="flex items-center gap-3 mb-8">
+        <a href="{% url 'dashboard' %}" class="text-gray-400"><i class="bi bi-chevron-left text-xl"></i></a>
+        <h1 class="text-xl font-black text-[#4A4D4E] uppercase italic">Carteirinha Digital</h1>
+    </div>
+
+    <div class="card-canvas animate-slide-up">
+        <div class="card-glow"></div>
         
-        <div class="sat-digital-card animate-float">
-            <div class="holographic-overlay"></div>
-            
-            <div class="card-inner">
-                <div class="d-flex justify-content-between align-items-start mb-4">
-                    <div class="card-brand">
-                        <h4 class="fw-black m-0 text-white">SAT</h4>
-                        <small class="text-sat fw-bold">MEMBRO OFICIAL</small>
-                    </div>
-                    <div class="card-chip">
-                        <div class="chip-line"></div>
-                        <div class="chip-line"></div>
-                        <div class="chip-line"></div>
-                    </div>
-                </div>
-
-                <div class="user-section">
-                    <div class="photo-container">
-                        {% if perfil.foto %}
-                            <img src="{{ perfil.foto.url }}" class="img-user">
-                        {% else %}
-                            <div class="img-user-placeholder"><i class="bi bi-person"></i></div>
-                        {% endif %}
-                        <div class="verify-seal animate-pulse">
-                            <i class="bi bi-patch-check-fill"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="name-container">
-                        <h3 class="user-full-name">{{ user.get_full_name|upper|default:user.username }}</h3>
-                        <div class="torcida-badge">
-                            <i class="bi bi-shield-fill text-sat me-1"></i>
-                            {{ torcida.nome|default:"TORCIDA INDEPENDENTE" }}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card-details-row">
-                    <div class="qr-code-sat">
-                        <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
-                    </div>
-                    <div class="stats-sat">
-                        <div class="stat-item">
-                            <small>NÍVEL</small>
-                            <span class="text-sat">{{ perfil_game.nivel.nome|upper|default:"BRONZE" }}</span>
-                        </div>
-                        <div class="stat-item">
-                            <small>SÓCIO DESDE</small>
-                            <span class="text-white">{{ user.date_joined|date:"M/Y"|upper }}</span>
-                        </div>
-                        <div class="stat-item">
-                            <small>ID AFILIADO</small>
-                            <span class="text-white">#{{ user.id|stringformat:"05d" }}</span>
-                        </div>
-                    </div>
-                </div>
+        <div class="flex justify-between items-start mb-10">
+            <div class="flex items-center gap-2">
+                <img src="{% static 'img/sat_logo.png' %}" class="h-8 w-auto">
+                <div class="h-4 w-[1px] bg-white/30"></div>
+                <span class="text-[10px] font-black uppercase tracking-widest text-[#D37129]">Sócio Elite</span>
             </div>
+            <i class="bi bi-wifi text-xl opacity-50 rotate-90"></i>
+        </div>
 
-            <div class="card-footer-neon">
-                <span class="scan-text">SCANNER PARA ACESSO AO ESTÁDIO</span>
-                <div class="neon-line"></div>
+        <div class="text-center mb-8">
+            <div class="qr-container shadow-inner">
+                <img src="data:image/png;base64,{{ qr_code }}" class="w-32 h-32">
+            </div>
+            <p class="text-[10px] mt-3 font-mono opacity-50 tracking-widest">ID: SAT-{{ user.id|add:"1000" }}</p>
+        </div>
+
+        <div class="flex justify-between items-end">
+            <div>
+                <p class="text-[10px] font-bold text-[#D37129] uppercase tracking-tighter">Torcedor</p>
+                <h2 class="text-lg font-black uppercase tracking-tight">{{ user.first_name }} {{ user.last_name }}</h2>
+                <p class="text-[11px] font-medium opacity-70">{{ torcida.nome|default:"Torcedor Independente" }}</p>
+            </div>
+            
+            <div class="text-right">
+                <span class="text-[9px] font-black bg-[#D37129] px-2 py-1 rounded text-white uppercase italic">
+                    {{ perfil_game.nivel.nome|default:"Recruta" }}
+                </span>
             </div>
         </div>
 
-        <div class="mt-5 text-center">
-            <button class="btn btn-sat btn-lg px-5 fw-black btn-glow" onclick="window.print()">
-                <i class="bi bi-download me-2"></i> BAIXAR CARTEIRINHA
-            </button>
+        <div class="flex gap-2 mt-6 pt-4 border-t border-white/10">
+            {% for badge_user in badges_conquistadas|slice:":4" %}
+            <div class="medal-slot">
+                <img src="{{ badge_user.badge.imagem.url }}" class="w-6 h-6 object-contain">
+            </div>
+            {% endfor %}
         </div>
     </div>
+
+    <div class="mt-10 text-center px-4">
+        <p class="text-xs text-gray-400 font-medium">Apresente este QR Code na entrada dos estádios ou em caravanas para validar sua presença e ganhar pontos de XP.</p>
+        
+        <button class="mt-8 flex items-center gap-2 mx-auto text-[#4A4D4E] font-black text-xs uppercase border-b-2 border-[#D37129] pb-1">
+            <i class="bi bi-download"></i> Baixar como Imagem
+        </button>
+    </div>
 </div>
-
-<style>
-    :root {
-        --sat-orange: #ff6b00;
-        --sat-dark: #0b0e14;
-        --sat-card-bg: #161b22;
-        --sat-glow: rgba(255, 107, 0, 0.4);
-    }
-
-    .wallet-wrapper {
-        min-height: 85vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: radial-gradient(circle at top, #1a202c 0%, #05070a 100%);
-    }
-
-    /* O CARD DIGITAL */
-    .sat-digital-card {
-        width: 380px;
-        height: 580px;
-        background: var(--sat-card-bg);
-        border-radius: 30px;
-        position: relative;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 20px rgba(255,107,0,0.1);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Efeito de Brilho Holográfico */
-    .holographic-overlay {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,107,0,0.05) 100%);
-        pointer-events: none;
-    }
-
-    .card-inner { padding: 30px; flex-grow: 1; }
-
-    /* Chip de Segurança */
-    .card-chip {
-        width: 45px; height: 35px;
-        background: linear-gradient(135deg, #d4af37, #f9d71c);
-        border-radius: 6px;
-        padding: 5px;
-        display: flex; flex-direction: column; justify-content: space-around;
-    }
-    .chip-line { height: 1px; background: rgba(0,0,0,0.3); width: 100%; }
-
-    /* Foto do Usuário com Glow Neon */
-    .photo-container {
-        width: 130px; height: 130px;
-        margin: 0 auto 15px;
-        position: relative;
-    }
-    .img-user, .img-user-placeholder {
-        width: 100%; height: 100%;
-        border-radius: 50%;
-        border: 4px solid var(--sat-orange);
-        box-shadow: 0 0 20px var(--sat-glow);
-        object-fit: cover;
-    }
-    .img-user-placeholder {
-        background: #000; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--sat-orange);
-    }
-
-    .verify-seal {
-        position: absolute; bottom: 5px; right: 5px;
-        background: var(--sat-orange); color: #000;
-        width: 30px; height: 30px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        border: 3px solid var(--sat-card-bg); font-size: 0.9rem;
-    }
-
-    /* Textos Nítidos e Fortes (Fim do Fosco) */
-    .user-full-name {
-        color: #fff; font-family: 'Montserrat', sans-serif; font-weight: 900;
-        font-size: 1.5rem; text-align: center; margin: 0;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    }
-    .torcida-badge {
-        background: rgba(255, 107, 0, 0.1);
-        color: #fff; padding: 5px 15px; border-radius: 50px;
-        font-size: 0.75rem; font-weight: 800; display: inline-block;
-        margin-top: 5px; border: 1px solid rgba(255,107,0,0.2);
-    }
-    .user-section { text-align: center; margin-bottom: 30px; }
-
-    /* QR Code e Status */
-    .card-details-row {
-        display: flex; align-items: center; gap: 20px;
-        background: rgba(0,0,0,0.3); padding: 15px; border-radius: 20px;
-    }
-    .qr-code-sat {
-        background: #fff; padding: 8px; border-radius: 12px;
-        width: 100px; height: 100px;
-    }
-    .qr-code-sat img { width: 100%; }
-
-    .stats-sat { display: flex; flex-direction: column; gap: 8px; }
-    .stat-item { display: flex; flex-direction: column; }
-    .stat-item small { font-size: 0.6rem; color: rgba(255,255,255,0.4); font-weight: 700; }
-    .stat-item span { font-size: 0.85rem; font-weight: 800; }
-
-    /* Rodapé Neon */
-    .card-footer-neon {
-        background: #000; padding: 20px; text-align: center;
-    }
-    .scan-text {
-        font-family: 'Courier New', Courier, monospace;
-        color: var(--sat-orange); font-size: 0.7rem; letter-spacing: 2px;
-    }
-    .neon-line {
-        height: 2px; background: var(--sat-orange); width: 60%; margin: 10px auto 0;
-        box-shadow: 0 0 10px var(--sat-orange);
-    }
-
-    /* Animações Premium */
-    @keyframes float { 
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-15px); }
-    }
-    .animate-float { animation: float 4s infinite ease-in-out; }
-
-    .text-sat { color: var(--sat-orange) !important; }
-    .btn-sat { background: var(--sat-orange); color: #000; border: none; }
-    .btn-glow:hover { box-shadow: 0 0 30px var(--sat-orange); transform: scale(1.05); }
-    
-    .fw-black { font-weight: 900; }
-</style>
 {% endblock %}

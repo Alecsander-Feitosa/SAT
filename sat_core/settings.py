@@ -33,10 +33,10 @@ INSTALLED_APPS = [
     # --- Meus Aplicativos SAT ---
     'accounts.apps.AccountsConfig',
     'gamification',  # Check-in, Pontos e Ranking
-    'store',         # Loja e Produtos
     'content',       # Notícias e Avisos
     'organizadas',# Torcidas
-    'social',   
+    'social',
+    'loja',
 ]
 
 MIDDLEWARE = [
@@ -105,18 +105,15 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # --- Arquivos de Mídia (Uploads de Notícias/Produtos/Avatar) ---
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # --- CORS (Permite que o App Android acesse a API) ---
 CORS_ALLOW_ALL_ORIGINS = True # Em produção, mudaremos para domínios específicos
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Após logar, o torcedor vai direto para o Dashboard
-LOGIN_REDIRECT_URL = 'dashboard'
-
-# Se o torcedor tentar acessar o dashboard sem estar logado, ele vai para aqui
 LOGIN_URL = 'login'
 
-# Após sair, volta para a tela de login
+LOGIN_REDIRECT_URL = 'dashboard'
+
 LOGOUT_REDIRECT_URL = 'login'

@@ -47,3 +47,23 @@ class Evento(models.Model):
     
     def __str__(self):
         return self.titulo
+
+# Em organizadas/models.py
+
+class Noticia(models.Model):
+    # 1. Campos do Modelo
+    titulo = models.CharField("Título", max_length=200)
+    subtitulo = models.CharField("Subtítulo", max_length=255, blank=True)
+    conteudo = models.TextField("Conteúdo")
+    imagem = models.ImageField("Imagem de Capa", upload_to='noticias/')
+    data_publicacao = models.DateTimeField(auto_now_add=True)
+    autor = models.CharField("Autor", max_length=100, default="Imprensa SAT")
+
+    # 2. A class Meta entra AQUI (dentro da classe Noticia)
+    class Meta:
+        verbose_name = "Notícia"
+        verbose_name_plural = "Notícias"
+
+    # 3. Métodos (opcional)
+    def __str__(self):
+        return self.titulo

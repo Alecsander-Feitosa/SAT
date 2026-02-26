@@ -21,13 +21,6 @@ class CadastroForm(forms.ModelForm):
         user.set_password(self.cleaned_data["password"])
         if commit:
             user.save()
-            Perfil.objects.get_or_create(
-                user=user, 
-                defaults={
-                    'cpf': self.cleaned_data['cpf'], 
-                    'whatsapp': self.cleaned_data['whatsapp']
-                }
-            )
         return user
 
 class PerfilCompletoForm(forms.ModelForm):

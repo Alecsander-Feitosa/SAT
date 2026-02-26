@@ -1,29 +1,141 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container py-5">
-    <div class="row mb-5">
-        <div class="col-md-6">
-            <h1 class="display-4">Loja Oficial</h1>
-            <p class="text-muted">Equipamentos licenciados da {{ torcida.nome }}.</p>
+<style>
+    /* Estilo Base SAT Dark */
+    .store-wrapper { background-color: #0c0d0e; min-height: 100vh; color: #f8f9fa; }
+    
+    /* Grid de 2 Colunas Fixas */
+    .product-grid { 
+        display: grid; 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 12px; 
+        padding: 0 15px; 
+    }
+
+    /* Card Compacto */
+    .sat-prod-card {
+        background: #161b22;
+        border-radius: 20px;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* Container da Imagem */
+    .img-container {
+        background: #1c2128;
+        border-radius: 15px;
+        height: 140px; /* Altura fixa para não desalinhar */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+
+    .img-container img {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+    }
+
+    /* Textos e Botão */
+    .prod-title { font-size: 11px; font-weight: 700; color: #f8f9fa; line-height: 1.2; height: 26px; overflow: hidden; }
+    .prod-cat { font-size: 8px; font-weight: 900; color: #D37129; text-transform: uppercase; letter-spacing: 1px; }
+    .prod-price { font-size: 14px; font-weight: 900; color: #fff; margin: 4px 0; }
+
+    .btn-buy-mini {
+        background: #D37129;
+        color: white;
+        border: none;
+        width: 100%;
+        padding: 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    /* Carrinho Flutuante Minimalista */
+    .cart-btn-fixed {
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        background: #D37129;
+        color: white;
+        width: 50px;
+        height: 50px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(211, 113, 41, 0.4);
+        z-index: 1000;
+    }
+</style>
+
+<div class="store-wrapper pb-40">
+    <div class="px-4 pt-8 mb-6">
+        <h1 class="text-xl font-black italic uppercase tracking-tighter">LOJA <span class="text-[#D37129]">SAT</span></h1>
+        <div class="flex items-center gap-2">
+            <div class="h-[2px] w-4 bg-[#D37129]"></div>
+            <p class="text-[9px] text-gray-500 font-black uppercase">
+                {% if torcida %} {{ torcida.nome }} {% else %} Itens em Destaque {% endif %}
+            </p>
         </div>
     </div>
 
-    <div class="row g-4">
+    <a href="{% url 'ver_carrinho' %}" class="cart-btn-fixed">
+        <i class="bi bi-cart-fill"></i>
+        <span id="cart-count" class="absolute -top-1 -right-1 bg-white text-black text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+            {{ carrinho_count }}
+        </span>
+    </a>
+
+    <div class="product-grid">
         {% for produto in produtos %}
-        <div class="col-md-3">
-            <div class="sat-card p-2">
-                <div class="bg-black rounded mb-3 overflow-hidden" style="height: 250px;">
-                    <img src="{{ produto.imagem.url }}" class="w-100 h-100 shadow-sm" style="object-fit: contain;">
-                </div>
-                <div class="px-2">
-                    <span class="text-orange small fw-bold">{{ produto.categoria }}</span>
-                    <h5 class="fw-bold my-1">{{ produto.nome }}</h5>
-                    <h4 class="mb-3">R$ {{ produto.preco }}</h4>
-                    <button class="btn btn-sat w-100 btn-sm">Comprar</button>
-                </div>
+        <div class="sat-prod-card">
+            <div class="img-container">
+                {% if produto.imagem %}
+                    <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}">
+                {% else %}
+                    <i class="bi bi-box-seam text-gray-700 text-3xl"></i>
+                {% endif %}
+            </div>
+            
+            <div class="px-1">
+                <span class="prod-cat">{{ produto.categoria }}</span>
+                <h4 class="prod-title mt-1">{{ produto.nome }}</h4>
+                <div class="prod-price">R$ {{ produto.preco }}</div>
+                <button onclick="addCarrinho({{ produto.id }})" class="btn-buy-mini active:scale-95 transition-all">
+                    Adicionar
+                </button>
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<script>
+function addCarrinho(id) {
+    fetch(`/loja/adicionar/${id}/`)
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'sucesso') {
+            document.getElementById('cart-count').innerText = data.carrinho_count;
+            // Feedback discreto no botão
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = 'OK!';
+            btn.style.background = '#28a745';
+            setTimeout(() => { 
+                btn.innerText = originalText;
+                btn.style.background = '#D37129';
+            }, 1000);
+        }
+    });
+}
+</script>
 {% endblock %}

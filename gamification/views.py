@@ -6,9 +6,12 @@ from django.utils import timezone
 # Importações de outros apps
 from accounts.models import Perfil 
 from organizadas.models import Evento
-
+from django.contrib import messages
 # Importações deste app (gamification)
 from .models import PerfilGamificacao, CheckIn, BadgeUsuario, Nivel, Partida
+from django.shortcuts import render, redirect, get_object_or_404
+
+
 
 @login_required
 def dashboard(request):
@@ -18,17 +21,44 @@ def dashboard(request):
     from content.models import Noticia # Verifique se este é o nome do seu model
     noticias_lista = Noticia.objects.all().order_by('-data_publicacao')[:5]
     
+    proximos_eventos = Evento.objects.filter(
+        data_evento__gte=timezone.now()
+    ).order_by('data_evento')[:3]
+
+
     context = {
         'perfil_game': perfil_game,
         'noticias': noticias_lista,
-        'xp_faltante': 100, # Adicione sua lógica de cálculo aqui
+        'eventos': proximos_eventos,
+        'xp_faltante': 100, 
         'xp_progresso': perfil_game.progresso_nivel(),
     }
     return render(request, 'dashboard.html', context)
 
 @login_required
+def confirmar_presenca(request, evento_id):
+    if request.method == "POST":
+        # Coordenadas do estádio (exemplo)
+        ESTADIO_LAT = -23.5505
+        ESTADIO_LON = -46.6333
+        
+        lat_user = float(request.POST.get('latitude', 0))
+        lon_user = float(request.POST.get('longitude', 0))
+        
+        # Calcula se o torcedor está num raio de 500 metros
+        # (Lógica simplificada para teste)
+        distancia = abs(lat_user - ESTADIO_LAT) + abs(lon_user - ESTADIO_LON)
+        
+        if distancia < 0.005: # Aproximadamente 500m
+             # Cria o check-in e dispara o Signal de XP acima
+             CheckIn.objects.create(user=request.user, evento_id=evento_id)
+             return JsonResponse({'status': 'sucesso', 'xp': 50})
+        else:
+             return JsonResponse({'status': 'erro', 'mensagem': 'Você não está no estádio!'})
+
+@login_required
 def noticias(request):
-    """Exibe as novidades da torcida e do clube."""
+    # Aqui você listará as notícias da SAT
     return render(request, 'noticias.html')
 
 @login_required
@@ -111,43 +141,95 @@ def validar_checkin_estadio(request):
     
     return render(request, 'checkin.html', {'evento': proximo_evento})
     # --- LÓGICA PARA O MÉTODO GET (Evita o erro anterior) ---
-    from organizadas.models import Evento
+
     
-    # Busca o evento mais próximo que ainda não aconteceu
-    proximo_evento = Evento.objects.filter(
-        data_hora__gte=timezone.now()
-    ).order_by('data_hora').first()
-    
-    context = {
-        'evento': proximo_evento,
-    }
-    
-    return render(request, 'checkin.html', context)
 
 
 @login_required
 def ranking_torcida(request):
-    # Top 10 geral
-    top_torcedores = PerfilGamificacao.objects.select_related('user', 'nivel').order_by('-xp_total')[:10]
+    from gamification.models import PerfilGamificacao
+    # Busca os top 10 torcedores ordenados pelo XP total
+    lideres = PerfilGamificacao.objects.select_related('user', 'nivel').order_by('-xp_total')[:10]
     
-    # Posição do usuário logado
-    todos = PerfilGamificacao.objects.order_by('-xp_total')
-    posicao_usuario = None
-    count = 1
-    for p in todos:
-        if p.user == request.user:
-            posicao_usuario = {'perfil': p, 'rank': count}
-            break
-        count += 1
-
-    return render(request, 'ranking.html', {
-        'ranking': top_torcedores,
-        'meu_rank': posicao_usuario
-    })
+    context = {
+        'lideres': lideres,
+        'cor_tema': "#D37129" # Laranja oficial SAT
+    }
+    return render(request, 'ranking.html', context)
 
 @login_required
 def mural_presenca(request):
-    # Pegamos os últimos 20 check-ins validados
-    checkins = CheckIn.objects.filter(validado=True).select_related('user', 'user__perfil_game', 'evento').order_by('-data')[:20]
+    # Mudamos 'data_checkin' para 'data' conforme a mensagem de erro sugeriu
+    postagens = CheckIn.objects.exclude(foto='').order_by('-data')[:20]
+    return render(request, 'mural.html', {'postagens': postagens})
+
+
+@login_required
+def mural_torcida(request):
+    from gamification.models import CheckIn
+    # Busca os check-ins que têm foto, do mais novo para o mais antigo
+    postagens = CheckIn.objects.filter(foto__isnull=False).exclude(foto='').select_related('user', 'evento').order_by('-data_checkin')[:20]
     
-    return render(request, 'mural_presenca.html', {'checkins': checkins})
+    context = {
+        'postagens': postagens,
+        'cor_tema': "#D37129"
+    }
+    return render(request, 'mural.html', context)
+
+@login_required
+def games_hub(request):
+    from django.utils import timezone
+    from organizadas.models import Evento
+    from .models import PerfilGamificacao, Nivel
+
+    # 1. Busca o perfil
+    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+
+    # 2. BUSCA MANUAL DO NÍVEL (Ignora o que está salvo e calcula pelo XP atual)
+    # Pega o nível que o usuário REALMENTE pertence agora (700 XP = Bronze 500)
+    nivel_real = Nivel.objects.filter(xp_minimo__lte=perfil_game.xp_total).order_by('-xp_minimo').first()
+    
+    # 3. BUSCA DO PRÓXIMO NÍVEL
+    proximo = Nivel.objects.filter(xp_minimo__gt=perfil_game.xp_total).order_by('xp_minimo').first()
+
+    # 4. CÁLCULO DA BARRA NA VIEW (Garante que o HTML receba o valor certo)
+    progresso = 0
+    if proximo:
+        inicio_xp = nivel_real.xp_minimo if nivel_real else 0
+        total_necessario = proximo.xp_minimo - inicio_xp
+        atual_no_nivel = perfil_game.xp_total - inicio_xp
+        progresso = (atual_no_nivel / total_necessario) * 100
+    else:
+        progresso = 100
+
+    context = {
+        'perfil_game': perfil_game,
+        'nivel_nome': nivel_real.nome if nivel_real else "Recruta",
+        'progresso_barra': min(max(progresso, 5), 100),
+        'evento': Evento.objects.filter(data_evento__gte=timezone.now()).first()
+    }
+    return render(request, 'games_menu.html', context)
+
+def lista_eventos(request):
+    from organizadas.models import Evento
+    from django.utils import timezone
+    eventos = Evento.objects.filter(data_evento__gte=timezone.now()).order_by('data_evento')
+    eventos_encontrados = Evento.objects.filter(data_evento__gte=timezone.now()).order_by('data_evento')
+    return render(request, 'eventos.html', {'eventos': eventos_encontrados})
+
+def detalhe_evento(request, evento_id):
+    from organizadas.models import Evento
+    # Busca o evento pelo ID ou retorna erro 404 se não existir
+    evento = get_object_or_404(Evento, id=evento_id)
+    
+    context = {
+        'evento': evento,
+    }
+    return render(request, 'detalhe_evento.html', context)
+
+# Em accounts/views.py ou no app correspondente
+def bet_view(request):
+    context = {
+        'cor_tema': '#D37129', # Laranja padrão do SAT
+    }
+    return render(request, 'bet_manutencao.html', context)

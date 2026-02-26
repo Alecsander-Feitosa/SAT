@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen bg-[#0c0d0e] px-5 pt-10 pb-40">
+    <div class="flex items-center gap-4 mb-8">
+       <a href="{% url 'torcida' %}" class="text-white text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-white">MURAL DE <span class="text-[#D37129]">GLÓRIAS</span></h1>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4">
+        {% for conquista in todas_conquistas %}
+        <div class="flex flex-col items-center gap-2 opacity-40 grayscale">
+            <div class="w-20 h-20 bg-[#161b22] rounded-[24px] flex items-center justify-center border border-white/5">
+                <i class="bi {{ conquista.icone }} text-2xl"></i>
+            </div>
+            <span class="text-[8px] font-black text-gray-500 uppercase text-center leading-tight">{{ conquista.nome }}</span>
+        </div>
+        {% endfor %}
+        
+        <div class="flex flex-col items-center gap-2">
+            <div class="w-20 h-20 bg-[#161b22] rounded-[24px] flex items-center justify-center border border-[#D37129] shadow-[0_0_15px_rgba(211,113,41,0.2)]">
+                <i class="bi bi-fire text-[#D37129] text-3xl"></i>
+            </div>
+            <span class="text-[8px] font-black text-white uppercase text-center leading-tight">Primeiro Grito</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

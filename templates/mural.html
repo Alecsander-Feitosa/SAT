@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .hub-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
+    .hub-item { 
+        background: #161b22; border-radius: 24px; padding: 25px 15px; 
+        border: 1px solid rgba(255, 255, 255, 0.05); text-align: center;
+        text-decoration: none; display: flex; flex-direction: column; align-items: center;
+    }
+    .hub-item i { font-size: 28px; color: #D37129; margin-bottom: 10px; }
+    .hub-item span { font-size: 10px; font-weight: 900; color: #f8f9fa; text-transform: uppercase; }
+</style>
+
+<div class="min-h-screen bg-[#0c0d0e] pb-40">
+    <div class="px-5 pt-10 mb-6">
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-white">HUB DA <span class="text-[#D37129]">TORCIDA</span></h1>
+    </div>
+
+    <div class="px-5 mb-10">
+        <div class="relative w-full aspect-[1.58/1] rounded-[24px] p-6 text-white overflow-hidden shadow-2xl border border-white/10" 
+             style="background: linear-gradient(135deg, #1a1c1e 0%, #0c0d0e 100%);">
+            <div class="absolute -top-20 -right-20 w-64 h-64 bg-[#D37129]/10 rounded-full blur-3xl"></div>
+            <div class="relative z-10 h-full flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <img src="{% static 'img/logo_sat.png' %}" class="h-6 w-auto brightness-200">
+                    <div class="w-10 h-8 bg-gradient-to-br from-yellow-200 to-yellow-600 rounded-md opacity-80 shadow-inner"></div>
+                </div>
+                <div>
+                    <p class="text-lg font-mono tracking-[4px]">SAT • {{ user.id|add:"1000" }} • 2026</p>
+                    <p class="text-[11px] font-black uppercase italic mt-1">{{ user.username }}</p>
+                </div>
+                <div class="flex justify-between items-end">
+                    <div>
+                        <p class="text-[7px] uppercase opacity-50 font-bold">Patente</p>
+                        <p class="text-[9px] font-bold">{{ perfil_game.nivel.nome|upper|default:"BRONZE" }}</p>
+                    </div>
+                    <span class="px-3 py-1 bg-[#D37129] text-[8px] font-black rounded-full italic shadow-lg">SÓCIO ATIVO</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hub-grid">
+        <a href="{% url 'galeria_fotos' %}" class="hub-item"><i class="bi bi-images"></i><span>Galeria</span></a>
+        <a href="{% url 'diretoria' %}" class="hub-item"><i class="bi bi-microsoft"></i><span>Diretoria</span></a>
+        <a href="{% url 'mural_conquistas' %}" class="hub-item"><i class="bi bi-trophy"></i><span>Conquistas</span></a>
+        <a href="{% url 'cancoes' %}" class="hub-item"><i class="bi bi-music-note-beamed"></i><span>Canções</span></a>
+        <a href="{% url 'lista_eventos' %}" class="hub-item">
+            <i class="bi bi-calendar-check"></i>
+            <span>Eventos</span>
+        </a>
+        <a href="{% url 'regras' %}" class="hub-item"><i class="bi bi-file-earmark-text"></i><span>Regras</span></a>
+        <a href="{% url 'aliadas' %}" class="hub-item"><i class="bi bi-shield-check"></i><span>Aliadas</span></a>
+        <a href="{% url 'viagens' %}" class="hub-item"><i class="bi bi-bus-front"></i><span>Viagens</span></a>
+    </div>
+</div>
+{% endblock %}

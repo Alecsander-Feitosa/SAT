@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .checkin-container { padding: 30px 20px; text-align: center; }
+    .stadium-card { 
+        background: white; border-radius: 24px; padding: 30px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-top: 20px;
+    }
+    .pulse-animation {
+        width: 120px; height: 120px; background: rgba(13, 33, 79, 0.1);
+        border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; margin: 0 auto 20px;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(13, 33, 79, 0.3); }
+        70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(13, 33, 79, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(13, 33, 79, 0); }
+    }
+    .btn-checkin {
+        background: #0D214F; color: white; border: none;
+        padding: 18px; width: 100%; border-radius: 15px;
+        font-weight: 800; font-size: 1.1rem; margin-top: 30px;
+    }
+</style>
+
+<div class="checkin-container">
+    <div class="flex items-center gap-3 mb-8">
+        <a href="{% url 'dashboard' %}" class="text-gray-400"><i class="bi bi-chevron-left text-xl"></i></a>
+        <h1 class="text-xl font-extrabold text-[#0D214F]">Novo Check-in</h1>
+    </div>
+
+    <div class="pulse-animation">
+        <i class="bi bi-geo-alt-fill text-4xl text-[#0D214F]"></i>
+    </div>
+
+    <h2 class="text-2xl font-black text-[#0D214F] mb-2">Onde você está?</h2>
+    <p class="text-gray-400 font-medium px-10">O sistema está localizando o estádio mais próximo através do seu GPS.</p>
+
+    <div class="stadium-card">
+        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Estádio Localizado</span>
+        <h3 class="text-lg font-extrabold mt-1 text-[#0D214F]">Estádio Nilton Santos</h3>
+        <p class="text-sm text-gray-400">Rio de Janeiro, RJ</p>
+        
+        <hr class="my-5 border-gray-100">
+        
+        <div class="flex justify-between items-center text-left">
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase">Evento hoje</p>
+                <p class="text-sm font-bold">Botafogo x Flamengo</p>
+            </div>
+            <i class="bi bi-check-circle-fill text-green-500 text-xl"></i>
+        </div>
+    </div>
+
+   <a href="{% url 'confirmar_presenca' evento.id %}" class="no-underline">
+        <button class="btn-checkin shadow-lg">
+            CONFIRMAR PRESENÇA
+        </button>
+    </a>
+</div>
+{% endblock %}

@@ -1,24 +1,145 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
-    <div class="text-center sat-card p-5" style="border: 1px solid {{ cor_tema }}; max-width: 600px;">
-        <i class="bi bi-tools display-1 mb-4" style="color: {{ cor_tema }};"></i>
-        <h1 class="fw-black mb-3">ÁREA BET</h1>
-        <h4 class="text-white-50 mb-4">ESTAMOS EM MANUTENÇÃO</h4>
+<style>
+    :root {
+    --cor-sat-laranja: #D37129;
+    --cor-sat-fundo: #121212;
+    --cor-sat-card: #1A1C1E;
+    }
+
+    /* Exemplo de aplicação no botão */
+    .btn-bet {
+        background-color: var(--cor-sat-laranja);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(211, 113, 41, 0.4);
+    }
+    
+    
+    
+    
+    /* Fundo com gradiente animado para dar clima de apostas */
+    .bet-maintenance-bg {
+        background: radial-gradient(circle at top right, #1a1a1a, #000000);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 40px;
+        padding: 50px 30px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .glow-icon {
+        font-size: 80px;
+        color: {{ cor_tema|default:'#D37129' }};
+        filter: drop-shadow(0 0 15px {{ cor_tema|default:'#D37129' }}66);
+        animation: pulse-glow 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+    }
+
+    .bet-title {
+        font-family: 'Black Ops One', cursive, sans-serif; /* Se tiveres fontes robustas */
+        font-weight: 900;
+        letter-spacing: -1px;
+        text-transform: uppercase;
+        font-style: italic;
+        color: white;
+        margin-top: 20px;
+    }
+
+    .status-badge {
+        background: {{ cor_tema|default:'#D37129' }}22;
+        color: {{ cor_tema|default:'#D37129' }};
+        padding: 6px 15px;
+        border-radius: 100px;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        border: 1px solid {{ cor_tema|default:'#D37129' }}44;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+
+    .custom-progress {
+        height: 6px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 30px 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, transparent, {{ cor_tema|default:'#D37129' }});
+        width: 75%;
+        border-radius: 10px;
+        box-shadow: 0 0 15px {{ cor_tema|default:'#D37129' }};
+    }
+
+    .btn-return {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.2);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 20px;
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 1px;
+        transition: 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-return:hover {
+        background: white;
+        color: black;
+        transform: translateY(-3px);
+    }
+</style>
+
+<div class="bet-maintenance-bg">
+    <div class="glass-card animate__animated animate__fadeInUp">
+        <div class="status-badge">Configurando Odds</div>
         
-        <p class="text-muted mb-5">
-            Estamos preparando uma plataforma de apostas exclusiva para os sócios da torcida. 
-            Em breve você poderá usar seu XP e moedas SAT para palpitar nos jogos!
-        </p>
-        
-        <div class="progress mb-4" style="height: 10px; background: #1f2937;">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                 role="progressbar" 
-                 style="width: 75%; background-color: {{ cor_tema }};"></div>
+        <div class="mb-4">
+            <i class="bi bi-cpu glow-icon"></i>
         </div>
+
+        <h1 class="bet-title text-4xl">Área <span style="color: {{ cor_tema|default:'#D37129' }};">BET</span> SAT</h1>
         
-        <a href="{% url 'dashboard' %}" class="btn btn-outline-light px-5 fw-bold">VOLTAR AO DASHBOARD</a>
+        <p class="text-gray-400 text-sm mt-4 px-4 leading-relaxed italic">
+            Estamos a calibrar os motores. Em breve poderás usar o teu <span class="text-white font-bold">XP e Moedas SAT</span> para palpitar nos jogos e subir no ranking global.
+        </p>
+
+        <div class="custom-progress">
+            <div class="progress-fill"></div>
+        </div>
+
+        <div class="flex justify-between text-[10px] font-black uppercase tracking-tighter text-gray-500 mb-8 px-2">
+            <span>Desenvolvimento</span>
+            <span class="text-white">75% Concluído</span>
+        </div>
+
+        <a href="{% url 'dashboard' %}" class="btn-return">
+            <i class="bi bi-arrow-left me-2"></i> Voltar ao Dashboard
+        </a>
     </div>
 </div>
 {% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen bg-[#0c0d0e] px-5 pt-10 pb-40">
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-4 mb-8">
+            <a href="{% url 'torcida' %}" class="text-white text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
+            <h1 class="text-2xl font-black italic uppercase text-white">GALERIA</h1>
+        </div>
+        <button class="text-[#D37129] text-xl"><i class="bi bi-plus-square"></i></button>
+    </div>
+
+    <div class="grid grid-cols-3 gap-1">
+        <div class="aspect-square bg-[#161b22] overflow-hidden">
+            <img src="https://placehold.co/400x400/161b22/D37129?text=SAT+FOTO" class="w-full h-full object-cover">
+        </div>
+        <div class="aspect-square bg-[#161b22] overflow-hidden">
+            <img src="https://placehold.co/400x400/161b22/D37129?text=SAT+FOTO" class="w-full h-full object-cover">
+        </div>
+        <div class="aspect-square bg-[#161b22] overflow-hidden border border-white/5">
+            <div class="w-full h-full flex items-center justify-center">
+                 <i class="bi bi-play-fill text-2xl text-[#D37129]"></i>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

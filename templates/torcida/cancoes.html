@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen bg-[#0c0d0e] px-5 pt-10 pb-40">
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'torcida' %}" class="text-white text-2xl"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter">NOSSAS <span class="text-[#D37129]">CANÇÕES</span></h1>
+    </div>
+
+    <div class="space-y-4">
+        <div class="bg-[#161b22] p-5 rounded-3xl border border-white/5">
+            <h4 class="text-[#D37129] font-black uppercase italic text-sm mb-2">Hino da SAT</h4>
+            <p class="text-gray-400 text-xs leading-relaxed font-medium">
+                "Nascemos no asfalto, crescemos na arquibancada...<br>
+                A SAT é minha vida, minha alma está marcada!"
+            </p>
+        </div>
+        </div>
+</div>
+{% endblock %}
