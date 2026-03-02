@@ -1,79 +1,74 @@
 {% extends "base.html" %}
-{% block content %}
-<style>
-    .cart-bg { background-color: #0c0d0e; min-height: 100vh; color: #f8f9fa; }
-    .cart-item { background: #1A1C1E; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
-    .btn-delete { 
-        background: rgba(255, 0, 0, 0.1); 
-        color: #ff4444; 
-        width: 35px; height: 35px; 
-        border-radius: 12px; 
-        display: flex; align-items: center; justify-content: center;
-    }
-</style>
+{% load static %}
 
-<div class="cart-bg pb-40" id="cart-container">
-    <div class="px-5 pt-10 mb-8 flex items-center gap-4">
-        <a href="{% url 'loja_view' %}" class="text-white text-2xl"><i class="bi bi-arrow-left"></i></a>
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter">Meu <span class="text-[#D37129]">Carrinho</span></h1>
+{% block content %}
+<div class="min-h-screen bg-[#F8F9FA] pb-40">
+    <div class="px-5 pt-10 mb-6 flex items-center">
+        <a href="{% url 'loja' %}" class="text-[#1A1A1A] mr-4">
+            <i class="bi bi-arrow-left text-2xl"></i>
+        </a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-[#1A1A1A]">
+            MEU <span class="text-[#D37129]">CARRINHO</span>
+        </h1>
     </div>
 
-    <div class="px-5 space-y-4" id="items-list">
+    <div class="px-5 space-y-4">
         {% for item in itens %}
-        <div class="cart-item p-4 flex items-center gap-4" id="item-{{ item.id }}">
-            <div class="w-16 h-16 bg-[#25282b] rounded-xl overflow-hidden flex-none">
-                <img src="{{ item.produto.imagem.url }}" class="w-full h-full object-contain p-1">
+        <div class="bg-white p-4 rounded-[24px] shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-20 h-20 bg-[#1a1c1e] rounded-2xl overflow-hidden flex-shrink-0">
+                {% if item.produto.imagem %}
+                    <img src="{{ item.produto.imagem.url }}" class="w-full h-full object-cover">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                        <i class="bi bi-box text-gray-700"></i>
+                    </div>
+                {% endif %}
             </div>
+
             <div class="flex-grow">
-                <h4 class="text-[11px] font-bold uppercase">{{ item.produto.nome }}</h4>
-                <p class="text-[#D37129] font-black text-sm">R$ {{ item.produto.preco }}</p>
+                <h3 class="font-bold text-[#1A1A1A] text-sm">{{ item.produto.nome }}</h3>
+                <p class="text-[#D37129] font-black text-xs mt-1">R$ {{ item.produto.preco }}</p>
+                
+                <div class="flex items-center mt-2 gap-3">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">Qtd: {{ item.quantidade }}</span>
+                </div>
             </div>
-            <button onclick="excluirItem({{ item.id }})" class="btn-delete border-0">
-                <i class="bi bi-trash3-fill"></i>
-            </button>
+
+            <div class="flex flex-col gap-2">
+                <a href="{% url 'remover_do_carrinho' item.id %}" class="text-red-500 p-2">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </div>
         </div>
         {% empty %}
-        <div class="text-center py-20" id="empty-msg">
-            <i class="bi bi-cart-x text-6xl text-gray-800"></i>
-            <p class="text-gray-500 font-bold uppercase italic mt-4">Carrinho vazio</p>
+        <div class="text-center py-20">
+            <i class="bi bi-cart-dash text-5xl text-gray-200"></i>
+            <p class="text-gray-400 font-bold mt-4">O seu carrinho está vazio.</p>
+            <a href="{% url 'loja' %}" class="inline-block mt-6 px-8 py-3 bg-[#1a1c1e] text-white rounded-full font-black italic uppercase text-xs">
+                Voltar à Loja
+            </a>
         </div>
         {% endfor %}
     </div>
 
     {% if itens %}
-    <div class="fixed bottom-0 left-0 w-full bg-[#1A1C1E] p-6 rounded-t-[32px] border-t-2 border-[#D37129] shadow-2xl">
-        <div class="flex justify-between items-center mb-6 px-2">
-            <span class="text-gray-400 font-bold uppercase text-[10px]">Total</span>
-            <span class="text-2xl font-black text-white">R$ <span id="total-cart">{{ total }}</span></span>
+    <div class="fixed bottom-24 left-0 right-0 px-5">
+        <div class="bg-[#1a1c1e] p-6 rounded-[32px] shadow-2xl border border-white/10">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Total do Pedido</p>
+                    <p class="text-2xl font-black text-white italic">R$ {{ total_geral }}</p>
+                </div>
+                <i class="bi bi-credit-card-2-back text-[#D37129] text-3xl"></i>
+            </div>
+            
+            <form action="{% url 'checkout_exemplo' %}" method="GET"> 
+                <button type="submit" class="w-full py-4 bg-[#D37129] text-white rounded-2xl font-black italic uppercase shadow-lg">
+                    Finalizar Compra
+                </button>
+            </form>
         </div>
-        <button class="w-full bg-[#D37129] text-white py-4 rounded-2xl font-black uppercase italic tracking-widest active:scale-95 transition-all">
-            Finalizar Pedido
-        </button>
     </div>
     {% endif %}
 </div>
-
-<script>
-function excluirItem(itemId) {
-    if(!confirm('Remover este item?')) return;
-
-    fetch(`/loja/remover/${itemId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.status === 'sucesso') {
-            document.getElementById(`item-${itemId}`).remove();
-            document.getElementById('total-cart').innerText = data.novo_total;
-            
-            if(data.carrinho_vazio) {
-                location.reload(); // Recarrega para mostrar a tela de vazio
-            }
-        }
-    });
-}
-</script>
 {% endblock %}

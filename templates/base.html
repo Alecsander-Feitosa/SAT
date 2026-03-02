@@ -74,6 +74,10 @@
             <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'mural' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Mural</span>
         </a>
         
+        <a href="{% url 'hub' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
+            <i class="bi bi-intersect text-xl {% if request.resolver_match.url_name == 'hub' %}text-[#CD7F32]{% else %}text-gray-300{% endif %}"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'hub' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Hub</span>
+        </a>
 
         <a href="{% url 'lista_eventos' %}" class="w-14 h-14 bg-[#CD7F32] rounded-full flex flex-col items-center justify-center shadow-lg shadow-[#CD7F32]/30 -mt-12 border-4 border-white no-underline transition-transform active:scale-90">
             <i class="bi bi-qr-code-scan text-white text-xl"></i>
@@ -83,7 +87,12 @@
             <i class="bi bi-megaphone-fill text-xl {% if request.resolver_match.url_name == 'noticias' %}text-[#CD7F32]{% else %}text-gray-300{% endif %}"></i>
             <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'noticias' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Notícias</span>
         </a>
-
+        
+        <a href="{% url 'loja' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
+            <i class="bi bi-bag-check-fill text-xl {% if request.resolver_match.url_name == 'loja' %}text-[#CD7F32]{% else %}text-gray-300{% endif %}"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'loja' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Loja</span>
+        </a>
+        
         <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
             <i class="bi bi-person-badge-fill text-xl {% if request.resolver_match.url_name == 'perfil' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}"></i>
             <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'perfil' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Perfil</span>

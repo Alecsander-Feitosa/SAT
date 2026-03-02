@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen bg-white pb-40">
+    <div class="relative w-full aspect-square bg-[#1a1c1e]">
+        <a href="{% url 'loja' %}" class="absolute top-10 left-5 z-10 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        {% if produto.imagem %}
+            <img src="{{ produto.imagem.url }}" class="w-full h-full object-cover">
+        {% endif %}
+    </div>
+
+    <div class="px-6 -mt-8 relative z-20 bg-white rounded-t-[40px] pt-8">
+        <div class="flex justify-between items-start mb-2">
+            <span class="px-3 py-1 bg-[#F8F9FA] text-[#CD7F32] text-[10px] font-black uppercase rounded-full">
+                {{ produto.categoria }}
+            </span>
+            <p class="text-2xl font-black text-[#1A1A1A]">R$ {{ produto.preco }}</p>
+        </div>
+        
+        <h1 class="text-3xl font-black italic uppercase tracking-tighter text-[#1A1A1A] mb-4">
+            {{ produto.nome }}
+        </h1>
+
+        <div class="mt-6">
+            <h2 class="text-[10px] font-black uppercase text-gray-400 tracking-widest">Descrição</h2>
+            <p class="text-gray-600 mt-2 text-sm leading-relaxed">
+                {% if produto.descricao %}
+                    {{ produto.descricao|linebreaks }}
+                {% else %}
+                    Sem descrição disponível.
+                {% endif %}
+            </p>
+        </div>
+        <div class="flex items-center gap-2 mb-6">
+            <i class="bi bi-box-seam text-[#CD7F32]"></i>
+            <span class="text-xs font-bold text-gray-500 uppercase">Estoque disponível: {{ produto.estoque }}</span>
+        </div>
+
+        <p class="text-gray-600 leading-relaxed text-sm mb-10">
+            Produto oficial da Torcida. Qualidade garantida para o sócio SAT.
+        </p>
+
+        <form action="{% url 'adicionar_ao_carrinho' produto.id %}" method="POST">
+            {% csrf_token %}
+
+            {% if produto.variacoes.exists %}
+            <div class="mb-6">
+                <label class="text-[10px] font-black uppercase text-gray-400">Escolha a Variação</label>
+                <select name="variacao_id" class="w-full p-4 bg-gray-50 border-none rounded-2xl mt-2 font-bold text-sm">
+                    {% for v in produto.variacoes.all %}
+                        <option value="{{ v.id }}" {% if v.estoque == 0 %}disabled{% endif %}>
+                            {{ v.nome }} {% if v.estoque == 0 %}(Esgotado){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="w-full py-5 bg-[#1a1c1e] text-white rounded-2xl font-black italic uppercase tracking-widest shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3">
+                <i class="bi bi-cart-plus-fill text-xl text-[#CD7F32]"></i>
+                Adicionar ao Carrinho
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -19,36 +19,65 @@
     </div>
 
     <div class="px-5 mb-10">
-        <div class="relative w-full aspect-[1.58/1] rounded-[24px] p-6 text-[#1A1A1A] overflow-hidden shadow-2xl border border-white/10" 
-             style="background: linear-gradient(135deg, #1a1c1e 0%, #0c0d0e 100%);">
-            <div class="absolute -top-20 -right-20 w-64 h-64 bg-[#D37129]/10 rounded-full blur-3xl"></div>
-            <div class="relative z-10 h-full flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <img src="{% static 'img/logo_sat.png' %}" class="h-6 w-auto brightness-200">
+        <div class="relative w-full bg-[#161b22] rounded-[32px] p-6 overflow-hidden shadow-2xl border border-white/5">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-[#D37129] blur-[80px] opacity-20"></div>
+            
+            <div class="relative z-10">
+                <div class="flex justify-between items-start mb-8">
+                    {% if user.perfil.aprovado and user.perfil.torcida.logo %}
+                        <img src="{{ user.perfil.torcida.logo.url }}" class="h-10 w-auto object-contain brightness-110">
+                    {% else %}
+                        <img src="{% static 'img/logo_sat.png' %}" class="h-6 w-auto brightness-200 opacity-50">
+                    {% endif %}
+                    
                     <div class="w-10 h-8 bg-gradient-to-br from-yellow-200 to-yellow-600 rounded-md opacity-80 shadow-inner"></div>
                 </div>
-                <div>
-                    <p class="text-lg font-mono tracking-[4px]">SAT • {{ user.id|add:"1000" }} • 2026</p>
-                    <p class="text-[11px] font-black uppercase italic mt-1">{{ user.username }}</p>
+
+                <div class="mb-8">
+                    <p class="text-[8px] uppercase tracking-[3px] text-gray-500 font-bold">Membro Oficial</p>
+                    <p class="text-xl text-white font-black uppercase italic mt-1">{{ user.get_full_name|default:user.username }}</p>
                 </div>
+
                 <div class="flex justify-between items-end">
                     <div>
-                        <p class="text-[7px] uppercase opacity-50 font-bold">Patente</p>
-                        <p class="text-[9px] font-bold">{{ perfil_game.nivel.nome|upper|default:"RECRUTA" }}</p>
+                        <p class="text-[7px] uppercase opacity-50 text-white font-bold">Patente</p>
+                        <p class="text-[9px] font-bold text-white">{{ perfil_game.nivel.nome|upper|default:"RECRUTA" }}</p>
                     </div>
-                    <span class="px-3 py-1 bg-[#D37129] text-[8px] font-black rounded-full italic shadow-lg">SÓCIO ATIVO</span>
+                    {% if user.perfil.aprovado %}
+                        <span class="px-3 py-1 bg-[#D37129] text-[8px] font-black rounded-full italic shadow-lg text-white">SÓCIO ATIVO</span>
+                    {% else %}
+                        <span class="px-3 py-1 bg-gray-600 text-[8px] font-black rounded-full italic text-white">EM ANÁLISE</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
     <div class="hub-grid">
-        <a href="{% url 'mural_social' %}" class="hub-item"><i class="bi bi-chat-dots-fill"></i><span>Mural Feed</span></a>
-        <a href="{% url 'galeria_fotos' %}" class="hub-item"><i class="bi bi-images"></i><span>Galeria</span></a>
-        <a href="{% url 'diretoria' %}" class="hub-item"><i class="bi bi-microsoft"></i><span>Diretoria</span></a>
-        <a href="{% url 'cancoes' %}" class="hub-item"><i class="bi bi-music-note-beamed"></i><span>Canções</span></a>
-        <a href="{% url 'aliadas' %}" class="hub-item"><i class="bi bi-shield-check"></i><span>Aliadas</span></a>
-        <a href="{% url 'viagens_view' %}" class="hub-item"><i class="bi bi-bus-front"></i><span>Viagens</span></a>
+        <a href="{% url 'loja' %}" class="hub-item">
+            <i class="bi bi-bag-check-fill"></i>
+            <span>Loja Oficial</span>
+        </a>
+        <a href="{% url 'mural' %}" class="hub-item">
+            <i class="bi bi-chat-dots-fill"></i>
+            <span>Mural Feed</span>
+        </a>
+        <a href="{% url 'galeria_fotos' %}" class="hub-item">
+            <i class="bi bi-images"></i>
+            <span>Galeria</span>
+        </a>
+        <a href="{% url 'diretoria' %}" class="hub-item">
+            <i class="bi bi-microsoft"></i>
+            <span>Diretoria</span>
+        </a>
+        <a href="{% url 'cancoes' %}" class="hub-item">
+            <i class="bi bi-music-note-beamed"></i>
+            <span>Canções</span>
+        </a>
+        <a href="{% url 'viagens_view' %}" class="hub-item">
+            <i class="bi bi-bus-front"></i>
+            <span>Viagens</span>
+        </a>
     </div>
 </div>
 {% endblock %}

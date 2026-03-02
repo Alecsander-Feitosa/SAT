@@ -14,7 +14,7 @@ urlpatterns = [
     
     # REDE SOCIAL (SAT Social - Fotos)
     path('social/', views.mural_social, name='mural'),
-    path('hub/', views.area_hub, name='hub_torcida'), # Link para o design antigo (cartão)
+    path('hub/', views.area_hub, name='hub'), # Link para o design antigo (cartão)
     path('mural/', views.mural_social, name='mural_social'),
     # accounts/urls.py
     path('moderacao/', views.moderacao_torcida, name='moderacao_torcida'),

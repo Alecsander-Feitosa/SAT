@@ -1,61 +1,71 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block content %}
-<div class="min-h-screen bg-white pb-32"> <div class="p-6 flex items-center justify-between">
-        <div>
-            <h1 class="text-[#1A1A1A] text-xl font-black italic uppercase leading-none">Olá, {{ user.username }}!</h1>
-            <p class="text-[#D37129] text-[8px] font-bold uppercase tracking-[2px] mt-1">{{ user.perfil.torcida.nome|default:"SAT" }}</p>
+<div class="min-h-screen bg-white pb-32"> 
+    <div class="p-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            {% if user.perfil.aprovado and user.perfil.torcida.logo %}
+                <img src="{{ user.perfil.torcida.logo.url }}" class="h-12 w-12 object-contain drop-shadow-sm">
+            {% else %}
+                <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100">
+                    <i class="bi bi-shield-shaded text-[#D37129] text-xl"></i>
+                </div>
+            {% endif %}
+
+            <div>
+                <h1 class="text-[#1A1A1A] text-xl font-black italic uppercase leading-none">Olá, {{ user.username }}!</h1>
+                <p class="text-[#D37129] text-[8px] font-bold uppercase tracking-[2px] mt-1">
+                    {{ user.perfil.torcida.nome|default:"MEMBRO SAT" }}
+                </p>
+            </div>
         </div>
-        <div class="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-            <i class="bi bi-lightning-charge-fill text-[#D37129] text-xs"></i>
+
+        <div class="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-100 shadow-sm">
+            <i class="bi bi-lightning-charge-fill text-[#D37129] text-xs animate-pulse"></i>
             <span class="text-[10px] font-black text-[#1A1A1A]">{{ user.perfil.xp_total|default:0 }} XP</span>
         </div>
     </div>
 
-    <div class="px-5 mb-8">
+    <div class="px-5 mb-6">
         <div class="relative overflow-hidden bg-gradient-to-br from-[#D37129] to-[#b85a1a] p-7 rounded-[40px] shadow-xl shadow-[#D37129]/20 border border-white/10">
             <div class="relative z-10">
-                <span class="bg-black/10 text-white text-[7px] font-black uppercase px-2 py-1 rounded-full mb-3 inline-block">Membro VIP</span>
-                <h2 class="text-white text-2xl font-black italic uppercase leading-tight mb-1">Seja Sócio</h2>
-                <p class="text-white/80 text-[9px] font-bold uppercase mb-5 italic tracking-wide">Descontos na Bonelaria e mais XP</p>
+                <span class="bg-black/10 text-white text-[7px] font-black uppercase px-3 py-1 rounded-full border border-white/10">Nível Atual</span>
+                <h2 class="text-white text-3xl font-black italic uppercase mt-3 tracking-tighter">
+                    {{ perfil_game.nivel.nome|default:"Explorador" }}
+                </h2>
                 
-                <a href="{% url 'seja_socio' %}" class="inline-flex items-center gap-3 bg-white text-[#D37129] px-8 py-4 rounded-2xl text-[10px] font-black uppercase shadow-lg no-underline transition-transform active:scale-95">
-                    Ver Planos
-                </a>
+                <div class="mt-6">
+                    <div class="flex justify-between text-[8px] font-black text-white/60 uppercase mb-2">
+                        <span>Progresso</span>
+                        <span>75%</span>
+                    </div>
+                    <div class="w-full h-2 bg-black/20 rounded-full overflow-hidden">
+                        <div class="h-full bg-white rounded-full w-[75%] shadow-[0_0_15px_rgba(255,255,255,0.5)]"></div>
+                    </div>
+                </div>
             </div>
-            <i class="bi bi-shield-shaded absolute -right-6 -bottom-6 text-white/10 text-9xl"></i>
         </div>
     </div>
 
     <div class="px-5 mb-8">
-        <div class="flex items-center justify-between mb-4 px-2">
-            <h3 class="text-[#1A1A1A] text-[10px] font-black uppercase italic">Próximos Eventos</h3>
-        </div>
-
-        {% for evento in proximos_eventos %}
-        <div class="bg-white p-5 rounded-[32px] border border-gray-100 shadow-sm flex items-center justify-between mb-3">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-gray-50 rounded-2xl flex flex-col items-center justify-center border border-gray-100">
-                    <span class="text-[#CD7F32] text-[11px] font-black leading-none">{{ evento.data|date:"d" }}</span>
-                    <span class="text-gray-400 text-[7px] font-bold uppercase">{{ evento.data|date:"M" }}</span>
+        <a href="{% url 'seja_socio' %}" class="block relative overflow-hidden bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 no-underline">
+            <div class="flex justify-between items-center relative z-10">
+                <div class="flex-1">
+                    <h3 class="text-white text-lg font-black italic uppercase leading-tight">Seja Sócio <br><span class="text-[#D37129]">Premium</span></h3>
+                    <p class="text-gray-400 text-[8px] font-bold uppercase mt-2">Desbloqueie benefícios exclusivos e apoie a sua torcida</p>
                 </div>
-                <div>
-                    <h4 class="text-[#1A1A1A] text-xs font-black uppercase leading-none">{{ evento.nome }}</h4>
-                    <p class="text-gray-400 text-[8px] font-bold uppercase mt-1">{{ evento.local }}</p>
+                <div class="w-12 h-12 bg-[#D37129]/20 rounded-2xl flex items-center justify-center border border-[#D37129]/30 ml-4">
+                    <i class="bi bi-star-fill text-[#D37129] text-xl"></i>
                 </div>
             </div>
-            <a href="{% url 'lista_eventos' %}" class="w-10 h-10 bg-[#CD7F32] text-white rounded-xl flex items-center justify-center no-underline">
-                <i class="bi bi-chevron-right"></i>
-            </a>
-        </div>
-        {% empty %}
-        <p class="text-center text-gray-400 text-[8px] font-black uppercase py-4">Nenhum evento agendado</p>
-        {% endfor %}
+            <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-[#D37129] opacity-10 blur-2xl"></div>
+        </a>
     </div>
 
-
     <div class="px-5 mb-10">
-        <div class="grid grid-cols-4 gap-4">
-            <a href="{% url 'noticias' %}" class="flex flex-col items-center gap-2 no-underline">
+        <div class="flex justify-between items-center px-2">
+           <a href="{% url 'noticias' %}" class="flex flex-col items-center gap-2 no-underline">
                 <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm">
                     <i class="bi bi-newspaper text-[#D37129] text-xl"></i>
                 </div>
@@ -83,7 +93,7 @@
     </div>
 
     <div class="px-5">
-        <h3 class="text-[#1A1A1A] text-[10px] font-black uppercase italic tracking-widest mb-4 px-2">Vantagens</h3>
+        <h3 class="text-[#1A1A1A] text-[10px] font-black uppercase italic tracking-widest mb-4 px-2">Vantagens Ativas</h3>
         <div class="grid grid-cols-2 gap-3">
             <div class="bg-gray-50 p-5 rounded-[32px] border border-gray-100">
                 <i class="bi bi-tag-fill text-[#D37129] text-xl mb-2 block"></i>
@@ -91,9 +101,9 @@
                 <p class="text-gray-400 text-[7px] font-bold uppercase mt-1">Produtos com desconto</p>
             </div>
             <div class="bg-gray-50 p-5 rounded-[32px] border border-gray-100">
-                <i class="bi bi-star-fill text-[#D37129] text-xl mb-2 block"></i>
-                <h4 class="text-[#1A1A1A] text-[9px] font-black uppercase text-nowrap">XP 2X</h4>
-                <p class="text-gray-400 text-[7px] font-bold uppercase mt-1">Bônus para sócios</p>
+                <i class="bi bi-ticket-perforated-fill text-[#D37129] text-xl mb-2 block"></i>
+                <h4 class="text-[#1A1A1A] text-[9px] font-black uppercase">Ingressos</h4>
+                <p class="text-gray-400 text-[7px] font-bold uppercase mt-1">Prioridade na compra</p>
             </div>
         </div>
     </div>

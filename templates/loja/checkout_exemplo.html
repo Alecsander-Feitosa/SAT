@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen bg-[#F8F9FA] pb-40">
+    <div class="px-5 pt-10 mb-6 flex items-center">
+        <a href="{% url 'ver_carrinho' %}" class="text-[#1A1A1A] mr-4">
+            <i class="bi bi-arrow-left text-2xl"></i>
+        </a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-[#1A1A1A]">
+            FINALIZAR <span class="text-[#D37129]">PEDIDO</span>
+        </h1>
+    </div>
+
+    <div class="px-5 mb-8">
+        <h2 class="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-4">Seus Itens</h2>
+        <div class="bg-white rounded-[24px] p-4 shadow-sm border border-gray-100 space-y-3">
+            {% for item in itens %}
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-gray-600">{{ item.quantidade }}x {{ item.produto.nome }}</span>
+                <span class="text-xs font-black text-[#1A1A1A]">R$ {{ item.produto.preco }}</span>
+            </div>
+            {% endfor %}
+            <div class="pt-3 border-t border-gray-50 flex justify-between items-center">
+                <span class="text-sm font-black uppercase italic">Total</span>
+                <span class="text-lg font-black text-[#D37129]">R$ {{ total_geral }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-5 mb-8">
+        <h2 class="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-4">Pagamento</h2>
+        <div class="grid grid-cols-1 gap-3">
+            <div class="flex items-center justify-between p-4 bg-white border-2 border-[#D37129] rounded-2xl shadow-sm">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-qr-code text-xl text-[#D37129]"></i>
+                    <span class="text-sm font-bold text-[#1A1A1A]">Pix (Instantâneo)</span>
+                </div>
+                <i class="bi bi-check-circle-fill text-[#D37129]"></i>
+            </div>
+            
+            <div class="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-2xl opacity-50">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-credit-card text-xl text-gray-400"></i>
+                    <span class="text-sm font-bold text-gray-400">Cartão de Crédito</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-5">
+        <form action="{% url 'finalizar_checkout' %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" class="w-full py-5 bg-[#1A1A1A] text-white rounded-2xl font-black italic uppercase tracking-widest shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3">
+                Confirmar e Pagar
+                <i class="bi bi-arrow-right text-[#D37129]"></i>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

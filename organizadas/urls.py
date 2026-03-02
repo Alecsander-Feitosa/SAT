@@ -7,4 +7,5 @@ urlpatterns = [
     path('evento/<int:evento_id>/confirmar/', views.confirmar_presenca, name='confirmar_presenca'),
     path('caravana/<int:caravana_id>/reservar/', views.reservar_caravana, name='reservar_caravana'),
     path('eventos/', views.lista_eventos, name='lista_eventos'),
+    path('hub/', views.hub_view, name='hub'),
 ]

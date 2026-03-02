@@ -112,12 +112,3 @@ class Evento(models.Model):
 
     def __str__(self):
         return self.nome
-
-# Tabela para registrar quem já fez check-in e não ganhar XP infinito
-class CheckIn(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    evento = models.ForeignKey(Evento, on_delete=models.CASCADE)
-    data_registro = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('user', 'evento')
