@@ -3,8 +3,8 @@
 
 {% block content %}
 <style>
-    /* Estilo de Ranking de Elite */
-    .ranking-container { background: #121212; min-height: 100vh; color: white; }
+    /* Estilo de Ranking de Elite - MODO CLARO BRONZE */
+    .ranking-container { background: #FFFFFF; min-height: 100vh; color: #1A1A1A; }
     
     .podium-section { 
         display: flex; 
@@ -14,53 +14,54 @@
         padding: 40px 10px 20px; 
     }
 
-    .podium-item { 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        position: relative; 
-    }
+    .podium-item { display: flex; flex-direction: column; align-items: center; position: relative; }
 
     .podium-photo { 
         border-radius: 50%; 
         object-fit: cover; 
-        border: 4px solid #D37129; 
-        box-shadow: 0 0 20px rgba(211, 113, 41, 0.4);
+        border: 4px solid #CD7F32; 
+        box-shadow: 0 10px 20px rgba(205, 127, 50, 0.2);
+        background: white;
     }
 
-    .first { width: 100px; height: 100px; border-color: #FFD700; z-index: 2; } /* Ouro */
-    .second { width: 80px; height: 80px; border-color: #C0C0C0; } /* Prata */
-    .third { width: 80px; height: 80px; border-color: #CD7F32; } /* Bronze */
+    .first { width: 100px; height: 100px; border-color: #CD7F32; z-index: 2; transform: scale(1.1); }
+    .second { width: 80px; height: 80px; border-color: #CD7F32; opacity: 0.8; }
+    .third { width: 80px; height: 80px; border-color: #CD7F32; opacity: 0.6; }
 
     .rank-badge {
         position: absolute;
         bottom: -10px;
-        background: #D37129;
+        background: #CD7F32;
+        color: #FFFFFF;
         font-weight: 900;
         padding: 2px 10px;
         border-radius: 10px;
         font-size: 12px;
+        border: 2px solid #FFFFFF;
     }
 
     .rank-list { 
-        background: #1A1C1E; 
+        background: #F8F9FA; 
         border-radius: 40px 40px 0 0; 
         padding: 30px 20px; 
         margin-top: 20px; 
+        border-top: 1px solid #eee;
     }
 
     .list-item {
-        background: rgba(255,255,255,0.03);
+        background: #FFFFFF;
         border-radius: 20px;
         margin-bottom: 12px;
         padding: 15px;
         display: flex;
         align-items: center;
-        border: 1px solid rgba(255,255,255,0.05);
+        border: 1px solid #eee;
+        shadow: 0 2px 5px rgba(0,0,0,0.02);
     }
 
     .xp-pill { 
-        background: linear-gradient(90deg, #D37129, #FF8C42); 
+        background: #CD7F32; 
+        color: #FFFFFF;
         padding: 4px 12px; 
         border-radius: 100px; 
         font-size: 10px; 
@@ -70,67 +71,48 @@
 
 <div class="ranking-container pb-32">
     <div class="pt-10 px-6">
-        <h1 class="text-3xl font-black uppercase italic tracking-tighter">Ranking <span class="text-[#D37129]">PRO</span></h1>
-        <p class="text-gray-500 text-[10px] font-bold uppercase tracking-[4px]">Temporada Fevereiro 2026</p>
+        <h1 class="text-3xl font-black uppercase italic tracking-tighter text-[#1A1A1A]">Ranking <span class="text-[#CD7F32]">PRO</span></h1>
+        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-[4px]">Temporada 2026</p>
     </div>
 
     <div class="podium-section">
         {% if lideres|length >= 2 %}
-            {% with p2=lideres.1 %}
             <div class="podium-item">
-                <img src="{% if p2.user.perfil.foto %}{{ p2.user.perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ p2.user.username }}&background=C0C0C0&color=fff{% endif %}" class="podium-photo second">
-                <span class="rank-badge bg-silver">2º</span>
-                <p class="text-[10px] font-bold mt-4 uppercase">{{ p2.user.username|slice:":8" }}</p>
+                <img src="https://ui-avatars.com/api/?name={{ lideres.1.user.username }}&background=CD7F32&color=fff" class="podium-photo second">
+                <span class="rank-badge">2º</span>
+                <p class="text-[10px] font-bold mt-4 uppercase text-gray-500">{{ lideres.1.user.username|slice:":8" }}</p>
             </div>
-            {% endwith %}
         {% endif %}
 
         {% if lideres|length >= 1 %}
-            {% with p1=lideres.0 %}
             <div class="podium-item">
-                <img src="{% if p1.user.perfil.foto %}{{ p1.user.perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ p1.user.username }}&background=FFD700&color=000{% endif %}" class="podium-photo first">
-                <span class="rank-badge" style="background: #FFD700; color: black;">1º</span>
-                <p class="text-[12px] font-black mt-4 uppercase text-[#FFD700] italic">{{ p1.user.username|slice:":10" }}</p>
+                <img src="https://ui-avatars.com/api/?name={{ lideres.0.user.username }}&background=CD7F32&color=fff" class="podium-photo first">
+                <span class="rank-badge">1º</span>
+                <p class="text-[12px] font-black mt-4 uppercase text-[#CD7F32] italic">{{ lideres.0.user.username|slice:":10" }}</p>
             </div>
-            {% endwith %}
         {% endif %}
 
         {% if lideres|length >= 3 %}
-            {% with p3=lideres.2 %}
             <div class="podium-item">
-                <img src="{% if p3.user.perfil.foto %}{{ p3.user.perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ p3.user.username }}&background=CD7F32&color=fff{% endif %}" class="podium-photo third">
-                <span class="rank-badge" style="background: #CD7F32;">3º</span>
-                <p class="text-[10px] font-bold mt-4 uppercase">{{ p3.user.username|slice:":8" }}</p>
+                <img src="https://ui-avatars.com/api/?name={{ lideres.2.user.username }}&background=CD7F32&color=fff" class="podium-photo third">
+                <span class="rank-badge">3º</span>
+                <p class="text-[10px] font-bold mt-4 uppercase text-gray-500">{{ lideres.2.user.username|slice:":8" }}</p>
             </div>
-            {% endwith %}
         {% endif %}
     </div>
 
     <div class="rank-list">
-        <h3 class="text-xs font-black uppercase text-gray-500 mb-6 tracking-widest">Classificação Geral</h3>
-        
+        <h3 class="text-xs font-black uppercase text-gray-400 mb-6 tracking-widest">Classificação Geral</h3>
         <div class="space-y-3">
             {% for lider in lideres %}
                 <div class="list-item">
-                    <span class="w-8 font-black italic text-gray-600 text-lg">#{{ forloop.counter }}</span>
-                    
-                    <div class="w-10 h-10 rounded-full overflow-hidden mr-4 border border-gray-700">
-                        {% if lider.user.perfil.foto %}
-                            <img src="{{ lider.user.perfil.foto.url }}" class="w-full h-full object-cover">
-                        {% else %}
-                            <img src="https://ui-avatars.com/api/?name={{ lider.user.username }}&background=2d2d2d&color=fff" class="w-full h-full object-cover">
-                        {% endif %}
+                    <span class="w-8 font-black italic text-[#CD7F32] text-lg">#{{ forloop.counter }}</span>
+                    <div class="flex-grow ml-4">
+                        <h4 class="text-sm font-bold uppercase text-[#1A1A1A]">{{ lider.user.username }}</h4>
+                        <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{{ lider.nivel.nome|default:"NOVATO" }}</span>
                     </div>
-
-                    <div class="flex-grow">
-                        <h4 class="text-sm font-bold uppercase tracking-tight">{{ lider.user.username }}</h4>
-                        <span class="text-[8px] font-bold text-[#D37129] uppercase tracking-widest">{{ lider.nivel.nome|default:"NOVATO" }}</span>
-                    </div>
-
                     <div class="xp-pill">{{ lider.xp_total }} XP</div>
                 </div>
-            {% empty %}
-                <p class="text-center text-gray-600 text-xs uppercase font-bold py-10">Nenhum guerreiro no ranking ainda.</p>
             {% endfor %}
         </div>
     </div>

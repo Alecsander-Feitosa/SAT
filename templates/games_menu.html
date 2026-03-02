@@ -1,82 +1,78 @@
 {% extends "base.html" %}
-{% load static %}
-
 {% block content %}
 <style>
-    .game-hub { background: #121212; min-height: 100vh; color: white; }
+    .game-hub { background: #FFFFFF; min-height: 100vh; color: #1A1A1A; }
     .game-card { 
-        background: linear-gradient(145deg, #1A1C1E, #252729);
+        background: #F8F9FA;
         border-radius: 28px;
         padding: 24px;
         margin-bottom: 20px;
-        border: 1px solid rgba(211, 113, 41, 0.1);
+        border: 1px solid #eee;
         display: flex;
         align-items: center;
         gap: 20px;
         transition: all 0.3s ease;
+        text-decoration: none;
     }
-    .game-card:active { transform: scale(0.97); border-color: #D37129; }
+    .game-card:active { transform: scale(0.97); border-color: #CD7F32; background: white; }
     .icon-box { 
         width: 60px; height: 60px; 
-        background: rgba(211, 113, 41, 0.1); 
+        background: #CD7F32; 
         border-radius: 18px; 
         display: flex; align-items: center; justify-content: center;
-        color: #D37129; font-size: 24px;
+        color: #FFFFFF; font-size: 24px;
+        shadow: 0 4px 10px rgba(205, 127, 50, 0.3);
     }
     .status-online { color: #4E9F3D; font-size: 9px; font-weight: 900; text-transform: uppercase; }
 </style>
 
 <div class="game-hub pb-32 px-6">
     <div class="pt-10 pb-8">
-        <span class="text-[#D37129] font-black text-[10px] uppercase tracking-[4px]">Arena SAT</span>
-        <h1 class="text-3xl font-black italic">CENTRAL DE <span class="text-[#D37129]">GAMES</span></h1>
+        <span class="text-[#CD7F32] font-black text-[10px] uppercase tracking-[4px]">Arena SAT</span>
+        <h1 class="text-3xl font-black italic text-[#1A1A1A]">CENTRAL DE <span class="text-[#CD7F32]">GAMES</span></h1>
         
-        <div class="mt-6 p-4 bg-[#1A1C1E] rounded-3xl border border-gray-800">
+        <div class="mt-6 p-4 bg-[#F8F9FA] rounded-3xl border border-gray-100">
             <div class="flex justify-between items-center mb-2">
-                <span class="text-[10px] font-bold text-gray-400 uppercase">
-                    Seu Nível: {{ perfil_game.nivel.nome|upper }}
-                </span>
-                
-                <span class="text-[10px] font-black text-[#D37129]">{{ perfil_game.xp_total }} XP</span>
+                <span class="text-[10px] font-bold text-gray-400 uppercase">Seu Nível: {{ perfil_game.nivel.nome|upper }}</span>
+                <span class="text-[10px] font-black text-[#CD7F32]">{{ perfil_game.xp_total }} XP</span>
             </div>
-            <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                <div class="h-full bg-[#D37129] transition-all duration-500" style="width: {{ progresso_barra }}%"></div>
+            <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full bg-[#CD7F32]" style="width: {{ progresso_barra }}%"></div>
             </div>
         </div>
     </div>
 
     <div class="space-y-4">
-        <a href="{% url 'validar_checkin' %}" class="no-underline block">
-            <div class="game-card">
-                <div class="icon-box"><i class="bi bi-geo-alt-fill"></i></div>
-                <div class="flex-grow">
-                    <span class="status-online">● Disponível no Estádio</span>
-                    <h3 class="text-white text-lg font-black uppercase italic">Validar Presença</h3>
-                    <p class="text-gray-500 text-[10px] font-medium mt-1">Ganhe 50 XP provando que está no jogo.</p>
-                </div>
-                <i class="bi bi-chevron-right text-gray-700"></i>
+        <a href="{% url 'lista_eventos' %}" class="game-card">
+            <div class="icon-box"><i class="bi bi-geo-alt-fill"></i></div>
+            <div class="flex-grow">
+                <span class="status-online">● Disponível</span>
+                <h3 class="text-[#1A1A1A] text-lg font-black uppercase italic">Validar Presença</h3>
+                <p class="text-gray-400 text-[10px] font-medium mt-1">Ganhe XP provando que está no estádio.</p>
             </div>
+            <i class="bi bi-chevron-right text-gray-300"></i>
         </a>
 
-        <a href="{% url 'ranking' %}" class="no-underline block">
-            <div class="game-card">
-                <div class="icon-box"><i class="bi bi-trophy-fill"></i></div>
-                <div class="flex-grow">
-                    <h3 class="text-white text-lg font-black uppercase italic">Ranking Geral</h3>
-                    <p class="text-gray-500 text-[10px] font-medium mt-1">Veja quem são os líderes da arquibancada.</p>
-                </div>
-                <i class="bi bi-chevron-right text-gray-700"></i>
+        <a href="{% url 'ranking' %}" class="game-card">
+            <div class="icon-box"><i class="bi bi-trophy-fill"></i></div>
+            <div class="flex-grow">
+                <h3 class="text-[#1A1A1A] text-lg font-black uppercase italic">Ranking Geral</h3>
+                <p class="text-gray-400 text-[10px] font-medium mt-1">Veja os líderes da arquibancada.</p>
             </div>
+            <i class="bi bi-chevron-right text-gray-300"></i>
         </a>
+    </div>
 
-        <div class="game-card opacity-50">
+    <div class="game-card opacity-50">
             <div class="icon-box"><i class="bi bi-dice-5-fill"></i></div>
             <div class="flex-grow">
                 <span class="text-gray-600 text-[9px] font-black uppercase italic">Em breve</span>
                 <h3 class="text-gray-400 text-lg font-black uppercase italic">Palpites SAT</h3>
                 <p class="text-gray-600 text-[10px] font-medium mt-1">Chute o placar e ganhe prêmios da Bonelaria.</p>
             </div>
-        </div>
     </div>
+
+
 </div>
 {% endblock %}
+

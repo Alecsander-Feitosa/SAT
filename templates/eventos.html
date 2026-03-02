@@ -66,100 +66,32 @@
     }
 </style>
 
-<div class="event-container pb-32">
-    <div class="pt-10 px-6 pb-6">
-        <span class="text-[#D37129] font-black text-[10px] uppercase tracking-[4px]">Calendário de Lutas</span>
-        <h1 class="text-3xl font-black italic uppercase">Próximos <span class="text-[#D37129]">Eventos</span></h1>
+<div class="min-h-screen bg-white pb-32">
+    <div class="px-6 pt-10 mb-8">
+        <h1 class="text-3xl font-black italic uppercase text-[#1A1A1A]">Eventos <span class="text-[#CD7F32]">SAT</span></h1>
+        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Confirme sua presença e ganhe XP</p>
     </div>
 
-    <div class="px-6">
-        {% if eventos %}
-            {% for evento in eventos %}
-            <div class="event-card shadow-2xl">
-                <div class="relative h-48">
-                    <img src="{{ evento.imagem.url|default:'https://placehold.co/600x400/1A1C1E/white?text=SAT+ARENA' }}" class="w-full h-full object-cover">
-                    
-                    <div class="date-badge">
-                        <span class="block text-xs font-bold text-[#D37129] uppercase">{{ evento.data_evento|date:"M" }}</span>
-                        <span class="block text-2xl font-black text-white">{{ evento.data_evento|date:"d" }}</span>
-                    </div>
-
-                    {% if evento.pode_fazer_checkin %}
-                        <div class="status-badge text-[8px]">● Check-in Aberto</div>
-                    {% endif %}
+    <div class="px-5">
+        {% for evento in eventos %}
+        <div class="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm mb-4">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <span class="text-[#CD7F32] text-[10px] font-black uppercase">{{ evento.data|date:"d/m/Y" }}</span>
+                    <h3 class="text-[#1A1A1A] text-lg font-black uppercase italic">{{ evento.nome }}</h3>
                 </div>
-
-                <div class="p-6">
-                    <div class="flex justify-between items-center mb-2">
-                        <h2 class="text-xl font-black italic uppercase tracking-tighter text-white">{{ evento.titulo }}</h2>
-                    </div>
-                    
-                    <div class="flex items-center gap-2 text-gray-500 text-xs mb-6">
-                        <i class="bi bi-geo-alt-fill text-[#D37129]"></i>
-                        <span>{{ evento.local }}</span>
-                    </div>
-
-                    <button onclick="location.href='{% url 'detalhe_evento' evento.id %}'" class="btn-detalhes">
-                        Ver detalhes
-                    </button>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="text-center py-20 px-10">
-                <div class="w-20 h-20 bg-[#1A1C1E] rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-800">
-                    <i class="bi bi-calendar-x text-3xl text-gray-600"></i>
+                <div class="bg-[#CD7F32]/10 text-[#CD7F32] px-3 py-1 rounded-full text-[10px] font-black">
+                    +{{ evento.xp_recompensa }} XP
                 </div>
-                <h3 class="text-gray-500 font-black uppercase text-xs tracking-widest">Nenhum evento no radar</h3>
-                <p class="text-gray-600 text-[10px] mt-2">Aguarde as próximas convocações da diretoria.</p>
             </div>
-        {% endif %}
-    </div>
-</div>
-
-<div id="modalDetalhes" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center backdrop-blur-md p-6">
-    <div class="modal-content animate__animated animate__zoomIn">
-        <button onclick="fecharModal()" class="absolute top-5 right-5 text-gray-500 hover:text-white transition-colors">
-            <i class="bi bi-x-lg text-xl"></i>
-        </button>
-
-        <span class="text-[#D37129] font-black text-[9px] uppercase tracking-widest mb-2 block">Detalhes do Evento</span>
-        <h2 id="modalTitulo" class="text-white text-2xl font-black italic uppercase mb-4 leading-tight"></h2>
-        
-        <div class="space-y-4">
-            <div class="flex items-start gap-3">
-                <i class="bi bi-info-circle text-[#D37129] mt-1"></i>
-                <p id="modalDescricao" class="text-gray-400 text-xs leading-relaxed italic"></p>
-            </div>
-            <div class="flex items-center gap-3">
-                <i class="bi bi-geo-alt-fill text-[#D37129]"></i>
-                <p id="modalLocal" class="text-gray-400 text-[10px] font-bold uppercase"></p>
-            </div>
+            
+            <a href="{% url 'detalhe_evento' evento.id %}" class="w-full bg-[#CD7F32] text-white py-4 rounded-2xl flex items-center justify-center font-black uppercase text-[11px] no-underline shadow-lg shadow-[#CD7F32]/20">
+                Ver Detalhes / Check-in
+            </a>
         </div>
-
-        <a href="{% url 'validar_checkin' %}" class="block mt-8 text-center bg-white/5 border border-white/10 text-white font-black py-3 rounded-xl text-[10px] uppercase tracking-widest hover:bg-[#D37129] transition-all">
-            Validar minha presença
-        </a>
+        {% empty %}
+        <p class="text-center text-gray-400 text-xs font-bold uppercase py-20">Nenhum evento disponível.</p>
+        {% endfor %}
     </div>
 </div>
-
-<script>
-    function abrirDetalhes(titulo, descricao, local) {
-        document.getElementById('modalTitulo').innerText = titulo;
-        document.getElementById('modalDescricao').innerText = descricao || "Nenhuma descrição detalhada disponível para este evento.";
-        document.getElementById('modalLocal').innerText = local;
-        document.getElementById('modalDetalhes').classList.remove('hidden');
-    }
-
-    function fecharModal() {
-        document.getElementById('modalDetalhes').classList.add('hidden');
-    }
-
-    // Fechar modal ao clicar fora
-    window.onclick = function(event) {
-        let modal = document.getElementById('modalDetalhes');
-        if (event.target == modal) {
-            fecharModal();
-        }
-    }
-</script>
 {% endblock %}

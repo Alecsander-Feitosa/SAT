@@ -8,32 +8,40 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
-<body class="bg-[#0c0d0e] flex items-center justify-center min-h-screen px-5">
+<body class="bg-[#F8F9FA] flex items-center justify-center min-h-screen px-5">
     <div class="w-full max-w-sm">
         <div class="text-center mb-10">
-            <h1 class="text-[#D37129] text-4xl font-black italic italic uppercase">SAT</h1>
-            <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-2">Acesso Exclusivo à Torcida</p>
+            <h1 class="text-[#D37129] text-4xl font-black italic uppercase">SAT</h1>
+            <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-2">Acesso Exclusivo à Torcida</p>
         </div>
+
+        {% if form.errors %}
+            <div class="bg-red-500/10 border border-red-500/50 text-red-500 text-xs p-3 rounded-xl mb-4 text-center">
+                Usuário ou senha incorretos.
+            </div>
+        {% endif %}
 
         <form method="post" class="space-y-4">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
             <div class="space-y-2">
                 <label class="text-[10px] font-black uppercase text-gray-400 ml-2">Usuário</label>
-                <input type="text" name="username" class="w-full bg-[#161b22] border border-white/5 rounded-2xl py-4 px-6 text-white focus:border-[#D37129] outline-none transition-all" placeholder="Seu username">
+                <input type="text" name="username" required class="w-full bg-white border border-gray-100 rounded-2xl py-4 px-6 text-[#1A1A1A] focus:border-[#D37129] outline-none transition-all" placeholder="Seu username">
             </div>
 
             <div class="space-y-2">
                 <label class="text-[10px] font-black uppercase text-gray-400 ml-2">Senha</label>
-                <input type="password" name="password" class="w-full bg-[#161b22] border border-white/5 rounded-2xl py-4 px-6 text-white focus:border-[#D37129] outline-none transition-all" placeholder="••••••••">
+                <input type="password" name="password" required class="w-full bg-white border border-gray-100 rounded-2xl py-4 px-6 text-[#1A1A1A] focus:border-[#D37129] outline-none transition-all" placeholder="••••••••">
             </div>
 
-            <button type="submit" class="w-full bg-[#D37129] text-white font-black py-4 rounded-2xl uppercase italic tracking-widest shadow-lg shadow-[#D37129]/20 hover:scale-[1.02] active:scale-[0.98] transition-all mt-4">
+            <button type="submit" class="w-full bg-[#D37129] text-[#1A1A1A] font-black py-4 rounded-2xl uppercase italic tracking-widest shadow-lg shadow-[#D37129]/20 hover:scale-[1.02] active:scale-[0.98] transition-all mt-4">
                 Entrar no Sistema
             </button>
         </form>
 
         <div class="mt-8 text-center">
-            <p class="text-gray-500 text-xs">Ainda não é sócio? <a href="{% url 'cadastro' %}" class="text-[#D37129] font-bold">Cadastre-se</a></p>
+            <p class="text-gray-400 text-xs">Ainda não é sócio? <a href="{% url 'cadastro' %}" class="text-[#D37129] font-bold">Cadastre-se</a></p>
         </div>
     </div>
 </body>

@@ -2,58 +2,92 @@
 {% load static %}
 
 {% block content %}
-<style>
-    .hub-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
-    .hub-item { 
-        background: #161b22; border-radius: 24px; padding: 25px 15px; 
-        border: 1px solid rgba(255, 255, 255, 0.05); text-align: center;
-        text-decoration: none; display: flex; flex-direction: column; align-items: center;
-    }
-    .hub-item i { font-size: 28px; color: #D37129; margin-bottom: 10px; }
-    .hub-item span { font-size: 10px; font-weight: 900; color: #f8f9fa; text-transform: uppercase; }
-</style>
-
-<div class="min-h-screen bg-[#0c0d0e] pb-40">
+<div class="min-h-screen bg-[#F8F9FA] pb-32">
     <div class="px-5 pt-10 mb-6">
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-white">HUB DA <span class="text-[#D37129]">TORCIDA</span></h1>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-[#1A1A1A]">
+            MURAL DA <span class="text-[#D37129]">{{ user.perfil.torcida.nome|default:"TORCIDA" }}</span>
+        </h1>
+        <p class="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-1">O grito da arquibancada começa aqui</p>
     </div>
 
-    <div class="px-5 mb-10">
-        <div class="relative w-full aspect-[1.58/1] rounded-[24px] p-6 text-white overflow-hidden shadow-2xl border border-white/10" 
-             style="background: linear-gradient(135deg, #1a1c1e 0%, #0c0d0e 100%);">
-            <div class="absolute -top-20 -right-20 w-64 h-64 bg-[#D37129]/10 rounded-full blur-3xl"></div>
-            <div class="relative z-10 h-full flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <img src="{% static 'img/logo_sat.png' %}" class="h-6 w-auto brightness-200">
-                    <div class="w-10 h-8 bg-gradient-to-br from-yellow-200 to-yellow-600 rounded-md opacity-80 shadow-inner"></div>
-                </div>
-                <div>
-                    <p class="text-lg font-mono tracking-[4px]">SAT • {{ user.id|add:"1000" }} • 2026</p>
-                    <p class="text-[11px] font-black uppercase italic mt-1">{{ user.username }}</p>
-                </div>
-                <div class="flex justify-between items-end">
-                    <div>
-                        <p class="text-[7px] uppercase opacity-50 font-bold">Patente</p>
-                        <p class="text-[9px] font-bold">{{ perfil_game.nivel.nome|upper|default:"BRONZE" }}</p>
-                    </div>
-                    <span class="px-3 py-1 bg-[#D37129] text-[8px] font-black rounded-full italic shadow-lg">SÓCIO ATIVO</span>
-                </div>
+    <div class="px-5 mb-8">
+        <form method="POST" enctype="multipart/form-data" class="bg-white p-5 rounded-[32px] border border-gray-100 shadow-2xl">
+            {% csrf_token %}
+            <textarea name="texto" rows="3" 
+                class="w-full bg-transparent border-none text-[#1A1A1A] text-sm focus:ring-0 placeholder:text-gray-600 font-medium no-scrollbar" 
+                placeholder="O que está acontecendo na torcida, {{ user.username }}?">
+            </textarea>
+            
+            <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
+                <label class="flex items-center gap-2 text-gray-400 hover:text-[#D37129] transition-colors cursor-pointer">
+                    <i class="bi bi-camera-fill text-xl"></i>
+                    <span class="text-[9px] font-black uppercase tracking-wider">Adicionar Foto</span>
+                    <input type="file" name="imagem" class="hidden" accept="image/*">
+                </label>
+                
+                <button type="submit" class="bg-[#D37129] text-[#1A1A1A] px-6 py-2.5 rounded-2xl font-black uppercase text-[10px] shadow-lg shadow-[#D37129]/20 active:scale-95 transition-all">
+                    Publicar
+                </button>
             </div>
-        </div>
+        </form>
     </div>
 
-    <div class="hub-grid">
-        <a href="{% url 'galeria_fotos' %}" class="hub-item"><i class="bi bi-images"></i><span>Galeria</span></a>
-        <a href="{% url 'diretoria' %}" class="hub-item"><i class="bi bi-microsoft"></i><span>Diretoria</span></a>
-        <a href="{% url 'mural_conquistas' %}" class="hub-item"><i class="bi bi-trophy"></i><span>Conquistas</span></a>
-        <a href="{% url 'cancoes' %}" class="hub-item"><i class="bi bi-music-note-beamed"></i><span>Canções</span></a>
-        <a href="{% url 'lista_eventos' %}" class="hub-item">
-            <i class="bi bi-calendar-check"></i>
-            <span>Eventos</span>
-        </a>
-        <a href="{% url 'regras' %}" class="hub-item"><i class="bi bi-file-earmark-text"></i><span>Regras</span></a>
-        <a href="{% url 'aliadas' %}" class="hub-item"><i class="bi bi-shield-check"></i><span>Aliadas</span></a>
-        <a href="{% url 'viagens' %}" class="hub-item"><i class="bi bi-bus-front"></i><span>Viagens</span></a>
+    <div class="px-5 space-y-6">
+        {% for post in posts %}
+        <div class="bg-white rounded-[32px] border border-gray-100 overflow-hidden">
+            <div class="p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-[#D37129] to-[#8a4a1b] rounded-2xl flex items-center justify-center text-[#1A1A1A] font-black italic border border-white/10 shadow-lg">
+                        {{ post.autor.username|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <h4 class="text-[#1A1A1A] text-[11px] font-black uppercase italic leading-none">{{ post.autor.username }}</h4>
+                        <span class="text-[8px] text-gray-400 font-bold uppercase tracking-tighter">{{ post.data_criacao|timesince }} atrás</span>
+                    </div>
+                </div>
+                <i class="bi bi-three-dots text-gray-600"></i>
+            </div>
+
+            <div class="px-4 pb-4">
+                <p class="text-gray-300 text-xs leading-relaxed font-medium">
+                    {{ post.texto }}
+                </p>
+            </div>
+
+            {% if post.imagem %}
+            <div class="w-full aspect-square bg-black/20">
+                <img src="{{ post.imagem.url }}" class="w-full h-full object-cover">
+            </div>
+            {% endif %}
+
+            <div class="p-4 flex items-center gap-6 border-t border-gray-100">
+                <a href="{% url 'curtir_post' post.id %}" class="flex items-center gap-2 no-underline transition-all active:scale-95">
+                    <div class="relative">
+                        <i class="bi bi-heart-fill text-lg {% if request.user in post.curtidas.all %}text-red-500{% else %}text-gray-400{% endif %}"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black uppercase text-[#1A1A1A] leading-none">
+                            {{ post.curtidas.count }}
+                        </span>
+                        <span class="text-[7px] font-bold uppercase text-gray-400 tracking-tighter">
+                            Curtida{{ post.curtidas.count|pluralize }}
+                        </span>
+                    </div>
+                </a>
+                
+                <button class="flex items-center gap-2 text-gray-400 hover:text-[#D37129] transition-colors">
+                    <i class="bi bi-chat-right-text-fill text-lg"></i>
+                    <span class="text-[9px] font-black uppercase">Comentar</span>
+                </button>
+            </div>
+        {% empty %}
+        <div class="py-20 text-center">
+            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
+                <i class="bi bi-chat-quote text-[#D37129] text-3xl opacity-20"></i>
+            </div>
+            <p class="text-gray-600 text-[10px] font-black uppercase tracking-widest">O mural está silencioso...<br>Dê o primeiro grito!</p>
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

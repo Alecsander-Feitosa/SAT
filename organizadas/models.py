@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from gamification.models import Partida
-
+from django.contrib.auth.models import User
 
 class Torcida(models.Model):
     nome = models.CharField(max_length=150, unique=True)
@@ -36,15 +36,15 @@ class Caravana(models.Model):
         return f"Caravana: {self.titulo}"
      
 class Evento(models.Model):
-    torcida = models.ForeignKey('Torcida', on_delete=models.CASCADE, related_name='torcida_eventos')
+    # Use o nome do modelo sem aspas se ele estiver no mesmo arquivo acima
+    torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='torcida_eventos', null=True, blank=True)
     titulo = models.CharField(max_length=100)
-    data_evento = models.DateTimeField()
+    data = models.DateTimeField() # Padronizando para 'data' como a view espera
     local = models.CharField(max_length=255)
-    
-    # NOVOS CAMPOS
     imagem_capa = models.ImageField(upload_to='eventos/', null=True, blank=True)
-    informativo = models.TextField(help_text="Texto detalhado sobre o evento", blank=True)
-    
+    informativo = models.TextField(blank=True)
+    ativo = models.BooleanField(default=True)
+
     def __str__(self):
         return self.titulo
 
@@ -67,3 +67,27 @@ class Noticia(models.Model):
     # 3. Métodos (opcional)
     def __str__(self):
         return self.titulo
+
+
+class Post(models.Model):
+    # O campo chama-se 'autor', e o 'related_name' é um parâmetro extra
+    autor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organizadas_posts')
+    torcida = models.ForeignKey('Torcida', on_delete=models.CASCADE)
+    texto = models.TextField(max_length=500)
+    imagem = models.ImageField(upload_to='posts/', null=True, blank=True)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-data_criacao']
+
+
+class Curtida(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='curtidas')
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    data_curtida = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('post', 'usuario') # Garante 1 curtida por pessoa
+
+    def __str__(self):
+        return f"{self.usuario.username} curtiu o post {self.post.id}"

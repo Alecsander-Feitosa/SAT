@@ -10,8 +10,7 @@ import requests
 from django.db import models
 # Importações de outros Apps (Cada uma no seu lugar correto)
 from .models import Perfil, Presenca               # Modelos do App Accounts
-from .forms import CadastroForm, PerfilCompletoForm 
-from content.models import Post                    # Modelos do App Content
+from .forms import CadastroForm, PerfilCompletoForm                  
 from content.api import api_noticias
 from gamification.models import PerfilGamificacao, Nivel # Modelos do App Gamification
 from organizadas.models import Torcida, Evento
@@ -21,6 +20,12 @@ from organizadas.models import Evento
 from django.utils import timezone
 from .models import Conquista
 from django.contrib.auth.views import LoginView
+from .decorators import torcida_required
+from content.models import Post as PostGeral
+from organizadas.models import Post as PostTorcida
+from organizadas.models import Torcida, Evento, Post as PostTorcida, Curtida
+from .models import Evento
+
 
 
 def cadastro(request):
@@ -28,8 +33,8 @@ def cadastro(request):
         form = CadastroForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            return redirect('dashboard')
+            login(request, user) # Loga automaticamente após cadastrar
+            return redirect('dashboard') # Redireciona para o painel principal
     else:
         form = CadastroForm()
     return render(request, 'cadastro.html', {'form': form})
@@ -39,42 +44,65 @@ def cadastro(request):
 @login_required
 def dashboard(request):
     perfil = request.user.perfil
+    if perfil.torcida:
+        eventos = Evento.objects.filter(
+            torcida=perfil.torcida, 
+            data__gte=timezone.now(), 
+            ativo=True
+        ).order_by('data')[:3]
+    else:
+        eventos = Evento.objects.filter(
+            data__gte=timezone.now(), 
+            ativo=True
+        ).order_by('data')[:3]
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
-    
+    eventos = Evento.objects.filter(
+        data__gte=timezone.now(), 
+        ativo=True
+    ).order_by('data')[:3]
+
+
     # 1. Busca Notícias da API focadas em Futebol
     noticias_api = cache.get('news_api_futebol')
     if not noticias_api:
         try:
-            # Filtro focado em futebol brasileiro e notícias esportivas
             url = f'https://newsapi.org/v2/everything?q=futebol+brasileiro+brasileirao&language=pt&sortBy=publishedAt&pageSize=5&apiKey={api_noticias}'
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
                 noticias_api = response.json().get('articles', [])
-                cache.set('news_api_futebol', noticias_api, 900) # 15 min de cache
+                cache.set('news_api_futebol', noticias_api, 900)
         except Exception:
             noticias_api = []
 
-    # 2. Dados de XP e Eventos (mantendo sua lógica atual)
-    xp_atual = perfil_game.xp_total or 0
-    cor_tema = perfil_game.nivel.cor_tema if perfil_game.nivel else "#D37129"
-    eventos_torcida = Evento.objects.filter(torcida=perfil.torcida).order_by('data_evento')[:3] if perfil.torcida else []
+    # 2. Lógica de Eventos Dinâmica
+    # Se aprovado, prioriza eventos da torcida dele. Se não, mostra eventos gerais.
+    if perfil.torcida and perfil.aprovado:
+        eventos = Evento.objects.filter(torcida=perfil.torcida, data__gte=timezone.now()).order_by('data')[:3]
+    else:
+        eventos = Evento.objects.filter(data__gte=timezone.now()).order_by('data')[:3]
 
-    proximos_eventos = Evento.objects.filter(
-        data_evento__gte=timezone.now()
-    ).order_by('data_evento')[:3]
-
+    # 3. Dados Adicionais
     conquistas = Conquista.objects.all()
+    cor_tema = perfil_game.nivel.cor_tema if perfil_game.nivel else "#D37129"
 
     context = {
+        'proximos_eventos': eventos,
         'conquistas': conquistas,
-        'eventos': proximos_eventos,
         'perfil': perfil,
         'perfil_game': perfil_game,
-        'noticias': noticias_api, # Enviando a lista da API
+        'noticias': noticias_api,
         'cor_tema': cor_tema,
-        'xp_atual': xp_atual,
-        'eventos': eventos_torcida,
+        'xp_atual': perfil_game.xp_total or 0,
+        'eventos': eventos,
+        'torcida': perfil.torcida,
     }
+
+    # 4. Redirecionamento de Template
+    # Se ele tem torcida E está aprovado, renderiza o dashboard específico
+    if perfil.torcida and perfil.aprovado:
+        return render(request, 'dashboard_torcida.html', context)
+    
+    # Caso contrário (sem torcida ou pendente), renderiza o dashboard geral
     return render(request, 'dashboard.html', context)
 
 @login_required
@@ -164,24 +192,27 @@ def seja_socio(request):
 def torcidas(request):
     perfil = request.user.perfil
     
-    # Se ele já escolheu, mostramos o Mural (image_e9dbf7.png)
+    # Se ele já escolheu, mostramos o Mural da torcida dele
     if perfil.torcida:
         return render(request, 'mural.html', {'torcida': perfil.torcida})
     
-    # Caso contrário, mostramos a lista de escolha
+    # Caso contrário, listamos as opções
     lista_de_torcidas = Torcida.objects.all()
-    return render(request, 'torcidas.html', {'torcidas': lista_de_torcidas})
+    return render(request, 'torcidas.html', {
+        'torcidas': lista_de_torcidas,
+        'neutro': True # Flag para mostrar que ele pode continuar sem torcida
+    })
 
 @login_required
 def vincular_torcida(request, torcida_id):
-    # Vincula o torcedor à organizada escolhida
     torcida = get_object_or_404(Torcida, id=torcida_id)
-    perfil = get_object_or_404(Perfil, user=request.user)
-    torcida = get_object_or_404(Torcida, id=torcida_id)
-    perfil = get_object_or_404(Perfil, user=request.user)
+    perfil = request.user.perfil
+    
     perfil.torcida = torcida
+    perfil.aprovado = False # Para a lógica de aprovação que criamos
     perfil.save()
-    messages.success(request, f"Agora você faz parte da {torcida.nome}!")
+    
+    messages.success(request, f"Solicitação enviada para {torcida.nome}!")
     return redirect('dashboard')
 
 def logout_view(request):
@@ -190,18 +221,67 @@ def logout_view(request):
 
 
 @login_required
-def mural_torcida(request):
-    perfil = get_object_or_404(Perfil, user=request.user)
+@torcida_required
+def mural_social(request):
+    perfil = request.user.perfil
     
-    # Se ele não tiver torcida, volta para a seleção
-    if not perfil.torcida:
-        return redirect('torcida')
+    if request.method == "POST":
+        texto = request.POST.get('texto')
+        imagem = request.FILES.get('imagem')
         
+        # O print abaixo ajudará você a ver no terminal se os dados estão chegando
+        print(f"DEBUG: Texto recebido: {texto} | Imagem recebida: {imagem}")
+
+        if texto or imagem:
+            # USANDO O NOME CORRIGIDO: PostTorcida
+            PostTorcida.objects.create(
+                autor=request.user,
+                torcida=perfil.torcida,
+                texto=texto,
+                imagem=imagem
+            )
+            return redirect('mural.html') 
+
+    # Busca usando PostTorcida e o campo data_criacao (que está correto no seu models.py)
+    posts = PostTorcida.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')
+    return render(request, 'mural.html', {'posts': posts})
+
+@login_required
+@torcida_required
+def mural_social(request):
+    perfil = request.user.perfil
+    
+    if request.method == "POST":
+        texto = request.POST.get('texto')
+        imagem = request.FILES.get('imagem')
+        
+        if texto or imagem:
+            # USANDO O MODELO DA TORCIDA (PostTorcida)
+            PostTorcida.objects.create(
+                autor=request.user,
+                torcida=perfil.torcida,
+                texto=texto,
+                imagem=imagem
+            )
+            return redirect('mural') 
+
+    # Busca os posts usando o modelo correto
+    posts = PostTorcida.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')
+    return render(request, 'mural.html', {'posts': posts})
+
+
+
+@login_required
+def area_hub(request):
+    perfil = request.user.perfil
+    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+    
     context = {
+        'perfil': perfil,
+        'perfil_game': perfil_game,
         'torcida': perfil.torcida,
-        'perfil': perfil
     }
-    return render(request, 'mural.html', context)
+    return render(request, 'hub.html', context)
 
 
 def socio_view(request):
@@ -355,42 +435,198 @@ def games_hub(request):
     })
 
 
+@login_required
+def moderacao_torcida(request):
+    perfil_moderador = request.user.perfil
+    
+    # Segurança: Apenas quem tem torcida e é da equipe (is_staff) pode moderar
+    if not request.user.is_staff or not perfil_moderador.torcida:
+        messages.error(request, "Você não tem permissão para moderar.")
+        return redirect('dashboard')
+        
+    # Filtra apenas pendentes que pertencem à MESMA torcida do moderador
+    pendentes = Perfil.objects.filter(
+        torcida=perfil_moderador.torcida, 
+        aprovado=False
+    ).exclude(user=request.user) # Não auto-aprovar
+    
+    return render(request, 'moderacao.html', {
+        'pendentes': pendentes,
+        'torcida': perfil_moderador.torcida
+    })
 
 @login_required
+def aprovar_membro(request, perfil_id):
+    if not request.user.is_staff:
+        return redirect('dashboard')
+    perfil_moderador = request.user.perfil
+    perfil_alvo = get_object_or_404(Perfil, id=perfil_id)
+    
+    # Validação de segurança em nível de banco de dados
+    if request.user.is_staff and perfil_alvo.torcida == perfil_moderador.torcida:
+        perfil_alvo.aprovado = True
+        perfil_alvo.save()
+        messages.success(request, f"O torcedor {perfil_alvo.user.username} foi aprovado!")
+    else:
+        messages.error(request, "Ação não permitida.")
+        
+    return redirect('moderacao_torcida')
+
+
+@login_required
+@torcida_required
 def cartao_socio_view(request):
     # Esta view renderiza especificamente o cartão estilo banco
     return render(request, 'torcida/cartao_socio.html')
 
+@login_required
 def area_torcida(request):
-    """Abre o mural.html (Hub com ícones)"""
-    return render(request, 'mural.html')
+    perfil = request.user.perfil
+    if perfil.torcida and not perfil.aprovado:
+        # Se já escolheu e espera aprovação, mostra uma mensagem específica
+        return render(request, 'torcidas.html', {'status': 'pendente'})
+        
+    lista_de_torcidas = Torcida.objects.all()
+    return render(request, 'torcidas.html', {'torcidas': lista_de_torcidas})
 
+@login_required
+@torcida_required
 def galeria_fotos(request):
     return render(request, 'torcida/galeria.html')
 
+@login_required
+@torcida_required
 def diretoria_view(request):
     return render(request, 'torcida/diretoria.html')
 
+@login_required
+@torcida_required
 def mural_conquistas(request):
     return render(request, 'torcida/conquistas.html')
 
+@login_required
+@torcida_required
 def cancoes_torcida(request):
     return render(request, 'torcida/cancoes.html')
 
+
+@login_required
+@torcida_required
 def aliadas_view(request):
     return render(request, 'torcida/aliadas.html')
 
+@login_required
+@torcida_required
 def viagens_view(request):
     return render(request, 'torcida/viagens.html')
 
+@login_required
+@torcida_required
 def regras_view(request):
     return render(request, 'torcida/regras.html')
 
+@login_required
+@torcida_required
 def lista_eventos(request):
     """Abre o eventos.html puxando do banco"""
     # Corrigido para 'data_evento' conforme seu modelo
-    eventos = Evento.objects.all().order_by('data_evento')
+    eventos = Evento.objects.all().order_by('data')
     return render(request, 'eventos.html', {'eventos': eventos})
 
 class MyCustomLoginView(LoginView):
     template_name = 'registration/login.html'
+
+
+@login_required
+def curtir_post(request, post_id):
+    post = get_object_or_404(PostTorcida, id=post_id)
+    curtida, created = Curtida.objects.get_or_create(post=post, usuario=request.user)
+    
+    if created:
+        # Lógica de XP: O autor do post ganha 1 XP
+        perfil_autor, _ = PerfilGamificacao.objects.get_or_create(user=post.autor)
+        perfil_autor.xp_total += 1
+        perfil_autor.save()
+    else:
+        # Se clicar de novo, remove a curtida
+        curtida.delete()
+        # Opcional: remover o 1 XP se a curtida for desfeita
+        perfil_autor = PerfilGamificacao.objects.get(user=post.autor)
+        if perfil_autor.xp_total > 0:
+            perfil_autor.xp_total -= 1
+            perfil_autor.save()
+            
+    return redirect('mural') 
+
+@login_required
+def realizar_checkin(request, evento_id):
+    evento = get_object_or_404(Evento, id=evento_id)
+    agora = timezone.now()
+
+    # 1. Valida se é o dia do evento [cite: 55]
+    if evento.data_evento.date() != agora.date():
+        messages.error(request, "O check-in só fica disponível no dia do evento!")
+        return redirect('detalhe_evento', evento_id=evento.id)
+
+    if request.method == "POST":
+        # 2. Verifica se já existe check-in para este usuário e evento [cite: 56, 59]
+        if CheckIn.objects.filter(user=request.user, evento=evento).exists():
+            messages.warning(request, "Você já garantiu sua presença neste jogo!")
+            return redirect('dashboard')
+
+        # 3. Salva o Check-in [cite: 67]
+        foto = request.FILES.get('foto')
+        checkin = CheckIn.objects.create(
+            user=request.user,
+            evento=evento,
+            foto=foto,
+            validado=True
+        )
+
+        # 4. Motor de Gamificação: +50 XP por presença [cite: 68, 82]
+        perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+        perfil_game.xp_total += 50
+        perfil_game.save()
+
+        # 5. Publicação automática no Feed [cite: 77, 95, 97]
+        PostTorcida.objects.create(
+            autor=request.user,
+            torcida=request.user.perfil.torcida,
+            texto=f"Presença confirmada no evento: {evento.titulo}! 🏟️🔥"
+        )
+
+        messages.success(request, f"Check-in realizado! +50 XP na conta.")
+        return redirect('mural')
+
+    return redirect('detalhe_evento', evento_id=evento.id)
+
+
+def planos_socio(request):
+    # Por enquanto, apenas renderiza uma página simples ou o próprio dashboard
+    return render(request, 'seja_socio.html')
+
+# accounts/views.py
+@login_required
+def hub_games_view(request):
+    # Alterado para carregar o menu de lista de games
+    return render(request, 'games_menu.html')
+
+@login_required
+def viagens_view(request):
+    return render(request, 'viagens.html')
+
+@login_required
+def noticias_view(request):
+    return render(request, 'noticias.html')
+
+@login_required
+def ranking_view(request):
+    return render(request, 'ranking.html')
+
+
+def adicionar_xp(perfil, quantidade):
+    if perfil.is_socio:
+        quantidade *= 2
+    perfil.xp_total += quantidade
+    perfil.save()
+  

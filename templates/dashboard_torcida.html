@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="pb-32 pt-6 bg-[#F8F9FA]">
+    <div class="px-5 mb-6 flex items-center gap-4">
+        <div class="w-14 h-14 bg-white rounded-2xl p-2 shadow-xl shadow-[#D37129]/10">
+            {% if torcida.escudo %}
+                <img src="{{ torcida.escudo.url }}" class="w-full h-full object-contain">
+            {% else %}
+                <i class="bi bi-shield-shaded text-[#D37129] text-2xl"></i>
+            {% endif %}
+        </div>
+        <div>
+            <h2 class="text-[#1A1A1A] font-black uppercase italic leading-none text-xl">{{ torcida.nome }}</h2>
+            <p class="text-[#D37129] text-[8px] font-black uppercase tracking-[3px] mt-1">Membro Oficial Aprovado</p>
+        </div>
+    </div>
+
+    <div class="mx-5 p-6 mb-8 rounded-[32px] bg-white border border-gray-100">
+        <div class="flex justify-between items-end mb-4">
+            <div>
+                <span class="text-[9px] font-black text-[#D37129] uppercase tracking-widest">Patente</span>
+                <h2 class="text-2xl font-black italic uppercase text-[#1A1A1A]">{{ perfil_game.nivel.nome|default:"RECRUTA" }}</h2>
+            </div>
+            <div class="text-right">
+                <p class="text-xl font-black text-[#D37129]">{{ perfil_game.xp_total }} XP</p>
+            </div>
+        </div>
+        <div class="w-full h-2 bg-black/40 rounded-full overflow-hidden">
+            <div class="h-full bg-[#D37129]" style="width: {{ perfil_game.progresso_nivel }}%;"></div>
+        </div>
+    </div>
+
+    <div class="px-5 mb-8">
+        <a href="{% url 'mural' %}" class="flex items-center justify-between bg-gradient-to-r from-[#D37129] to-[#8a4a1b] p-5 rounded-[24px] no-underline shadow-lg shadow-[#D37129]/20">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-[#1A1A1A]">
+                    <i class="bi bi-chat-left-text-fill"></i>
+                </div>
+                <div>
+                    <span class="block text-[#1A1A1A] text-[11px] font-black uppercase italic">Mural da Torcida</span>
+                    <span class="block text-[#1A1A1A]/50 text-[8px] font-bold uppercase">Veja o que a galera postou</span>
+                </div>
+            </div>
+            <i class="bi bi-chevron-right text-[#1A1A1A]"></i>
+        </a>
+    </div>
+
+    <div class="px-5">
+        <h3 class="text-[#1A1A1A] font-black uppercase italic text-xs mb-4 border-l-4 border-[#D37129] pl-3">Próximos Comandos</h3>
+        <div class="space-y-3">
+            {% for evento in eventos %}
+            <div class="bg-white p-4 rounded-[24px] border border-gray-100 flex items-center gap-4">
+                <div class="text-[#D37129] font-black text-center border-r border-white/10 pr-4">
+                    <span class="block text-lg">{{ evento.data_evento|date:"d" }}</span>
+                    <span class="block text-[8px] uppercase">{{ evento.data_evento|date:"M" }}</span>
+                </div>
+                <div>
+                    <h4 class="text-[#1A1A1A] text-[10px] font-black uppercase">{{ evento.titulo }}</h4>
+                    <p class="text-gray-400 text-[8px] uppercase mt-1">{{ evento.local }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-gray-600 text-[10px] font-bold uppercase italic">Nenhum evento marcado para sua torcida.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

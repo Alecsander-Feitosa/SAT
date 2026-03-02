@@ -9,13 +9,10 @@ from content.models import Notificacao
 @receiver(post_save, sender=User)
 def configurar_novo_torcedor(sender, instance, created, **kwargs):
     if created:
-        Perfil.objects.get_or_create(user=instance)
+        # MANTENHA esta linha: ela cria apenas a parte de pontos/XP
         PerfilGamificacao.objects.get_or_create(user=instance)
-        Notificacao.objects.create(
-            user=instance, 
-            titulo="Bem-vindo ao SAT!",
-            mensagem="Complete seu perfil para liberar sua carteirinha virtual."
-        )
+        
+       
 
 
 @receiver(post_save, sender=CheckIn)

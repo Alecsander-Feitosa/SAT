@@ -2,29 +2,17 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from organizadas.models import Torcida
-
-
-
-
-
-#class Torcida(models.Model):
- #   nome = models.CharField(max_length=100)
- #   escudo = models.ImageField(upload_to='torcidas/escudos/', blank=True, null=True)
- #   historia = models.TextField(blank=True)
- #   diretoria = models.TextField(blank=True)
- #   hino = models.TextField(blank=True)
- #   
- #   def __str__(self):
- #       return self.nome
-
+from django.db import models
+from django.contrib.auth.models import User
 
 
 class Perfil(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     foto = models.ImageField(upload_to='perfil_fotos/', null=True, blank=True)
     torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.SET_NULL, null=True)
-    cpf = models.CharField(max_length=14, unique=True)
+    cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)
     whatsapp = models.CharField(max_length=20, blank=True)
+    aprovado = models.BooleanField(default=False)
     
     # --- DADOS PESSOAIS ADICIONADOS ---
     data_nascimento = models.DateField(null=True, blank=True)
@@ -89,3 +77,47 @@ class Conquista(models.Model):
 
     def __str__(self):
         return self.titulo
+    
+
+class CheckIn(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # Adicionamos o related_name='checkins_accounts' para diferenciar do outro app
+    evento = models.ForeignKey(
+        'organizadas.Evento', 
+        on_delete=models.CASCADE, 
+        related_name='checkins_accounts'
+    )
+    foto = models.ImageField(upload_to='checkins/', null=True, blank=True)
+    latitude = models.FloatField(default=0.0)
+    longitude = models.FloatField(default=0.0)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    validado = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'evento')
+
+
+class Evento(models.Model):
+    nome = models.CharField(max_length=200)
+    descricao = models.TextField(blank=True, null=True)
+    local = models.CharField(max_length=255) # Ex: Arena Castelão
+    data = models.DateTimeField()
+    xp_recompensa = models.IntegerField(default=50)
+    ativo = models.BooleanField(default=True)
+    torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.CASCADE, null=True, blank=True)
+    data = models.DateTimeField()
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    raio_checkin = models.IntegerField(default=500, help_text="Raio em metros para permitir check-in")
+
+    def __str__(self):
+        return self.nome
+
+# Tabela para registrar quem já fez check-in e não ganhar XP infinito
+class CheckIn(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE)
+    data_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'evento')

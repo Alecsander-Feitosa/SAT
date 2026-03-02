@@ -3,9 +3,6 @@ import os
 from dotenv import load_dotenv
 
 
-LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'dashboard'
-
 
 load_dotenv()
 

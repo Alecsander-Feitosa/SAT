@@ -6,11 +6,12 @@ from gamification import views
 
 
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')),
     path('gamification/', include('gamification.urls')),
-    path('social/', include('social.urls')), # Módulo 4: Engajamento 
+   
     path('loja/', include('loja.urls')),
     path('ranking/', views.ranking_torcida, name='ranking'),
     path('eventos/', views.lista_eventos, name='lista_eventos'),

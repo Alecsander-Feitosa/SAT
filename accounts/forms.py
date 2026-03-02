@@ -17,10 +17,21 @@ class CadastroForm(forms.ModelForm):
         }
 
     def save(self, commit=True):
+        # 1. Guarda o utilizador primeiro
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
+        
         if commit:
             user.save()
+            # 2. Cria ou atualiza o Perfil com os dados extras do formulário
+            # Usamos update_or_create para evitar o erro de "UNIQUE constraint"
+            Perfil.objects.update_or_create(
+                user=user,
+                defaults={
+                    'cpf': self.cleaned_data.get('cpf'),
+                    'whatsapp': self.cleaned_data.get('whatsapp'), # Confirme se no seu model é 'telefone' ou 'whatsapp'
+                }
+            )
         return user
 
 class PerfilCompletoForm(forms.ModelForm):
@@ -35,7 +46,5 @@ class PerfilCompletoForm(forms.ModelForm):
         ]
         widgets = {
             field: forms.TextInput(attrs={'class': 'form-control sat-input'}) 
-            for field in fields if field not in ['data_nascimento', 'pelotao', 'foto_documento_frente', 'foto_documento_verso', 'verificacao_facial']
+            for field in fields if field not in ['data_nascimento', 'foto', 'foto_documento_frente', 'foto_documento_verso', 'verificacao_facial']
         }
-        widgets['data_nascimento'] = forms.DateInput(attrs={'type': 'date', 'class': 'form-control sat-input'})
-        widgets['pelotao'] = forms.Select(attrs={'class': 'form-select sat-input'})

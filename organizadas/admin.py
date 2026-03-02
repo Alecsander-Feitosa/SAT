@@ -9,9 +9,9 @@ class TorcidaAdmin(admin.ModelAdmin):
 @admin.register(Evento)
 class EventoAdmin(admin.ModelAdmin):
     # Campos que aparecem na lista
-    list_display = ('titulo', 'torcida', 'data_evento', 'local')
+    list_display = ('titulo', 'local', 'data', 'ativo')
     # Filtros e buscas
-    list_filter = ('torcida', 'data_evento')
+    list_filter = ('ativo', 'data')
     search_fields = ('titulo', 'local')
     # Campos dentro do formulário de edição (incluindo os novos)
-    fields = ('torcida', 'titulo', 'data_evento', 'local', 'imagem_capa', 'informativo')
+    fields = ('torcida', 'titulo', 'data', 'local', 'imagem_capa', 'informativo', 'ativo')

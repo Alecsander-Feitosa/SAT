@@ -4,120 +4,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SAT - Organizada</title>
+    <title>SAT - Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --sat-orange: #D37129; --sat-dark: #0c0d0e; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--sat-dark); color: #f8f9fa; margin: 0; }
-        .nav-tab { flex: 1; text-align: center; padding: 15px 0; font-size: 0.7rem; font-weight: 900; color: #555; border-bottom: 2px solid #1a1c1e; text-decoration: none; text-transform: uppercase; }
-        .nav-tab.active { color: var(--sat-orange); border-bottom: 2px solid var(--sat-orange); }
+        :root { --sat-bronze: #CD7F32; }
+        body { font-family: 'Inter', sans-serif; background-color: #FFFFFF !important; color: #1A1A1A; margin: 0; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body>
-
-    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-[100] hidden transition-opacity duration-300" onclick="toggleSidebar()"></div>
-
-    <div id="satSidebar" class="fixed inset-y-0 left-0 w-[280px] bg-white z-[101] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto no-scrollbar">
-        <div class="p-6 bg-[#D37129] text-white">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#D37129] shadow-inner">
+<body class="bg-white">
+    {% if user.is_authenticated %}
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden transition-opacity" onclick="toggleSidebar()"></div>
+    <div id="satSidebar" class="fixed inset-y-0 left-0 w-72 bg-white z-[101] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out border-r border-gray-100 overflow-y-auto no-scrollbar">
+        
+        <div class="p-8 bg-[#CD7F32] text-white">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
                     <i class="bi bi-person-fill text-2xl"></i>
                 </div>
                 <div>
                     <h4 class="font-black uppercase italic leading-none">{{ user.username }}</h4>
-                    <p class="text-[10px] font-bold opacity-80 uppercase">{{ perfil_game.nivel.nome|default:"Recruta" }}</p>
+                    <p class="text-[10px] font-bold opacity-80 uppercase tracking-widest">Membro SAT</p>
                 </div>
             </div>
         </div>
 
-        <div class="p-4">
-            <div class="mb-4">
-                <p class="px-3 text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Para Você</p>
-                <nav class="space-y-1">
-                    <a href="{% url 'perfil' %}" class="flex items-center gap-3 p-2 text-sm font-bold text-gray-700 hover:bg-gray-50 no-underline">
-                        <i class="bi bi-person-badge text-[#D37129]"></i> Meu Perfil
-                    </a>
-                    <a href="{% url 'dashboard' %}" class="flex items-center gap-3 p-2 text-sm font-bold text-gray-700 hover:bg-gray-50 no-underline">
-                        <i class="bi bi-house-door text-gray-400"></i> Dashboard
-                    </a>
-                    <a href="{% url 'loja' %}" class="flex items-center gap-3 p-2 text-sm font-bold text-gray-700 hover:bg-gray-50 no-underline">
-                        <i class="bi bi-bag-fill text-gray-400"></i> Loja SAT
-                    </a>
-                </nav>
-            </div>
-
-            <div class="mb-4">
-                <p class="px-3 text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">SAT Social</p>
-                <nav class="space-y-1">
-                    <a href="{% url 'mural_torcida' %}" class="flex items-center gap-3 p-2 text-sm font-bold text-gray-700 hover:bg-gray-50 no-underline">
-                        <i class="bi bi-people-fill text-gray-400"></i> Mural Social
-                    </a>
-                </nav>
-            </div>
-
-            <div class="mb-4">
-                <p class="px-3 text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Torcida</p>
-                <nav class="space-y-1">
-                    <a href="{% url 'torcida' %}" class="flex items-center gap-3 p-2 text-sm font-bold text-gray-700 hover:bg-gray-50 no-underline">
-                        <i class="bi bi-shield-shaded text-gray-400"></i> Organizadas
-                    </a>
-                    <a href="{% url 'lista_eventos' %}" class="flex items-center gap-3 p-2 text-sm font-bold text-gray-700 hover:bg-gray-50 no-underline">
-                        <i class="bi bi-calendar-check text-gray-400"></i> Eventos
-                    </a>
-                </nav>
-            </div>
+        <div class="p-4 space-y-2">
+            <p class="px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest my-4">Menu Principal</p>
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-gray-50 no-underline group transition-all">
+                <i class="bi bi-grid-1x2-fill text-[#CD7F32] text-lg"></i>
+                <span class="text-sm font-bold text-[#1A1A1A]">Dashboard</span>
+            </a>
+            <a href="{% url 'mural' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-gray-50 no-underline group transition-all">
+                <i class="bi bi-chat-quote-fill text-[#CD7F32] text-lg"></i>
+                <span class="text-sm font-bold text-[#1A1A1A]">Mural Social</span>
+            </a>
+            <a href="{% url 'ranking' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-gray-50 no-underline group transition-all">
+                <i class="bi bi-trophy-fill text-[#CD7F32] text-lg"></i>
+                <span class="text-sm font-bold text-[#1A1A1A]">Ranking</span>
+            </a>
+            <hr class="border-gray-50 my-4">
+            <a href="{% url 'login' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-red-50 no-underline text-red-500">
+                <i class="bi bi-door-open-fill text-lg"></i>
+                <span class="text-sm font-bold">Sair</span>
+            </a>
         </div>
     </div>
 
-    <div class="flex items-center justify-between px-5 py-4 bg-[#0c0d0e] sticky top-0 z-[50] border-b border-white/5">
-        <div class="flex items-center gap-4">
-            <button onclick="toggleSidebar()" class="text-2xl text-white"><i class="bi bi-list"></i></button>
-            <img src="{% static 'img/logo_sat.png' %}" alt="SAT" class="h-8 w-auto">
-        </div>
-    </div>
+    <div class="flex items-center justify-between px-5 py-4 bg-white sticky top-0 z-[50] border-b border-gray-100">
+        <button onclick="toggleSidebar()" class="text-2xl text-[#1A1A1A]"><i class="bi bi-list"></i></button>
+        <span class="font-black italic text-[#CD7F32]">SAT ELITE</span>
+        <div class="w-8"></div> </div>
+    {% endif %}
 
-    <div class="flex bg-[#0c0d0e] sticky top-[65px] z-[49] border-b border-white/5">
-        <a href="{% url 'dashboard' %}" class="nav-tab active">Pra você</a>
-        <a href="{% url 'mural_torcida' %}" class="nav-tab">SAT social</a>
-        <a href="{% url 'torcida' %}" class="nav-tab">Torcidas</a>
-    </div>
-
-    <main>
+    <main class="{% if user.is_authenticated %}pb-28{% endif %}">
         {% block content %}{% endblock %}
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 z-[90]">
-        <div class="flex items-center justify-between max-w-lg mx-auto text-gray-400">
-            <a href="{% url 'store' %}" class="flex flex-col items-center no-underline {% if 'loja' in request.path %}text-[#D37129]{% endif %}">
-                <i class="bi bi-bag-check text-2xl"></i>
-                <span class="text-[10px] font-bold uppercase mt-1">Loja</span>
-            </a>
-            
-            <a href="{% url 'games_menu' %}" class="flex flex-col items-center no-underline {% if 'games' in request.path %}text-[#D37129]{% endif %}">
-                <i class="bi bi-controller text-2xl"></i>
-                <span class="text-[10px] font-bold uppercase mt-1">Games</span>
-            </a>
+    {% if user.is_authenticated %}
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-2 py-3 flex justify-around items-center z-50 shadow-lg">
+        <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
+            <i class="bi bi-grid-1x2-fill text-xl {% if request.resolver_match.url_name == 'dashboard' %}text-[#CD7F32]{% else %}text-gray-300{% endif %}"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'dashboard' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Início</span>
+        </a>
 
-            <div class="relative -top-8">
-                <a href="{% url 'seja_socio' %}" class="w-14 h-14 bg-[#D37129] rounded-full border-[5px] border-[#0c0d0e] flex items-center justify-center text-white shadow-xl no-underline">
-                    <i class="bi bi-gem text-xl"></i>
-                </a>
-            </div>
+        <a href="{% url 'mural' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
+            <i class="bi bi-chat-quote-fill text-xl {% if request.resolver_match.url_name == 'mural' %}text-[#CD7F32]{% else %}text-gray-300{% endif %}"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'mural' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Mural</span>
+        </a>
+        
 
-            <a href="{% url 'bet_manutencao' %}" class="flex flex-col items-center no-underline">
-                <i class="bi bi-dice-5 text-2xl"></i>
-                <span class="text-[10px] font-bold uppercase mt-1">Bet SAT</span>
-            </a>
-            
-            <a href="{% url 'perfil' %}" class="flex flex-col items-center no-underline">
-                <i class="bi bi-person-badge-fill text-2xl"></i>
-                <span class="text-[10px] font-bold uppercase mt-1">Perfil</span>
-            </a>
-        </div>
+        <a href="{% url 'lista_eventos' %}" class="w-14 h-14 bg-[#CD7F32] rounded-full flex flex-col items-center justify-center shadow-lg shadow-[#CD7F32]/30 -mt-12 border-4 border-white no-underline transition-transform active:scale-90">
+            <i class="bi bi-qr-code-scan text-white text-xl"></i>
+        </a>
+
+        <a href="{% url 'noticias' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
+            <i class="bi bi-megaphone-fill text-xl {% if request.resolver_match.url_name == 'noticias' %}text-[#CD7F32]{% else %}text-gray-300{% endif %}"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'noticias' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Notícias</span>
+        </a>
+
+        <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
+            <i class="bi bi-person-badge-fill text-xl {% if request.resolver_match.url_name == 'perfil' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'perfil' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Perfil</span>
+        </a>
     </nav>
+    {% endif %}
 
     <script>
         function toggleSidebar() {

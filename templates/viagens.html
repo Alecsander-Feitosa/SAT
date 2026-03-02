@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen bg-[#F8F9FA] pb-40 px-6">
+    <div class="pt-10 mb-8">
+        <span class="text-[#D37129] font-black text-[10px] uppercase tracking-[4px]">Logística SAT</span>
+        <h1 class="text-3xl font-black italic text-[#1A1A1A] uppercase">Próximas <span class="text-[#D37129]">Viagens</span></h1>
+    </div>
+
+    <div class="bg-white rounded-[32px] p-6 border border-gray-100 mb-4 shadow-xl">
+        <div class="flex justify-between items-start mb-4">
+            <span class="bg-[#D37129]/10 text-[#D37129] text-[8px] font-black px-3 py-1 rounded-full uppercase">Inscrições Abertas</span>
+            <i class="bi bi-bus-front text-[#D37129] text-xl"></i>
+        </div>
+        <h3 class="text-[#1A1A1A] font-black italic uppercase text-lg leading-tight">Caravana: Clássico Regional</h3>
+        <p class="text-gray-400 text-[10px] font-bold uppercase mt-1">Destino: Estádio Municipal</p>
+        
+        <div class="mt-6 flex justify-between items-center">
+            <div>
+                <p class="text-[7px] text-gray-400 uppercase font-black">Valor Sócio</p>
+                <p class="text-[#1A1A1A] font-black text-sm">R$ 45,00</p>
+            </div>
+            <a href="#" class="bg-white text-black px-6 py-3 rounded-2xl text-[10px] font-black uppercase shadow-lg">Reservar</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

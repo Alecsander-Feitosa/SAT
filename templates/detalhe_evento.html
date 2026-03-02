@@ -17,7 +17,7 @@
 <div class="event-detail-bg pb-32">
     <div class="hero-banner">
         <img src="{{ evento.imagem.url|default:'https://placehold.co/600x400/1A1C1E/white?text=SAT+EVENTO' }}">
-        <a href="{% url 'lista_eventos' %}" class="absolute top-6 left-6 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white">
+        <a href="{% url 'lista_eventos' %}" class="absolute top-6 left-6 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-[#1A1A1A]">
             <i class="bi bi-chevron-left"></i>
         </a>
     </div>
@@ -33,18 +33,18 @@
         <div class="grid grid-cols-2 gap-4 mb-8">
             <div class="bg-white/5 p-4 rounded-2xl">
                 <i class="bi bi-calendar-check text-[#D37129] block mb-2"></i>
-                <span class="text-[10px] text-gray-500 uppercase font-bold">Data</span>
+                <span class="text-[10px] text-gray-400 uppercase font-bold">Data</span>
                 <p class="text-sm font-bold">{{ evento.data_evento|date:"d/m/Y" }}</p>
             </div>
             <div class="bg-white/5 p-4 rounded-2xl">
                 <i class="bi bi-clock text-[#D37129] block mb-2"></i>
-                <span class="text-[10px] text-gray-500 uppercase font-bold">Horário</span>
+                <span class="text-[10px] text-gray-400 uppercase font-bold">Horário</span>
                 <p class="text-sm font-bold">{{ evento.data_evento|date:"H:i" }}</p>
             </div>
         </div>
 
         <div class="mb-8">
-            <h3 class="text-xs font-black uppercase text-gray-500 mb-2 tracking-widest">Localização</h3>
+            <h3 class="text-xs font-black uppercase text-gray-400 mb-2 tracking-widest">Localização</h3>
             <div class="flex items-center gap-2 text-gray-300">
                 <i class="bi bi-geo-alt-fill text-[#D37129]"></i>
                 <p class="text-sm font-medium italic">{{ evento.local }}</p>
@@ -52,13 +52,45 @@
         </div>
 
         <div class="mb-10">
-            <h3 class="text-xs font-black uppercase text-gray-500 mb-2 tracking-widest">Sobre o Evento</h3>
+            <h3 class="text-xs font-black uppercase text-gray-400 mb-2 tracking-widest">Sobre o Evento</h3>
             <p class="text-gray-400 text-sm leading-relaxed italic">
                 {{ evento.descricao|default:"Nenhuma descrição adicional foi fornecida para este evento." }}
             </p>
         </div>
+        {% if not confirmado %}
+            <form action="{% url 'realizar_checkin' evento.id %}" method="POST" enctype="multipart/form-data" class="mt-6 mb-10">
+                {% csrf_token %}
+                <div class="bg-white p-6 rounded-[32px] border border-gray-100 shadow-2xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="bi bi-camera-fill text-[#D37129]"></i>
+                        <p class="text-[#1A1A1A] text-[10px] font-black uppercase tracking-widest">Validação de Presença</p>
+                    </div>
+                    
+                    <label class="w-full h-40 border-2 border-dashed border-white/10 rounded-[24px] flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-all group">
+                        <i class="bi bi-cloud-arrow-up text-3xl text-gray-600 group-hover:text-[#D37129] transition-colors"></i>
+                        <span class="text-[9px] text-gray-400 font-black uppercase mt-3 tracking-tighter text-center px-4">
+                            Clique para tirar a foto <br> ou fazer upload da galeria
+                        </span>
+                        <input type="file" name="foto" class="hidden" accept="image/*" required>
+                    </label>
 
-        <a href="{% url 'validar_checkin' %}" class="block w-full py-4 bg-[#D37129] text-white text-center rounded-2xl font-black uppercase italic tracking-widest shadow-lg shadow-[#D37129]/20 active:scale-95 transition-all">
+                    <button type="submit" class="w-full bg-[#D37129] text-[#1A1A1A] py-4 rounded-2xl font-black uppercase text-[10px] mt-4 shadow-lg shadow-[#D37129]/20 active:scale-95 transition-all tracking-widest">
+                        Confirmar Presença +50 XP
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <div class="bg-green-600/10 border border-green-600/20 p-6 rounded-[32px] text-center mb-10">
+                <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-green-600/20">
+                    <i class="bi bi-patch-check-fill text-xl text-[#1A1A1A]"></i>
+                </div>
+                <p class="text-green-500 text-[10px] font-black uppercase tracking-widest leading-none">Presença Confirmada!</p>
+                <p class="text-green-500/50 text-[8px] font-bold uppercase mt-1">Você já garantiu seus pontos neste jogo.</p>
+            </div>
+        {% endif %}
+
+        <a href="{% url 'lista_eventos' %}" class="...">Voltar para Eventos</a>
+        <a href="{% url 'validar_checkin' %}" class="block w-full py-4 bg-[#D37129] text-[#1A1A1A] text-center rounded-2xl font-black uppercase italic tracking-widest shadow-lg shadow-[#D37129]/20 active:scale-95 transition-all">
             Fazer Check-in no Local
         </a>
     </div>
