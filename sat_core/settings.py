@@ -16,6 +16,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -60,6 +61,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # ADICIONE ESTA LINHA ABAIXO:
+                'accounts.context_processors.tema_torcida',
             ],
         },
     },
@@ -114,3 +117,39 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 
 LOGOUT_REDIRECT_URL = 'login'
+
+
+# --- CONFIGURAÇÕES DO PAINEL ADMIN (JAZZMIN) ---
+JAZZMIN_SETTINGS = {
+    "site_title": "Admin SAT",
+    "site_header": "SAT Elite",
+    "site_brand": "SAT Admin",
+    "site_icon": "fas fa-shield-alt", # Ícone da aba do navegador
+    "welcome_sign": "Bem-vindo ao painel administrativo do SAT Elite",
+    "copyright": "SAT Elite Ltd",
+    
+    # Modelos que aparecerão na barra de pesquisa global
+    "search_model": ["auth.User", "accounts.Perfil"],
+
+    # Ícones para o menu lateral (Usa FontAwesome)
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "accounts.Perfil": "fas fa-id-card",
+        "accounts.Evento": "fas fa-calendar-alt",
+        "organizadas.Torcida": "fas fa-flag",
+        "gamification.Conquista": "fas fa-trophy",
+    },
+    
+    "show_ui_builder": True, # Isso adiciona um botão para você testar cores direto no painel!
+}
+
+# Cores padrão combinando com o bronze/laranja da SAT
+JAZZMIN_UI_TWEAKS = {
+    "navbar": "navbar-dark",
+    "theme": "lumen",
+    "sidebar": "sidebar-dark-warning",
+    "sidebar_nav_child_indent": True,
+    "brand_colour": "navbar-warning",
+}

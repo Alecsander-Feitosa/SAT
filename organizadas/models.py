@@ -9,12 +9,15 @@ class Torcida(models.Model):
     fundacao = models.DateField("Data de Fundação")
     mascote = models.CharField(max_length=100, blank=True)
     cores = models.CharField("Cores", max_length=100)
+    
+    # ESTA É A LINHA MÁGICA QUE FALTAVA:
+    cor_primaria = models.CharField("Cor Hexadecimal", max_length=7, default="#D37129")
+    
     logo = models.ImageField(upload_to='logos_torcida/', blank=True)
     historia = models.TextField("Histórico", blank=True)
     
     def __str__(self):
         return self.nome
-
 
 
 class Caravana(models.Model):

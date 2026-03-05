@@ -9,26 +9,26 @@
                 <img src="{{ user.perfil.torcida.logo.url }}" class="h-12 w-12 object-contain drop-shadow-sm">
             {% else %}
                 <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100">
-                    <i class="bi bi-shield-shaded text-[#D37129] text-xl"></i>
+                    <i class="bi bi-shield-shaded text-tema text-xl"></i>
                 </div>
             {% endif %}
 
             <div>
                 <h1 class="text-[#1A1A1A] text-xl font-black italic uppercase leading-none">Olá, {{ user.username }}!</h1>
-                <p class="text-[#D37129] text-[8px] font-bold uppercase tracking-[2px] mt-1">
+                <p class="text-tema text-[8px] font-bold uppercase tracking-[2px] mt-1">
                     {{ user.perfil.torcida.nome|default:"MEMBRO SAT" }}
                 </p>
             </div>
         </div>
 
         <div class="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-100 shadow-sm">
-            <i class="bi bi-lightning-charge-fill text-[#D37129] text-xs animate-pulse"></i>
+            <i class="bi bi-lightning-charge-fill text-tema text-xs animate-pulse"></i>
             <span class="text-[10px] font-black text-[#1A1A1A]">{{ user.perfil.xp_total|default:0 }} XP</span>
         </div>
     </div>
 
     <div class="px-5 mb-6">
-        <div class="relative overflow-hidden bg-gradient-to-br from-[#D37129] to-[#b85a1a] p-7 rounded-[40px] shadow-xl shadow-[#D37129]/20 border border-white/10">
+        <div class="relative overflow-hidden bg-tema p-7 rounded-[40px] shadow-xl border border-white/10">
             <div class="relative z-10">
                 <span class="bg-black/10 text-white text-[7px] font-black uppercase px-3 py-1 rounded-full border border-white/10">Nível Atual</span>
                 <h2 class="text-white text-3xl font-black italic uppercase mt-3 tracking-tighter">
@@ -52,14 +52,14 @@
         <a href="{% url 'seja_socio' %}" class="block relative overflow-hidden bg-[#1A1A1A] p-6 rounded-[32px] border border-white/5 no-underline">
             <div class="flex justify-between items-center relative z-10">
                 <div class="flex-1">
-                    <h3 class="text-white text-lg font-black italic uppercase leading-tight">Seja Sócio <br><span class="text-[#D37129]">Premium</span></h3>
+                    <h3 class="text-white text-lg font-black italic uppercase leading-tight">Seja Sócio <br><span class="text-tema">Premium</span></h3>
                     <p class="text-gray-400 text-[8px] font-bold uppercase mt-2">Desbloqueie benefícios exclusivos e apoie a sua torcida</p>
                 </div>
-                <div class="w-12 h-12 bg-[#D37129]/20 rounded-2xl flex items-center justify-center border border-[#D37129]/30 ml-4">
-                    <i class="bi bi-star-fill text-[#D37129] text-xl"></i>
+                <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20 ml-4">
+                    <i class="bi bi-star-fill text-tema text-xl"></i>
                 </div>
             </div>
-            <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-[#D37129] opacity-10 blur-2xl"></div>
+            <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-tema opacity-20 blur-2xl"></div>
         </a>
     </div>
 
@@ -67,25 +67,25 @@
         <div class="flex justify-between items-center px-2">
            <a href="{% url 'noticias' %}" class="flex flex-col items-center gap-2 no-underline">
                 <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm">
-                    <i class="bi bi-newspaper text-[#D37129] text-xl"></i>
+                    <i class="bi bi-newspaper text-tema text-xl"></i>
                 </div>
                 <span class="text-[8px] font-black uppercase text-gray-400">Notícias</span>
             </a>
             <a href="{% url 'games_hub' %}" class="flex flex-col items-center gap-2 no-underline">
                 <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm">
-                    <i class="bi bi-controller text-[#D37129] text-xl"></i>
+                    <i class="bi bi-controller text-tema text-xl"></i>
                 </div>
                 <span class="text-[8px] font-black uppercase text-gray-400">Games</span>
             </a>
             <a href="{% url 'viagens_view' %}" class="flex flex-col items-center gap-2 no-underline">
                 <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm">
-                    <i class="bi bi-bus-front-fill text-[#D37129] text-xl"></i>
+                    <i class="bi bi-bus-front-fill text-tema text-xl"></i>
                 </div>
                 <span class="text-[8px] font-black uppercase text-gray-400">Viagens</span>
             </a>
             <a href="{% url 'ranking' %}" class="flex flex-col items-center gap-2 no-underline">
                 <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm">
-                    <i class="bi bi-trophy-fill text-[#D37129] text-xl"></i>
+                    <i class="bi bi-trophy-fill text-tema text-xl"></i>
                 </div>
                 <span class="text-[8px] font-black uppercase text-gray-400">Ranking</span>
             </a>
@@ -96,12 +96,12 @@
         <h3 class="text-[#1A1A1A] text-[10px] font-black uppercase italic tracking-widest mb-4 px-2">Vantagens Ativas</h3>
         <div class="grid grid-cols-2 gap-3">
             <div class="bg-gray-50 p-5 rounded-[32px] border border-gray-100">
-                <i class="bi bi-tag-fill text-[#D37129] text-xl mb-2 block"></i>
+                <i class="bi bi-tag-fill text-tema text-xl mb-2 block"></i>
                 <h4 class="text-[#1A1A1A] text-[9px] font-black uppercase">Loja SAT</h4>
                 <p class="text-gray-400 text-[7px] font-bold uppercase mt-1">Produtos com desconto</p>
             </div>
             <div class="bg-gray-50 p-5 rounded-[32px] border border-gray-100">
-                <i class="bi bi-ticket-perforated-fill text-[#D37129] text-xl mb-2 block"></i>
+                <i class="bi bi-ticket-perforated-fill text-tema text-xl mb-2 block"></i>
                 <h4 class="text-[#1A1A1A] text-[9px] font-black uppercase">Ingressos</h4>
                 <p class="text-gray-400 text-[7px] font-bold uppercase mt-1">Prioridade na compra</p>
             </div>

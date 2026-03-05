@@ -1,23 +1,28 @@
-# accounts/admin.py
 from django.contrib import admin
-from .models import Perfil
+# Aqui sim funciona, pois esses modelos estão em accounts/models.py
+from .models import Perfil, Evento, CheckIn, Conquista 
 
 @admin.register(Perfil)
 class PerfilAdmin(admin.ModelAdmin):
-    # Adicionei 'aprovado' no display para você ver o status na lista geral
-    list_display = ('user', 'torcida', 'aprovado', 'cpf', 'whatsapp', 'cidade') 
+    list_display = ('user', 'cpf', 'whatsapp', 'torcida', 'aprovado')
+    list_filter = ('aprovado', 'torcida')
+    search_fields = ('user__username', 'cpf', 'whatsapp', 'user__first_name')
+    list_editable = ('aprovado',) 
+
+@admin.register(Evento)
+class EventoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'data', 'local', 'torcida', 'ativo')
+    list_filter = ('ativo', 'torcida')
+    search_fields = ('nome', 'local')
+    list_editable = ('ativo',)
+
+@admin.register(CheckIn)
+class CheckInAdmin(admin.ModelAdmin):
+    list_display = ('user', 'evento', 'data_criacao', 'validado')
+    list_filter = ('validado', 'evento')
+    search_fields = ('user__username', 'evento__nome')
     
-    list_filter = ('aprovado', 'torcida', 'cidade', 'uf') 
-    
-    fieldsets = (
-        ('Identificação', {
-            # O campo 'aprovado' deve ser incluído aqui:
-            'fields': ('user', 'torcida', 'aprovado', 'cpf', 'rg_cnh', 'orgao_expedidor', 'data_nascimento')
-        }),
-        ('Endereço', {
-            'fields': ('cep', 'rua', 'numero', 'complemento', 'bairro', 'cidade', 'uf')
-        }),
-        ('Documentação e Social', {
-            'fields': ('foto_documento_frente', 'foto_documento_verso', 'verificacao_facial', 'vulgo', 'pelotao', 'rede_social')
-        }),
-    )
+@admin.register(Conquista)
+class ConquistaAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'xp_necessario')
+    search_fields = ('titulo',)

@@ -1,35 +1,56 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
 {% block content %}
-<div class="min-h-screen bg-[#F8F9FA] p-5 pb-32">
-    <div class="mb-8">
-        <h1 class="text-2xl font-black italic uppercase text-[#1A1A1A]">Moderação</h1>
-        <p class="text-[#D37129] text-[10px] font-bold uppercase tracking-widest">Painel: {{ torcida.nome }}</p>
+<div class="p-5">
+    <div class="flex items-center gap-3 mb-6">
+        <i class="bi bi-shield-lock-fill text-3xl text-tema"></i>
+        <div>
+            <h2 class="text-xl font-black italic uppercase">Moderação</h2>
+            <p class="text-xs text-gray-500 font-bold">Gerencie os membros da sua torcida</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="p-4 mb-4 text-sm font-bold rounded-xl {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="bg-gray-50 rounded-2xl p-1 mb-6">
+        <div class="flex bg-white rounded-xl shadow-sm overflow-hidden">
+            <button class="flex-1 py-3 text-sm font-black text-tema border-b-2 border-tema">Pendentes</button>
+            <button class="flex-1 py-3 text-sm font-bold text-gray-400">Sócios Ativos</button>
+        </div>
     </div>
 
     <div class="space-y-4">
-        {% for p in pendentes %}
-        <div class="bg-white p-5 rounded-[32px] border border-gray-100 flex items-center justify-between shadow-xl">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-[#1A1A1A] font-black italic border border-white/10">
-                    {{ p.user.username|slice:":1"|upper }}
+        {% for perfil in pendentes %}
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                    <i class="bi bi-person-fill text-gray-400 text-xl"></i>
                 </div>
                 <div>
-                    <h4 class="text-[#1A1A1A] text-xs font-black uppercase italic leading-none">{{ p.user.username }}</h4>
-                    <p class="text-gray-400 text-[8px] uppercase font-bold mt-1">CPF: {{ p.cpf|default:"Não inf." }}</p>
+                    <h3 class="font-bold text-gray-900">{{ perfil.user.first_name|default:perfil.user.username }}</h3>
+                    <p class="text-xs text-gray-500">CPF: {{ perfil.cpf|default:"Não informado" }}</p>
                 </div>
             </div>
             
-            <form action="{% url 'aprovar_membro' p.id %}" method="POST">
-                {% csrf_token %}
-                <button type="submit" class="bg-green-600 hover:bg-green-500 text-[#1A1A1A] w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-90">
-                    <i class="bi bi-check-lg text-xl"></i>
-                </button>
-            </form>
+            <div class="flex gap-2 mt-2">
+                <a href="{% url 'aprovar_membro' perfil.id %}" class="flex-1 py-2 bg-tema text-white rounded-xl font-bold text-sm text-center no-underline">
+                    <i class="bi bi-check-circle-fill mr-1"></i> Aprovar
+                </a>
+                <a href="#" class="flex-1 py-2 bg-red-100 text-red-600 rounded-xl font-bold text-sm text-center no-underline">
+                    <i class="bi bi-x-circle-fill mr-1"></i> Recusar
+                </a>
+            </div>
         </div>
         {% empty %}
-        <div class="py-20 text-center opacity-30">
-            <i class="bi bi-shield-check text-5xl text-gray-400"></i>
-            <p class="text-[#1A1A1A] text-[10px] font-black uppercase mt-4">Nenhum pedido pendente</p>
+        <div class="text-center py-10">
+            <i class="bi bi-inbox text-4xl text-gray-300"></i>
+            <p class="text-gray-500 font-bold mt-2">Nenhum membro pendente</p>
         </div>
         {% endfor %}
     </div>

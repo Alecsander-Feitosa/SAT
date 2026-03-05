@@ -1,67 +1,69 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block content %}
-<div class="pb-32 pt-6 bg-[#F8F9FA]">
-    <div class="px-5 mb-6 flex items-center gap-4">
-        <div class="w-14 h-14 bg-white rounded-2xl p-2 shadow-xl shadow-[#D37129]/10">
-            {% if torcida.escudo %}
-                <img src="{{ torcida.escudo.url }}" class="w-full h-full object-contain">
+<div class="min-h-screen bg-white pb-32"> 
+    <div class="p-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            {% if user.perfil.aprovado and user.perfil.torcida.logo %}
+                <img src="{{ user.perfil.torcida.logo.url }}" class="h-12 w-12 object-contain drop-shadow-sm">
             {% else %}
-                <i class="bi bi-shield-shaded text-[#D37129] text-2xl"></i>
+                <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100">
+                    <i class="bi bi-shield-shaded text-tema text-xl"></i>
+                </div>
             {% endif %}
-        </div>
-        <div>
-            <h2 class="text-[#1A1A1A] font-black uppercase italic leading-none text-xl">{{ torcida.nome }}</h2>
-            <p class="text-[#D37129] text-[8px] font-black uppercase tracking-[3px] mt-1">Membro Oficial Aprovado</p>
-        </div>
-    </div>
 
-    <div class="mx-5 p-6 mb-8 rounded-[32px] bg-white border border-gray-100">
-        <div class="flex justify-between items-end mb-4">
             <div>
-                <span class="text-[9px] font-black text-[#D37129] uppercase tracking-widest">Patente</span>
-                <h2 class="text-2xl font-black italic uppercase text-[#1A1A1A]">{{ perfil_game.nivel.nome|default:"RECRUTA" }}</h2>
-            </div>
-            <div class="text-right">
-                <p class="text-xl font-black text-[#D37129]">{{ perfil_game.xp_total }} XP</p>
+                <h1 class="text-[#1A1A1A] text-xl font-black italic uppercase leading-none">Olá, {{ user.username }}!</h1>
+                <p class="text-tema text-[8px] font-bold uppercase tracking-[2px] mt-1">
+                    {{ user.perfil.torcida.nome|default:"MEMBRO SAT" }}
+                </p>
             </div>
         </div>
-        <div class="w-full h-2 bg-black/40 rounded-full overflow-hidden">
-            <div class="h-full bg-[#D37129]" style="width: {{ perfil_game.progresso_nivel }}%;"></div>
+
+        <div class="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-100 shadow-sm">
+            <i class="bi bi-lightning-charge-fill text-tema text-xs animate-pulse"></i>
+            <span class="text-[10px] font-black text-[#1A1A1A]">{{ user.perfil.xp_total|default:0 }} XP</span>
         </div>
     </div>
 
-    <div class="px-5 mb-8">
-        <a href="{% url 'mural' %}" class="flex items-center justify-between bg-gradient-to-r from-[#D37129] to-[#8a4a1b] p-5 rounded-[24px] no-underline shadow-lg shadow-[#D37129]/20">
-            <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-[#1A1A1A]">
-                    <i class="bi bi-chat-left-text-fill"></i>
-                </div>
-                <div>
-                    <span class="block text-[#1A1A1A] text-[11px] font-black uppercase italic">Mural da Torcida</span>
-                    <span class="block text-[#1A1A1A]/50 text-[8px] font-bold uppercase">Veja o que a galera postou</span>
-                </div>
+    <div class="px-5 mb-6">
+        <div class="relative overflow-hidden bg-tema p-7 rounded-[40px] shadow-xl border border-white/10">
+            <div class="relative z-10">
+                <span class="bg-black/10 text-white text-[7px] font-black uppercase px-3 py-1 rounded-full">Nível Atual</span>
+                <h2 class="text-white text-3xl font-black italic uppercase mt-3 tracking-tighter">
+                    {{ perfil_game.nivel.nome|default:"Explorador" }}
+                </h2>
             </div>
-            <i class="bi bi-chevron-right text-[#1A1A1A]"></i>
-        </a>
+        </div>
     </div>
 
-    <div class="px-5">
-        <h3 class="text-[#1A1A1A] font-black uppercase italic text-xs mb-4 border-l-4 border-[#D37129] pl-3">Próximos Comandos</h3>
-        <div class="space-y-3">
-            {% for evento in eventos %}
-            <div class="bg-white p-4 rounded-[24px] border border-gray-100 flex items-center gap-4">
-                <div class="text-[#D37129] font-black text-center border-r border-white/10 pr-4">
-                    <span class="block text-lg">{{ evento.data_evento|date:"d" }}</span>
-                    <span class="block text-[8px] uppercase">{{ evento.data_evento|date:"M" }}</span>
+    <div class="px-5 mb-10">
+        <div class="flex justify-between items-center px-2">
+           <a href="{% url 'noticias' %}" class="flex flex-col items-center gap-2 no-underline">
+                <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm">
+                    <i class="bi bi-newspaper text-tema text-xl"></i>
                 </div>
-                <div>
-                    <h4 class="text-[#1A1A1A] text-[10px] font-black uppercase">{{ evento.titulo }}</h4>
-                    <p class="text-gray-400 text-[8px] uppercase mt-1">{{ evento.local }}</p>
+                <span class="text-[8px] font-black uppercase text-gray-400">Notícias</span>
+            </a>
+            <a href="{% url 'mural' %}" class="flex flex-col items-center gap-2 no-underline">
+                <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm">
+                    <i class="bi bi-chat-quote-fill text-tema text-xl"></i>
                 </div>
-            </div>
-            {% empty %}
-            <p class="text-gray-600 text-[10px] font-bold uppercase italic">Nenhum evento marcado para sua torcida.</p>
-            {% endfor %}
+                <span class="text-[8px] font-black uppercase text-gray-400">Mural</span>
+            </a>
+            <a href="{% url 'viagens_view' %}" class="flex flex-col items-center gap-2 no-underline">
+                <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm">
+                    <i class="bi bi-bus-front-fill text-tema text-xl"></i>
+                </div>
+                <span class="text-[8px] font-black uppercase text-gray-400">Viagens</span>
+            </a>
+            <a href="{% url 'ranking' %}" class="flex flex-col items-center gap-2 no-underline">
+                <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm">
+                    <i class="bi bi-trophy-fill text-tema text-xl"></i>
+                </div>
+                <span class="text-[8px] font-black uppercase text-gray-400">Ranking</span>
+            </a>
         </div>
     </div>
 </div>

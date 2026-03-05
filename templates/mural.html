@@ -1,91 +1,63 @@
-{% extends "base.html" %}
-{% load static %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div class="min-h-screen bg-[#F8F9FA] pb-32">
-    <div class="px-5 pt-10 mb-6">
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-[#1A1A1A]">
-            MURAL DA <span class="text-[#D37129]">{{ user.perfil.torcida.nome|default:"TORCIDA" }}</span>
-        </h1>
-        <p class="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-1">O grito da arquibancada começa aqui</p>
+<div class="p-4 max-w-lg mx-auto pb-24">
+    <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 bg-tema rounded-2xl flex items-center justify-center text-white shadow-lg shadow-tema/30">
+            <i class="bi bi-chat-quote-fill text-2xl"></i>
+        </div>
+        <div>
+            <h2 class="text-2xl font-black italic uppercase">Mural Oficial</h2>
+            <p class="text-xs text-tema font-bold">Exclusivo: {{ nome_tema }}</p>
+        </div>
     </div>
 
-    <div class="px-5 mb-8">
-        <form method="POST" enctype="multipart/form-data" class="bg-white p-5 rounded-[32px] border border-gray-100 shadow-2xl">
+    <div class="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 mb-6">
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-            <textarea name="texto" rows="3" 
-                class="w-full bg-transparent border-none text-[#1A1A1A] text-sm focus:ring-0 placeholder:text-gray-600 font-medium no-scrollbar" 
-                placeholder="O que está acontecendo na torcida, {{ user.username }}?">
-            </textarea>
+            <textarea name="texto" rows="2" class="w-full bg-gray-50 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-tema resize-none font-medium" placeholder="Qual o recado pra arquibancada, {{ user.first_name }}?"></textarea>
             
-            <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
-                <label class="flex items-center gap-2 text-gray-400 hover:text-[#D37129] transition-colors cursor-pointer">
+            <div class="flex items-center justify-between mt-3">
+                <label class="flex items-center gap-2 text-gray-400 hover:text-tema cursor-pointer px-2 transition-colors">
                     <i class="bi bi-camera-fill text-xl"></i>
-                    <span class="text-[9px] font-black uppercase tracking-wider">Adicionar Foto</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Foto</span>
                     <input type="file" name="imagem" class="hidden" accept="image/*">
                 </label>
-                
-                <button type="submit" class="bg-[#D37129] text-[#1A1A1A] px-6 py-2.5 rounded-2xl font-black uppercase text-[10px] shadow-lg shadow-[#D37129]/20 active:scale-95 transition-all">
-                    Publicar
-                </button>
+                <button type="submit" class="bg-tema text-white px-6 py-2 rounded-xl text-sm font-black uppercase tracking-wider shadow-md hover:opacity-90 transition-all active:scale-95">Publicar</button>
             </div>
         </form>
     </div>
 
-    <div class="px-5 space-y-6">
+    <div class="space-y-4">
         {% for post in posts %}
-        <div class="bg-white rounded-[32px] border border-gray-100 overflow-hidden">
-            <div class="p-4 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-[#D37129] to-[#8a4a1b] rounded-2xl flex items-center justify-center text-[#1A1A1A] font-black italic border border-white/10 shadow-lg">
-                        {{ post.autor.username|slice:":1"|upper }}
-                    </div>
-                    <div>
-                        <h4 class="text-[#1A1A1A] text-[11px] font-black uppercase italic leading-none">{{ post.autor.username }}</h4>
-                        <span class="text-[8px] text-gray-400 font-bold uppercase tracking-tighter">{{ post.data_criacao|timesince }} atrás</span>
-                    </div>
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    <i class="bi bi-person-fill text-gray-400"></i>
                 </div>
-                <i class="bi bi-three-dots text-gray-600"></i>
+                <div>
+                    <h4 class="font-black text-sm">{{ post.autor.username }}</h4>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ post.data_criacao|date:"d M, H:i" }}</span>
+                </div>
             </div>
-
-            <div class="px-4 pb-4">
-                <p class="text-gray-300 text-xs leading-relaxed font-medium">
-                    {{ post.texto }}
-                </p>
-            </div>
-
+            
+            <p class="text-gray-700 text-sm leading-relaxed mb-4">{{ post.texto }}</p>
+            
             {% if post.imagem %}
-            <div class="w-full aspect-square bg-black/20">
-                <img src="{{ post.imagem.url }}" class="w-full h-full object-cover">
-            </div>
+                <img src="{{ post.imagem.url }}" class="w-full rounded-2xl mb-4 object-cover max-h-64">
             {% endif %}
-
-            <div class="p-4 flex items-center gap-6 border-t border-gray-100">
-                <a href="{% url 'curtir_post' post.id %}" class="flex items-center gap-2 no-underline transition-all active:scale-95">
-                    <div class="relative">
-                        <i class="bi bi-heart-fill text-lg {% if request.user in post.curtidas.all %}text-red-500{% else %}text-gray-400{% endif %}"></i>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-black uppercase text-[#1A1A1A] leading-none">
-                            {{ post.curtidas.count }}
-                        </span>
-                        <span class="text-[7px] font-bold uppercase text-gray-400 tracking-tighter">
-                            Curtida{{ post.curtidas.count|pluralize }}
-                        </span>
-                    </div>
-                </a>
-                
-                <button class="flex items-center gap-2 text-gray-400 hover:text-[#D37129] transition-colors">
-                    <i class="bi bi-chat-right-text-fill text-lg"></i>
-                    <span class="text-[9px] font-black uppercase">Comentar</span>
+            
+            <div class="flex items-center border-t border-gray-50 pt-3">
+                <button class="flex items-center gap-2 text-gray-400 hover:text-tema transition-colors">
+                    <i class="bi bi-fire text-lg"></i>
+                    <span class="text-xs font-black">{{ post.curtidas.count }}</span>
                 </button>
             </div>
+        </div>
         {% empty %}
-        <div class="py-20 text-center">
-            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
-                <i class="bi bi-chat-quote text-[#D37129] text-3xl opacity-20"></i>
-            </div>
-            <p class="text-gray-600 text-[10px] font-black uppercase tracking-widest">O mural está silencioso...<br>Dê o primeiro grito!</p>
+        <div class="text-center py-10 opacity-50">
+            <i class="bi bi-chat-square-text text-4xl text-tema"></i>
+            <p class="mt-2 font-bold text-gray-500">Nenhum post no mural ainda.</p>
         </div>
         {% endfor %}
     </div>

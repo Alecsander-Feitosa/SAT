@@ -1,26 +1,47 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
 {% block content %}
-<div class="min-h-screen bg-[#F8F9FA] pb-40 px-6">
-    <div class="pt-10 mb-8">
-        <span class="text-[#D37129] font-black text-[10px] uppercase tracking-[4px]">Logística SAT</span>
-        <h1 class="text-3xl font-black italic text-[#1A1A1A] uppercase">Próximas <span class="text-[#D37129]">Viagens</span></h1>
+<div class="p-5 max-w-lg mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <i class="bi bi-bus-front-fill text-3xl text-tema"></i>
+        <div>
+            <h2 class="text-xl font-black italic uppercase">Caravanas</h2>
+            <p class="text-xs text-gray-500 font-bold">Viaje com a {{ nome_tema }}</p>
+        </div>
     </div>
 
-    <div class="bg-white rounded-[32px] p-6 border border-gray-100 mb-4 shadow-xl">
-        <div class="flex justify-between items-start mb-4">
-            <span class="bg-[#D37129]/10 text-[#D37129] text-[8px] font-black px-3 py-1 rounded-full uppercase">Inscrições Abertas</span>
-            <i class="bi bi-bus-front text-[#D37129] text-xl"></i>
-        </div>
-        <h3 class="text-[#1A1A1A] font-black italic uppercase text-lg leading-tight">Caravana: Clássico Regional</h3>
-        <p class="text-gray-400 text-[10px] font-bold uppercase mt-1">Destino: Estádio Municipal</p>
-        
-        <div class="mt-6 flex justify-between items-center">
-            <div>
-                <p class="text-[7px] text-gray-400 uppercase font-black">Valor Sócio</p>
-                <p class="text-[#1A1A1A] font-black text-sm">R$ 45,00</p>
+    <div class="space-y-5">
+        {% for caravana in caravanas %}
+        <div class="bg-white border-2 border-gray-50 rounded-3xl overflow-hidden shadow-sm relative">
+            <div class="absolute left-0 top-0 bottom-0 w-2 bg-tema"></div>
+            
+            <div class="p-5 pl-7">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-black text-lg uppercase leading-tight w-3/4">{{ caravana.titulo }}</h3>
+                    <div class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+                        <i class="bi bi-people-fill text-tema mr-1"></i> {{ caravana.vagas_restantes }} vagas
+                    </div>
+                </div>
+                
+                <p class="text-xs text-tema font-black mb-4"><i class="bi bi-geo-alt-fill"></i> Saída: {{ caravana.saida_local }}</p>
+                
+                <div class="flex items-center justify-between mt-4 p-3 bg-gray-50 rounded-2xl">
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Valor Sócio</p>
+                        <p class="font-black text-lg text-tema">R$ {{ caravana.valor }}</p>
+                    </div>
+                    <button class="bg-tema text-white px-5 py-2 rounded-xl text-sm font-black uppercase tracking-wide hover:opacity-90 active:scale-95 transition-all shadow-md shadow-tema/20">
+                        Reservar
+                    </button>
+                </div>
             </div>
-            <a href="#" class="bg-white text-black px-6 py-3 rounded-2xl text-[10px] font-black uppercase shadow-lg">Reservar</a>
         </div>
+        {% empty %}
+        <div class="text-center py-10">
+            <i class="bi bi-bus-front text-4xl text-gray-300"></i>
+            <p class="text-gray-500 font-bold mt-2">Nenhuma caravana agendada.</p>
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

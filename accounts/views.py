@@ -25,7 +25,36 @@ from content.models import Post as PostGeral
 from organizadas.models import Post as PostTorcida
 from organizadas.models import Torcida, Evento, Post as PostTorcida, Curtida
 from .models import Evento
+from organizadas.models import Post, Caravana # Certifique-se de importar os modelos
 
+@login_required
+def mural_social(request):
+    perfil = request.user.perfil
+    
+    # 1. Bloqueio de segurança: Se não tem torcida ou não tá aprovado, vaza!
+    if not perfil.torcida or not perfil.aprovado:
+        return redirect('dashboard')
+        
+    if request.method == "POST":
+        texto = request.POST.get('texto')
+        imagem = request.FILES.get('imagem')
+        if texto or imagem:
+            Post.objects.create(autor=request.user, torcida=perfil.torcida, texto=texto, imagem=imagem)
+            return redirect('mural') 
+
+    # 2. O FILTRO MÁGICO: Puxa SÓ os posts da torcida dele
+    posts = Post.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')
+    return render(request, 'mural.html', {'posts': posts})
+
+@login_required
+def viagens_view(request):
+    perfil = request.user.perfil
+    if not perfil.torcida or not perfil.aprovado:
+        return redirect('dashboard')
+        
+    # FILTRO MÁGICO: Puxa SÓ as viagens da torcida dele
+    caravanas = Caravana.objects.filter(torcida=perfil.torcida).order_by('saida_horario')
+    return render(request, 'viagens.html', {'caravanas': caravanas})
 
 
 def cadastro(request):
@@ -44,6 +73,12 @@ def cadastro(request):
 @login_required
 def dashboard(request):
     perfil = request.user.perfil
+    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+    if perfil.torcida and perfil.aprovado:
+        cor_tema = perfil.torcida.cor_primaria 
+    else:
+        cor_tema = "#CD7F32"
+    
     if perfil.torcida:
         eventos = Evento.objects.filter(
             torcida=perfil.torcida, 
@@ -91,19 +126,13 @@ def dashboard(request):
         'perfil': perfil,
         'perfil_game': perfil_game,
         'noticias': noticias_api,
-        'cor_tema': cor_tema,
         'xp_atual': perfil_game.xp_total or 0,
         'eventos': eventos,
         'torcida': perfil.torcida,
     }
-
-    # 4. Redirecionamento de Template
-    # Se ele tem torcida E está aprovado, renderiza o dashboard específico
-    if perfil.torcida and perfil.aprovado:
-        return render(request, 'dashboard_torcida.html', context)
     
-    # Caso contrário (sem torcida ou pendente), renderiza o dashboard geral
     return render(request, 'dashboard.html', context)
+
 
 @login_required
 def editar_perfil(request):
@@ -361,7 +390,6 @@ def detalhe_evento(request, evento_id):
     context = {
         'evento': evento,
         'confirmado': confirmado,
-        'cor_tema': cor_tema, # Agora garantimos que nunca será None
     }
     return render(request, 'detalhe_evento.html', context)
 
@@ -630,3 +658,19 @@ def adicionar_xp(perfil, quantidade):
     perfil.xp_total += quantidade
     perfil.save()
   
+
+@login_required
+def configurar_torcida(request):
+    perfil = request.user.perfil
+    if not request.user.is_staff or not perfil.torcida:
+        return redirect('dashboard')
+        
+    torcida = perfil.torcida
+    if request.method == 'POST':
+        torcida.cor_primaria = request.POST.get('cor_primaria')
+        if request.FILES.get('logo'):
+            torcida.logo = request.FILES.get('logo')
+        torcida.save()
+        messages.success(request, "Visual da torcida atualizado!")
+        
+    return render(request, 'configurar_torcida.html', {'torcida': torcida})
