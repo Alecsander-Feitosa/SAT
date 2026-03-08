@@ -12,7 +12,7 @@
             /* A variável agora puxa dinamicamente a cor da torcida ou o bronze do SAT */
             --sat-tema: {{ cor_tema }}; 
         }
-        body { font-family: 'Inter', sans-serif; background-color: #FFFFFF !important; color: #1A1A1A; margin: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: FFFFFF !important; color: 1A1A1A; margin: 0; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
         /* Classes utilitárias dinâmicas */
@@ -26,7 +26,7 @@
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden transition-opacity" onclick="toggleSidebar()"></div>
     <div id="satSidebar" class="fixed inset-y-0 left-0 w-72 bg-white z-[101] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out border-r border-gray-100 overflow-y-auto no-scrollbar">
         
-        <div class="p-8 bg-[#CD7F32] text-white">
+        <div class="p-8 bg-[CD7F32] text-white">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
                     <i class="bi bi-person-fill text-2xl"></i>
@@ -41,16 +41,16 @@
         <div class="p-4 space-y-2">
             <p class="px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest my-4">Menu Principal</p>
             <a href="{% url 'dashboard' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-gray-50 no-underline group transition-all">
-                <i class="bi bi-grid-1x2-fill text-[#CD7F32] text-lg"></i>
-                <span class="text-sm font-bold text-[#1A1A1A]">Dashboard</span>
+                <i class="bi bi-grid-1x2-fill text-[CD7F32] text-lg"></i>
+                <span class="text-sm font-bold text-[1A1A1A]">Dashboard</span>
             </a>
             <a href="{% url 'mural' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-gray-50 no-underline group transition-all">
-                <i class="bi bi-chat-quote-fill text-[#CD7F32] text-lg"></i>
-                <span class="text-sm font-bold text-[#1A1A1A]">Mural Social</span>
+                <i class="bi bi-chat-quote-fill text-[CD7F32] text-lg"></i>
+                <span class="text-sm font-bold text-[1A1A1A]">Mural Social</span>
             </a>
             <a href="{% url 'ranking' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-gray-50 no-underline group transition-all">
-                <i class="bi bi-trophy-fill text-[#CD7F32] text-lg"></i>
-                <span class="text-sm font-bold text-[#1A1A1A]">Ranking</span>
+                <i class="bi bi-trophy-fill text-[CD7F32] text-lg"></i>
+                <span class="text-sm font-bold text-[1A1A1A]">Ranking</span>
             </a>
             <hr class="border-gray-50 my-4">
             <a href="{% url 'login' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-red-50 no-underline text-red-500">
@@ -61,8 +61,8 @@
     </div>
 
     <div class="flex items-center justify-between px-5 py-4 bg-white sticky top-0 z-[50] border-b border-gray-100">
-        <button onclick="toggleSidebar()" class="text-2xl text-[#1A1A1A]"><i class="bi bi-list"></i></button>
-        <span class="font-black italic text-[#CD7F32]">SAT ELITE</span>
+        <button onclick="toggleSidebar()" class="text-2xl text-[1A1A1A]"><i class="bi bi-list"></i></button>
+        <span class="font-black italic text-[CD7F32]">SAT ELITE</span>
         <div class="w-8"></div> </div>
     {% endif %}
 
@@ -71,40 +71,33 @@
     </main>
 
     {% if user.is_authenticated %}
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-2 py-3 flex justify-around items-center z-50 shadow-lg">
-        <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
-            <i class="bi bi-grid-1x2-fill text-xl {% if request.resolver_match.url_name == 'dashboard' %}text-[#CD7F32]{% else %}text-gray-300{% endif %}"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'dashboard' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Início</span>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 flex justify-between items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        
+        <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 no-underline w-14 group">
+            <i class="bi bi-house-door-fill text-2xl transition-colors {% if request.resolver_match.url_name == 'dashboard' %}text-tema{% else %}text-gray-300 group-hover:text-gray-400{% endif %}"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest transition-colors {% if request.resolver_match.url_name == 'dashboard' %}text-tema{% else %}text-gray-400{% endif %}">Home</span>
         </a>
 
-        <a href="{% url 'mural' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
-            <i class="bi bi-chat-quote-fill text-xl {% if request.resolver_match.url_name == 'mural' %}text-[#CD7F32]{% else %}text-gray-300{% endif %}"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'mural' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Mural</span>
+        <a href="{% url 'loja' %}" class="flex flex-col items-center gap-1 no-underline w-14 group">
+            <i class="bi bi-bag-fill text-2xl transition-colors {% if request.resolver_match.url_name == 'loja' %}text-tema{% else %}text-gray-300 group-hover:text-gray-400{% endif %}"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest transition-colors {% if request.resolver_match.url_name == 'loja' %}text-tema{% else %}text-gray-400{% endif %}">Loja</span>
         </a>
         
-        <a href="{% url 'hub' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
-            <i class="bi bi-intersect text-xl {% if request.resolver_match.url_name == 'hub' %}text-[#CD7F32]{% else %}text-gray-300{% endif %}"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'hub' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Hub</span>
+        <a href="{% url 'bet_manutencao' %}" class="flex flex-col items-center gap-1 no-underline w-14 group">
+            <i class="bi bi-star-fill text-2xl transition-colors {% if request.resolver_match.url_name == 'beneficios_view' %}text-tema{% else %}text-gray-300 group-hover:text-gray-400{% endif %}"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest transition-colors {% if request.resolver_match.url_name == 'beneficios_view' %}text-tema{% else %}text-gray-400{% endif %}">Vantagens</span>
         </a>
 
-        <a href="{% url 'lista_eventos' %}" class="w-14 h-14 bg-[#CD7F32] rounded-full flex flex-col items-center justify-center shadow-lg shadow-[#CD7F32]/30 -mt-12 border-4 border-white no-underline transition-transform active:scale-90">
-            <i class="bi bi-qr-code-scan text-white text-xl"></i>
+        <a href="{% url 'bet_manutencao' %}" class="flex flex-col items-center gap-1 no-underline w-14 group">
+            <i class="bi bi-dice-5-fill text-2xl transition-colors {% if request.resolver_match.url_name == 'bet_manutencao' %}text-tema{% else %}text-gray-300 group-hover:text-gray-400{% endif %}"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest transition-colors {% if request.resolver_match.url_name == 'bet_manutencao' %}text-tema{% else %}text-gray-400{% endif %}">BET</span>
+        </a>
+        
+        <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 no-underline w-14 group">
+            <i class="bi bi-person-fill text-2xl transition-colors {% if request.resolver_match.url_name == 'perfil' %}text-tema{% else %}text-gray-300 group-hover:text-gray-400{% endif %}"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest transition-colors {% if request.resolver_match.url_name == 'perfil' %}text-tema{% else %}text-gray-400{% endif %}">Perfil</span>
         </a>
 
-        <a href="{% url 'noticias' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
-            <i class="bi bi-megaphone-fill text-xl {% if request.resolver_match.url_name == 'noticias' %}text-[#CD7F32]{% else %}text-gray-300{% endif %}"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'noticias' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Notícias</span>
-        </a>
-        
-        <a href="{% url 'loja' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
-            <i class="bi bi-bag-check-fill text-xl {% if request.resolver_match.url_name == 'loja' %}text-[#CD7F32]{% else %}text-gray-300{% endif %}"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'loja' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Loja</span>
-        </a>
-        
-        <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 no-underline min-w-[60px]">
-            <i class="bi bi-person-badge-fill text-xl {% if request.resolver_match.url_name == 'perfil' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter {% if request.resolver_match.url_name == 'perfil' %}text-[#CD7F32]{% else %}text-gray-400{% endif %}">Perfil</span>
-        </a>
     </nav>
     {% endif %}
 

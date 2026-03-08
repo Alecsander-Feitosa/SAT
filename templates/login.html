@@ -1,48 +1,80 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - SAT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-</head>
-<body class="bg-[#F8F9FA] flex items-center justify-center min-h-screen px-5">
-    <div class="w-full max-w-sm">
-        <div class="text-center mb-10">
-            <h1 class="text-[#D37129] text-4xl font-black italic uppercase">SAT</h1>
-            <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-2">Acesso Exclusivo à Torcida</p>
+
+{% block content %}
+<style>
+    nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
+    body, main { padding: 0 !important; margin: 0 !important; }
+</style>
+<div class="min-h-screen w-full bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden" 
+     style="background-image: url('{% static 'img/hero-stadium.jpg' %}');">
+    
+    <div class="absolute inset-0 bg-black/60 z-0"></div>
+
+    <div class="w-full max-w-sm bg-white p-10 rounded-[40px] shadow-2xl shadow-black/30 relative z-10 flex flex-col items-center justify-center border border-gray-100">
+        
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#D37129] opacity-10 rounded-full blur-3xl"></div>
+
+        <div class="text-center mb-8 relative z-10 w-full">
+            <h1 class="text-5xl font-black italic tracking-tighter text-[#1A1A1A]">SAT</h1>
+            <p class="text-[9px] font-black tracking-[0.35em] text-gray-400 mt-1 uppercase">Torcer é Pertencer</p>
         </div>
 
-        {% if form.errors %}
-            <div class="bg-red-500/10 border border-red-500/50 text-red-500 text-xs p-3 rounded-xl mb-4 text-center">
-                Usuário ou senha incorretos.
+        <div class="w-full relative z-10">
+            <h2 class="text-2xl font-black text-[#1A1A1A] mb-8 text-left">Login</h2>
+            
+            <form method="post" action="{% url 'login' %}" class="space-y-4">
+                {% csrf_token %}
+                
+                <div>
+                    <input type="text" name="username" placeholder="E-mail ou Usuário" class="w-full bg-gray-50 border border-gray-100 text-[#1A1A1A] text-sm font-medium rounded-2xl focus:ring-2 focus:ring-[#D37129]/20 focus:border-[#D37129] block p-4 outline-none transition-all" required>
+                </div>
+                <div>
+                    <input type="password" name="password" placeholder="Senha" class="w-full bg-gray-50 border border-gray-100 text-[#1A1A1A] text-sm font-medium rounded-2xl focus:ring-2 focus:ring-[#D37129]/20 focus:border-[#D37129] block p-4 outline-none transition-all" required>
+                </div>
+
+                <div class="flex items-center justify-between mt-2 px-1 w-full">
+                    <div class="flex items-center">
+                        <input id="remember" type="checkbox" class="w-4 h-4 text-[#D37129] bg-gray-100 border-gray-300 rounded focus:ring-[#D37129]">
+                        <label for="remember" class="ml-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Lembrar-me</label>
+                    </div>
+                    <a href="#" class="text-[10px] font-bold text-[#D37129] uppercase tracking-wider hover:underline whitespace-nowrap ml-2">Esqueceu a senha?</a>
+                </div>
+
+                <button type="submit" class="w-full text-white bg-[#D37129] hover:bg-[#b85a1a] font-black rounded-full text-sm px-5 py-4 text-center mt-6 uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-[#D37129]/30">
+                    Fazer login
+                </button>
+            </form>
+
+            <div class="mt-8">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-100"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-4 bg-white text-gray-300 text-[10px] font-black uppercase tracking-widest">ou</span>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-center gap-6">
+                    <a href="#" class="w-16 h-16 flex items-center justify-center bg-white border border-gray-100 rounded-full shadow-lg shadow-black/5 hover:bg-gray-50 transition-all active:scale-95">
+                        <img src="{% static 'img/google_logo.png' %}" alt="Google Logo" class="w-8 h-8 object-contain">
+                    </a>
+
+                    <a href="#" class="w-16 h-16 flex items-center justify-center bg-white border border-gray-100 rounded-full shadow-lg shadow-black/5 hover:bg-gray-50 transition-all active:scale-95">
+                        <img src="{% static 'img/apple_logo.png' %}" alt="Apple Logo" class="w-8 h-8 object-contain">
+                    </a>
+
+                    <a href="#" class="w-16 h-16 flex items-center justify-center bg-white border border-gray-100 rounded-full shadow-lg shadow-black/5 hover:bg-gray-50 transition-all active:scale-95">
+                        <img src="{% static 'img/facebook_logo.png' %}" alt="Facebook Logo" class="w-8 h-8 object-contain">
+                    </a>
+                </div>
+
+                <p class="text-xs font-bold text-gray-400 text-center mt-12 uppercase tracking-wider">
+                    Não tem conta? <a href="{% url 'cadastro' %}" class="text-[#D37129] hover:underline">Cadastre-se</a>
+                </p>
             </div>
-        {% endif %}
-
-        <form method="post" class="space-y-4">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ next }}">
-
-            <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase text-gray-400 ml-2">Usuário</label>
-                <input type="text" name="username" required class="w-full bg-white border border-gray-100 rounded-2xl py-4 px-6 text-[#1A1A1A] focus:border-[#D37129] outline-none transition-all" placeholder="Seu username">
-            </div>
-
-            <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase text-gray-400 ml-2">Senha</label>
-                <input type="password" name="password" required class="w-full bg-white border border-gray-100 rounded-2xl py-4 px-6 text-[#1A1A1A] focus:border-[#D37129] outline-none transition-all" placeholder="••••••••">
-            </div>
-
-            <button type="submit" class="w-full bg-[#D37129] text-[#1A1A1A] font-black py-4 rounded-2xl uppercase italic tracking-widest shadow-lg shadow-[#D37129]/20 hover:scale-[1.02] active:scale-[0.98] transition-all mt-4">
-                Entrar no Sistema
-            </button>
-        </form>
-
-        <div class="mt-8 text-center">
-            <p class="text-gray-400 text-xs">Ainda não é sócio? <a href="{% url 'cadastro' %}" class="text-[#D37129] font-bold">Cadastre-se</a></p>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

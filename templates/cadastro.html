@@ -1,60 +1,138 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro - SAT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-</head>
-<body class="bg-[#F8F9FA] flex items-center justify-center min-h-screen px-5 py-10">
-    <div class="w-full max-w-md">
-        <div class="text-center mb-8">
-            <h1 class="text-[#D37129] text-4xl font-black italic uppercase">SAT</h1>
-            <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-2">Crie sua conta na torcida</p>
-        </div>
 
-        {% if form.errors %}
-            <div class="bg-red-500/10 border border-red-500/50 text-red-500 text-xs p-4 rounded-2xl mb-6">
-                <p class="font-bold mb-1">Ops! Verifique os erros abaixo:</p>
-                <ul class="list-disc pl-4">
-                    {% for field in form %}
-                        {% for error in field.errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                    {% for error in form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
+{% block content %}
+<style>
+    nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
+    body, main { padding: 0 !important; margin: 0 !important; background-color: #ffffff !important; }
+    form input, form select {
+        width: 100%;
+        background-color: #f9fafb; /* Fundo cinza super suave */
+        border: 1.5px solid #e5e7eb; /* Borda fina e bem definida */
+        color: #1a1a1a;
+        font-size: 0.875rem;
+        font-weight: 500; /* Texto digitado mais suave */
+        border-radius: 1rem;
+        padding: 1rem 1.25rem;
+        padding-left: 3.25rem; /* Espaço perfeito para o ícone */
+        outline: none;
+        transition: all 0.3s ease;
+        }
+                
+        /* Efeito quando clica na caixa de texto (Apenas a linha laranja, sem sombras estranhas) */
+        form input:focus, form select:focus {
+            border-color: #D37129;
+                background-color: #ffffff;
+        }
+
+        /* Legendas (Nome, Email, etc) em cima da caixa */
+        form label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 700; /* Menos grosso do que estava antes */
+            text-transform: uppercase;
+            letter-spacing: 0.05em; /* Menos espaçado */
+            color: #6b7280; /* Um cinza um pouco mais escuro para ler melhor */
+            margin-bottom: 0.35rem;
+            margin-left: 0.5rem;
+        }
+         
+
+</style>
+
+<div class="min-h-screen bg-white flex flex-col items-center px-6 py-10 relative overflow-hidden">
+    
+    <div class="absolute -top-24 -left-20 w-48 h-48 bg-[#D37129] opacity-10 rounded-full blur-3xl z-0"></div>
+    <div class="absolute bottom-20 -right-20 w-48 h-48 bg-[#D37129] opacity-5 rounded-full blur-3xl z-0"></div>
+
+    <div class="w-full max-w-sm flex justify-start mb-4 relative z-10">
+        <a href="{% url 'login' %}" class="w-10 h-10 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:text-[#D37129] hover:bg-[#D37129]/5 transition-all active:scale-90 shadow-sm">
+            <i class="bi bi-arrow-left text-lg"></i>
+        </a>
+    </div>
+
+    <div class="text-center mb-8 relative z-10">
+        <h1 class="text-4xl font-black italic tracking-tighter text-[#1A1A1A]">SAT<span class="text-[#D37129]">.</span></h1>
+        <p class="text-[8px] font-black tracking-[0.35em] text-[#D37129] opacity-80 mt-1 uppercase">Torcer é Pertencer</p>
+    </div>
+
+    <div class="w-full max-w-sm relative z-10 flex-1">
+        <h2 class="text-2xl font-black text-[#1A1A1A]">Cadastro</h2>
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6 mt-1">Preencha os dados da conta</p>
 
         <form method="post" class="space-y-4">
             {% csrf_token %}
             
-            {% for field in form %}
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase text-gray-400 ml-2">{{ field.label }}</label>
-                    <div class="relative">
-                        <input type="{{ field.field.widget.input_type|default:'text' }}" 
-                               name="{{ field.name }}" 
-                               id="{{ field.id_for_label }}"
-                               class="w-full bg-white border border-gray-100 rounded-2xl py-4 px-6 text-[#1A1A1A] focus:border-[#D37129] outline-none transition-all placeholder-gray-600"
-                               placeholder="{{ field.label }}">
-                    </div>
-                </div>
-            {% endfor %}
+            <style>
+                form input, form select {
+                    width: 100%;
+                    background-color: #f9fafb;
+                    border: 1px solid #f3f4f6;
+                    color: #1a1a1a;
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    border-radius: 1rem;
+                    padding: 1rem 1.25rem;
+                    padding-left: 3rem; /* Espaço extra para não encostar no ícone! */
+                    outline: none;
+                    transition: all 0.2s;
+                }
+                form input:focus, form select:focus {
+                    border-color: #D37129;
+                    box-shadow: 0 0 0 4px rgba(211, 113, 41, 0.1);
+                    background-color: #ffffff;
+                }
+            </style>
 
-            <button type="submit" class="w-full bg-[#D37129] text-[#1A1A1A] font-black py-4 rounded-2xl uppercase italic tracking-widest shadow-lg shadow-[#D37129]/20 hover:scale-[1.02] active:scale-[0.98] transition-all mt-6">
-                Finalizar Cadastro
+            <div class="space-y-4">
+                {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1 ml-4">
+                        {{ field.label }}
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            {% if 'nome' in field.name|lower or 'user' in field.name|lower %}
+                                <i class="bi bi-person text-gray-400 text-lg"></i>
+                            {% elif 'email' in field.name|lower %}
+                                <i class="bi bi-envelope text-gray-400 text-lg"></i>
+                            {% elif 'senha' in field.name|lower or 'password' in field.name|lower %}
+                                <i class="bi bi-lock text-gray-400 text-lg"></i>
+                            {% elif 'cpf' in field.name|lower %}
+                                <i class="bi bi-person-vcard text-gray-400 text-lg"></i>
+                            {% elif 'telefone' in field.name|lower or 'celular' in field.name|lower %}
+                                <i class="bi bi-phone text-gray-400 text-lg"></i>
+                            {% else %}
+                                <i class="bi bi-pencil text-gray-400 text-lg"></i>
+                            {% endif %}
+                        </div>
+                        
+                        {{ field }}
+                    </div>
+                    {% if field.errors %}
+                        <p class="text-[10px] text-red-500 font-bold mt-1 ml-4">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="flex items-start mt-6 mb-8 px-1 pt-2">
+                <div class="flex items-center h-5">
+                    <input id="terms" type="checkbox" class="w-4 h-4 text-[#D37129] bg-gray-100 border-gray-300 rounded focus:ring-[#D37129]" required>
+                </div>
+                <label for="terms" class="ml-3 text-[9px] font-bold text-gray-400 uppercase tracking-wider leading-relaxed" style="margin-top: 2px;">
+                    Declaro que li e aceito os <br><a href="#" class="text-[#D37129] hover:underline font-black">termos e política de privacidade</a>.
+                </label>
+            </div>
+
+            <button type="submit" class="w-full text-white bg-[#D37129] hover:bg-[#b85a1a] font-black rounded-full text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-[#D37129]/30">
+                Continuar
             </button>
         </form>
 
-        <div class="mt-8 text-center">
-            <p class="text-gray-400 text-xs">Já possui uma conta? <a href="{% url 'login' %}" class="text-[#D37129] font-bold">Entrar agora</a></p>
-        </div>
+        <p class="text-xs font-bold text-gray-400 text-center mt-8 pb-10 uppercase tracking-wider">
+            Já tem conta? <a href="{% url 'login' %}" class="text-[#D37129] hover:underline font-black">Fazer Login</a>
+        </p>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

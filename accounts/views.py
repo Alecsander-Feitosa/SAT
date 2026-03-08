@@ -63,44 +63,52 @@ def cadastro(request):
         if form.is_valid():
             user = form.save()
             login(request, user) # Loga automaticamente após cadastrar
-            return redirect('dashboard') # Redireciona para o painel principal
+            # MUDAMOS AQUI: Agora ele vai para a Etapa 2!
+            return redirect('cadastro_etapa2') 
     else:
         form = CadastroForm()
     return render(request, 'cadastro.html', {'form': form})
-
 # accounts/views.py
+
+@login_required
+def cadastro_etapa2(request):
+    if request.method == 'POST':
+        # Quando o utilizador clica em "Concluir", apanhamos as opções dele:
+        time_escolhido = request.POST.get('time')
+        torcida_id = request.POST.get('torcida')
+        data_nasc = request.POST.get('data_nascimento')
+
+        perfil = request.user.perfil
+        
+        # Se ele escolheu uma torcida, associamos ao perfil dele
+        if torcida_id:
+            from organizadas.models import Torcida
+            torcida = Torcida.objects.filter(id=torcida_id).first()
+            if torcida:
+                perfil.torcida = torcida
+                perfil.aprovado = False # Fica pendente da aprovação da diretoria
+        
+        # Aqui pode guardar o "time_escolhido" e a "data_nasc" se tiver esses campos no models.py depois
+        perfil.save()
+        
+        # Depois de salvar a etapa 2, finalmente enviamos para o Dashboard!
+        return redirect('dashboard')
+
+    # Se ele apenas abriu a página, mostramos o HTML que criámos
+    return render(request, 'cadastro_etapa2.html')
+
+
 
 @login_required
 def dashboard(request):
     perfil = request.user.perfil
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
-    if perfil.torcida and perfil.aprovado:
-        cor_tema = perfil.torcida.cor_primaria 
-    else:
-        cor_tema = "#CD7F32"
     
-    if perfil.torcida:
-        eventos = Evento.objects.filter(
-            torcida=perfil.torcida, 
-            data__gte=timezone.now(), 
-            ativo=True
-        ).order_by('data')[:3]
-    else:
-        eventos = Evento.objects.filter(
-            data__gte=timezone.now(), 
-            ativo=True
-        ).order_by('data')[:3]
-    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
-    eventos = Evento.objects.filter(
-        data__gte=timezone.now(), 
-        ativo=True
-    ).order_by('data')[:3]
-
-
-    # 1. Busca Notícias da API focadas em Futebol
+    # 1. Busca Notícias da API focadas em Futebol (Você já tinha isso!)
     noticias_api = cache.get('news_api_futebol')
     if not noticias_api:
         try:
+            from content.api import api_noticias # Garante o import
             url = f'https://newsapi.org/v2/everything?q=futebol+brasileiro+brasileirao&language=pt&sortBy=publishedAt&pageSize=5&apiKey={api_noticias}'
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
@@ -110,25 +118,30 @@ def dashboard(request):
             noticias_api = []
 
     # 2. Lógica de Eventos Dinâmica
-    # Se aprovado, prioriza eventos da torcida dele. Se não, mostra eventos gerais.
     if perfil.torcida and perfil.aprovado:
         eventos = Evento.objects.filter(torcida=perfil.torcida, data__gte=timezone.now()).order_by('data')[:3]
+        cor_tema = perfil.torcida.cor_primaria
+        
+        # BUSCA REAL NO BANCO: Posts da Torcida e Notícias do Time
+        posts_sociais = PostTorcida.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')[:5]
+        noticias_time = Noticia.objects.all().order_by('-data_publicacao')[:2] # Notícias internas
     else:
         eventos = Evento.objects.filter(data__gte=timezone.now()).order_by('data')[:3]
-
-    # 3. Dados Adicionais
-    conquistas = Conquista.objects.all()
-    cor_tema = perfil_game.nivel.cor_tema if perfil_game.nivel else "#D37129"
+        cor_tema = "#CD7F32"
+        posts_sociais = PostTorcida.objects.all().order_by('-data_criacao')[:5]
+        noticias_time = Noticia.objects.all().order_by('-data_publicacao')[:2]
 
     context = {
         'proximos_eventos': eventos,
-        'conquistas': conquistas,
         'perfil': perfil,
         'perfil_game': perfil_game,
-        'noticias': noticias_api,
         'xp_atual': perfil_game.xp_total or 0,
-        'eventos': eventos,
         'torcida': perfil.torcida,
+        'cor_tema': cor_tema,
+        # AS VARIÁVEIS NOVAS QUE VÃO PARA O HTML REAL:
+        'noticias_api': noticias_api,
+        'posts_sociais': posts_sociais,
+        'noticias_time': noticias_time,
     }
     
     return render(request, 'dashboard.html', context)

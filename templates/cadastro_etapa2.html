@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
+    body, main { padding: 0 !important; margin: 0 !important; background-color: #ffffff !important; }
+
+    /* Estilo Customizado para Inputs e Selects (Drop-downs) */
+    .app-input {
+        width: 100%;
+        background-color: #f9fafb;
+        border: 1.5px solid #e5e7eb;
+        color: #1a1a1a;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 1rem;
+        padding: 1rem 1.25rem;
+        padding-left: 3.25rem;
+        outline: none;
+        transition: all 0.3s ease;
+        appearance: none; /* Remove a seta padrão e feia do navegador */
+    }
+    
+    .app-input:focus {
+        border-color: #D37129;
+        background-color: #ffffff;
+    }
+
+    /* Setinha laranja customizada para os campos de selecionar */
+    .select-wrapper::after {
+        content: '\F282'; /* Código do ícone chevron-down do Bootstrap */
+        font-family: 'bootstrap-icons';
+        position: absolute;
+        right: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #D37129;
+        pointer-events: none;
+        font-size: 1rem;
+    }
+</style>
+
+<div class="min-h-screen bg-white flex flex-col items-center px-6 py-10 relative overflow-hidden">
+    
+    <div class="absolute -top-24 -left-20 w-48 h-48 bg-[#D37129] opacity-10 rounded-full blur-3xl z-0"></div>
+    <div class="absolute bottom-20 -right-20 w-48 h-48 bg-[#D37129] opacity-5 rounded-full blur-3xl z-0"></div>
+
+    <div class="w-full max-w-sm flex justify-start mb-4 relative z-10">
+        <a href="{% url 'cadastro' %}" class="w-10 h-10 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:text-[#D37129] hover:bg-[#D37129]/5 transition-all active:scale-90 shadow-sm">
+            <i class="bi bi-arrow-left text-lg"></i>
+        </a>
+    </div>
+
+    <div class="text-center mb-8 relative z-10">
+        <h1 class="text-4xl font-black italic tracking-tighter text-[#1A1A1A]">SAT<span class="text-[#D37129]">.</span></h1>
+        <p class="text-[8px] font-black tracking-[0.35em] text-[#D37129] opacity-80 mt-1 uppercase">Torcer é Pertencer</p>
+    </div>
+
+    <div class="w-full max-w-sm relative z-10 flex-1">
+        <h2 class="text-2xl font-black text-[#1A1A1A]">Personalize</h2>
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6 mt-1">Conclua seu perfil</p>
+
+        <form method="post" action="" class="space-y-5">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1 ml-4">Time do Coração</label>
+                <div class="relative select-wrapper">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="bi bi-shield-check text-gray-400 text-lg"></i>
+                    </div>
+                    <select name="time" class="app-input text-gray-500">
+                        <option value="" disabled selected>Escolha seu time...</option>
+                        <option value="flamengo" class="text-black">Flamengo</option>
+                        <option value="vasco" class="text-black">Vasco</option>
+                        <option value="palmeiras" class="text-black">Palmeiras</option>
+                        <option value="corinthians" class="text-black">Corinthians</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1 ml-4">Sua Torcida</label>
+                <div class="relative select-wrapper">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="bi bi-flag text-gray-400 text-lg"></i>
+                    </div>
+                    <select name="torcida" class="app-input text-gray-500">
+                        <option value="" disabled selected>Escolha sua torcida (Opcional)</option>
+                        <option value="1" class="text-black">Raça Rubro-Negra</option>
+                        <option value="2" class="text-black">Força Jovem</option>
+                        <option value="3" class="text-black">Mancha Verde</option>
+                    </select>
+                </div>
+                <p class="text-[8px] text-gray-400 font-bold ml-4 mt-1 uppercase">A torcida precisará aprovar seu vínculo.</p>
+            </div>
+
+            <div>
+                <label class="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1 ml-4">Nascimento</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="bi bi-calendar3 text-gray-400 text-lg"></i>
+                    </div>
+                    <input type="date" name="data_nascimento" class="app-input text-gray-500">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full text-white bg-[#D37129] hover:bg-[#b85a1a] font-black rounded-full text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-[#D37129]/30 mt-6">
+                Concluir
+            </button>
+        </form>
+
+        <div class="mt-6 flex justify-center">
+            <a href="{% url 'dashboard' %}" class="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-[#1A1A1A] transition-colors py-2 px-4 rounded-full hover:bg-gray-50">
+                Pular esta etapa <i class="bi bi-chevron-right ml-1"></i>
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -43,5 +43,5 @@ urlpatterns = [
     path('seja-socio/', views.seja_socio, name='seja_socio'),
     path('vincular/<int:torcida_id>/', views.vincular_torcida, name='vincular_torcida'),
     path('curtir/<int:post_id>/', views.curtir_post, name='curtir_post'),
-    
+    path('cadastro/etapa2/', views.cadastro_etapa2, name='cadastro_etapa2'),
 ]
