@@ -1,11 +1,11 @@
 from django.contrib import admin
-# Importamos APENAS os modelos que estão dentro de organizadas/models.py
 from .models import Torcida, Caravana, Evento, Noticia, Post, Curtida
 
 @admin.register(Torcida)
 class TorcidaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'fundacao', 'cores')
-    search_fields = ('nome', 'cores')
+    # Removido 'cores' e adicionado 'sigla' e 'cor_primaria'
+    list_display = ('nome', 'sigla', 'fundacao', 'cor_primaria')
+    search_fields = ('nome', 'sigla', 'lema') 
     prepopulated_fields = {'slug': ('nome',)} # Preenche o slug automaticamente
 
 @admin.register(Caravana)

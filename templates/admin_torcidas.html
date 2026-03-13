@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gerir Torcidas - SAT Admin{% endblock %}
+
+{% block content %}
+<style>
+    body { background-color: #0f1015; color: #ffffff; font-family: 'Segoe UI', sans-serif; }
+    .admin-container { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { width: 250px; background-color: #1a1c23; padding: 20px; border-right: 1px solid #2d303e; }
+    .sidebar-logo { text-align: center; margin-bottom: 30px; }
+    .sidebar-logo img { max-width: 120px; }
+    .menu-item { padding: 15px; margin-bottom: 10px; background-color: #242731; border-radius: 12px; color: #a0a4b8; text-decoration: none; display: flex; align-items: center; transition: all 0.3s; }
+    .menu-item:hover, .menu-item.active { background-color: #5c6bc0; color: white; }
+
+    /* Conteúdo Principal */
+    .main-content { flex: 1; padding: 40px; }
+    .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    
+    .btn-nova { background-color: #5c6bc0; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; transition: 0.3s; }
+    .btn-nova:hover { background-color: #4a569d; color: white; }
+
+    /* Grid de Torcidas */
+    .torcidas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    
+    .torcida-card { background-color: #1a1c23; border: 1px solid #2d303e; border-radius: 15px; overflow: hidden; transition: 0.2s; position: relative; }
+    .torcida-card:hover { transform: translateY(-5px); border-color: #5c6bc0; }
+    
+    /* Faixa de cor no topo do card (usa a cor primária da torcida) */
+    .torcida-color-banner { height: 80px; width: 100%; opacity: 0.8; }
+    
+    .torcida-info { padding: 20px; text-align: center; margin-top: -50px; }
+    .torcida-logo { width: 80px; height: 80px; border-radius: 50%; border: 4px solid #1a1c23; background-color: white; object-fit: contain; margin-bottom: 10px; }
+    
+    .torcida-info h3 { margin: 0 0 5px 0; font-size: 18px; }
+    .torcida-info p { color: #a0a4b8; font-size: 13px; margin: 0 0 15px 0; }
+
+    /* Botões de Ação no Card */
+    .card-actions { display: flex; justify-content: center; gap: 10px; border-top: 1px solid #2d303e; padding-top: 15px; }
+    .btn-icon { background: #242731; border: none; color: #a0a4b8; cursor: pointer; font-size: 14px; padding: 8px 15px; border-radius: 6px; transition: 0.2s; text-decoration: none; display: flex; align-items: center; gap: 5px; }
+    .btn-icon:hover { color: white; background-color: #5c6bc0; }
+</style>
+
+<div class="admin-container">
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <img src="{% static 'img/logo_sat.png' %}" alt="Logo SAT">
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="menu-item"><i class="fas fa-home" style="margin-right: 10px;"></i> Dashboard</a>
+        <a href="#" class="menu-item active"><i class="fas fa-list" style="margin-right: 10px;"></i> Gerir Torcidas</a>
+        <a href="{% url 'gerir_utilizadores' %}" class="menu-item"><i class="fas fa-user-shield" style="margin-right: 10px;"></i> Gerir Utilizadores</a>
+    </nav>
+
+    <main class="main-content">
+        <div class="header-actions">
+            <h2>Torcidas no Sistema SAT</h2>
+            <a href="{% url 'nova_torcida' %}" class="btn-nova"><i class="fas fa-plus"></i> Nova Torcida</a>
+        </div>
+
+        <div class="torcidas-grid">
+            {% for torcida in torcidas %}
+            <div class="torcida-card">
+                <div class="torcida-color-banner" style="background-color: {{ torcida.cor_primaria }};"></div>
+                
+                <div class="torcida-info">
+                    {% if torcida.logo %}
+                        <img src="{{ torcida.logo.url }}" alt="Logo {{ torcida.nome }}" class="torcida-logo">
+                    {% else %}
+                        <div class="torcida-logo" style="display:inline-flex; align-items:center; justify-content:center;"><i class="fas fa-shield-alt" style="color:#000; font-size:30px;"></i></div>
+                    {% endif %}
+                    
+                    <h3>{{ torcida.nome }} {% if torcida.sigla %}({{ torcida.sigla }}){% endif %}</h3>
+                    <p>Fundação: {{ torcida.fundacao|date:"d/m/Y" }}</p>
+                    
+                    <div class="card-actions">
+                        <a href="{% url 'editar_torcida' torcida.id %}" class="btn-icon" title="Editar Configurações"><i class="fas fa-edit"></i> Editar</a>
+                        <a href="{% url 'gerir_utilizadores' %}?torcida={{ torcida.id }}" class="btn-icon" title="Ver Membros" style="text-decoration: none;">
+                            <i class="fas fa-users"></i> Membros
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="color: #a0a4b8; grid-column: 1 / -1; text-align: center; padding: 40px; border: 1px dashed #2d303e; border-radius: 15px;">
+                <i class="fas fa-inbox" style="font-size: 3em; margin-bottom: 15px; color: #2d303e;"></i>
+                <h3>Nenhuma torcida cadastrada ainda.</h3>
+                <p>Usa o botão "Nova Torcida" no topo para começares!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+{% endblock %}

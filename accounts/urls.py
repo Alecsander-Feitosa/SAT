@@ -6,9 +6,15 @@ from django.urls import path
 
 
 urlpatterns = [
-    path('', views.dashboard, name='dashboard'),
+    # A página inicial agora é o Pré-Login
+    path('', views.pre_login, name='pre_login'),
+    
+    # O Dashboard ganha uma URL própria (ex: seusite.com/dashboard/)
+    path('dashboard/', views.dashboard, name='dashboard'),
+    
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('cadastro/', views.cadastro, name='cadastro'),
+    path('cadastro_etapa2/', views.cadastro_etapa2, name='cadastro_etapa2'),
     path('perfil/', views.editar_perfil, name='perfil'),
     path('noticias/', views.noticias, name='noticias'),
     
@@ -43,5 +49,4 @@ urlpatterns = [
     path('seja-socio/', views.seja_socio, name='seja_socio'),
     path('vincular/<int:torcida_id>/', views.vincular_torcida, name='vincular_torcida'),
     path('curtir/<int:post_id>/', views.curtir_post, name='curtir_post'),
-    path('cadastro/etapa2/', views.cadastro_etapa2, name='cadastro_etapa2'),
 ]

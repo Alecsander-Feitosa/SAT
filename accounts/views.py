@@ -687,3 +687,11 @@ def configurar_torcida(request):
         messages.success(request, "Visual da torcida atualizado!")
         
     return render(request, 'configurar_torcida.html', {'torcida': torcida})
+
+
+def pre_login(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
+    return render(request, 'pre_login.html')
+

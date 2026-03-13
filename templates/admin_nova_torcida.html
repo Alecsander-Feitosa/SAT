@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nova Torcida - SAT Admin{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos do Dark Mode */
+    body {
+        background-color: #0f1015;
+        color: #ffffff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .admin-container { display: flex; min-height: 100vh; }
+
+    /* Menu Lateral */
+    .sidebar { width: 250px; background-color: #1a1c23; padding: 20px; border-right: 1px solid #2d303e; }
+    .sidebar-logo { text-align: center; margin-bottom: 30px; }
+    .sidebar-logo img { max-width: 120px; }
+    .menu-item { padding: 15px; margin-bottom: 10px; background-color: #242731; border-radius: 12px; color: #a0a4b8; text-decoration: none; display: flex; align-items: center; transition: all 0.3s; }
+    .menu-item:hover, .menu-item.active { background-color: #5c6bc0; color: white; }
+
+    /* Área Central e Formulário */
+    .main-content { flex: 1; padding: 40px; }
+    .form-card { background-color: #1a1c23; padding: 35px; border-radius: 15px; border: 1px solid #2d303e; max-width: 800px; }
+    
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; color: #a0a4b8; font-weight: 600; }
+    
+    /* Estilização dos Inputs */
+    .form-control { width: 100%; padding: 12px; background-color: #0f1015; border: 1px solid #2d303e; border-radius: 8px; color: white; box-sizing: border-box; }
+    .form-control:focus { outline: none; border-color: #5c6bc0; }
+    
+    /* Grid para as cores ficarem lado a lado */
+    .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-control-color { height: 50px; padding: 5px; cursor: pointer; }
+    
+    /* Botão de Submeter */
+    .btn-submit { background-color: #5c6bc0; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; margin-top: 20px; transition: background-color 0.3s; }
+    .btn-submit:hover { background-color: #4a569d; }
+</style>
+
+<div class="admin-container">
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <img src="{% static 'img/logo_sat.png' %}" alt="Logo SAT">
+        </div>
+        
+        <a href="{% url 'admin_dashboard' %}" class="menu-item">
+            <i class="fas fa-home" style="margin-right: 10px;"></i> Dashboard
+        </a>
+        <a href="{% url 'nova_torcida' %}" class="menu-item active">
+            <i class="fas fa-plus-circle" style="margin-right: 10px;"></i> Nova Torcida
+        </a>
+    </nav>
+
+    <main class="main-content">
+        <h2 style="margin-bottom: 30px;">Cadastrar Nova Torcida</h2>
+
+        <div class="form-card">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label>Nome Oficial da Torcida</label>
+                    {{ form.nome }}
+                </div>
+                
+                <div class="color-grid">
+                    <div class="form-group">
+                        <label>Sigla</label>
+                        {{ form.sigla }}
+                    </div>
+                    <div class="form-group">
+                        <label>Data de Fundação</label>
+                        {{ form.fundacao }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Lema da Torcida</label>
+                    {{ form.lema }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Breve Histórico / Descrição</label>
+                    {{ form.historia }}
+                </div>
+
+                <div class="color-grid" style="margin-top: 20px;">
+                    <div class="form-group">
+                        <label>Logótipo / Escudo</label>
+                        {{ form.logo }}
+                    </div>
+                    <div class="form-group">
+                        <label>Imagem de Fundo (App)</label>
+                        {{ form.imagem_fundo }}
+                    </div>
+                </div>
+
+                <hr style="border-color: #2d303e; margin: 30px 0;">
+                <h3 style="margin-bottom: 20px; color: #5c6bc0;">Identidade Visual</h3>
+                
+                <div class="color-grid">
+                    <div class="form-group">
+                        <label>Cor Primária</label>
+                        {{ form.cor_primaria }}
+                    </div>
+                    <div class="form-group">
+                        <label>Cor Secundária</label>
+                        {{ form.cor_secundaria }}
+                    </div>
+                    <div class="form-group">
+                        <label>Cor Terciária</label>
+                        {{ form.cor_terciaria }}
+                    </div>
+                    <div class="form-group">
+                        <label>Cor de Fundo (App)</label>
+                        {{ form.cor_fundo }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Registrar Torcida no SAT</button>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('input[type="text"], input[type="file"], textarea');
+        inputs.forEach(input => {
+            if (!input.classList.contains('form-control-color')) {
+                input.classList.add('form-control');
+            }
+        });
+    });
+</script>
+{% endblock %}

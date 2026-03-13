@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Oculta os menus para deixar a tela limpa */
+    nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
+    body, main { padding: 0 !important; margin: 0 !important; background-color: #000000; }
+</style>
+
+<div class="min-h-screen w-full flex flex-col bg-black">
+    
+    <div class="w-full relative">
+        <img src="{% static 'img/pre_log.jpg' %}" alt="Fundo SAT" class="w-full h-auto block">
+        <div class="absolute inset-0 bg-black/20"></div>
+    </div>
+
+    <div class="flex-1 w-full bg-gradient-to-b from-[#D37129] to-[#8c4817] flex flex-col pt-6 relative z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.3)]">
+        
+        <div class="w-full flex flex-col items-center px-6">
+            
+            <h1 class="text-4xl font-black italic tracking-tighter text-black/90 mb-6 drop-shadow-sm" style="font-family: 'Montserrat', sans-serif;"></h1>
+
+            <div class="w-full max-w-sm flex flex-col gap-6">
+                
+                <a href="{% url 'login' %}" class="w-full text-white bg-[#414b4c] hover:bg-[#2d3435] font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-xl">
+                    Fazer login
+                </a>
+
+                <div class="flex justify-between w-full">
+                    <button class="w-24 h-16 flex items-center justify-center bg-white rounded-[20px] hover:scale-105 transition-all shadow-md">
+                        <img src="{% static 'img/google_logo.png' %}" alt="Google" class="w-12 h-12 object-contain">
+                    </button>
+                    <button class="w-24 h-16 flex items-center justify-center bg-white rounded-[20px] hover:scale-105 transition-all shadow-md">
+                        <img src="{% static 'img/apple_logo.png' %}" alt="Apple" class="w-12 h-12 object-contain">
+                    </button>
+                    <button class="w-24 h-16 flex items-center justify-center bg-white rounded-[20px] hover:scale-105 transition-all shadow-md">
+                        <img src="{% static 'img/facebook_logo.png' %}" alt="Facebook" class="w-12 h-12 object-contain">
+                    </button>
+                </div>
+
+                <a href="{% url 'login' %}" class="w-full text-black bg-white hover:bg-gray-100 font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-lg">
+                    Entrar com a torcida
+                </a>
+
+                <div class="w-full flex items-center justify-center">
+                    <div class="h-px bg-white/70 flex-grow"></div>
+                    <span class="px-4 text-white font-black uppercase tracking-widest text-[10px]">ou</span>
+                    <div class="h-px bg-white/70 flex-grow"></div>
+                </div>
+
+                <a href="{% url 'cadastro' %}" class="w-full border border-white text-white hover:bg-white hover:text-black font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95">
+                    Crie conta
+                </a>
+
+            </div> 
+            
+        </div>
+        
+        <div class="flex-grow"></div>
+
+        <footer class="w-full mt-8 flex justify-center items-end">
+            <img src="{% static 'img/rodape_prelog.png' %}" alt="Rodapé SAT" class="w-full block object-cover">
+        </footer>
+
+    </div>
+</div>
+{% endblock %}

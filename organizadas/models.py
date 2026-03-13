@@ -4,20 +4,26 @@ from gamification.models import Partida
 from django.contrib.auth.models import User
 
 class Torcida(models.Model):
-    nome = models.CharField(max_length=150, unique=True)
+    nome = models.CharField("Nome da Torcida", max_length=150, unique=True)
+    sigla = models.CharField("Sigla (Ex: TJF, MV)", max_length=10, blank=True, null=True)
     slug = models.SlugField(unique=True)
     fundacao = models.DateField("Data de Fundação")
-    mascote = models.CharField(max_length=100, blank=True)
-    cores = models.CharField("Cores", max_length=100)
-    
-    # ESTA É A LINHA MÁGICA QUE FALTAVA:
-    cor_primaria = models.CharField("Cor Hexadecimal", max_length=7, default="#D37129")
-    
-    logo = models.ImageField(upload_to='logos_torcida/', blank=True)
+    mascote = models.CharField("Mascote", max_length=100, blank=True)
+    lema = models.CharField("Lema da Torcida", max_length=200, blank=True)
     historia = models.TextField("Histórico", blank=True)
     
+    # --- IDENTIDADE VISUAL ---
+    logo = models.ImageField("Logótipo / Escudo", upload_to='logos_torcida/', blank=True)
+    imagem_fundo = models.ImageField("Imagem de Fundo (Login/App)", upload_to='fundos_torcida/', blank=True, null=True)
+    
+    # --- PERSONALIZAÇÃO DE CORES (Baseado nas tuas Telas ADM) ---
+    cor_primaria = models.CharField("Cor Primária", max_length=7, default="#D37129")
+    cor_secundaria = models.CharField("Cor Secundária", max_length=7, default="#FFFFFF")
+    cor_terciaria = models.CharField("Cor Terciária", max_length=7, default="#000000")
+    cor_fundo = models.CharField("Cor de Fundo do App", max_length=7, default="#121212")
+    
     def __str__(self):
-        return self.nome
+        return f"{self.nome} ({self.sigla})" if self.sigla else self.nome
 
 
 class Caravana(models.Model):

@@ -4,77 +4,77 @@
 {% block content %}
 <style>
     nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
-    body, main { padding: 0 !important; margin: 0 !important; }
+    body, main { padding: 0 !important; margin: 0 !important; background-color: #ffffff !important; }
 </style>
-<div class="min-h-screen w-full bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden" 
-     style="background-image: url('{% static 'img/hero-stadium.jpg' %}');">
+
+<div class="min-h-screen w-full bg-white flex flex-col px-6 py-8 relative overflow-hidden">
     
-    <div class="absolute inset-0 bg-black/60 z-0"></div>
+    <div class="absolute top-[-50px] right-[-50px] w-48 h-48 bg-[#D37129] opacity-20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-[20%] left-[-50px] w-56 h-56 bg-[#D37129] opacity-10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <div class="w-full max-w-sm bg-white p-10 rounded-[40px] shadow-2xl shadow-black/30 relative z-10 flex flex-col items-center justify-center border border-gray-100">
+    <div class="w-full flex justify-between items-center mb-8 relative z-10">
+        <img src="{% static 'img/logo_sat.png' %}" alt="SAT Logo" class="h-12 object-contain">
         
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#D37129] opacity-10 rounded-full blur-3xl"></div>
-
-        <div class="text-center mb-8 relative z-10 w-full">
-            <h1 class="text-5xl font-black italic tracking-tighter text-[#1A1A1A]">SAT</h1>
-            <p class="text-[9px] font-black tracking-[0.35em] text-gray-400 mt-1 uppercase">Torcer é Pertencer</p>
-        </div>
-
-        <div class="w-full relative z-10">
-            <h2 class="text-2xl font-black text-[#1A1A1A] mb-8 text-left">Login</h2>
-            
-            <form method="post" action="{% url 'login' %}" class="space-y-4">
-                {% csrf_token %}
-                
-                <div>
-                    <input type="text" name="username" placeholder="E-mail ou Usuário" class="w-full bg-gray-50 border border-gray-100 text-[#1A1A1A] text-sm font-medium rounded-2xl focus:ring-2 focus:ring-[#D37129]/20 focus:border-[#D37129] block p-4 outline-none transition-all" required>
-                </div>
-                <div>
-                    <input type="password" name="password" placeholder="Senha" class="w-full bg-gray-50 border border-gray-100 text-[#1A1A1A] text-sm font-medium rounded-2xl focus:ring-2 focus:ring-[#D37129]/20 focus:border-[#D37129] block p-4 outline-none transition-all" required>
-                </div>
-
-                <div class="flex items-center justify-between mt-2 px-1 w-full">
-                    <div class="flex items-center">
-                        <input id="remember" type="checkbox" class="w-4 h-4 text-[#D37129] bg-gray-100 border-gray-300 rounded focus:ring-[#D37129]">
-                        <label for="remember" class="ml-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Lembrar-me</label>
-                    </div>
-                    <a href="#" class="text-[10px] font-bold text-[#D37129] uppercase tracking-wider hover:underline whitespace-nowrap ml-2">Esqueceu a senha?</a>
-                </div>
-
-                <button type="submit" class="w-full text-white bg-[#D37129] hover:bg-[#b85a1a] font-black rounded-full text-sm px-5 py-4 text-center mt-6 uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-[#D37129]/30">
-                    Fazer login
-                </button>
-            </form>
-
-            <div class="mt-8">
-                <div class="relative">
-                    <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t border-gray-100"></div>
-                    </div>
-                    <div class="relative flex justify-center text-sm">
-                        <span class="px-4 bg-white text-gray-300 text-[10px] font-black uppercase tracking-widest">ou</span>
-                    </div>
-                </div>
-
-                <div class="mt-8 flex justify-center gap-6">
-                    <a href="#" class="w-16 h-16 flex items-center justify-center bg-white border border-gray-100 rounded-full shadow-lg shadow-black/5 hover:bg-gray-50 transition-all active:scale-95">
-                        <img src="{% static 'img/google_logo.png' %}" alt="Google Logo" class="w-8 h-8 object-contain">
-                    </a>
-
-                    <a href="#" class="w-16 h-16 flex items-center justify-center bg-white border border-gray-100 rounded-full shadow-lg shadow-black/5 hover:bg-gray-50 transition-all active:scale-95">
-                        <img src="{% static 'img/apple_logo.png' %}" alt="Apple Logo" class="w-8 h-8 object-contain">
-                    </a>
-
-                    <a href="#" class="w-16 h-16 flex items-center justify-center bg-white border border-gray-100 rounded-full shadow-lg shadow-black/5 hover:bg-gray-50 transition-all active:scale-95">
-                        <img src="{% static 'img/facebook_logo.png' %}" alt="Facebook Logo" class="w-8 h-8 object-contain">
-                    </a>
-                </div>
-
-                <p class="text-xs font-bold text-gray-400 text-center mt-12 uppercase tracking-wider">
-                    Não tem conta? <a href="{% url 'cadastro' %}" class="text-[#D37129] hover:underline">Cadastre-se</a>
-                </p>
-            </div>
-        </div>
+        <a href="{% url 'pre_login' %}" class="w-10 h-10 flex items-center justify-center bg-[#D37129]/10 text-[#D37129] hover:bg-[#D37129] hover:text-white rounded-full transition-colors active:scale-95 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </a>
     </div>
+
+    <div class="flex-1 w-full flex flex-col items-center justify-center max-w-sm mx-auto relative z-10">
+        
+        <h2 class="text-3xl font-black text-[#D37129] uppercase tracking-widest mb-8 text-center w-full">Login</h2>
+        
+        <form method="post" action="{% url 'login' %}" class="w-full flex flex-col gap-4">
+            {% csrf_token %}
+            
+            <input type="text" name="username" placeholder="E-mail ou Usuário" class="w-full bg-white border-2 border-[#D37129] text-black text-sm font-medium rounded-xl focus:ring-4 focus:ring-[#D37129]/20 block p-4 outline-none transition-all" required>
+            
+            <input type="password" name="password" placeholder="Senha" class="w-full bg-white border-2 border-[#D37129] text-black text-sm font-medium rounded-xl focus:ring-4 focus:ring-[#D37129]/20 block p-4 outline-none transition-all" required>
+
+            <div class="flex items-center justify-between px-1 mt-1 mb-4">
+                <div class="flex items-center">
+                    <input id="remember" type="checkbox" class="w-4 h-4 text-[#D37129] bg-white border-2 border-[#D37129] rounded focus:ring-[#D37129]">
+                    <label for="remember" class="ml-2 text-[10px] font-bold text-[#D37129] uppercase tracking-wider">Lembre-me</label>
+                </div>
+                <a href="#" class="text-[10px] font-bold text-[#D37129] hover:underline uppercase tracking-wider transition-colors">Esqueceu a senha?</a>
+            </div>
+
+            <button type="submit" class="w-full text-white bg-[#D37129] hover:bg-[#b85a1a] font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#D37129]/30">
+                Fazer login
+            </button>
+            
+            <p class="text-center text-[10px] font-bold text-black uppercase tracking-wider mt-2">
+                ou <a href="{% url 'cadastro' %}" class="text-black hover:underline ml-1">Cadastre-se</a>
+            </p>
+        </form>
+
+        <div class="w-full flex items-center justify-center mt-10 mb-6">
+            <div class="h-px bg-[#D37129]/30 flex-grow"></div>
+            <span class="px-4 text-[#D37129] font-black uppercase tracking-widest text-[10px]">ou</span>
+            <div class="h-px bg-[#D37129]/30 flex-grow"></div>
+        </div>
+
+        <a href="{% url 'login' %}" class="w-full text-black bg-white border-2 border-[#D37129] hover:bg-[#D37129] hover:text-black font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-md mb-6 block">
+            Entrar com a torcida 
+        </a>
+
+        <div class="flex justify-between w-full">
+            <button class="w-24 h-16 flex items-center justify-center bg-white border-2 border-[#D37129]/40 rounded-[20px] hover:scale-105 hover:border-[#D37129] transition-all shadow-md">
+                <img src="{% static 'img/facebook_logo.png' %}" alt="Facebook" class="w-12 h-12 object-contain">
+            </button>
+            <button class="w-24 h-16 flex items-center justify-center bg-white border-2 border-[#D37129]/40 rounded-[20px] hover:scale-105 hover:border-[#D37129] transition-all shadow-md">
+                <img src="{% static 'img/apple_logo.png' %}" alt="Apple" class="w-12 h-12 object-contain">
+            </button>
+            <button class="w-24 h-16 flex items-center justify-center bg-white border-2 border-[#D37129]/40 rounded-[20px] hover:scale-105 hover:border-[#D37129] transition-all shadow-md">
+                <img src="{% static 'img/google_logo.png' %}" alt="Google" class="w-12 h-12 object-contain">
+            </button>
+        </div>
+
+    </div>
+    
+    <div class="flex-grow"></div>
+
 </div>
 {% endblock %}

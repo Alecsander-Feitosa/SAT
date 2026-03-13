@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Painel Administrativo - SAT{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos baseados no teu PDF (Dark Mode) */
+    body {
+        background-color: #0f1015; /* Fundo escuro geral */
+        color: #ffffff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .admin-container {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    /* Sidebar (Menu Lateral) */
+    .sidebar {
+        width: 250px;
+        background-color: #1a1c23;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid #2d303e;
+    }
+
+    .sidebar-logo {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .sidebar-logo img {
+        max-width: 120px;
+    }
+
+    .menu-item {
+        padding: 15px;
+        margin-bottom: 10px;
+        background-color: #242731;
+        border-radius: 12px;
+        color: #a0a4b8;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .menu-item:hover, .menu-item.active {
+        background-color: #5c6bc0; /* Cor azul/roxa de destaque do teu PDF */
+        color: white;
+    }
+
+    /* Área de Conteúdo Central */
+    .main-content {
+        flex: 1;
+        padding: 40px;
+    }
+
+    .header-dashboard {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+    }
+
+    /* Cards de Ações Rápidas */
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .action-card {
+        background-color: #1a1c23;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        border: 1px solid #2d303e;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .action-card:hover {
+        transform: translateY(-5px);
+        border-color: #5c6bc0;
+    }
+</style>
+
+<div class="admin-container">
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <img src="{% static 'img/logo_sat.png' %}" alt="Logo SAT">
+        </div>
+        
+        <a href="#" class="menu-item active">
+            <i class="fas fa-home" style="margin-right: 10px;"></i> Dashboard
+        </a>
+        <a href="{% url 'gerir_utilizadores' %}" style="text-decoration: none; color: inherit;">
+            <div class="action-card">
+                <i class="fas fa-user-shield" style="font-size: 2em; color: #ff9800; margin-bottom: 15px;"></i>
+                <h4>Gerir Utilizadores</h4>
+            </div>
+        </a>
+        <a href="#" class="menu-item">
+            <i class="fas fa-cog" style="margin-right: 10px;"></i> Definições
+        </a>
+    </nav>
+
+    <main class="main-content">
+        <div class="header-dashboard">
+            <div>
+                <h2>Painel Administrativo</h2>
+                <p style="color: #a0a4b8;">Bem-vindo à gestão global do sistema.</p>
+            </div>
+            <div class="admin-profile">
+                <span>{{ request.user.username }}</span>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom: 20px;">Ações Rápidas</h3>
+        
+        <div class="actions-grid">
+            <a href="{% url 'nova_torcida' %}"style="text-decoration: none; color: inherit;">
+                <div class="action-card">
+                    <i class="fas fa-plus-circle" style="font-size: 2em; color: #5c6bc0; margin-bottom: 15px;"></i>
+                    <h4>Nova Torcida</h4>
+                </div>
+            </a>
+            <a href="{% url 'gerenciar_torcidas' %}" style="text-decoration: none; color: inherit;">
+                <div class="action-card">
+                    <i class="fas fa-list" style="font-size: 2em; color: #4caf50; margin-bottom: 15px;"></i>
+                    <h4>Lista de Torcidas</h4>
+                </div>
+            </a>
+            <div class="action-card">
+                <i class="fas fa-user-check" style="font-size: 2em; color: #ff9800; margin-bottom: 15px;"></i>
+                <h4>Aprovar Cadastros</h4>
+            </div>
+            <div class="action-card">
+                <i class="fas fa-ban" style="font-size: 2em; color: #f44336; margin-bottom: 15px;"></i>
+                <h4>Blacklist / Banimentos</h4>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

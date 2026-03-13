@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gerir Utilizadores - SAT Admin{% endblock %}
+
+{% block content %}
+<style>
+    body { background-color: #0f1015; color: #ffffff; font-family: 'Segoe UI', sans-serif; }
+    .admin-container { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { width: 250px; background-color: #1a1c23; padding: 20px; border-right: 1px solid #2d303e; }
+    .sidebar-logo { text-align: center; margin-bottom: 30px; }
+    .sidebar-logo img { max-width: 120px; }
+    .menu-item { padding: 15px; margin-bottom: 10px; background-color: #242731; border-radius: 12px; color: #a0a4b8; text-decoration: none; display: flex; align-items: center; transition: all 0.3s; }
+    .menu-item:hover, .menu-item.active { background-color: #5c6bc0; color: white; }
+
+    /* Conteúdo Principal */
+    .main-content { flex: 1; padding: 40px; }
+    
+    .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .search-bar { background-color: #1a1c23; border: 1px solid #2d303e; padding: 12px 20px; border-radius: 8px; color: white; width: 300px; }
+    .search-bar:focus { outline: none; border-color: #5c6bc0; }
+
+    /* Lista de Utilizadores (Estilo Card) */
+    .user-list { display: flex; flex-direction: column; gap: 15px; }
+    .user-card { background-color: #1a1c23; border: 1px solid #2d303e; border-radius: 12px; padding: 15px 25px; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
+    .user-card:hover { border-color: #5c6bc0; }
+    
+    .user-info { display: flex; align-items: center; gap: 15px; width: 30%; }
+    .user-avatar { width: 45px; height: 45px; border-radius: 50%; background-color: #2d303e; object-fit: cover; }
+    
+    .user-details h4 { margin: 0; font-size: 16px; }
+    .user-details p { margin: 5px 0 0 0; font-size: 13px; color: #a0a4b8; }
+    
+    .user-torcida { width: 20%; color: #a0a4b8; font-size: 14px; }
+    .user-status { width: 15%; }
+    
+    .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .badge-ativo { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; }
+    .badge-inativo { background-color: rgba(244, 67, 54, 0.2); color: #f44336; }
+
+    /* Botões de Ação */
+    .action-btns { display: flex; gap: 10px; }
+    .btn-icon { background: none; border: none; color: #a0a4b8; cursor: pointer; font-size: 16px; padding: 8px; border-radius: 6px; transition: 0.2s; background-color: #242731; }
+    .btn-icon:hover { color: white; background-color: #5c6bc0; }
+    .btn-ban:hover { background-color: #f44336; }
+</style>
+
+<div class="admin-container">
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <img src="{% static 'img/logo_sat.png' %}" alt="Logo SAT">
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="menu-item"><i class="fas fa-home" style="margin-right: 10px;"></i> Dashboard</a>
+        <a href="{% url 'gerir_utilizadores' %}" class="menu-item active"><i class="fas fa-users" style="margin-right: 10px;"></i> Gerir Utilizadores</a>
+    </nav>
+
+    <main class="main-content">
+        <div class="header-actions">
+            <h2>Gerenciar Utilizadores</h2>
+            <input type="text" class="search-bar" placeholder="Pesquisar por nome ou CPF...">
+        </div>
+
+        <div class="user-list">
+            {% for perfil in perfis %}
+            <div class="user-card">
+                <div class="user-info">
+                    {% if perfil.foto %}
+                        <img src="{{ perfil.foto.url }}" alt="Avatar" class="user-avatar">
+                    {% else %}
+                        <div class="user-avatar" style="display:flex; align-items:center; justify-content:center;"><i class="fas fa-user"></i></div>
+                    {% endif %}
+                    <div class="user-details">
+                        <h4>{{ perfil.user.username }}</h4>
+                        <p>{{ perfil.cpf|default:"CPF não registado" }}</p>
+                    </div>
+                </div>
+
+                <div class="user-torcida">
+                    <i class="fas fa-shield-alt" style="margin-right: 5px;"></i>
+                    {{ perfil.torcida.nome|default:"Sem Torcida" }}
+                </div>
+
+                <div class="user-status">
+                    {% if perfil.aprovado %}
+                        <span class="badge badge-ativo">Aprovado</span>
+                    {% else %}
+                        <span class="badge badge-inativo">Pendente</span>
+                    {% endif %}
+                </div>
+
+                <div class="action-btns">
+                    <button class="btn-icon" title="Editar Utilizador"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon btn-ban" title="Suspender/Banir"><i class="fas fa-ban"></i></button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="user-card" style="justify-content: center; color: #a0a4b8;">
+                <p>Nenhum utilizador encontrado no sistema.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+{% endblock %}
