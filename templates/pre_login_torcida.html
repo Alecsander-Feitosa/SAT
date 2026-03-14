@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Oculta os menus para deixar o ecrã limpo como num App nativo */
+    nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
+    body, main { padding: 0 !important; margin: 0 !important; background-color: #000000; }
+    
+    /* Variável dinâmica baseada na cor da torcida */
+    :root {
+        --cor-torcida: {{ torcida.cor_primaria|default:"#D37129" }};
+    }
+</style>
+
+<div class="min-h-screen w-full flex flex-col bg-black relative overflow-hidden">
+    
+    <div class="absolute inset-0 z-0 opacity-40">
+        {% if torcida.logo %}
+            <img src="{{ torcida.logo.url }}" alt="Fundo" class="w-full h-full object-cover blur-sm">
+        {% endif %}
+        <div class="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-black"></div>
+    </div>
+
+    <div class="flex-1 w-full flex flex-col items-center justify-center pt-10 px-6 relative z-20">
+        
+        <img src="{% static 'img/logo_sat.png' %}" alt="SAT" class="h-8 mb-8 opacity-70">
+
+        <div class="w-40 h-40 mb-6 rounded-full flex items-center justify-center p-2" style="box-shadow: 0 0 30px var(--cor-torcida);">
+            {% if torcida.logo %}
+                <img src="{{ torcida.logo.url }}" alt="{{ torcida.nome }}" class="w-full h-full object-contain drop-shadow-2xl">
+            {% else %}
+                <div class="text-4xl text-white font-bold">{{ torcida.nome|slice:":2" }}</div>
+            {% endif %}
+        </div>
+        
+        <h1 class="text-3xl font-black italic tracking-tighter text-white text-center mb-10 uppercase drop-shadow-md" style="font-family: 'Montserrat', sans-serif;">
+            {{ torcida.nome }}
+        </h1>
+
+        <div class="w-full max-w-sm flex flex-col gap-5 mt-4">
+            
+            <a href="{% url 'login' %}" class="w-full text-white font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all shadow-lg" style="background-color: var(--cor-torcida);">
+                Fazer Login
+            </a>
+
+            <a href="{% url 'cadastro' %}" class="w-full text-white font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all border-2" style="border-color: var(--cor-torcida);">
+                Cadastre-se
+            </a>
+
+            <a href="{% url 'pre_login' %}" class="mt-6 text-gray-500 text-xs font-bold text-center uppercase tracking-wider underline">
+                Voltar ao Menu SAT
+            </a>
+            
+        </div> 
+    </div>
+</div>
+{% endblock %}

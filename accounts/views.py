@@ -26,6 +26,36 @@ from organizadas.models import Post as PostTorcida
 from organizadas.models import Torcida, Evento, Post as PostTorcida, Curtida
 from .models import Evento
 from organizadas.models import Post, Caravana # Certifique-se de importar os modelos
+from django import forms
+# Importe os modelos corretos das suas apps
+from .models import Perfil 
+from gamification.models import PerfilGamificacao
+from organizadas.models import Evento, Torcida, Post, Noticia # Verifique se é Post ou PostTorcida
+from django.contrib.auth.models import User
+
+
+
+
+# 1. Ecrã para escolher a torcida ANTES de logar
+def escolher_torcida_publico(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    torcidas = Torcida.objects.all()
+    return render(request, 'escolher_torcida_publico.html', {'torcidas': torcidas})
+
+# 2. O Ecrã do PDF (Login/Registo personalizado da Torcida)
+def entrada_torcida(request, torcida_id):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
+    torcida = get_object_or_404(Torcida, id=torcida_id)
+    
+    # Guardamos a torcida na sessão para sabermos qual ele escolheu 
+    # quando ele for redirecionado para o registo ou login real
+    request.session['torcida_pre_selecionada'] = torcida.id
+    
+    return render(request, 'pre_login_torcida.html', {'torcida': torcida})
+
 
 @login_required
 def mural_social(request):
@@ -57,45 +87,139 @@ def viagens_view(request):
     return render(request, 'viagens.html', {'caravanas': caravanas})
 
 
+# accounts/views.py
 def cadastro(request):
+    # Identifica se o utilizador veio de uma torcida específica (Sessão)
+    torcida_id = request.session.get('torcida_pre_selecionada')
+    torcida = Torcida.objects.filter(id=torcida_id).first() if torcida_id else None
+
     if request.method == 'POST':
         form = CadastroForm(request.POST)
         if form.is_valid():
+            # Verifica se as senhas batem manualmente para garantir
+            if request.POST.get('senha') != request.POST.get('confirmar_senha'):
+                messages.error(request, "As senhas não coincidem.")
+                return render(request, 'cadastro.html', {'form': form, 'torcida': torcida})
+
             user = form.save()
-            login(request, user) # Loga automaticamente após cadastrar
-            # MUDAMOS AQUI: Agora ele vai para a Etapa 2!
-            return redirect('cadastro_etapa2') 
+            
+            # Se veio pelo fluxo da Torcida, vincula automaticamente
+            if torcida:
+                perfil = user.perfil
+                perfil.torcida = torcida
+                perfil.aprovado = False
+                perfil.save()
+            
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            
+            if torcida:
+                return redirect('dashboard')
+            return redirect('cadastro_etapa2') # Fluxo Global vai para escolha
+        else:
+            # Mostra no console por que o formulário falhou
+            print(form.errors) 
     else:
         form = CadastroForm()
-    return render(request, 'cadastro.html', {'form': form})
-# accounts/views.py
+        
+    return render(request, 'cadastro.html', {'form': form, 'torcida': torcida})
+
+
+class CadastroForm(forms.ModelForm):
+    # Mudamos os nomes para bater com o name="" do seu HTML
+    senha = forms.CharField(widget=forms.PasswordInput())
+    confirmar_senha = forms.CharField(widget=forms.PasswordInput())
+    cpf = forms.CharField(max_length=14)
+    telefone = forms.CharField(max_length=20) # Antes era 'whatsapp'
+    nome = forms.CharField(max_length=150)   # Antes era 'first_name'
+
+    class Meta:
+        model = User
+        fields = ('email',)
+
+    # ADICIONE ESTE MÉTODO PARA VALIDAR O EMAIL
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(username=email).exists():
+            raise forms.ValidationError("Este e-mail já está cadastrado.")
+        return email
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.username = self.cleaned_data["email"] # Define o e-mail como username
+        user.first_name = self.cleaned_data["nome"]
+        user.set_password(self.cleaned_data["senha"])
+        
+        if commit:
+            user.save()
+            Perfil.objects.update_or_create(
+                user=user,
+                defaults={
+                    'cpf': self.cleaned_data.get('cpf'),
+                    'whatsapp': self.cleaned_data.get('telefone'),
+                }
+            )
+        return user
+
+def save(self, commit=True):
+    # Obtemos o e-mail que será usado como username
+    email_limpo = self.cleaned_data["email"]
+    
+    # Se commit for True, tentamos salvar o usuário
+    user = super().save(commit=False)
+    user.username = email_limpo
+    user.first_name = self.cleaned_data["nome"]
+    user.set_password(self.cleaned_data["senha"])
+    
+    if commit:
+        # Verificação preventiva para evitar o IntegrityError
+        from django.contrib.auth.models import User
+        if User.objects.filter(username=email_limpo).exists():
+             # Isso lançará um erro de validação em vez de quebrar o servidor
+             raise forms.ValidationError("Este e-mail já está em uso.")
+             
+        user.save()
+        Perfil.objects.update_or_create(
+            user=user,
+            defaults={
+                'cpf': self.cleaned_data.get('cpf'),
+                'whatsapp': self.cleaned_data.get('telefone'),
+            }
+        )
+    return user
+
+
 
 @login_required
 def cadastro_etapa2(request):
-    if request.method == 'POST':
-        # Quando o utilizador clica em "Concluir", apanhamos as opções dele:
-        time_escolhido = request.POST.get('time')
-        torcida_id = request.POST.get('torcida')
-        data_nasc = request.POST.get('data_nascimento')
-
-        perfil = request.user.perfil
-        
-        # Se ele escolheu uma torcida, associamos ao perfil dele
-        if torcida_id:
-            from organizadas.models import Torcida
-            torcida = Torcida.objects.filter(id=torcida_id).first()
-            if torcida:
-                perfil.torcida = torcida
-                perfil.aprovado = False # Fica pendente da aprovação da diretoria
-        
-        # Aqui pode guardar o "time_escolhido" e a "data_nasc" se tiver esses campos no models.py depois
-        perfil.save()
-        
-        # Depois de salvar a etapa 2, finalmente enviamos para o Dashboard!
+    perfil = request.user.perfil
+    
+    # Se o utilizador já tiver uma torcida associada, não precisa de estar aqui
+    if perfil.torcida:
         return redirect('dashboard')
 
-    # Se ele apenas abriu a página, mostramos o HTML que criámos
-    return render(request, 'cadastro_etapa2.html')
+    if request.method == 'POST':
+        torcida_id = request.POST.get('torcida_id')
+        
+        if torcida_id:
+            try:
+                torcida = Torcida.objects.get(id=torcida_id)
+                # Associa a claque ao utilizador
+                perfil.torcida = torcida
+                # Garante que ele entra como "Não Aprovado", aguardando a diretoria
+                perfil.aprovado = False 
+                perfil.save()
+                
+                messages.success(request, f"Registo concluído! A sua entrada na {torcida.nome} está a ser analisada.")
+                return redirect('dashboard')
+            except Torcida.DoesNotExist:
+                messages.error(request, "Torcida inválida. Tente novamente.")
+        else:
+            messages.error(request, "Por favor, selecione uma torcida para continuar.")
+
+    # Apanha todas as claques ativas na BD para enviar para o HTML
+    torcidas = Torcida.objects.all()
+    return render(request, 'cadastro_etapa2.html', {'torcidas': torcidas})
+
 
 
 
@@ -104,11 +228,12 @@ def dashboard(request):
     perfil = request.user.perfil
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
     
-    # 1. Busca Notícias da API focadas em Futebol (Você já tinha isso!)
+    # 1. Busca Notícias da API (Futebol Geral)
     noticias_api = cache.get('news_api_futebol')
     if not noticias_api:
         try:
-            from content.api import api_noticias # Garante o import
+            # Substitua pela sua chave real ou pela variável importada
+            from content.api import api_noticias 
             url = f'https://newsapi.org/v2/everything?q=futebol+brasileiro+brasileirao&language=pt&sortBy=publishedAt&pageSize=5&apiKey={api_noticias}'
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
@@ -117,18 +242,18 @@ def dashboard(request):
         except Exception:
             noticias_api = []
 
-    # 2. Lógica de Eventos Dinâmica
+    # 2. Lógica Dinâmica (Torcida vs Geral)
+    # Verificamos se o usuário tem torcida e se ela foi aprovada pela moderação
     if perfil.torcida and perfil.aprovado:
         eventos = Evento.objects.filter(torcida=perfil.torcida, data__gte=timezone.now()).order_by('data')[:3]
-        cor_tema = perfil.torcida.cor_primaria
         
-        # BUSCA REAL NO BANCO: Posts da Torcida e Notícias do Time
-        posts_sociais = PostTorcida.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')[:5]
-        noticias_time = Noticia.objects.all().order_by('-data_publicacao')[:2] # Notícias internas
+        # Filtra Posts e Notícias específicos da torcida do usuário
+        posts_sociais = Post.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')[:5]
+        noticias_time = Noticia.objects.filter(torcida=perfil.torcida).order_by('-data_publicacao')[:2]
     else:
+        # Se não tiver torcida, mostra eventos gerais e posts de todas as torcidas
         eventos = Evento.objects.filter(data__gte=timezone.now()).order_by('data')[:3]
-        cor_tema = "#CD7F32"
-        posts_sociais = PostTorcida.objects.all().order_by('-data_criacao')[:5]
+        posts_sociais = Post.objects.all().order_by('-data_criacao')[:5]
         noticias_time = Noticia.objects.all().order_by('-data_publicacao')[:2]
 
     context = {
@@ -137,8 +262,6 @@ def dashboard(request):
         'perfil_game': perfil_game,
         'xp_atual': perfil_game.xp_total or 0,
         'torcida': perfil.torcida,
-        'cor_tema': cor_tema,
-        # AS VARIÁVEIS NOVAS QUE VÃO PARA O HTML REAL:
         'noticias_api': noticias_api,
         'posts_sociais': posts_sociais,
         'noticias_time': noticias_time,
@@ -574,9 +697,16 @@ def lista_eventos(request):
     eventos = Evento.objects.all().order_by('data')
     return render(request, 'eventos.html', {'eventos': eventos})
 
-class MyCustomLoginView(LoginView):
-    template_name = 'registration/login.html'
-
+class CustomLoginView(LoginView):
+    template_name = 'login.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Apanha o ID da torcida que foi guardado na sessão
+        torcida_id = self.request.session.get('torcida_pre_selecionada')
+        if torcida_id:
+            context['torcida'] = Torcida.objects.filter(id=torcida_id).first()
+        return context
 
 @login_required
 def curtir_post(request, post_id):
@@ -693,5 +823,9 @@ def pre_login(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     
+    # Se ele voltar ao menu principal, "esquece" a torcida pre-selecionada
+    if 'torcida_pre_selecionada' in request.session:
+        del request.session['torcida_pre_selecionada']
+        
     return render(request, 'pre_login.html')
 

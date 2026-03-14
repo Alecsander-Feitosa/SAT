@@ -1,65 +1,165 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="p-4 max-w-lg mx-auto pb-24">
-    <div class="flex items-center gap-3 mb-6">
-        <div class="w-12 h-12 bg-tema rounded-2xl flex items-center justify-center text-white shadow-lg shadow-tema/30">
-            <i class="bi bi-chat-quote-fill text-2xl"></i>
-        </div>
-        <div>
-            <h2 class="text-2xl font-black italic uppercase">Mural Oficial</h2>
-            <p class="text-xs text-tema font-bold">Exclusivo: {{ nome_tema }}</p>
-        </div>
-    </div>
+<style>
+/* MOTOR DE CORES DINÂMICAS */
+:root {
+    --cor-primaria: {{ user.perfil.torcida.cor_primaria|default:'#D37129' }};
+    --cor-secundaria: {{ user.perfil.torcida.cor_secundaria|default:'#FFFFFF' }};
+    --cor-terciaria: {{ user.perfil.torcida.cor_terciaria|default:'#1A1A1A' }};
+    --cor-fundo: {{ user.perfil.torcida.cor_fundo|default:'#f9fafb' }};
+}
 
-    <div class="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 mb-6">
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <textarea name="texto" rows="2" class="w-full bg-gray-50 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-tema resize-none font-medium" placeholder="Qual o recado pra arquibancada, {{ user.first_name }}?"></textarea>
+/* Oculta menus antigos */
+nav, .sticky.top-0 { display: none !important; }
+
+body, main { 
+    padding: 0 !important; 
+    margin: 0 !important; 
+    background-color: var(--cor-fundo) !important; 
+}
+
+/* Classes Utilitárias */
+.fundo-app { background-color: var(--cor-fundo) !important; }
+.fundo-card { background-color: var(--cor-secundaria) !important; }
+.fundo-tema { background-color: var(--cor-primaria) !important; }
+.texto-main { color: var(--cor-terciaria) !important; }
+.texto-tema { color: var(--cor-primaria) !important; }
+.texto-claro { color: var(--cor-secundaria) !important; }
+.border-suave { border-color: rgba(150, 150, 150, 0.2) !important; }
+
+/* Input de postagem */
+.post-input {
+    background-color: var(--cor-fundo);
+    border: 1px solid rgba(150, 150, 150, 0.2);
+    border-radius: 20px;
+    padding: 12px 20px;
+    width: 100%;
+    color: var(--cor-terciaria);
+    resize: none;
+    font-size: 14px;
+}
+
+.pb-safe { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); }
+</style>
+
+<div class="min-h-screen w-full flex flex-col relative overflow-x-hidden fundo-app pb-32 transition-colors duration-500">
+
+    <div class="w-full fundo-card pt-6 shadow-sm relative z-20 border-b border-suave">
+        <div class="flex justify-between items-center px-4 mb-4 relative min-h-[40px]">
+            <button onclick="toggleSearch()" class="flex items-center gap-2 texto-main hover:opacity-70 transition-opacity relative z-10">
+                <i class="bi bi-search text-xl font-bold"></i>
+                <span class="font-bold text-sm">Buscar</span>
+            </button>
             
-            <div class="flex items-center justify-between mt-3">
-                <label class="flex items-center gap-2 text-gray-400 hover:text-tema cursor-pointer px-2 transition-colors">
-                    <i class="bi bi-camera-fill text-xl"></i>
-                    <span class="text-xs font-bold uppercase tracking-wider">Foto</span>
-                    <input type="file" name="imagem" class="hidden" accept="image/*">
-                </label>
-                <button type="submit" class="bg-tema text-white px-6 py-2 rounded-xl text-sm font-black uppercase tracking-wider shadow-md hover:opacity-90 transition-all active:scale-95">Publicar</button>
+            <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center h-full z-0">
+                {% if user.perfil.torcida.logo %}
+                    <img src="{{ user.perfil.torcida.logo.url }}" class="h-10 object-contain drop-shadow-md">
+                {% else %}
+                    <h1 class="font-black italic texto-tema text-2xl uppercase tracking-tighter">{{ user.perfil.torcida.sigla|default:"SAT" }}</h1>
+                {% endif %}
             </div>
-        </form>
+            
+            <button onclick="toggleSidebar()" class="texto-main hover:opacity-70 transition-opacity relative z-10">
+                <i class="bi bi-list text-3xl"></i>
+            </button>
+        </div>
+
+        <div class="flex justify-between items-center w-full px-4">
+            <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-bold text-sm transition-opacity whitespace-nowrap">Seu time</a>
+            <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] border-tema texto-tema font-black text-sm transition-opacity whitespace-nowrap">SAT social</a>
+            <a href="{% if user.perfil.torcida %}{% url 'hub_organizadas' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-bold text-sm transition-opacity whitespace-nowrap">
+                {% if user.perfil.torcida %} Torcida {% else %} Seja sócio {% endif %}
+            </a>
+        </div>
     </div>
 
-    <div class="space-y-4">
+    <div class="p-5">
+        <div class="fundo-card rounded-3xl p-5 shadow-sm border border-suave">
+            <div class="flex gap-3 mb-4">
+                <img src="{% if user.perfil.foto %}{{ user.perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}{% endif %}" class="w-10 h-10 rounded-full object-cover">
+                <form action="{% url 'mural' %}" method="POST" enctype="multipart/form-data" class="flex-1">
+                    {% csrf_token %}
+                    <textarea name="texto" rows="3" class="post-input mb-3" placeholder="O que está a acontecer na torcida?"></textarea>
+                    
+                    <div class="flex justify-between items-center">
+                        <label for="foto-post" class="flex items-center gap-2 texto-tema font-black text-xs cursor-pointer bg-gray-50 px-3 py-2 rounded-full border border-suave">
+                            <i class="bi bi-image text-lg"></i> Adicionar Foto
+                            <input type="file" name="imagem" id="foto-post" class="hidden" accept="image/*">
+                        </label>
+                        
+                        <button type="submit" class="fundo-tema texto-claro px-6 py-2 rounded-full font-black uppercase text-xs tracking-widest shadow-md active:scale-95 transition-all">
+                            Publicar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-5 space-y-6">
         {% for post in posts %}
-        <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <i class="bi bi-person-fill text-gray-400"></i>
-                </div>
-                <div>
-                    <h4 class="font-black text-sm">{{ post.autor.username }}</h4>
-                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ post.data_criacao|date:"d M, H:i" }}</span>
+        <div class="fundo-card rounded-3xl shadow-sm border border-suave overflow-hidden">
+            <div class="flex items-center gap-3 p-4">
+                <img src="{% if post.autor.perfil.foto %}{{ post.autor.perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ post.autor.username }}{% endif %}" class="w-11 h-11 rounded-full object-cover border-2 border-tema/20">
+                <div class="flex-1">
+                    <h4 class="texto-tema font-black text-sm leading-tight uppercase">{{ post.autor.username }}</h4>
+                    <p class="texto-main opacity-40 text-[10px] font-bold uppercase tracking-widest">{{ post.data_criacao|timesince }} atrás</p>
                 </div>
             </div>
-            
-            <p class="text-gray-700 text-sm leading-relaxed mb-4">{{ post.texto }}</p>
-            
+
+            <div class="px-5 pb-4 texto-main text-sm font-medium">
+                <p>{{ post.texto }}</p>
+            </div>
+
             {% if post.imagem %}
-                <img src="{{ post.imagem.url }}" class="w-full rounded-2xl mb-4 object-cover max-h-64">
+            <div class="w-full bg-gray-100 border-y border-suave">
+                <img src="{{ post.imagem.url }}" class="w-full h-auto max-h-[400px] object-cover">
+            </div>
             {% endif %}
-            
-            <div class="flex items-center border-t border-gray-50 pt-3">
-                <button class="flex items-center gap-2 text-gray-400 hover:text-tema transition-colors">
-                    <i class="bi bi-fire text-lg"></i>
+
+            <div class="p-4 bg-gray-50/50 flex items-center gap-6">
+                <a href="{% url 'curtir_post' post.id %}" class="flex items-center gap-2 texto-main opacity-60 hover:opacity-100 transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-suave">
+                    <i class="bi bi-heart-fill {% if user in post.curtidas.all %}text-red-500{% endif %}"></i>
                     <span class="text-xs font-black">{{ post.curtidas.count }}</span>
-                </button>
+                </a>
             </div>
         </div>
         {% empty %}
-        <div class="text-center py-10 opacity-50">
-            <i class="bi bi-chat-square-text text-4xl text-tema"></i>
-            <p class="mt-2 font-bold text-gray-500">Nenhum post no mural ainda.</p>
+        <div class="text-center py-20 opacity-30">
+            <i class="bi bi-chat-dots text-6xl mb-4 block"></i>
+            <p class="font-black uppercase tracking-widest">O mural está vazio</p>
         </div>
         {% endfor %}
     </div>
+
+</div>
+
+<div class="fixed bottom-0 left-0 w-full fundo-card shadow-[0_-15px_30px_rgba(0,0,0,0.08)] rounded-t-[30px] z-50 px-2 pt-2 pb-safe flex justify-between items-end border-t border-suave">
+    <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
+        <i class="bi bi-house-door-fill text-2xl"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Início</span>
+    </a>
+    <a href="{% url 'loja' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
+        <i class="bi bi-cart3 text-2xl font-bold"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Loja</span>
+    </a>
+    <a href="{% if user.perfil.torcida %}{% url 'hub_organizadas' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex flex-col items-center relative -top-7 w-[24%]">
+        <div class="w-16 h-16 fundo-card rounded-full p-1.5 shadow-sm flex items-center justify-center border border-suave">
+            <div class="w-full h-full fundo-tema rounded-full flex items-center justify-center texto-claro">
+                <i class="bi {% if user.perfil.torcida %}bi-shield-check{% else %}bi-gem{% endif %} text-2xl"></i>
+            </div>
+        </div>
+        <span class="text-[9px] font-black texto-tema uppercase tracking-wider mt-1">{% if user.perfil.torcida %} Torcida {% else %} Seja Sócio {% endif %}</span>
+    </a>
+    <a href="{% url 'bet_manutencao' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
+        <i class="bi bi-dice-5 text-2xl font-bold"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">BET</span>
+    </a>
+    <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
+        <i class="bi bi-person-fill text-2xl"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Perfil</span>
+    </a>
 </div>
 {% endblock %}

@@ -2,79 +2,138 @@
 {% load static %}
 
 {% block content %}
-<style>
-    nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
-    body, main { padding: 0 !important; margin: 0 !important; background-color: #ffffff !important; }
-</style>
 
-<div class="min-h-screen w-full bg-white flex flex-col px-6 py-8 relative overflow-hidden">
-    
-    <div class="absolute top-[-50px] right-[-50px] w-48 h-48 bg-[#D37129] opacity-20 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-[20%] left-[-50px] w-56 h-56 bg-[#D37129] opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+{% if torcida %}
+    <style>
+        nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
+        body, main { padding: 0 !important; margin: 0 !important; background-color: #000000 !important; min-height: 100vh; }
+        :root { --tema-cor: {{ torcida.cor_primaria|default:"#D37129" }}; }
+    </style>
 
-    <div class="w-full flex justify-between items-center mb-8 relative z-10">
-        <img src="{% static 'img/logo_sat.png' %}" alt="SAT Logo" class="h-12 object-contain">
-        
-        <a href="{% url 'pre_login' %}" class="w-10 h-10 flex items-center justify-center bg-[#D37129]/10 text-[#D37129] hover:bg-[#D37129] hover:text-white rounded-full transition-colors active:scale-95 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </a>
-    </div>
+    <div class="min-h-screen w-full flex flex-col relative overflow-hidden bg-black">
+        <div class="absolute inset-0 z-0 opacity-30 pointer-events-none">
+            {% if torcida.logo %}<img src="{{ torcida.logo.url }}" class="w-full h-full object-cover blur-md">{% endif %}
+            <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/90 to-black"></div>
+        </div>
 
-    <div class="flex-1 w-full flex flex-col items-center justify-center max-w-sm mx-auto relative z-10">
-        
-        <h2 class="text-3xl font-black text-[#D37129] uppercase tracking-widest mb-8 text-center w-full">Login</h2>
-        
-        <form method="post" action="{% url 'login' %}" class="w-full flex flex-col gap-4">
-            {% csrf_token %}
-            
-            <input type="text" name="username" placeholder="E-mail ou Usuário" class="w-full bg-white border-2 border-[#D37129] text-black text-sm font-medium rounded-xl focus:ring-4 focus:ring-[#D37129]/20 block p-4 outline-none transition-all" required>
-            
-            <input type="password" name="password" placeholder="Senha" class="w-full bg-white border-2 border-[#D37129] text-black text-sm font-medium rounded-xl focus:ring-4 focus:ring-[#D37129]/20 block p-4 outline-none transition-all" required>
-
-            <div class="flex items-center justify-between px-1 mt-1 mb-4">
-                <div class="flex items-center">
-                    <input id="remember" type="checkbox" class="w-4 h-4 text-[#D37129] bg-white border-2 border-[#D37129] rounded focus:ring-[#D37129]">
-                    <label for="remember" class="ml-2 text-[10px] font-bold text-[#D37129] uppercase tracking-wider">Lembre-me</label>
-                </div>
-                <a href="#" class="text-[10px] font-bold text-[#D37129] hover:underline uppercase tracking-wider transition-colors">Esqueceu a senha?</a>
+        <div class="flex-1 w-full flex flex-col items-center justify-center pt-8 pb-12 px-6 relative z-10">
+            <div class="flex flex-col items-center mb-8">
+                {% if torcida.logo %}
+                    <img src="{{ torcida.logo.url }}" class="w-28 h-28 object-contain drop-shadow-2xl mb-4 p-1 rounded-full border-2" style="border-color: var(--tema-cor); box-shadow: 0 0 20px var(--tema-cor);">
+                {% endif %}
+                <h2 class="text-3xl font-black italic text-white uppercase text-center drop-shadow-md" style="font-family: 'Montserrat', sans-serif;">LOGIN</h2>
+                <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">{{ torcida.nome }}</p>
             </div>
 
-            <button type="submit" class="w-full text-white bg-[#D37129] hover:bg-[#b85a1a] font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#D37129]/30">
-                Fazer login
-            </button>
-            
-            <p class="text-center text-[10px] font-bold text-black uppercase tracking-wider mt-2">
-                ou <a href="{% url 'cadastro' %}" class="text-black hover:underline ml-1">Cadastre-se</a>
-            </p>
-        </form>
+            <div class="w-full max-w-sm bg-[#05070a]/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-800 shadow-2xl">
+                <form method="post" action="{% url 'login' %}" class="flex flex-col gap-4">
+                    {% csrf_token %}
+                    
+                    <input type="text" name="username" placeholder="E-mail ou Usuário" class="w-full bg-[#0d1117] border-2 border-gray-800 text-white text-sm font-semibold rounded-xl focus:border-[var(--tema-cor)] focus:ring-4 focus:ring-[var(--tema-cor)]/20 p-4 outline-none transition-all placeholder-gray-500" required>
+                    
+                    <input type="password" name="password" placeholder="Senha" class="w-full bg-[#0d1117] border-2 border-gray-800 text-white text-sm font-semibold rounded-xl focus:border-[var(--tema-cor)] focus:ring-4 focus:ring-[var(--tema-cor)]/20 p-4 outline-none transition-all placeholder-gray-500" required>
 
-        <div class="w-full flex items-center justify-center mt-10 mb-6">
-            <div class="h-px bg-[#D37129]/30 flex-grow"></div>
-            <span class="px-4 text-[#D37129] font-black uppercase tracking-widest text-[10px]">ou</span>
-            <div class="h-px bg-[#D37129]/30 flex-grow"></div>
+                    <button type="submit" class="w-full text-black font-black rounded-xl text-sm px-5 py-4 mt-2 text-center uppercase tracking-widest transition-all shadow-lg hover:scale-105 active:scale-95" style="background-color: var(--tema-cor);">
+                        Entrar na Torcida
+                    </button>
+                </form>
+
+                <div class="w-full flex items-center justify-center mt-6 mb-4">
+                    <div class="h-px bg-gray-800 flex-grow"></div>
+                    <span class="px-4 text-gray-500 font-black uppercase tracking-widest text-[10px]">ou</span>
+                    <div class="h-px bg-gray-800 flex-grow"></div>
+                </div>
+
+                <div class="flex justify-between w-full gap-2">
+                    <a href="#" class="flex-1 h-14 flex items-center justify-center bg-[#0d1117] border border-gray-800 rounded-xl hover:scale-105 hover:border-[var(--tema-cor)] transition-all shadow-md">
+                        <img src="{% static 'img/facebook_logo.png' %}" alt="Facebook" class="w-7 h-7 object-contain">
+                    </a>
+                    <a href="#" class="flex-1 h-14 flex items-center justify-center bg-[#0d1117] border border-gray-800 rounded-xl hover:scale-105 hover:border-[var(--tema-cor)] transition-all shadow-md">
+                        <img src="{% static 'img/apple_logo.png' %}" alt="Apple" class="w-7 h-7 object-contain">
+                    </a>
+                    <a href="#" class="flex-1 h-14 flex items-center justify-center bg-[#0d1117] border border-gray-800 rounded-xl hover:scale-105 hover:border-[var(--tema-cor)] transition-all shadow-md">
+                        <img src="{% static 'img/google_logo.png' %}" alt="Google" class="w-7 h-7 object-contain">
+                    </a>
+                </div>
+
+                <div class="mt-8 flex flex-col gap-3 items-center">
+                    <a href="{% url 'cadastro' %}" class="text-sm font-bold text-white hover:text-gray-300 transition-colors">Não tem conta? <span style="color: var(--tema-cor);">Registre-se</span></a>
+                    <a href="{% url 'pre_login' %}" class="text-xs text-gray-500 uppercase tracking-widest underline mt-4 hover:text-white">Voltar ao Menu SAT</a>
+                </div>
+            </div>
         </div>
-
-        <a href="{% url 'login' %}" class="w-full text-black bg-white border-2 border-[#D37129] hover:bg-[#D37129] hover:text-black font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-md mb-6 block">
-            Entrar com a torcida 
-        </a>
-
-        <div class="flex justify-between w-full">
-            <button class="w-24 h-16 flex items-center justify-center bg-white border-2 border-[#D37129]/40 rounded-[20px] hover:scale-105 hover:border-[#D37129] transition-all shadow-md">
-                <img src="{% static 'img/facebook_logo.png' %}" alt="Facebook" class="w-12 h-12 object-contain">
-            </button>
-            <button class="w-24 h-16 flex items-center justify-center bg-white border-2 border-[#D37129]/40 rounded-[20px] hover:scale-105 hover:border-[#D37129] transition-all shadow-md">
-                <img src="{% static 'img/apple_logo.png' %}" alt="Apple" class="w-12 h-12 object-contain">
-            </button>
-            <button class="w-24 h-16 flex items-center justify-center bg-white border-2 border-[#D37129]/40 rounded-[20px] hover:scale-105 hover:border-[#D37129] transition-all shadow-md">
-                <img src="{% static 'img/google_logo.png' %}" alt="Google" class="w-12 h-12 object-contain">
-            </button>
-        </div>
-
     </div>
-    
-    <div class="flex-grow"></div>
 
-</div>
+{% else %}
+    <style>
+        nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
+        body, main { padding: 0 !important; margin: 0 !important; background-color: #ffffff !important; }
+    </style>
+
+    <div class="min-h-screen w-full bg-white flex flex-col px-6 py-8 relative overflow-hidden">
+        <div class="absolute top-[-50px] right-[-50px] w-48 h-48 bg-[#D37129] opacity-20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-[20%] left-[-50px] w-56 h-56 bg-[#D37129] opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="w-full flex justify-between items-center mb-8 relative z-10">
+            <img src="{% static 'img/logo_sat.png' %}" alt="SAT Logo" class="h-12 object-contain">
+            <a href="{% url 'pre_login' %}" class="w-10 h-10 flex items-center justify-center bg-[#D37129]/10 text-[#D37129] hover:bg-[#D37129] hover:text-white rounded-full transition-colors active:scale-95 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </a>
+        </div>
+
+        <div class="flex-1 w-full flex flex-col items-center justify-center max-w-sm mx-auto relative z-10">
+            <h2 class="text-3xl font-black text-[#D37129] uppercase tracking-widest mb-8 text-center w-full">Login</h2>
+            
+            <form method="post" action="{% url 'login' %}" class="w-full flex flex-col gap-4">
+                {% csrf_token %}
+                
+                <input type="text" name="username" placeholder="E-mail ou Usuário" class="w-full bg-white border-2 border-[#D37129] text-black text-sm font-medium rounded-xl focus:ring-4 focus:ring-[#D37129]/20 block p-4 outline-none transition-all" required>
+                
+                <input type="password" name="password" placeholder="Senha" class="w-full bg-white border-2 border-[#D37129] text-black text-sm font-medium rounded-xl focus:ring-4 focus:ring-[#D37129]/20 block p-4 outline-none transition-all" required>
+
+                <div class="flex items-center justify-between px-1 mt-1 mb-4">
+                    <div class="flex items-center">
+                        <input id="remember" type="checkbox" class="w-4 h-4 text-[#D37129] bg-white border-2 border-[#D37129] rounded focus:ring-[#D37129]">
+                        <label for="remember" class="ml-2 text-[10px] font-bold text-[#D37129] uppercase tracking-wider">Lembre-me</label>
+                    </div>
+                    <a href="#" class="text-[10px] font-bold text-[#D37129] hover:underline uppercase tracking-wider transition-colors">Esqueceu a senha?</a>
+                </div>
+
+                <button type="submit" class="w-full text-white bg-[#D37129] hover:bg-[#b85a1a] font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#D37129]/30">
+                    Fazer login
+                </button>
+                
+                <p class="text-center text-[10px] font-bold text-black uppercase tracking-wider mt-2">
+                    ou <a href="{% url 'cadastro' %}" class="text-black hover:underline ml-1">Cadastre-se</a>
+                </p>
+            </form>
+
+            <div class="w-full flex items-center justify-center mt-10 mb-6">
+                <div class="h-px bg-[#D37129]/30 flex-grow"></div>
+                <span class="px-4 text-[#D37129] font-black uppercase tracking-widest text-[10px]">ou</span>
+                <div class="h-px bg-[#D37129]/30 flex-grow"></div>
+            </div>
+
+            <a href="{% url 'escolher_torcida_publico' %}" class="w-full text-black bg-white border-2 border-[#D37129] hover:bg-[#D37129] hover:text-black font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-md mb-6 block">
+                Entrar com a torcida 
+            </a>
+
+            <div class="flex justify-between w-full">
+                <a href="#" class="w-24 h-16 flex items-center justify-center bg-white border-2 border-[#D37129]/40 rounded-[20px] hover:scale-105 hover:border-[#D37129] transition-all shadow-md">
+                    <img src="{% static 'img/facebook_logo.png' %}" alt="Facebook" class="w-12 h-12 object-contain">
+                </a>
+                <a href="#" class="w-24 h-16 flex items-center justify-center bg-white border-2 border-[#D37129]/40 rounded-[20px] hover:scale-105 hover:border-[#D37129] transition-all shadow-md">
+                    <img src="{% static 'img/apple_logo.png' %}" alt="Apple" class="w-12 h-12 object-contain">
+                </a>
+                <a href="#" class="w-24 h-16 flex items-center justify-center bg-white border-2 border-[#D37129]/40 rounded-[20px] hover:scale-105 hover:border-[#D37129] transition-all shadow-md">
+                    <img src="{% static 'img/google_logo.png' %}" alt="Google" class="w-12 h-12 object-contain">
+                </a>
+            </div>
+
+        </div>
+    </div>
+{% endif %}
+
 {% endblock %}

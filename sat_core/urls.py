@@ -15,6 +15,7 @@ urlpatterns = [
     
     path('ranking/', views.ranking_torcida, name='ranking'),
     path('eventos/', views.lista_eventos, name='lista_eventos'),
+    path('accounts/', include('allauth.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

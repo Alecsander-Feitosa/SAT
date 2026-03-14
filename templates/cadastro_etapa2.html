@@ -3,138 +3,86 @@
 
 {% block content %}
 <style>
-    /* Oculta os menus */
+    /* Mantemos o ecrã limpo como um fluxo de onboarding */
     nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
     body, main { padding: 0 !important; margin: 0 !important; background-color: #ffffff !important; }
-    
-    /* Estrutura base das caixas de texto e selects */
-    form input, form select {
-        width: 100%;
-        color: #1a1a1a;
-        background-color: #ffffff;
-        font-size: 0.875rem;
-        font-weight: 600;
-        border-radius: 1rem;
-        /* O padding-right cria o espaço para o ícone no lado direito */
-        padding: 1rem 3.25rem 1rem 1.25rem; 
-        outline: none;
-        transition: all 0.3s ease;
-        appearance: none; /* Remove a setinha padrão feia dos selects */
-    }
 
-    /* Esconde o ícone de calendário nativo do navegador para usarmos o nosso ícone limpo */
-    input[type="date"]::-webkit-calendar-picker-indicator {
-        opacity: 0;
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        top: 0;
-        left: 0;
+    /* Esconde o botão rádio (a bolinha padrão), vamos usar o cartão todo como botão */
+    .torcida-radio { display: none; }
+    
+    /* Estilo do cartão inativo */
+    .torcida-card {
+        border: 2px solid #e5e7eb;
+        background-color: #ffffff;
+        transition: all 0.3s ease;
         cursor: pointer;
     }
-
-    /* --- NOVA ANIMAÇÃO DOS ÍCONES --- 
-    */
     
-    /* Definição da animação de pulso */
-    @keyframes pulseIcon {
-        0%, 100% {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-        }
-        50% {
-            transform: translateY(3px) scale(1.05); /* Pequeno movimento para baixo e aumento */
-            opacity: 0.8;
-        }
-    }
-
-    /* Estilo base para os ícones */
-    .select-icon {
-        transition: all 0.3s ease;
-    }
-
-    /* Aplica a animação quando o contentor pai está em foco (focus-within) */
-    /* Isso faz o ícone animar quando o utilizador clica no campo */
-    .relative:focus-within .select-icon {
-        animation: pulseIcon 1.2s ease infinite;
+    /* Quando o botão rádio oculto estiver selecionado (checked), o cartão muda de cor! */
+    .torcida-radio:checked + .torcida-card {
+        border-color: #D37129;
+        background-color: #fffaf5; /* Laranja muito clarinho */
+        box-shadow: 0 4px 15px rgba(211, 113, 41, 0.2);
+        transform: scale(1.02);
     }
 </style>
 
-<div class="min-h-screen bg-white flex flex-col items-center px-6 py-8 relative overflow-hidden">
+<div class="min-h-screen bg-white flex flex-col items-center px-4 py-8 relative overflow-hidden">
     
-    <div class="absolute -top-24 -left-20 w-48 h-48 bg-[#D37129] opacity-10 rounded-full blur-3xl z-0"></div>
-    <div class="absolute bottom-20 -right-20 w-48 h-48 bg-[#D37129] opacity-5 rounded-full blur-3xl z-0"></div>
+    <div class="absolute -top-24 -left-20 w-48 h-48 bg-[#D37129] opacity-10 rounded-full blur-3xl z-0 pointer-events-none"></div>
+    <div class="absolute bottom-20 -right-20 w-48 h-48 bg-[#D37129] opacity-5 rounded-full blur-3xl z-0 pointer-events-none"></div>
 
-    <div class="w-full flex justify-between items-center mb-8 relative z-10">
-        <img src="{% static 'img/logo_sat.png' %}" alt="SAT Logo" class="h-12 object-contain">
-        
-        <a href="{% url 'cadastro' %}" class="w-10 h-10 flex items-center justify-center bg-[#D37129]/10 text-[#D37129] hover:bg-[#D37129] hover:text-white rounded-full transition-colors active:scale-95 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </a>
+    <div class="w-full flex justify-center mb-6 relative z-10">
+        <img src="{% static 'img/logo_sat.png' %}" alt="SAT Logo" class="h-10 object-contain">
     </div>
 
-    <div class="w-full max-w-sm relative z-10 flex-1 flex flex-col">
+    <div class="w-full max-w-md relative z-10 flex-1 flex flex-col">
         
-        <h2 class="text-2xl font-black text-[#D37129] text-center">Personalize</h2>
-        <p class="text-[10px] font-bold text-[#D37129] uppercase tracking-widest mb-8 mt-1 text-center">Conclua seu perfil</p>
+        <div class="mb-6 text-center">
+            <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tighter mb-1" style="font-family: 'Montserrat', sans-serif;">Etapa 2</h2>
+            <p class="text-[10px] font-bold text-[#D37129] uppercase tracking-widest">Escolha a sua Torcida</p>
+        </div>
 
-        <form method="post" action="" class="flex-1 flex flex-col">
+        <form method="post" action="{% url 'cadastro_etapa2' %}" class="flex-grow flex flex-col" id="form-etapa2">
             {% csrf_token %}
 
-            <div class="space-y-4">
-                <div class="relative">
-                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                        <i class="bi bi-chevron-down text-[#D37129] text-lg font-bold select-icon"></i>
+            <div class="grid grid-cols-2 gap-4 mb-8 overflow-y-auto pr-1" style="max-height: 55vh;">
+                {% for torcida in torcidas %}
+                    <label class="block relative h-full">
+                        <input type="radio" name="torcida_id" value="{{ torcida.id }}" class="torcida-radio" required>
+                        
+                        <div class="torcida-card rounded-2xl p-4 flex flex-col items-center justify-center text-center h-full">
+                            {% if torcida.logo %}
+                                <img src="{{ torcida.logo.url }}" alt="{{ torcida.nome }}" class="w-16 h-16 object-contain mb-3 drop-shadow-sm">
+                            {% else %}
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 text-gray-400 font-bold text-xl">
+                                    {{ torcida.nome|slice:":2" }}
+                                </div>
+                            {% endif %}
+                            <h3 class="text-xs font-black text-gray-800 uppercase tracking-wide leading-tight">{{ torcida.nome }}</h3>
+                        </div>
+                    </label>
+                {% empty %}
+                    <div class="col-span-2 text-center py-10">
+                        <p class="text-gray-400 font-bold text-sm">Nenhuma torcida disponível no momento.</p>
                     </div>
-                    <select name="time" class="bg-white border-2 border-[#D37129] focus:border-[#D37129] focus:ring-4 focus:ring-[#D37129]/20" required>
-                        <option value="" disabled selected>Escolha seu time...</option>
-                        <option value="flamengo">Flamengo</option>
-                        <option value="vasco">Vasco</option>
-                        <option value="palmeiras">Palmeiras</option>
-                        <option value="corinthians">Corinthians</option>
-                    </select>
-                </div>
-
-                <div class="relative mt-2">
-                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                        <i class="bi bi-chevron-down text-[#D37129] text-lg font-bold select-icon"></i>
-                    </div>
-                    <select name="torcida" class="bg-white border-2 border-[#D37129] focus:border-[#D37129] focus:ring-4 focus:ring-[#D37129]/20">
-                        <option value="" disabled selected>Escolha sua torcida (Opcional)</option>
-                        <option value="1">Raça Rubro-Negra</option>
-                        <option value="2">Força Jovem</option>
-                        <option value="3">Mancha Verde</option>
-                    </select>
-                    <p class="text-[8px] text-[#D37129] font-bold text-center mt-2 uppercase">A torcida precisará aprovar seu vínculo.</p>
-                </div>
-
-                <div class="relative mt-2">
-                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none z-10">
-                        <i class="bi bi-calendar3 text-[#D37129] text-lg select-icon"></i>
-                    </div>
-                    <input type="date" name="data_nascimento" class="relative bg-white border-2 border-[#D37129] focus:border-[#D37129] focus:ring-4 focus:ring-[#D37129]/20 z-0 text-gray-500" required>
-                </div>
+                {% endfor %}
             </div>
 
-            <div class="flex-grow min-h-[40px] mt-12"></div>
-
-            <div class="flex flex-col gap-4 pb-6">
+            <div class="mt-auto pb-4">
                 <button type="submit" class="w-full flex items-center justify-center gap-2 text-white bg-[#D37129] hover:bg-[#b85a1a] font-black rounded-full text-sm px-5 py-4 uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-[#D37129]/30">
+                    Concluir Registo
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
-                    Concluir
                 </button>
-
-                <a href="{% url 'cadastro' %}" class="w-full text-center text-[#D37129] hover:text-[#1A1A1A] font-black text-[10px] uppercase tracking-widest transition-colors py-2">
-                    Voltar para a etapa anterior
-                </a>
+                
+                <p class="text-center text-[9px] text-gray-400 uppercase tracking-widest mt-4 font-bold">
+                    Ao concluir, o seu pedido será enviado para a diretoria.
+                </p>
             </div>
-
         </form>
-
+        
     </div>
 </div>
 {% endblock %}

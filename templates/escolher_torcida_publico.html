@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Oculta os menus para manter a experiência de app nativa na entrada */
+    nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
+    body, main { padding: 0 !important; margin: 0 !important; background-color: #000000; }
+</style>
+
+<div class="min-h-screen w-full flex flex-col bg-black bg-gradient-to-b from-gray-900 to-black pt-12 px-4 relative overflow-hidden">
+    
+    <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-[#D37129]/20 to-transparent z-0"></div>
+
+    <div class="max-w-md mx-auto w-full relative z-10 flex flex-col h-full">
+        
+        <div class="flex items-center justify-between mb-8">
+            <a href="{% url 'pre_login' %}" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-all">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <img src="{% static 'img/logo_sat.png' %}" alt="SAT" class="h-6 opacity-80">
+            <div class="w-10"></div> </div>
+
+        <h2 class="text-3xl font-black text-white italic uppercase mb-2 drop-shadow-md" style="font-family: 'Montserrat', sans-serif;">
+            Escolha a sua Torcida
+        </h2>
+        <p class="text-gray-400 mb-8 text-sm">
+            Selecione a sua Torcida para entrar no ambiente exclusivo e personalizado.
+        </p>
+
+        <div class="grid gap-4 overflow-y-auto pb-10" style="max-height: 65vh;">
+            {% for t in torcidas %}
+                <a href="{% url 'entrada_torcida' t.id %}" class="sat-card flex items-center p-4 border-sat-dashed hover:border-[#D37129] transition-all bg-[#0d1117] group">
+                    
+                    <div class="w-14 h-14 rounded-full flex-shrink-0 flex items-center justify-center bg-gray-800 border-2 border-transparent group-hover:border-[#D37129] transition-all overflow-hidden p-1 mr-4">
+                        {% if t.logo %}
+                            <img src="{{ t.logo.url }}" alt="{{ t.nome }}" class="w-full h-full object-contain">
+                        {% else %}
+                            <span class="text-white font-bold text-lg">{{ t.nome|slice:":2" }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-grow">
+                        <h3 class="text-white font-bold text-lg uppercase group-hover:text-[#D37129] transition-colors" style="font-family: 'Montserrat', sans-serif;">
+                            {{ t.nome }}
+                        </h3>
+                    </div>
+
+                    <div class="text-gray-600 group-hover:text-[#D37129] transition-colors">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </a>
+            {% empty %}
+                <div class="text-center py-10">
+                    <i class="fas fa-shield-alt text-4xl text-gray-700 mb-3"></i>
+                    <p class="text-gray-500">Nenhuma torcida registada no sistema.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

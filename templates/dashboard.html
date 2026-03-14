@@ -3,186 +3,252 @@
 
 {% block content %}
 <style>
-    /* Oculta menus antigos do base.html se existirem */
-    nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
+    :root {
+        /* Puxa as cores EXATAS da Base de Dados da Torcida */
+        --cor-primaria: {{ torcida.cor_primaria|default:'#D37129' }};
+        --cor-secundaria: {{ torcida.cor_secundaria|default:'#FFFFFF' }};
+        --cor-terciaria: {{ torcida.cor_terciaria|default:'#000000' }};
+        --cor-fundo: {{ torcida.cor_fundo|default:'#121212' }};
+        
+        /* Lógica inteligente: Se o fundo for muito claro, o texto do fundo fica escuro. Senão, fica claro. */
+        {% if torcida.cor_fundo|lower == '#ffffff' or torcida.cor_fundo|lower == '#f9fafb' or not torcida.cor_fundo %}
+            --cor-texto-fundo: var(--cor-terciaria);
+        {% else %}
+            --cor-texto-fundo: var(--cor-secundaria);
+        {% endif %}
+    }
     
-    /* Fundo base da tela */
-    body, main { padding: 0 !important; margin: 0 !important; background-color: #f9fafb !important; }
+    /* Oculta menus antigos do base.html */
+    nav, .sticky.top-0 { display: none !important; }
+    
+    /* O fundo real do ecrã agora respeita a cor_fundo da Torcida */
+    body, main { 
+        padding: 0 !important; 
+        margin: 0 !important; 
+        background-color: var(--cor-fundo) !important; 
+    }
 
-    /* Esconde a barra de rolagem do carrossel mas mantém o scroll */
+    /* Classes Utilitárias do Novo Tema Dinâmico */
+    .fundo-app { background-color: var(--cor-fundo) !important; }
+    .fundo-card { background-color: var(--cor-secundaria) !important; }
+    .fundo-tema { background-color: var(--cor-primaria) !important; }
+    
+    .texto-main { color: var(--cor-terciaria) !important; }
+    .texto-tema { color: var(--cor-primaria) !important; }
+    .texto-claro { color: var(--cor-secundaria) !important; }
+    .texto-fundo { color: var(--cor-texto-fundo) !important; }
+    
+    /* Bordas suaves que se adaptam a temas claros ou escuros */
+    .border-suave { border-color: rgba(150, 150, 150, 0.2) !important; }
+    .border-tema { border-color: var(--cor-primaria) !important; }
+
+    /* Oculta scrollbars nativas mas permite scroll */
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-    /* Proteção para a barra inferior do iPhone (Home Indicator) */
     .pb-safe { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); }
 </style>
 
-<div class="min-h-screen w-full flex flex-col relative overflow-x-hidden bg-[#f9fafb] pb-32">
+<div class="min-h-screen w-full flex flex-col relative overflow-x-hidden fundo-app pb-32 transition-colors duration-500">
 
-    <div class="w-full bg-white pt-6 shadow-sm relative z-20">
-        <div class="flex justify-between items-center px-4 mb-4">
-            <div class="flex items-center gap-5">
-                <button class="text-gray-800 hover:text-[#D37129] transition-colors">
-                    <i class="bi bi-list text-3xl"></i>
-                </button>
-                <button class="text-gray-800 hover:text-[#D37129] transition-colors">
-                    <i class="bi bi-search text-xl"></i>
-                </button>
+    <div class="w-full fundo-card pt-6 shadow-sm relative z-20 border-b border-suave">
+        
+        <div class="flex justify-between items-center px-4 mb-4 relative min-h-[40px]">
+            
+            <button onclick="toggleSearch()" class="flex items-center gap-2 texto-main hover:opacity-70 transition-opacity relative z-10">
+                <i class="bi bi-search text-xl font-bold"></i>
+                <span class="font-bold text-sm">Buscar</span>
+            </button>
+            
+            <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center h-full z-0">
+                {% if torcida.logo %}
+                    <img src="{{ torcida.logo.url }}" alt="{{ torcida.nome }}" class="h-16 object-contain drop-shadow-md transform scale-110">
+                {% else %}
+                    <h1 class="font-black italic texto-tema text-2xl uppercase tracking-tighter">{{ torcida.sigla|default:"TIME" }}</h1>
+                {% endif %}
             </div>
-            <div class="flex-1 flex justify-center">
-                <img src="{% static 'img/logo_sat.png' %}" alt="SAT Logo" class="h-10 object-contain">
-            </div>
-            <div class="flex items-center">
-                <button class="text-gray-800 hover:text-[#D37129] transition-colors">
-                    <i class="bi bi-three-dots-vertical text-xl"></i>
-                </button>
-            </div>
+            
+            <button onclick="toggleSidebar()" class="texto-main hover:opacity-70 transition-opacity relative z-10">
+                <i class="bi bi-list text-3xl"></i>
+            </button>
+            
         </div>
+
+        <div id="searchBar" class="hidden px-4 pb-4 w-full transition-all duration-300">
+            <form action="#" method="GET" class="relative">
+                <input type="text" name="q" placeholder="Pesquisar..." 
+                       class="w-full fundo-app border border-suave text-sm rounded-xl py-3 pl-4 pr-10 texto-main font-medium focus:outline-none shadow-inner transition-all">
+                <button type="submit" class="absolute right-3 top-3 texto-tema opacity-50 hover:opacity-100 transition-opacity">
+                    <i class="bi bi-search text-lg font-bold"></i>
+                </button>
+            </form>
+        </div>
+        
         <div class="flex justify-between items-center w-full px-4">
-            <a href="#" class="flex-1 text-center pb-2 border-b-[3px] border-[#D37129] text-[#D37129] font-bold text-sm">Seu time</a>
-            <a href="#" class="flex-1 text-center pb-2 border-b-[3px] border-transparent text-gray-500 font-medium text-sm hover:text-[#D37129]">SAT social</a>
-            <a href="{% if user.perfil.torcida %}{% url 'mural' %}{% else %}{% url 'seja_socio' %}{% endif %}" 
-                class="flex-1 text-center pb-2 border-b-[3px] border-transparent text-gray-500 font-medium text-sm">
-                {% if user.perfil.torcida %} Minha Torcida {% else %} Seja sócio {% endif %}
+            <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] border-tema texto-tema font-bold text-sm whitespace-nowrap">Seu time</a>
+            <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-medium text-sm transition-opacity whitespace-nowrap">SAT social</a>
+            
+            <a href="{% if user.perfil.torcida %}{% url 'hub' %}{% else %}{% url 'seja_socio' %}{% endif %}" 
+                class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-bold text-sm transition-opacity whitespace-nowrap">
+                {% if user.perfil.torcida %} Torcida {% else %} Seja sócio {% endif %}
             </a>
         </div>
     </div>
 
     <div id="feed-loop-container">
         
-        <div class="w-full pt-6 pb-6" style="background-color: {{ torcida.cor_primaria|default:'#B30000' }};">
+        <div class="w-full pt-6 pb-6 fundo-tema transition-colors duration-500 shadow-inner">
             <div class="flex items-center gap-3 px-4 mb-5">
-                <div class="w-1 h-5 bg-white rounded-full"></div>
-                <h2 class="text-white font-black text-xl tracking-wide">{{ torcida.nome|default:"Meu Time" }}</h2>
-                {% if torcida.escudo %}
-                    <img src="{{ torcida.escudo.url }}" class="h-6 opacity-90">
-                {% endif %}
+                <div class="w-1.5 h-6 bg-white/50 rounded-full"></div>
+                <h2 class="texto-claro font-black text-2xl tracking-tight uppercase">{{ torcida.nome|default:"Meu Time" }}</h2>
             </div>
             
             <div class="flex overflow-x-auto gap-4 px-4 pb-2 snap-x snap-mandatory hide-scrollbar">
                 {% for noticia in noticias_api %}
-                <a href="{{ noticia.url }}" target="_blank" class="min-w-[80%] sm:min-w-[280px] flex flex-col snap-center group">
-                    <div class="w-full h-40 rounded-xl overflow-hidden mb-3 shadow-md">
-                        <img src="{{ noticia.urlToImage|default:'https://placehold.co/600x400?text=SAT+News' }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <a href="{{ noticia.url }}" target="_blank" class="min-w-[85%] sm:min-w-[280px] flex flex-col snap-center group">
+                    <div class="w-full h-44 rounded-2xl overflow-hidden mb-3 shadow-lg border border-white/10 relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
+                        <img src="{{ noticia.urlToImage|default:'https://placehold.co/600x400?text=News' }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute bottom-3 left-3 right-3 z-20">
+                            <h3 class="text-white font-black text-sm leading-snug drop-shadow-md">{{ noticia.title }}</h3>
+                        </div>
                     </div>
-                    <h3 class="text-white font-bold text-sm leading-snug">{{ noticia.title }}</h3>
                 </a>
                 {% empty %}
-                    <p class="text-white/70 text-sm px-4">Nenhuma notícia disponível no momento.</p>
+                    <div class="w-full bg-black/20 rounded-xl p-4 border border-white/10">
+                        <p class="text-white/80 font-medium text-sm">Nenhuma notícia carregada no momento. Volta mais tarde!</p>
+                    </div>
                 {% endfor %}
             </div>
         </div>
 
-        <div class="w-full bg-[#f9fafb] px-4 py-6">
+        {% if proximos_eventos %}
+        <div class="w-full px-4 pt-8 pb-4 fundo-app">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-[#1A1A1A] font-black text-lg tracking-tight flex items-center gap-2">
-                    <i class="bi bi-people-fill text-[#D37129]"></i> SAT Social
+                <h2 class="texto-fundo font-black text-lg uppercase tracking-tight">Calendário de Batalhas</h2>
+            </div>
+            <div class="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
+                {% for evento in proximos_eventos %}
+                <a href="{% url 'lista_eventos' %}" class="min-w-[260px] fundo-card shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-suave p-4 flex flex-col snap-center group hover:border-tema transition-colors rounded-2xl">
+                    <div class="text-center mb-3 fundo-app rounded-lg py-1">
+                        <p class="text-[9px] texto-main opacity-60 font-bold uppercase tracking-widest">{{ evento.local|default:"Estádio" }}</p>
+                        <p class="text-[11px] texto-tema font-black uppercase mt-0.5">{{ evento.data|date:"d M - H:i" }}</p>
+                    </div>
+                    <div class="flex justify-between items-center px-2">
+                        <div class="flex flex-col items-center w-1/3">
+                            <div class="w-12 h-12 fundo-app border border-suave rounded-full flex items-center justify-center overflow-hidden mb-1 shadow-sm group-hover:scale-110 transition-transform">
+                                {% if torcida.logo %}<img src="{{ torcida.logo.url }}" class="w-full h-full object-cover p-1">{% else %}<i class="bi bi-shield-fill texto-tema text-2xl"></i>{% endif %}
+                            </div>
+                            <span class="text-[10px] font-black text-center texto-tema uppercase">{{ torcida.sigla|default:"CASA" }}</span>
+                        </div>
+                        
+                        <div class="w-1/3 flex justify-center">
+                            <span class="text-2xl font-black texto-main opacity-20 italic"> VS </span>
+                        </div>
+                        
+                        <div class="flex flex-col items-center w-1/3">
+                            <div class="w-12 h-12 fundo-app border border-suave rounded-full flex items-center justify-center overflow-hidden mb-1 shadow-sm">
+                                <i class="bi bi-shield-shaded texto-main opacity-40 text-2xl"></i>
+                            </div>
+                            <span class="text-[10px] font-bold text-center texto-main opacity-60 uppercase">Rival</span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="w-full fundo-card px-4 py-6 border-y border-suave shadow-sm relative overflow-hidden">
+            <div class="flex justify-between items-center mb-4 relative z-10">
+                <h2 class="texto-tema font-black text-sm uppercase tracking-tight flex items-center gap-2">
+                    <i class="bi bi-star-fill"></i> Parceiros Oficiais
                 </h2>
+                <a href="{% url 'seja_socio' %}" class="text-[9px] font-black fundo-app texto-tema px-3 py-1 rounded-full uppercase tracking-widest border border-suave">Ver todos</a>
             </div>
-            <div class="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="flex items-center gap-3 p-4">
-                    <div class="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?q=80&w=200&auto=format&fit=crop" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="text-[#1A1A1A] font-bold text-sm leading-tight">Raça Rubro-Negra</h4>
-                        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Oficial • Há 45 min</p>
-                    </div>
-                    <button class="text-gray-400 hover:text-[#D37129]"><i class="bi bi-three-dots"></i></button>
+            <div class="flex gap-4 overflow-x-auto hide-scrollbar pb-2 items-center relative z-10">
+                <div class="w-24 h-12 fundo-app border border-suave shadow-sm rounded-xl flex items-center justify-center shrink-0">
+                    <span class="font-black text-green-700 text-xs tracking-wider">Localiza</span>
                 </div>
-                <div class="px-4 pb-3 text-[#1A1A1A] text-sm">
-                    <p>Já estamos preparando a festa para o próximo domingo! Quem vem com a gente? 🔴⚫🔥</p>
+                <div class="w-24 h-12 fundo-app border border-suave shadow-sm rounded-xl flex items-center justify-center shrink-0">
+                    <span class="font-black texto-main text-lg italic tracking-tighter">NIKE</span>
                 </div>
-                <div class="w-full h-56 bg-gray-100">
-                    <img src="https://images.unsplash.com/photo-1518091043644-c1d44570a2c9?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover">
-                </div>
-                <div class="flex items-center gap-6 p-4 border-t border-gray-50">
-                    <button class="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors"><i class="bi bi-heart text-xl"></i><span class="text-xs font-bold">1.2k</span></button>
-                    <button class="flex items-center gap-2 text-gray-500 hover:text-[#D37129] transition-colors"><i class="bi bi-chat text-xl"></i><span class="text-xs font-bold">342</span></button>
+                <div class="w-24 h-12 fundo-app border border-suave shadow-sm rounded-xl flex items-center justify-center shrink-0">
+                    <span class="font-bold texto-main text-sm tracking-widest">UBER</span>
                 </div>
             </div>
         </div>
 
-        <div class="w-full px-4 pt-2 pb-6 bg-[#f9fafb]">
-            <a href="#" class="block w-full relative h-36 rounded-2xl overflow-hidden shadow-sm group">
-                <img src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=800&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-                <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent"></div>
-                <div class="absolute inset-0 p-5 flex flex-col justify-center">
-                    <p class="text-white/80 text-[8px] font-black uppercase tracking-widest mb-1">Apostas Esportivas Bet365</p>
-                    <h3 class="text-white font-black text-lg leading-tight w-3/4 mb-3 italic uppercase">Seja qual for o esporte, seja qual for o momento.</h3>
-                    <div>
-                        <span class="inline-block bg-[#FACC15] text-black text-[10px] font-black px-4 py-1.5 uppercase tracking-wider rounded-sm shadow-md">Registre-se</span>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="w-full bg-white px-4 py-8 border-y border-gray-100">
-            <div class="flex justify-between items-center mb-5">
-                <h2 class="text-[#1A1A1A] font-black text-lg tracking-tight">Giro Esportivo</h2>
-                <a href="#" class="text-[10px] font-bold text-[#D37129] uppercase tracking-widest hover:underline">Ver tudo</a>
-            </div>
-            <div class="flex flex-col gap-4">
-                <a href="#" class="flex gap-4 items-center group">
-                    <div class="w-24 h-20 rounded-xl overflow-hidden shrink-0 shadow-sm">
-                        <img src="https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                    </div>
-                    <div class="flex flex-col justify-center">
-                        <span class="text-[#D37129] font-black text-[8px] uppercase tracking-widest mb-1">Seleção</span>
-                        <h4 class="text-[#1A1A1A] font-bold text-sm leading-snug">Convocação oficial: confira os nomes para as próximas eliminatórias</h4>
-                    </div>
-                </a>
-                <div class="h-px w-full bg-gray-100"></div>
-                <a href="#" class="flex gap-4 items-center group">
-                    <div class="w-24 h-20 rounded-xl overflow-hidden shrink-0 shadow-sm">
-                        <img src="https://images.unsplash.com/photo-1551280857-2268b81308a0?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                    </div>
-                    <div class="flex flex-col justify-center">
-                        <span class="text-[#D37129] font-black text-[8px] uppercase tracking-widest mb-1">Mercado da Bola</span>
-                        <h4 class="text-[#1A1A1A] font-bold text-sm leading-snug">Janela de transferências fecha com recorde de contratações no Brasil</h4>
-                    </div>
+        <div class="w-full fundo-app px-4 py-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="texto-fundo font-black text-xl tracking-tight flex items-center gap-2 uppercase">
+                    <i class="bi bi-chat-quote-fill"></i> Mural {{ torcida.sigla|default:"da Torcida" }}
+                </h2>
+                <a href="{% url 'mural' %}" class="w-8 h-8 rounded-full fundo-card texto-tema flex items-center justify-center shadow-sm border border-suave">
+                    <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
-        </div>
-
-        <div class="w-full bg-[#f9fafb] px-4 py-8">
-            <div class="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="flex items-center gap-3 p-4">
-                    <div class="w-10 h-10 rounded-full bg-[#D37129]/20 flex items-center justify-center text-[#D37129] font-black">M</div>
-                    <div class="flex-1">
-                        <h4 class="text-[#1A1A1A] font-bold text-sm leading-tight">Matheus Torcedor</h4>
-                        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Há 2 horas</p>
+            
+            <div class="flex flex-col gap-6">
+                {% for post in posts_sociais %}
+                <div class="w-full fundo-card rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-suave overflow-hidden">
+                    <div class="flex items-center gap-3 p-4">
+                        <div class="w-12 h-12 rounded-full fundo-app border-2 border-tema overflow-hidden flex items-center justify-center font-black texto-tema text-lg uppercase shadow-inner">
+                            {% if post.autor.perfil.foto %}
+                                <img src="{{ post.autor.perfil.foto.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                                {{ post.autor.username|make_list|first }}
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="texto-tema font-black text-sm leading-tight uppercase">{{ post.autor.username }}</h4>
+                            <p class="texto-main opacity-50 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 mt-0.5">
+                                <i class="bi bi-clock"></i> {{ post.data_criacao|timesince }} atrás
+                            </p>
+                        </div>
                     </div>
-                    <button class="text-gray-400 hover:text-[#D37129]"><i class="bi bi-three-dots"></i></button>
+                    
+                    <div class="px-5 pb-4 texto-main text-sm font-medium">
+                        <p>{{ post.texto }}</p>
+                    </div>
+                    
+                    {% if post.imagem %}
+                    <div class="w-full fundo-app border-y border-suave">
+                        <img src="{{ post.imagem.url }}" class="w-full h-auto max-h-80 object-cover">
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex items-center gap-6 p-4 fundo-app">
+                        <a href="{% url 'curtir_post' post.id %}" class="flex items-center gap-2 texto-main opacity-60 hover:opacity-100 transition-colors fundo-card px-4 py-1.5 rounded-full shadow-sm border border-suave">
+                            <i class="bi bi-heart-fill {% if post.curtidas.count > 0 %}text-red-500{% endif %}"></i>
+                            <span class="text-xs font-black {% if post.curtidas.count > 0 %}text-red-500{% endif %}">{{ post.curtidas.count }}</span>
+                        </a>
+                    </div>
                 </div>
-                <div class="px-4 pb-3 text-[#1A1A1A] text-sm">
-                    <p>Que clima absurdo no pré-jogo de hoje! A melhor arquibancada do Brasil, sem dúvidas. 🏟️👏</p>
-                </div>
-                <div class="w-full h-56 bg-gray-100">
-                    <img src="https://images.unsplash.com/photo-1614632537190-23e4146777db?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover">
-                </div>
-                <div class="flex items-center gap-6 p-4 border-t border-gray-50">
-                    <button class="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors"><i class="bi bi-heart text-xl"></i><span class="text-xs font-bold">54</span></button>
-                    <button class="flex items-center gap-2 text-gray-500 hover:text-[#D37129] transition-colors"><i class="bi bi-chat text-xl"></i><span class="text-xs font-bold">12</span></button>
-                </div>
+                {% empty %}
+                    <div class="text-center py-10 fundo-card rounded-3xl border border-dashed border-tema shadow-sm">
+                        <i class="bi bi-megaphone text-4xl texto-tema opacity-40 mb-3 block"></i>
+                        <p class="text-sm texto-main opacity-60 font-bold">O mural está silencioso.</p>
+                        <a href="{% url 'mural' %}" class="mt-3 inline-block fundo-tema texto-claro font-black text-xs px-6 py-2 rounded-full uppercase tracking-wide shadow-md">Faz o primeiro post!</a>
+                    </div>
+                {% endfor %}
             </div>
         </div>
 
-        <div class="w-full px-4 pt-2 pb-6 bg-[#f9fafb]">
-            <a href="#" class="block w-full relative h-36 rounded-2xl overflow-hidden shadow-md group border border-[#D37129]/20">
-                <div class="absolute inset-0 bg-gradient-to-br from-[#D37129] to-[#b85a1a]"></div>
-                <div class="absolute -right-10 -top-10 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                <div class="absolute inset-0 p-5 flex flex-col justify-center relative z-10">
-                    <div class="flex items-center gap-2 mb-1">
-                        <i class="bi bi-star-fill text-white text-[10px]"></i>
-                        <p class="text-white/90 text-[8px] font-black uppercase tracking-widest">Exclusivo SAT</p>
+        <div class="w-full px-4 pt-4 pb-10 fundo-app">
+            <a href="{% url 'seja_socio' %}" class="block w-full relative h-44 rounded-3xl overflow-hidden shadow-lg group border-2 border-tema bg-gradient-to-r from-[var(--cor-primaria)] to-black">
+                <div class="absolute inset-0 bg-black opacity-20 group-hover:opacity-0 transition-opacity"></div>
+                
+                <div class="absolute inset-0 p-6 flex flex-col justify-center relative z-10">
+                    <div class="flex items-center gap-2 mb-2 bg-black/30 self-start px-3 py-1 rounded-full border border-white/20">
+                        <i class="bi bi-gem text-white text-[10px]"></i>
+                        <p class="text-white font-black text-[8px] uppercase tracking-widest">Exclusivo {{ torcida.sigla|default:"Membros" }}</p>
                     </div>
-                    <h3 class="text-white font-black text-lg leading-tight w-4/5 mb-3 uppercase">
-                        Assine o plano Premium e concorra a mantos oficiais!
+                    <h3 class="text-white font-black text-xl leading-tight w-5/6 mb-4 uppercase drop-shadow-md">
+                        Faça parte da Elite e ganhe o manto oficial!
                     </h3>
                     <div>
-                        <span class="inline-block bg-white text-[#D37129] text-[10px] font-black px-4 py-1.5 uppercase tracking-wider rounded-sm shadow-md transition-transform group-hover:scale-105">
-                            Ver Vantagens
+                        <span class="inline-flex items-center gap-2 fundo-card texto-tema text-[10px] font-black px-5 py-2.5 uppercase tracking-wider rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.1)] transition-transform group-hover:scale-105">
+                            Quero ser Sócio <i class="bi bi-arrow-right text-lg leading-none"></i>
                         </span>
                     </div>
                 </div>
@@ -190,46 +256,56 @@
         </div>
 
     </div>
-    </div>
+</div>
 
-<div class="fixed bottom-0 left-0 w-full bg-white shadow-[0_-10px_25px_rgba(0,0,0,0.05)] rounded-t-3xl z-50 px-2 pt-2 pb-safe flex justify-between items-end border-t border-gray-100">
-    <a href="#" class="flex flex-col items-center gap-1 w-[18%] pb-2 text-[#D37129]">
-        <i class="bi bi-house-door-fill text-xl"></i>
-        <span class="text-[8px] font-black uppercase tracking-wider">Início</span>
+<div class="fixed bottom-0 left-0 w-full fundo-card shadow-[0_-15px_30px_rgba(0,0,0,0.08)] rounded-t-[30px] z-50 px-2 pt-2 pb-safe flex justify-between items-end border-t border-suave">
+    <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-tema">
+        <i class="bi bi-house-door-fill text-2xl drop-shadow-sm"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Início</span>
     </a>
-    <a href="{% url 'loja' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 text-gray-400 hover:text-[#D37129] transition-colors">
-        <i class="bi bi-cart3 text-xl font-bold"></i>
-        <span class="text-[8px] font-black uppercase tracking-wider">Loja</span>
+    <a href="{% url 'loja' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
+        <i class="bi bi-cart3 text-2xl font-bold"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Loja</span>
     </a>
-    <a href="{% url 'seja_socio' %}" class="flex flex-col items-center relative -top-6 w-[24%] group">
-        <div class="w-16 h-16 bg-white rounded-full p-1.5 shadow-[0_-4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center">
-            <div class="w-full h-full bg-[#D37129] rounded-full flex items-center justify-center text-white shadow-inner group-hover:scale-105 transition-transform duration-300">
-                <i class="bi bi-gem text-2xl"></i>
+    
+    <a href="{% if user.perfil.torcida %}{% url 'hub' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex flex-col items-center relative -top-7 w-[24%] group">
+        <div class="w-16 h-16 fundo-card rounded-full p-1.5 shadow-[0_-4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center border border-suave">
+            <div class="w-full h-full fundo-tema rounded-full flex items-center justify-center texto-claro shadow-inner group-hover:scale-105 transition-transform duration-300">
+                <i class="bi {% if user.perfil.torcida %}bi-shield-check{% else %}bi-gem{% endif %} text-2xl"></i>
             </div>
         </div>
-        <span class="text-[9px] font-black text-[#D37129] uppercase tracking-wider mt-1">Benefícios</span>
+        <span class="text-[9px] font-black texto-tema uppercase tracking-wider mt-1">
+            {% if user.perfil.torcida %} Torcida {% else %} Seja Sócio {% endif %}
+        </span>
     </a>
-    <a href="{% url 'bet_manutencao' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 text-gray-400 hover:text-[#D37129] transition-colors">
-        <i class="bi bi-dice-5 text-xl font-bold"></i>
-        <span class="text-[8px] font-black uppercase tracking-wider">BETs</span>
+    
+    <a href="{% url 'bet_manutencao' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
+        <i class="bi bi-dice-5 text-2xl font-bold"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">BET</span>
     </a>
-    <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 text-gray-400 hover:text-[#D37129] transition-colors">
-        <i class="bi bi-person text-xl font-bold"></i>
-        <span class="text-[8px] font-black uppercase tracking-wider">Perfil</span>
+    <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
+        <i class="bi bi-person text-2xl font-bold"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Perfil</span>
     </a>
 </div>
 
 <script>
+    function toggleSearch() {
+        const searchBar = document.getElementById('searchBar');
+        if (searchBar.classList.contains('hidden')) {
+            searchBar.classList.remove('hidden');
+            setTimeout(() => searchBar.querySelector('input').focus(), 100); 
+        } else {
+            searchBar.classList.add('hidden');
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const feedContainer = document.getElementById('feed-loop-container');
-        
-        // Guarda as 6 secções originais na memória
         const originalFeedHTML = feedContainer.innerHTML;
 
         window.addEventListener('scroll', function() {
-            // Se o scroll chegou a cerca de 300px do fundo da página
             if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 300) {
-                // Cola o conteúdo novamente no fundo
                 feedContainer.insertAdjacentHTML('beforeend', originalFeedHTML);
             }
         });

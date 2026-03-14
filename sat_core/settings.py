@@ -16,7 +16,6 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
-    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -24,6 +23,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    # 1. ESTE APP NATIVO É OBRIGATÓRIO PARA O ALLAUTH
+    'django.contrib.sites', 
+
+    # 2. AS APPS DO ALLAUTH QUE FALTAM
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    
+    # 3. OS SEUS PROVEDORES SOCIAIS
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.apple',
+    'allauth.socialaccount.providers.facebook',
+
     # --- Frameworks para API (Android/iOS) ---
     'rest_framework',   # Cria a API
     'corsheaders',      # Permite conexão externa (App/React)
@@ -37,6 +49,15 @@ INSTALLED_APPS = [
     'loja',
 ]
 
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend', # Autenticação do Allauth
+]
+
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -46,6 +67,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'sat_core.urls'
@@ -117,6 +139,11 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 
 LOGOUT_REDIRECT_URL = 'login'
+
+
+# Configurações opcionais do Allauth para capturar o email
+ACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_QUERY_EMAIL = True
 
 
 # --- CONFIGURAÇÕES DO PAINEL ADMIN (JAZZMIN) ---
