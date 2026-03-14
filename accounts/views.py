@@ -32,9 +32,9 @@ from .models import Perfil
 from gamification.models import PerfilGamificacao
 from organizadas.models import Evento, Torcida, Post, Noticia # Verifique se é Post ou PostTorcida
 from django.contrib.auth.models import User
-
-
-
+from organizadas.models import Parceiro
+from organizadas.models import Publicidade
+from django.db.models import Q
 
 # 1. Ecrã para escolher a torcida ANTES de logar
 def escolher_torcida_publico(request):
@@ -233,49 +233,55 @@ def cadastro_etapa2(request):
     return render(request, 'cadastro_etapa2.html', context)
 
 
-
 @login_required
 def dashboard(request):
     perfil = request.user.perfil
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+    agora = timezone.now() 
     
-    # 1. Busca Notícias da API (Futebol Geral)
-    noticias_api = cache.get('news_api_futebol')
+    # 1. Cache da API de Futebol
+    noticias_api = cache.get('news_api_futebol_v4')
     if not noticias_api:
         try:
-            # Substitua pela sua chave real ou pela variável importada
-            from content.api import api_noticias 
-            url = f'https://newsapi.org/v2/everything?q=futebol+brasileiro+brasileirao&language=pt&sortBy=publishedAt&pageSize=5&apiKey={api_noticias}'
+            api_key = "pub_629d163494fb4b3c9f19c706166a65e9"
+            url = f'https://newsdata.io/api/1/news?apikey={api_key}&country=br&category=sports&language=pt&q=futebol'
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
-                noticias_api = response.json().get('articles', [])
-                cache.set('news_api_futebol', noticias_api, 900)
+                noticias_api = response.json().get('results', [])[:5]
+                cache.set('news_api_futebol_v4', noticias_api, 900)
         except Exception:
             noticias_api = []
 
-    # 2. Lógica Dinâmica (Torcida vs Geral)
-    # Verificamos se o usuário tem torcida e se ela foi aprovada pela moderação
-    if perfil.torcida and perfil.aprovado:
-        eventos = Evento.objects.filter(torcida=perfil.torcida, data__gte=timezone.now()).order_by('data')[:3]
-        
-        # Filtra Posts e Notícias específicos da torcida do usuário
-        posts_sociais = Post.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')[:5]
-        noticias_time = Noticia.objects.filter(torcida=perfil.torcida).order_by('-data_publicacao')[:2]
+    # BLOQUEIO ABSOLUTO: Se não estiver aprovado, torcida_ativa é NULA (None)
+    torcida_ativa = perfil.torcida if (perfil.torcida and perfil.aprovado) else None
+
+    # 2. Lógica Dinâmica baseada na Torcida Ativa
+    if torcida_ativa:
+        eventos = Evento.objects.filter(torcida=torcida_ativa, data__gte=agora).order_by('data')[:3]
+        posts_sociais = Post.objects.filter(torcida=torcida_ativa).order_by('-data_criacao')[:10]
+        parceiros = Parceiro.objects.filter(Q(torcida=torcida_ativa) | Q(torcida__isnull=True))
+        publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora).filter(Q(torcida=torcida_ativa) | Q(torcida__isnull=True))
     else:
-        # Se não tiver torcida, mostra eventos gerais e posts de todas as torcidas
-        eventos = Evento.objects.filter(data__gte=timezone.now()).order_by('data')[:3]
-        posts_sociais = Post.objects.all().order_by('-data_criacao')[:5]
-        noticias_time = Noticia.objects.all().order_by('-data_publicacao')[:2]
+        # Tudo fica no modo padrão/fábrica
+        eventos = Evento.objects.filter(data__gte=agora).order_by('data')[:3]
+        posts_sociais = Post.objects.all().order_by('-data_criacao')[:10]
+        parceiros = Parceiro.objects.filter(torcida__isnull=True)
+        publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora, torcida__isnull=True)
+
+    # Notícias oficiais da diretoria são sempre globais
+    noticias_time = Noticia.objects.all().order_by('-data_publicacao')[:3]
 
     context = {
         'proximos_eventos': eventos,
         'perfil': perfil,
         'perfil_game': perfil_game,
         'xp_atual': perfil_game.xp_total or 0,
-        'torcida': perfil.torcida,
+        'torcida': torcida_ativa, # A VARIÁVEL DE BLOQUEIO É ENVIADA AQUI
         'noticias_api': noticias_api,
         'posts_sociais': posts_sociais,
         'noticias_time': noticias_time,
+        'parceiros': parceiros,
+        'publicidades': publicidades,
     }
     
     return render(request, 'dashboard.html', context)

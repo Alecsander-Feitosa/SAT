@@ -4,13 +4,11 @@
 {% block content %}
 <style>
     :root {
-        /* Puxa as cores EXATAS da Base de Dados da Torcida */
         --cor-primaria: {{ torcida.cor_primaria|default:'#D37129' }};
         --cor-secundaria: {{ torcida.cor_secundaria|default:'#FFFFFF' }};
         --cor-terciaria: {{ torcida.cor_terciaria|default:'#000000' }};
         --cor-fundo: {{ torcida.cor_fundo|default:'#121212' }};
         
-        /* Lógica inteligente: Se o fundo for muito claro, o texto do fundo fica escuro. Senão, fica claro. */
         {% if torcida.cor_fundo|lower == '#ffffff' or torcida.cor_fundo|lower == '#f9fafb' or not torcida.cor_fundo %}
             --cor-texto-fundo: var(--cor-terciaria);
         {% else %}
@@ -18,17 +16,14 @@
         {% endif %}
     }
     
-    /* Oculta menus antigos do base.html */
     nav, .sticky.top-0 { display: none !important; }
     
-    /* O fundo real do ecrã agora respeita a cor_fundo da Torcida */
     body, main { 
         padding: 0 !important; 
         margin: 0 !important; 
         background-color: var(--cor-fundo) !important; 
     }
 
-    /* Classes Utilitárias do Novo Tema Dinâmico */
     .fundo-app { background-color: var(--cor-fundo) !important; }
     .fundo-card { background-color: var(--cor-secundaria) !important; }
     .fundo-tema { background-color: var(--cor-primaria) !important; }
@@ -38,11 +33,9 @@
     .texto-claro { color: var(--cor-secundaria) !important; }
     .texto-fundo { color: var(--cor-texto-fundo) !important; }
     
-    /* Bordas suaves que se adaptam a temas claros ou escuros */
     .border-suave { border-color: rgba(150, 150, 150, 0.2) !important; }
     .border-tema { border-color: var(--cor-primaria) !important; }
 
-    /* Oculta scrollbars nativas mas permite scroll */
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .pb-safe { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); }
@@ -50,7 +43,7 @@
 
 <div class="min-h-screen w-full flex flex-col relative overflow-x-hidden fundo-app pb-32 transition-colors duration-500">
 
-    <div class="w-full fundo-card pt-6 shadow-sm relative z-20 border-b border-suave">
+    <div class="fixed top-0 left-0 w-full fundo-card pt-6 shadow-md z-50 border-b border-suave transition-colors duration-500">
         
         <div class="flex justify-between items-center px-4 mb-4 relative min-h-[40px]">
             
@@ -87,44 +80,57 @@
             <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] border-tema texto-tema font-bold text-sm whitespace-nowrap">Seu time</a>
             <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-medium text-sm transition-opacity whitespace-nowrap">SAT social</a>
             
-            <a href="{% if user.perfil.torcida %}{% url 'hub' %}{% else %}{% url 'seja_socio' %}{% endif %}" 
+            <a href="{% if torcida %}{% url 'hub' %}{% else %}{% url 'seja_socio' %}{% endif %}" 
                 class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-bold text-sm transition-opacity whitespace-nowrap">
-                {% if user.perfil.torcida %} Torcida {% else %} Seja sócio {% endif %}
+                {% if torcida %} Torcida {% elif user.perfil.torcida and not user.perfil.aprovado %} Pendente {% else %} Seja sócio {% endif %}
             </a>
         </div>
     </div>
 
-    <div id="feed-loop-container">
+    <div id="feed-loop-container" class="pt-[140px]">
         
         <div class="w-full pt-6 pb-6 fundo-tema transition-colors duration-500 shadow-inner">
             <div class="flex items-center gap-3 px-4 mb-5">
                 <div class="w-1.5 h-6 bg-white/50 rounded-full"></div>
-                <h2 class="texto-claro font-black text-2xl tracking-tight uppercase">{{ torcida.nome|default:"Meu Time" }}</h2>
+                <h2 class="texto-claro font-black text-2xl tracking-tight uppercase">
+                    {% if user.perfil.torcida and user.perfil.aprovado %}
+                        {{ user.perfil.torcida.nome }}
+                    {% else %}
+                        Oficial SAT
+                    {% endif %}
+                </h2>
             </div>
             
             <div class="flex overflow-x-auto gap-4 px-4 pb-2 snap-x snap-mandatory hide-scrollbar">
-                {% for noticia in noticias_api %}
-                <a href="{{ noticia.url }}" target="_blank" class="min-w-[85%] sm:min-w-[280px] flex flex-col snap-center group">
+                {% for noticia in noticias_time %}
+                <a href="{% url 'noticias' %}" class="min-w-[85%] sm:min-w-[280px] flex flex-col snap-center group">
                     <div class="w-full h-44 rounded-2xl overflow-hidden mb-3 shadow-lg border border-white/10 relative">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
-                        <img src="{{ noticia.urlToImage|default:'https://placehold.co/600x400?text=News' }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                        <span class="absolute top-2 left-2 z-30 bg-red-600 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-lg">OFICIAL</span>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10"></div>
+                        {% if noticia.imagem %}
+                            <img src="{{ noticia.imagem.url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                        {% else %}
+                            <img src="https://placehold.co/600x400/121212/white?text=Notícia+SAT" class="w-full h-full object-cover">
+                        {% endif %}
                         <div class="absolute bottom-3 left-3 right-3 z-20">
-                            <h3 class="text-white font-black text-sm leading-snug drop-shadow-md">{{ noticia.title }}</h3>
+                            <h3 class="text-white font-black text-sm leading-snug drop-shadow-md">{{ noticia.titulo }}</h3>
                         </div>
                     </div>
                 </a>
                 {% empty %}
-                    <div class="w-full bg-black/20 rounded-xl p-4 border border-white/10">
-                        <p class="text-white/80 font-medium text-sm">Nenhuma notícia carregada no momento. Volta mais tarde!</p>
+                    <div class="w-full bg-black/20 rounded-xl p-4 border border-white/10 flex items-center justify-center">
+                        <p class="text-white/80 font-medium text-sm">Sem avisos da diretoria no momento.</p>
                     </div>
                 {% endfor %}
             </div>
         </div>
 
         {% if proximos_eventos %}
-        <div class="w-full px-4 pt-8 pb-4 fundo-app">
+        <div class="w-full px-4 pt-8 pb-2 fundo-app">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="texto-fundo font-black text-lg uppercase tracking-tight">Calendário de Batalhas</h2>
+                <h2 class="texto-fundo font-black text-lg uppercase tracking-tight flex items-center gap-2">
+                    <i class="bi bi-calendar-event-fill"></i> Agenda de Eventos
+                </h2>
             </div>
             <div class="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
                 {% for evento in proximos_eventos %}
@@ -136,19 +142,13 @@
                     <div class="flex justify-between items-center px-2">
                         <div class="flex flex-col items-center w-1/3">
                             <div class="w-12 h-12 fundo-app border border-suave rounded-full flex items-center justify-center overflow-hidden mb-1 shadow-sm group-hover:scale-110 transition-transform">
-                                {% if torcida.logo %}<img src="{{ torcida.logo.url }}" class="w-full h-full object-cover p-1">{% else %}<i class="bi bi-shield-fill texto-tema text-2xl"></i>{% endif %}
+                                {% if user.perfil.torcida.logo and user.perfil.aprovado %}<img src="{{ user.perfil.torcida.logo.url }}" class="w-full h-full object-cover p-1">{% else %}<i class="bi bi-shield-fill texto-tema text-2xl"></i>{% endif %}
                             </div>
-                            <span class="text-[10px] font-black text-center texto-tema uppercase">{{ torcida.sigla|default:"CASA" }}</span>
+                            <span class="text-[10px] font-black text-center texto-tema uppercase">{% if user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.sigla }}{% else %}CASA{% endif %}</span>
                         </div>
-                        
-                        <div class="w-1/3 flex justify-center">
-                            <span class="text-2xl font-black texto-main opacity-20 italic"> VS </span>
-                        </div>
-                        
+                        <div class="w-1/3 flex justify-center"><span class="text-2xl font-black texto-main opacity-20 italic"> VS </span></div>
                         <div class="flex flex-col items-center w-1/3">
-                            <div class="w-12 h-12 fundo-app border border-suave rounded-full flex items-center justify-center overflow-hidden mb-1 shadow-sm">
-                                <i class="bi bi-shield-shaded texto-main opacity-40 text-2xl"></i>
-                            </div>
+                            <div class="w-12 h-12 fundo-app border border-suave rounded-full flex items-center justify-center overflow-hidden mb-1 shadow-sm"><i class="bi bi-shield-shaded texto-main opacity-40 text-2xl"></i></div>
                             <span class="text-[10px] font-bold text-center texto-main opacity-60 uppercase">Rival</span>
                         </div>
                     </div>
@@ -158,30 +158,10 @@
         </div>
         {% endif %}
 
-        <div class="w-full fundo-card px-4 py-6 border-y border-suave shadow-sm relative overflow-hidden">
-            <div class="flex justify-between items-center mb-4 relative z-10">
-                <h2 class="texto-tema font-black text-sm uppercase tracking-tight flex items-center gap-2">
-                    <i class="bi bi-star-fill"></i> Parceiros Oficiais
-                </h2>
-                <a href="{% url 'seja_socio' %}" class="text-[9px] font-black fundo-app texto-tema px-3 py-1 rounded-full uppercase tracking-widest border border-suave">Ver todos</a>
-            </div>
-            <div class="flex gap-4 overflow-x-auto hide-scrollbar pb-2 items-center relative z-10">
-                <div class="w-24 h-12 fundo-app border border-suave shadow-sm rounded-xl flex items-center justify-center shrink-0">
-                    <span class="font-black text-green-700 text-xs tracking-wider">Localiza</span>
-                </div>
-                <div class="w-24 h-12 fundo-app border border-suave shadow-sm rounded-xl flex items-center justify-center shrink-0">
-                    <span class="font-black texto-main text-lg italic tracking-tighter">NIKE</span>
-                </div>
-                <div class="w-24 h-12 fundo-app border border-suave shadow-sm rounded-xl flex items-center justify-center shrink-0">
-                    <span class="font-bold texto-main text-sm tracking-widest">UBER</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="w-full fundo-app px-4 py-8">
+        <div class="w-full fundo-app px-4 pt-6 pb-2">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="texto-fundo font-black text-xl tracking-tight flex items-center gap-2 uppercase">
-                    <i class="bi bi-chat-quote-fill"></i> Mural {{ torcida.sigla|default:"da Torcida" }}
+                    <i class="bi bi-chat-quote-fill"></i> Mural Social
                 </h2>
                 <a href="{% url 'mural' %}" class="w-8 h-8 rounded-full fundo-card texto-tema flex items-center justify-center shadow-sm border border-suave">
                     <i class="bi bi-arrow-right"></i>
@@ -189,34 +169,19 @@
             </div>
             
             <div class="flex flex-col gap-6">
-                {% for post in posts_sociais %}
+                {% for post in posts_sociais|slice:":3" %}
                 <div class="w-full fundo-card rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-suave overflow-hidden">
                     <div class="flex items-center gap-3 p-4">
                         <div class="w-12 h-12 rounded-full fundo-app border-2 border-tema overflow-hidden flex items-center justify-center font-black texto-tema text-lg uppercase shadow-inner">
-                            {% if post.autor.perfil.foto %}
-                                <img src="{{ post.autor.perfil.foto.url }}" class="w-full h-full object-cover">
-                            {% else %}
-                                {{ post.autor.username|make_list|first }}
-                            {% endif %}
+                            {% if post.autor.perfil.foto %}<img src="{{ post.autor.perfil.foto.url }}" class="w-full h-full object-cover">{% else %}{{ post.autor.username|make_list|first }}{% endif %}
                         </div>
                         <div class="flex-1">
                             <h4 class="texto-tema font-black text-sm leading-tight uppercase">{{ post.autor.username }}</h4>
-                            <p class="texto-main opacity-50 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 mt-0.5">
-                                <i class="bi bi-clock"></i> {{ post.data_criacao|timesince }} atrás
-                            </p>
+                            <p class="texto-main opacity-50 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 mt-0.5"><i class="bi bi-clock"></i> {{ post.data_criacao|timesince }} atrás</p>
                         </div>
                     </div>
-                    
-                    <div class="px-5 pb-4 texto-main text-sm font-medium">
-                        <p>{{ post.texto }}</p>
-                    </div>
-                    
-                    {% if post.imagem %}
-                    <div class="w-full fundo-app border-y border-suave">
-                        <img src="{{ post.imagem.url }}" class="w-full h-auto max-h-80 object-cover">
-                    </div>
-                    {% endif %}
-                    
+                    <div class="px-5 pb-4 texto-main text-sm font-medium"><p>{{ post.texto }}</p></div>
+                    {% if post.imagem %}<div class="w-full fundo-app border-y border-suave"><img src="{{ post.imagem.url }}" class="w-full h-auto max-h-80 object-cover"></div>{% endif %}
                     <div class="flex items-center gap-6 p-4 fundo-app">
                         <a href="{% url 'curtir_post' post.id %}" class="flex items-center gap-2 texto-main opacity-60 hover:opacity-100 transition-colors fundo-card px-4 py-1.5 rounded-full shadow-sm border border-suave">
                             <i class="bi bi-heart-fill {% if post.curtidas.count > 0 %}text-red-500{% endif %}"></i>
@@ -225,30 +190,106 @@
                     </div>
                 </div>
                 {% empty %}
-                    <div class="text-center py-10 fundo-card rounded-3xl border border-dashed border-tema shadow-sm">
-                        <i class="bi bi-megaphone text-4xl texto-tema opacity-40 mb-3 block"></i>
+                    <div class="text-center py-8 fundo-card rounded-3xl border border-dashed border-tema shadow-sm">
+                        <i class="bi bi-megaphone text-3xl texto-tema opacity-40 mb-2 block"></i>
                         <p class="text-sm texto-main opacity-60 font-bold">O mural está silencioso.</p>
-                        <a href="{% url 'mural' %}" class="mt-3 inline-block fundo-tema texto-claro font-black text-xs px-6 py-2 rounded-full uppercase tracking-wide shadow-md">Faz o primeiro post!</a>
                     </div>
                 {% endfor %}
             </div>
         </div>
 
-        <div class="w-full px-4 pt-4 pb-10 fundo-app">
+        {% if publicidades %}
+        <div class="w-full px-4 pt-6 pb-2 fundo-app">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="texto-fundo font-black text-sm uppercase tracking-tight flex items-center gap-2 opacity-60">
+                    <i class="bi bi-badge-ad-fill"></i> Espaço Patrocinado
+                </h2>
+            </div>
+            <div class="relative w-full h-32 sm:h-48 rounded-2xl overflow-hidden shadow-lg border border-suave group" id="ad-carousel">
+                {% for pub in publicidades %}
+                <a href="{{ pub.link|default:'#' }}" target="_blank" class="absolute inset-0 transition-opacity duration-1000 ease-in-out ad-slide {% if not forloop.first %}opacity-0 pointer-events-none{% else %}opacity-100 z-10{% endif %}" data-duration="{{ pub.tempo_exibicao|default:5 }}">
+                    <img src="{{ pub.imagem.url }}" alt="{{ pub.titulo }}" class="w-full h-full object-cover">
+                    <span class="absolute top-2 right-2 bg-black/60 text-white/80 text-[8px] px-2 py-0.5 rounded uppercase tracking-widest backdrop-blur-sm">Publicidade</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="w-full fundo-card px-4 py-4 mt-2 border-y border-suave shadow-sm relative overflow-hidden">
+            <div class="flex justify-between items-center mb-3 relative z-10">
+                <h2 class="texto-tema font-black text-xs uppercase tracking-tight flex items-center gap-2"><i class="bi bi-star-fill"></i> Parceiros Oficiais</h2>
+            </div>
+            <div class="flex gap-4 overflow-x-auto hide-scrollbar pb-2 items-center relative z-10">
+                {% for parceiro in parceiros %}
+                <a href="{{ parceiro.link|default:'#' }}" target="_blank" class="w-20 h-10 fundo-app border border-suave shadow-sm rounded-xl flex items-center justify-center shrink-0 p-1 group hover:border-tema transition-colors">
+                    {% if parceiro.logo %}<img src="{{ parceiro.logo.url }}" alt="{{ parceiro.nome }}" class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300">{% else %}<span class="font-black texto-main opacity-70 text-[9px] text-center tracking-wider uppercase truncate px-1">{{ parceiro.nome }}</span>{% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="w-full pt-8 pb-4 fundo-app">
+            <div class="flex items-center gap-3 px-4 mb-4">
+                <i class="bi bi-globe-americas text-2xl texto-tema"></i>
+                <h2 class="texto-fundo font-black text-xl tracking-tight uppercase">Mundo da Bola</h2>
+            </div>
+            
+            <div class="flex overflow-x-auto gap-4 px-4 pb-2 snap-x snap-mandatory hide-scrollbar">
+                {% for noticia in noticias_api %}
+                <a href="{{ noticia.link }}" target="_blank" class="min-w-[85%] sm:min-w-[280px] flex flex-col snap-center group">
+                    <div class="w-full h-44 rounded-2xl overflow-hidden mb-3 shadow-lg border border-suave relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
+                        <img src="{{ noticia.image_url|default:'https://placehold.co/600x400/121212/white?text=Futebol' }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute bottom-3 left-3 right-3 z-20">
+                            <h3 class="text-white font-black text-sm leading-snug drop-shadow-md">{{ noticia.title }}</h3>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="w-full fundo-app px-4 pt-2 pb-6">
+            <div class="flex flex-col gap-6">
+                {% for post in posts_sociais|slice:"3:" %}
+                <div class="w-full fundo-card rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-suave overflow-hidden">
+                    <div class="flex items-center gap-3 p-4">
+                        <div class="w-12 h-12 rounded-full fundo-app border-2 border-tema overflow-hidden flex items-center justify-center font-black texto-tema text-lg uppercase shadow-inner">
+                            {% if post.autor.perfil.foto %}<img src="{{ post.autor.perfil.foto.url }}" class="w-full h-full object-cover">{% else %}{{ post.autor.username|make_list|first }}{% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="texto-tema font-black text-sm leading-tight uppercase">{{ post.autor.username }}</h4>
+                            <p class="texto-main opacity-50 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 mt-0.5"><i class="bi bi-clock"></i> {{ post.data_criacao|timesince }} atrás</p>
+                        </div>
+                    </div>
+                    <div class="px-5 pb-4 texto-main text-sm font-medium"><p>{{ post.texto }}</p></div>
+                    {% if post.imagem %}<div class="w-full fundo-app border-y border-suave"><img src="{{ post.imagem.url }}" class="w-full h-auto max-h-80 object-cover"></div>{% endif %}
+                    <div class="flex items-center gap-6 p-4 fundo-app">
+                        <a href="{% url 'curtir_post' post.id %}" class="flex items-center gap-2 texto-main opacity-60 hover:opacity-100 transition-colors fundo-card px-4 py-1.5 rounded-full shadow-sm border border-suave">
+                            <i class="bi bi-heart-fill {% if post.curtidas.count > 0 %}text-red-500{% endif %}"></i>
+                            <span class="text-xs font-black {% if post.curtidas.count > 0 %}text-red-500{% endif %}">{{ post.curtidas.count }}</span>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="w-full px-4 pt-2 pb-10 fundo-app">
             <a href="{% url 'seja_socio' %}" class="block w-full relative h-44 rounded-3xl overflow-hidden shadow-lg group border-2 border-tema bg-gradient-to-r from-[var(--cor-primaria)] to-black">
                 <div class="absolute inset-0 bg-black opacity-20 group-hover:opacity-0 transition-opacity"></div>
-                
                 <div class="absolute inset-0 p-6 flex flex-col justify-center relative z-10">
                     <div class="flex items-center gap-2 mb-2 bg-black/30 self-start px-3 py-1 rounded-full border border-white/20">
                         <i class="bi bi-gem text-white text-[10px]"></i>
-                        <p class="text-white font-black text-[8px] uppercase tracking-widest">Exclusivo {{ torcida.sigla|default:"Membros" }}</p>
+                        <p class="text-white font-black text-[8px] uppercase tracking-widest">APP SAT Oficial</p>
                     </div>
                     <h3 class="text-white font-black text-xl leading-tight w-5/6 mb-4 uppercase drop-shadow-md">
-                        Faça parte da Elite e ganhe o manto oficial!
+                        Faça parte da Elite e ganhe o manto!
                     </h3>
                     <div>
                         <span class="inline-flex items-center gap-2 fundo-card texto-tema text-[10px] font-black px-5 py-2.5 uppercase tracking-wider rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.1)] transition-transform group-hover:scale-105">
-                            Quero ser Sócio <i class="bi bi-arrow-right text-lg leading-none"></i>
+                            Ver Planos <i class="bi bi-arrow-right text-lg leading-none"></i>
                         </span>
                     </div>
                 </div>
@@ -268,14 +309,14 @@
         <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Loja</span>
     </a>
     
-    <a href="{% if user.perfil.torcida %}{% url 'hub' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex flex-col items-center relative -top-7 w-[24%] group">
+    <a href="{% if torcida %}{% url 'hub' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex flex-col items-center relative -top-7 w-[24%] group">
         <div class="w-16 h-16 fundo-card rounded-full p-1.5 shadow-[0_-4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center border border-suave">
             <div class="w-full h-full fundo-tema rounded-full flex items-center justify-center texto-claro shadow-inner group-hover:scale-105 transition-transform duration-300">
-                <i class="bi {% if user.perfil.torcida %}bi-shield-check{% else %}bi-gem{% endif %} text-2xl"></i>
+                <i class="bi {% if torcida %}bi-shield-check{% else %}bi-gem{% endif %} text-2xl"></i>
             </div>
         </div>
         <span class="text-[9px] font-black texto-tema uppercase tracking-wider mt-1">
-            {% if user.perfil.torcida %} Torcida {% else %} Seja Sócio {% endif %}
+            {% if torcida %} Torcida {% elif user.perfil.torcida and not user.perfil.aprovado %} Pendente {% else %} Seja Sócio {% endif %}
         </span>
     </a>
     
@@ -301,14 +342,59 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+        // 1. Script Scroll Infinito (Agora clona o Dashboard Completo)
         const feedContainer = document.getElementById('feed-loop-container');
-        const originalFeedHTML = feedContainer.innerHTML;
+        if (feedContainer) {
+            // Guarda o HTML de TUDO (Notícias, Parceiros, Publicidade, Mural...)
+            const originalFeedHTML = feedContainer.innerHTML;
+            
+            window.addEventListener('scroll', function() {
+                // Se o utilizador chegar perto do fundo (300px)
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 300) {
+                    // Repete o dashboard inteiro
+                    feedContainer.insertAdjacentHTML('beforeend', originalFeedHTML);
+                    
+                    // Reativa a rotação das publicidades no novo bloco clonado
+                    iniciarRotacaoPublicidade();
+                }
+            });
+        }
 
-        window.addEventListener('scroll', function() {
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 300) {
-                feedContainer.insertAdjacentHTML('beforeend', originalFeedHTML);
-            }
-        });
+        // 2. Script Rotação Publicidade Paga (Isolado para funcionar no Loop)
+        function iniciarRotacaoPublicidade() {
+            // Procura todos os blocos de publicidade (incluindo os que acabaram de ser clonados)
+            const carrosseis = document.querySelectorAll('#ad-carousel');
+            
+            carrosseis.forEach(carousel => {
+                // Evita duplicar o timer num carrossel que já está a rodar
+                if (carousel.dataset.ativo === "true") return;
+                carousel.dataset.ativo = "true";
+                
+                const slides = carousel.querySelectorAll('.ad-slide');
+                if (slides.length > 1) {
+                    let currentSlide = 0;
+                    
+                    function nextSlide() {
+                        slides[currentSlide].classList.remove('opacity-100', 'z-10');
+                        slides[currentSlide].classList.add('opacity-0', 'pointer-events-none');
+                        
+                        currentSlide = (currentSlide + 1) % slides.length;
+                        
+                        slides[currentSlide].classList.remove('opacity-0', 'pointer-events-none');
+                        slides[currentSlide].classList.add('opacity-100', 'z-10');
+                        
+                        const durationSecs = parseInt(slides[currentSlide].getAttribute('data-duration')) || 5;
+                        setTimeout(nextSlide, durationSecs * 1000);
+                    }
+                    
+                    const firstDuration = parseInt(slides[0].getAttribute('data-duration')) || 5;
+                    setTimeout(nextSlide, firstDuration * 1000);
+                }
+            });
+        }
+
+        // Inicia a rotação de anúncios assim que a página carrega a primeira vez
+        iniciarRotacaoPublicidade();
     });
 </script>
 {% endblock %}

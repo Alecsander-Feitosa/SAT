@@ -2,6 +2,8 @@ from django.db import models
 from django.conf import settings
 from gamification.models import Partida
 from django.contrib.auth.models import User
+from django.utils import timezone
+
 
 class Torcida(models.Model):
     nome = models.CharField("Nome da Torcida", max_length=150, unique=True)
@@ -100,3 +102,45 @@ class Curtida(models.Model):
 
     def __str__(self):
         return f"{self.usuario.username} curtiu o post {self.post.id}"
+    
+
+class Parceiro(models.Model):
+    nome = models.CharField("Nome do Parceiro", max_length=100)
+    logo = models.ImageField("Logo", upload_to='parceiros/', blank=True, null=True)
+    link = models.URLField("Link do Parceiro", blank=True, null=True, help_text="Link para o site ou Instagram do parceiro")
+    torcida = models.ForeignKey(
+        Torcida, 
+        on_delete=models.CASCADE, 
+        related_name='parceiros', 
+        blank=True, 
+        null=True, 
+        help_text="Deixe em branco se for um parceiro global da SAT"
+    )
+
+    class Meta:
+        verbose_name = "Parceiro"
+        verbose_name_plural = "Parceiros"
+
+    def __str__(self):
+        return self.nome
+    
+
+
+class Publicidade(models.Model):
+    titulo = models.CharField("Nome da Campanha/Cliente", max_length=150)
+    imagem = models.ImageField("Imagem do Banner (Retangular)", upload_to='publicidade/')
+    link = models.URLField("Link de Destino", blank=True, null=True, help_text="Link para onde o utilizador vai ao clicar")
+    
+    data_inicio = models.DateTimeField("Data de Início da Campanha")
+    data_fim = models.DateTimeField("Data de Término da Campanha")
+    tempo_exibicao = models.PositiveIntegerField("Tempo na tela (Segundos)", default=5, help_text="Quantos segundos este banner aparece antes de trocar para o próximo.")
+    
+    ativo = models.BooleanField("Ativar Anúncio", default=True)
+    torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, blank=True, null=True, help_text="Deixe em branco para exibir para todas as torcidas.")
+
+    class Meta:
+        verbose_name = "Publicidade Paga"
+        verbose_name_plural = "Publicidades Pagas"
+
+    def __str__(self):
+        return self.titulo

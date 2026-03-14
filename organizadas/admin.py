@@ -1,5 +1,8 @@
 from django.contrib import admin
 from .models import Torcida, Caravana, Evento, Noticia, Post, Curtida
+from .models import Parceiro
+from .models import Publicidade 
+
 
 @admin.register(Torcida)
 class TorcidaAdmin(admin.ModelAdmin):
@@ -35,3 +38,17 @@ class PostAdmin(admin.ModelAdmin):
 @admin.register(Curtida)
 class CurtidaAdmin(admin.ModelAdmin):
     list_display = ('usuario', 'post', 'data_curtida')
+
+
+@admin.register(Parceiro)
+class ParceiroAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'torcida', 'link')
+    list_filter = ('torcida',)
+    search_fields = ('nome',)
+
+
+@admin.register(Publicidade)
+class PublicidadeAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'data_inicio', 'data_fim', 'tempo_exibicao', 'ativo', 'torcida')
+    list_filter = ('ativo', 'torcida', 'data_inicio', 'data_fim')
+    search_fields = ('titulo',)
