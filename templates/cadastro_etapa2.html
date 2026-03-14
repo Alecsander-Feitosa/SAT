@@ -38,50 +38,81 @@
 
     <div class="w-full max-w-md relative z-10 flex-1 flex flex-col">
         
-        <div class="mb-6 text-center">
-            <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tighter mb-1" style="font-family: 'Montserrat', sans-serif;">Etapa 2</h2>
-            <p class="text-[10px] font-bold text-[#D37129] uppercase tracking-widest">Escolha a sua Torcida</p>
+       <div class="mb-6 text-center">
+            <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tighter mb-1">Etapa 2</h2>
+            <p class="text-[10px] font-bold text-[#D37129] uppercase tracking-widest">Escolha a sua Torcida ou continue como Neutro</p>
+        </div>
+
+        <div class="mb-4 relative z-10">
+            <input type="text" id="searchTorcida" placeholder="Procurar Torcida..." 
+                class="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-[#D37129] outline-none transition-all text-sm font-medium">
         </div>
 
         <form method="post" action="{% url 'cadastro_etapa2' %}" class="flex-grow flex flex-col" id="form-etapa2">
             {% csrf_token %}
 
-            <div class="grid grid-cols-2 gap-4 mb-8 overflow-y-auto pr-1" style="max-height: 55vh;">
+           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Time do Coração</label>
+                    <input list="lista-times" name="time_coracao" placeholder="Seu time..." 
+                        class="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-[#D37129] outline-none transition-all text-sm font-bold uppercase tracking-tight">
+                    <datalist id="lista-times">
+                        {% for time in times %}<option value="{{ time }}">{% endfor %}
+                    </datalist>
+                </div>
+
+                <div>
+                    <label for="data_nascimento" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Data de Nascimento</label>
+                    <input type="date" name="data_nascimento" id="data_nascimento" 
+                        class="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-[#D37129] outline-none transition-all text-sm font-bold text-gray-700"
+                        required>
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Escolha a sua Torcida Organizada</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8 overflow-y-auto pr-1" style="max-height: 50vh;" id="torcidas-grid">
+                <label class="block relative h-full torcida-item">
+                    <input type="radio" name="torcida_id" value="neutro" class="torcida-radio">
+                    <div class="torcida-card rounded-2xl p-4 flex flex-col items-center justify-center text-center h-full">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xs font-black text-gray-800 uppercase tracking-wide">Público Geral</h3>
+                    </div>
+                </label>
+
                 {% for torcida in torcidas %}
-                    <label class="block relative h-full">
+                    <label class="block relative h-full torcida-item">
                         <input type="radio" name="torcida_id" value="{{ torcida.id }}" class="torcida-radio" required>
-                        
                         <div class="torcida-card rounded-2xl p-4 flex flex-col items-center justify-center text-center h-full">
                             {% if torcida.logo %}
-                                <img src="{{ torcida.logo.url }}" alt="{{ torcida.nome }}" class="w-16 h-16 object-contain mb-3 drop-shadow-sm">
+                                <img src="{{ torcida.logo.url }}" alt="{{ torcida.nome }}" class="w-16 h-16 object-contain mb-3">
                             {% else %}
                                 <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 text-gray-400 font-bold text-xl">
                                     {{ torcida.nome|slice:":2" }}
                                 </div>
                             {% endif %}
-                            <h3 class="text-xs font-black text-gray-800 uppercase tracking-wide leading-tight">{{ torcida.nome }}</h3>
+                            <h3 class="text-xs font-black text-gray-800 uppercase tracking-wide">{{ torcida.nome }}</h3>
                         </div>
                     </label>
-                {% empty %}
-                    <div class="col-span-2 text-center py-10">
-                        <p class="text-gray-400 font-bold text-sm">Nenhuma torcida disponível no momento.</p>
-                    </div>
                 {% endfor %}
             </div>
-
-            <div class="mt-auto pb-4">
-                <button type="submit" class="w-full flex items-center justify-center gap-2 text-white bg-[#D37129] hover:bg-[#b85a1a] font-black rounded-full text-sm px-5 py-4 uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-[#D37129]/30">
-                    Concluir Registo
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                </button>
-                
-                <p class="text-center text-[9px] text-gray-400 uppercase tracking-widest mt-4 font-bold">
-                    Ao concluir, o seu pedido será enviado para a diretoria.
-                </p>
-            </div>
-        </form>
+            
+            <script>
+                document.getElementById('searchTorcida').addEventListener('input', function(e) {
+                    const term = e.target.value.toLowerCase();
+                    document.querySelectorAll('.torcida-item').forEach(item => {
+                        const name = item.querySelector('h3').textContent.toLowerCase();
+                        item.style.display = name.includes(term) ? 'block' : 'none';
+                    });
+                });
+            </script>
+            </form>
         
     </div>
 </div>

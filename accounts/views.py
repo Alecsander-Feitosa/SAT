@@ -188,38 +188,49 @@ def save(self, commit=True):
     return user
 
 
-
 @login_required
 def cadastro_etapa2(request):
     perfil = request.user.perfil
     
-    # Se o utilizador já tiver uma torcida associada, não precisa de estar aqui
     if perfil.torcida:
         return redirect('dashboard')
 
+    # Lista dos principais times brasileiros (Série A, B e tradicionais)
+    times_brasileiros = [
+        "América-MG", "Athletico-PR", "Atlético-GO", "Atlético-MG", "Bahia", "Botafogo", "Bragantino",
+        "Ceará", "Chapecoense", "Corinthians", "Coritiba", "CRB", "Criciúma", "Cruzeiro", "Cuiabá",
+        "Flamengo", "Fluminense", "Fortaleza", "Goiás", "Grêmio", "Internacional", "Ituano", "Juventude",
+        "Mirassol", "Novorizontino", "Operário-PR", "Palmeiras", "Paysandu", "Ponte Preta", "Red Bull Bragantino",
+        "Santos", "São Paulo", "Sport", "Vasco da Gama", "Vila Nova", "Vitória"
+    ]
+
     if request.method == 'POST':
         torcida_id = request.POST.get('torcida_id')
+        time_coracao = request.POST.get('time_coracao')
+        data_nasc = request.POST.get('data_nascimento')
         
-        if torcida_id:
+        if torcida_id and time_coracao:
             try:
                 torcida = Torcida.objects.get(id=torcida_id)
-                # Associa a claque ao utilizador
                 perfil.torcida = torcida
-                # Garante que ele entra como "Não Aprovado", aguardando a diretoria
+                perfil.time_coracao = time_coracao
+                perfil.data_nascimento = data_nasc
                 perfil.aprovado = False 
                 perfil.save()
                 
-                messages.success(request, f"Registo concluído! A sua entrada na {torcida.nome} está a ser analisada.")
+                messages.success(request, f"Pedido enviado! Aguarde a aprovação da {torcida.nome}.")
                 return redirect('dashboard')
             except Torcida.DoesNotExist:
-                messages.error(request, "Torcida inválida. Tente novamente.")
+                messages.error(request, "Torcida inválida.")
         else:
-            messages.error(request, "Por favor, selecione uma torcida para continuar.")
+            messages.error(request, "Por favor, preencha todos os campos.")
 
-    # Apanha todas as claques ativas na BD para enviar para o HTML
     torcidas = Torcida.objects.all()
-    return render(request, 'cadastro_etapa2.html', {'torcidas': torcidas})
-
+    context = {
+        'torcidas': torcidas,
+        'times': sorted(times_brasileiros) # Envia a lista em ordem alfabética
+    }
+    return render(request, 'cadastro_etapa2.html', context)
 
 
 
