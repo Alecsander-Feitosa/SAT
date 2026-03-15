@@ -2,30 +2,68 @@
 {% load static %}
 
 {% block content %}
+<style>
+    /* Animação de entrada dos posts (deslizam de baixo e surgem) */
+    @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .post-card {
+        animation: slideUpFade 0.6s ease-out forwards;
+    }
+
+    /* Animação do coração ao curtir (batimento) */
+    @keyframes heartbeat {
+        0% { transform: scale(1); }
+        25% { transform: scale(1.4); }
+        50% { transform: scale(1); }
+        75% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+    .animate-heartbeat {
+        animation: heartbeat 0.4s ease-in-out;
+    }
+</style>
+
 <div class="px-5 pt-6 mb-6">
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">
                 SAT <span class="texto-tema">SOCIAL</span>
             </h1>
-            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest">O mural da sua torcida</p>
+            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest">
+                {% if aba == 'sat' %}Mural Oficial{% else %}O mural da sua torcida{% endif %}
+            </p>
         </div>
     </div>
 
-    <div class="fundo-card rounded-[32px] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave mb-8 relative">
-        <form action="{% url 'mural' %}" method="POST" enctype="multipart/form-data">
+    <div class="flex border-b border-suave mb-6">
+        {% if tem_torcida_ativa %}
+        <a href="?aba=torcida" class="flex-1 text-center pb-3 font-black text-xs uppercase tracking-wider transition-all {% if aba == 'torcida' %}texto-tema border-b-[3px] border-tema{% else %}texto-main opacity-50 hover:opacity-100{% endif %}">
+            <i class="bi bi-people-fill mr-1"></i> Minha Torcida
+        </a>
+        {% endif %}
+        
+        <a href="?aba=sat" class="flex-1 text-center pb-3 font-black text-xs uppercase tracking-wider transition-all {% if aba == 'sat' %}texto-tema border-b-[3px] border-tema{% else %}texto-main opacity-50 hover:opacity-100{% endif %}">
+            <i class="bi bi-globe-americas mr-1"></i> Oficial SAT
+        </a>
+    </div>
+
+    {% if aba == 'torcida' and tem_torcida_ativa %}
+    <div class="fundo-card rounded-[32px] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave mb-8 transition-all focus-within:ring-2 focus-within:ring-tema focus-within:shadow-lg">
+        <form action="{% url 'mural' %}?aba=torcida" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="flex gap-3 mb-2">
                 <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-tema shadow-sm">
                     <img src="{% if user.perfil.foto %}{{ user.perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=random&color=fff{% endif %}" class="w-full h-full object-cover">
                 </div>
                 <div class="flex-grow pt-1">
-                    <textarea name="texto" rows="2" class="w-full bg-transparent border-none p-0 texto-main focus:ring-0 resize-none font-medium placeholder:texto-main placeholder:opacity-40 text-sm outline-none" placeholder="O que está a acontecer na torcida, {{ user.username }}?"></textarea>
+                    <textarea name="texto" rows="2" class="w-full bg-transparent border-none p-0 texto-main focus:ring-0 resize-none font-medium placeholder:texto-main placeholder:opacity-40 text-sm outline-none transition-all" placeholder="O que está a acontecer na torcida, {{ user.username }}?"></textarea>
                 </div>
             </div>
             
             <div class="flex justify-between items-center border-t border-suave pt-3 mt-2">
-                <label for="foto-post" class="flex items-center gap-2 texto-tema font-bold text-[11px] uppercase tracking-wider cursor-pointer hover:opacity-70 transition-opacity px-2 py-1 bg-black/5 rounded-full border border-suave">
+                <label for="foto-post" class="flex items-center gap-2 texto-tema font-bold text-[11px] uppercase tracking-wider cursor-pointer hover:opacity-70 transition-opacity px-3 py-1.5 bg-black/5 rounded-full border border-suave">
                     <i class="bi bi-image text-lg"></i> 
                     <span id="nome-arquivo">Anexar Foto</span>
                     <input type="file" name="imagem" id="foto-post" class="hidden" accept="image/*" onchange="mostrarNomeArquivo(this)">
@@ -37,10 +75,11 @@
             </div>
         </form>
     </div>
+    {% endif %}
 
     <div class="space-y-6 pb-10">
         {% for post in posts %}
-        <div class="fundo-card rounded-[32px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave overflow-hidden transition-transform hover:scale-[1.01]">
+        <div class="post-card fundo-card rounded-[32px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave overflow-hidden transition-transform hover:scale-[1.01]">
             
             <div class="flex items-center gap-3 p-4 pb-2">
                 <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-suave fundo-app flex-shrink-0">
@@ -68,40 +107,133 @@
             {% endif %}
 
             <div class="px-5 py-4 flex items-center gap-6 fundo-app border-t border-suave">
-                <a href="{% url 'curtir_post' post.id %}" class="flex items-center gap-2 transition-all {% if user in post.curtidas.all %}text-red-500 scale-110{% else %}texto-main opacity-50 hover:opacity-100{% endif %}">
-                    <i class="bi {% if user in post.curtidas.all %}bi-heart-fill{% else %}bi-heart{% endif %} text-xl drop-shadow-sm"></i>
-                    <span class="text-xs font-black">{{ post.curtidas.count }}</span>
-                </a>
                 
-                <button class="flex items-center gap-2 texto-main opacity-40 hover:opacity-100 transition-all">
+                <button type="button" onclick="curtirPostAsync('{% url 'curtir_post' post.id %}', this)" class="btn-curtir flex items-center gap-2 transition-all group {% if user in post.curtidas.all %}text-red-500{% else %}texto-main opacity-50 hover:opacity-100{% endif %}">
+                    <i class="icone-coracao bi {% if user in post.curtidas.all %}bi-heart-fill{% else %}bi-heart{% endif %} text-xl drop-shadow-sm transition-transform group-active:scale-75"></i>
+                    <span class="contador-curtidas text-xs font-black">{{ post.curtidas.count }}</span>
+                </button>
+                
+                <button onclick="toggleComentarios({{ post.id }})" class="flex items-center gap-2 texto-main opacity-40 hover:opacity-100 transition-all">
                     <i class="bi bi-chat-text text-xl"></i>
-                    <span class="text-xs font-black">Comentar</span>
+                    <span class="text-xs font-black">{{ post.comentarios.count }}</span>
                 </button>
                 
                 <button class="flex items-center gap-2 texto-main opacity-40 hover:opacity-100 transition-all ml-auto">
                     <i class="bi bi-share text-xl"></i>
                 </button>
             </div>
-        </div>
+
+            <div id="comentarios-{{ post.id }}" class="hidden border-t border-suave p-4 fundo-app">
+                <div class="space-y-3 mb-4 max-h-40 overflow-y-auto hide-scrollbar">
+                    {% for comentario in post.comentarios.all %}
+                    <div class="flex gap-2">
+                        <div class="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 border border-suave">
+                            <img src="{% if comentario.autor.perfil.foto %}{{ comentario.autor.perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ comentario.autor.username }}&background=random&color=fff{% endif %}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="fundo-card p-2 px-3 rounded-2xl rounded-tl-none border border-suave flex-1 shadow-sm">
+                            <div class="flex justify-between items-center mb-0.5">
+                                <h5 class="texto-tema font-black text-[9px] uppercase tracking-wider">{{ comentario.autor.username }}</h5>
+                                <span class="text-[8px] texto-main opacity-40 font-bold uppercase">{{ comentario.data_criacao|timesince }}</span>
+                            </div>
+                            <p class="texto-main text-xs font-medium">{{ comentario.texto }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-xs texto-main opacity-50 font-medium text-center py-2">Sem comentários ainda. Seja o primeiro a comentar!</p>
+                    {% endfor %}
+                </div>
+
+                <form action="{% url 'adicionar_comentario' post.id %}" method="POST" class="flex gap-2">
+                    {% csrf_token %}
+                    <input type="text" name="comentario" placeholder="Escreva o seu comentário..." required class="flex-1 bg-transparent border border-suave rounded-full px-4 py-1.5 text-xs texto-main focus:outline-none focus:border-tema font-medium">
+                    <button type="submit" class="fundo-tema texto-claro w-8 h-8 rounded-full flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 transition-transform">
+                        <i class="bi bi-send-fill text-xs"></i>
+                    </button>
+                </form>
+            </div>
+
+        </div> 
         {% empty %}
         <div class="text-center py-20 fundo-card rounded-[32px] border border-dashed border-suave shadow-sm mt-4">
             <div class="w-20 h-20 mx-auto fundo-app rounded-full flex items-center justify-center mb-4 border border-suave">
                 <i class="bi bi-megaphone text-3xl texto-tema opacity-50"></i>
             </div>
             <p class="texto-main opacity-60 font-bold text-sm">O mural está silencioso.</p>
-            <p class="texto-main opacity-40 text-xs mt-1">Seja o primeiro a publicar algo!</p>
         </div>
         {% endfor %}
     </div>
 </div>
 
 <script>
+    // 1. Mostrar ficheiro na área de post
     function mostrarNomeArquivo(input) {
         const span = document.getElementById('nome-arquivo');
         if (input.files && input.files.length > 0) {
             span.innerHTML = '<span class="text-green-500"><i class="bi bi-check-circle-fill"></i> Imagem Anexada</span>';
         } else {
-            span.textContent = 'Anexar Foto';
+            span.innerHTML = 'Anexar Foto';
+        }
+    }
+
+    // 2. Abrir/Fechar Comentários
+    function toggleComentarios(postId) {
+        const div = document.getElementById(`comentarios-${postId}`);
+        if (div.classList.contains('hidden')) {
+            div.classList.remove('hidden');
+            setTimeout(() => div.querySelector('input[name="comentario"]').focus(), 100);
+        } else {
+            div.classList.add('hidden');
+        }
+    }
+
+    // 3. Curtir Assíncrono (A Mágica acontece aqui!)
+    async function curtirPostAsync(url, btnElement) {
+        const icone = btnElement.querySelector('.icone-coracao');
+        const contador = btnElement.querySelector('.contador-curtidas');
+
+        // Animação de pulsar imediata
+        icone.classList.add('animate-heartbeat');
+        setTimeout(() => icone.classList.remove('animate-heartbeat'), 400);
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("Sucesso! Status da curtida:", data.liked); // Para ajudar a testar
+                
+                // Atualiza o contador
+                contador.textContent = data.likes_count;
+
+                if (data.liked) {
+                    // SE CURTIU: Fica Vermelho
+                    btnElement.classList.remove('texto-main', 'opacity-50');
+                    btnElement.classList.add('text-red-500');
+                    
+                    icone.classList.remove('bi-heart');
+                    icone.classList.add('bi-heart-fill');
+                    icone.style.color = '#ef4444'; // Força o vermelho vivo (Red-500)
+                    icone.style.opacity = '1';
+                } else {
+                    // SE DESCURTIU: Fica Normal/Transparente
+                    btnElement.classList.remove('text-red-500');
+                    btnElement.classList.add('texto-main', 'opacity-50');
+                    
+                    icone.classList.remove('bi-heart-fill');
+                    icone.classList.add('bi-heart');
+                    icone.style.color = ''; // Remove a cor forçada
+                }
+            } else {
+                console.error("O servidor não respondeu com OK", response.status);
+            }
+        } catch (error) {
+            console.error('Erro ao curtir a publicação:', error);
         }
     }
 </script>

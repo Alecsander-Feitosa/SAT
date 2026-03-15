@@ -62,11 +62,11 @@
                 <span class="font-bold text-sm">Buscar</span>
             </button>
             
-            <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center h-full z-0">
+           <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center h-full z-0">
                 {% if user.perfil.torcida and user.perfil.aprovado and user.perfil.torcida.logo %}
                     <img src="{{ user.perfil.torcida.logo.url }}" alt="{{ user.perfil.torcida.nome }}" class="h-16 object-contain drop-shadow-md transform scale-110">
                 {% else %}
-                    <h1 class="font-black italic texto-tema text-2xl uppercase tracking-tighter">TIME</h1>
+                    <img src="{% static 'img/logo_sat.png' %}" alt="SAT Oficial" class="h-12 object-contain drop-shadow-md">
                 {% endif %}
             </div>
             
@@ -86,32 +86,40 @@
             </form>
         </div>
         
-        <div class="flex justify-between items-center w-full px-4">
+       <div class="flex justify-between items-center w-full px-4">
             <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] border-tema texto-tema font-bold text-sm whitespace-nowrap">Seu time</a>
             <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-medium text-sm transition-opacity whitespace-nowrap">SAT social</a>
             
-            <a href="{% if user.perfil.torcida and user.perfil.aprovado %}{% url 'hub' %}{% else %}{% url 'seja_socio' %}{% endif %}" 
+            <a href="{% if user.perfil.torcida and user.perfil.aprovado %}{% url 'hub_organizadas' %}{% else %}{% url 'hub_socio' %}{% endif %}" 
                 class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-bold text-sm transition-opacity whitespace-nowrap">
-                {% if user.perfil.torcida and user.perfil.aprovado %} Torcida {% elif user.perfil.torcida and not user.perfil.aprovado %} Pendente {% else %} Seja sócio {% endif %}
+                {% if user.perfil.torcida and user.perfil.aprovado %} Torcida {% else %} Sócio {% endif %}
             </a>
         </div>
     </div>
 
     <div id="feed-loop-container" class="pt-[140px]">
         
-        <div class="w-full pt-6 pb-6 fundo-tema transition-colors duration-500 shadow-inner">
-            <div class="flex items-center gap-3 px-4 mb-5">
+        <div class="relative w-full pt-6 pb-6 fundo-tema transition-colors duration-500 shadow-inner">
+            {% if not user.perfil.torcida or not user.perfil.aprovado %}
+            <div class="absolute inset-0 z-40 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center p-4">
+                <i class="bi bi-lock-fill text-4xl text-white/90 mb-3"></i>
+                {% if not user.perfil.torcida %}
+                    <p class="text-white/90 font-bold text-center mb-3">Escolha o seu time para ver os avisos</p>
+                    <a href="{% url 'torcidas' %}" class="bg-white text-black px-6 py-2 rounded-full text-xs font-black uppercase shadow-lg">Escolher Torcida</a>
+                {% else %}
+                    <p class="text-white/90 font-bold text-center">Aguardando aprovação da diretoria</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="flex items-center gap-3 px-4 mb-5 {% if not user.perfil.aprovado %}opacity-30 pointer-events-none{% endif %}">
                 <div class="w-1.5 h-6 bg-white/50 rounded-full"></div>
                 <h2 class="texto-claro font-black text-2xl tracking-tight uppercase">
-                    {% if user.perfil.torcida and user.perfil.aprovado %}
-                        {{ user.perfil.torcida.nome }}
-                    {% else %}
-                        Oficial SAT
-                    {% endif %}
+                    {% if user.perfil.torcida %}{{ user.perfil.torcida.nome }}{% else %}Oficial SAT{% endif %}
                 </h2>
             </div>
             
-            <div class="flex overflow-x-auto gap-4 px-4 pb-2 snap-x snap-mandatory hide-scrollbar">
+            <div class="flex overflow-x-auto gap-4 px-4 pb-2 snap-x snap-mandatory hide-scrollbar {% if not user.perfil.aprovado %}opacity-30 pointer-events-none{% endif %}">
                 {% for noticia in noticias_time %}
                 <a href="{% url 'noticias' %}" class="min-w-[85%] sm:min-w-[280px] flex flex-col snap-center group">
                     <div class="w-full h-44 rounded-2xl overflow-hidden mb-3 shadow-lg border border-white/10 relative">
@@ -135,35 +143,49 @@
             </div>
         </div>
 
-        {% if proximos_eventos %}
-        <div class="w-full px-4 pt-8 pb-2 fundo-app">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="texto-fundo font-black text-lg uppercase tracking-tight flex items-center gap-2">
-                    <i class="bi bi-calendar-event-fill"></i> Agenda de Eventos
-                </h2>
+        {% if proximos_eventos or not user.perfil.aprovado %}
+        <div class="relative w-full px-4 pt-8 pb-2 fundo-app">
+            {% if not user.perfil.torcida or not user.perfil.aprovado %}
+            <div class="absolute inset-0 z-40 bg-black/40 backdrop-blur-[3px] flex flex-col items-center justify-center rounded-2xl mx-4 my-6">
+                <i class="bi bi-calendar-x-fill text-4xl text-white/90 mb-2"></i>
+                {% if not user.perfil.torcida %}
+                    <p class="text-white/90 font-bold text-center text-sm mb-3">Eventos fechados para membros</p>
+                    <a href="{% url 'torcidas' %}" class="bg-[var(--cor-primaria)] text-white px-5 py-2 rounded-full text-xs font-black uppercase shadow-lg">Entrar no Time</a>
+                {% else %}
+                    <p class="text-white/90 font-bold text-center text-sm">Aprovação pendente</p>
+                {% endif %}
             </div>
-            <div class="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
-                {% for evento in proximos_eventos %}
-                <a href="{% url 'lista_eventos' %}" class="min-w-[260px] fundo-card shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-suave p-4 flex flex-col snap-center group hover:border-tema transition-colors rounded-2xl">
-                    <div class="text-center mb-3 fundo-app rounded-lg py-1">
-                        <p class="text-[9px] texto-main opacity-60 font-bold uppercase tracking-widest">{{ evento.local|default:"Estádio" }}</p>
-                        <p class="text-[11px] texto-tema font-black uppercase mt-0.5">{{ evento.data|date:"d M - H:i" }}</p>
-                    </div>
-                    <div class="flex justify-between items-center px-2">
-                        <div class="flex flex-col items-center w-1/3">
-                            <div class="w-12 h-12 fundo-app border border-suave rounded-full flex items-center justify-center overflow-hidden mb-1 shadow-sm group-hover:scale-110 transition-transform">
-                                {% if user.perfil.torcida.logo and user.perfil.aprovado %}<img src="{{ user.perfil.torcida.logo.url }}" class="w-full h-full object-cover p-1">{% else %}<i class="bi bi-shield-fill texto-tema text-2xl"></i>{% endif %}
+            {% endif %}
+
+            <div class="{% if not user.perfil.aprovado %}opacity-40 pointer-events-none filter grayscale-[50%]{% endif %}">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="texto-fundo font-black text-lg uppercase tracking-tight flex items-center gap-2">
+                        <i class="bi bi-calendar-event-fill"></i> Agenda de Eventos
+                    </h2>
+                </div>
+                <div class="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
+                    {% for evento in proximos_eventos %}
+                    <a href="{% url 'lista_eventos' %}" class="min-w-[260px] fundo-card shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-suave p-4 flex flex-col snap-center group hover:border-tema transition-colors rounded-2xl">
+                        <div class="text-center mb-3 fundo-app rounded-lg py-1">
+                            <p class="text-[9px] texto-main opacity-60 font-bold uppercase tracking-widest">{{ evento.local|default:"Estádio" }}</p>
+                            <p class="text-[11px] texto-tema font-black uppercase mt-0.5">{{ evento.data|date:"d M - H:i" }}</p>
+                        </div>
+                        <div class="flex justify-between items-center px-2">
+                            <div class="flex flex-col items-center w-1/3">
+                                <div class="w-12 h-12 fundo-app border border-suave rounded-full flex items-center justify-center overflow-hidden mb-1 shadow-sm group-hover:scale-110 transition-transform">
+                                    {% if user.perfil.torcida and user.perfil.aprovado and user.perfil.torcida.logo %}<img src="{{ user.perfil.torcida.logo.url }}" class="w-full h-full object-cover p-1">{% else %}<i class="bi bi-shield-fill texto-tema text-2xl"></i>{% endif %}
+                                </div>
+                                <span class="text-[10px] font-black text-center texto-tema uppercase">{% if user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.sigla }}{% else %}CASA{% endif %}</span>
                             </div>
-                            <span class="text-[10px] font-black text-center texto-tema uppercase">{% if user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.sigla }}{% else %}CASA{% endif %}</span>
+                            <div class="w-1/3 flex justify-center"><span class="text-2xl font-black texto-main opacity-20 italic"> VS </span></div>
+                            <div class="flex flex-col items-center w-1/3">
+                                <div class="w-12 h-12 fundo-app border border-suave rounded-full flex items-center justify-center overflow-hidden mb-1 shadow-sm"><i class="bi bi-shield-shaded texto-main opacity-40 text-2xl"></i></div>
+                                <span class="text-[10px] font-bold text-center texto-main opacity-60 uppercase">Rival</span>
+                            </div>
                         </div>
-                        <div class="w-1/3 flex justify-center"><span class="text-2xl font-black texto-main opacity-20 italic"> VS </span></div>
-                        <div class="flex flex-col items-center w-1/3">
-                            <div class="w-12 h-12 fundo-app border border-suave rounded-full flex items-center justify-center overflow-hidden mb-1 shadow-sm"><i class="bi bi-shield-shaded texto-main opacity-40 text-2xl"></i></div>
-                            <span class="text-[10px] font-bold text-center texto-main opacity-60 uppercase">Rival</span>
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
+                    </a>
+                    {% endfor %}
+                </div>
             </div>
         </div>
         {% endif %}
@@ -207,21 +229,29 @@
                 {% endfor %}
             </div>
         </div>
-
-        {% if publicidades %}
-        <div class="w-full px-4 pt-6 pb-2 fundo-app">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="texto-fundo font-black text-sm uppercase tracking-tight flex items-center gap-2 opacity-60">
-                    <i class="bi bi-badge-ad-fill"></i> Espaço Patrocinado
-                </h2>
+        {% if publicidades or not user.perfil.aprovado %}
+        <div class="relative w-full px-4 pt-6 pb-2 fundo-app">
+            {% if not user.perfil.torcida or not user.perfil.aprovado %}
+            <div class="absolute inset-0 z-40 bg-black/50 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-2xl mx-4 mt-6">
+                <i class="bi bi-bag-x-fill text-2xl text-white/80 mb-2"></i>
+                <p class="text-white/80 font-bold text-xs">Exclusivo para membros aprovados</p>
             </div>
-            <div class="relative w-full h-32 sm:h-48 rounded-2xl overflow-hidden shadow-lg border border-suave group" id="ad-carousel">
-                {% for pub in publicidades %}
-                <a href="{{ pub.link|default:'#' }}" target="_blank" class="absolute inset-0 transition-opacity duration-1000 ease-in-out ad-slide {% if not forloop.first %}opacity-0 pointer-events-none{% else %}opacity-100 z-10{% endif %}" data-duration="{{ pub.tempo_exibicao|default:5 }}">
-                    <img src="{{ pub.imagem.url }}" alt="{{ pub.titulo }}" class="w-full h-full object-cover">
-                    <span class="absolute top-2 right-2 bg-black/60 text-white/80 text-[8px] px-2 py-0.5 rounded uppercase tracking-widest backdrop-blur-sm">Publicidade</span>
-                </a>
-                {% endfor %}
+            {% endif %}
+
+            <div class="{% if not user.perfil.aprovado %}opacity-40 pointer-events-none{% endif %}">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="texto-fundo font-black text-sm uppercase tracking-tight flex items-center gap-2 opacity-60">
+                        <i class="bi bi-badge-ad-fill"></i> Espaço Patrocinado
+                    </h2>
+                </div>
+                <div class="relative w-full h-32 sm:h-48 rounded-2xl overflow-hidden shadow-lg border border-suave group" id="ad-carousel">
+                    {% for pub in publicidades %}
+                    <a href="{{ pub.link|default:'#' }}" target="_blank" class="absolute inset-0 transition-opacity duration-1000 ease-in-out ad-slide {% if not forloop.first %}opacity-0 pointer-events-none{% else %}opacity-100 z-10{% endif %}" data-duration="{{ pub.tempo_exibicao|default:5 }}">
+                        <img src="{{ pub.imagem.url }}" alt="{{ pub.titulo }}" class="w-full h-full object-cover">
+                        <span class="absolute top-2 right-2 bg-black/60 text-white/80 text-[8px] px-2 py-0.5 rounded uppercase tracking-widest backdrop-blur-sm">Publicidade</span>
+                    </a>
+                    {% endfor %}    
+                </div>
             </div>
         </div>
         {% endif %}

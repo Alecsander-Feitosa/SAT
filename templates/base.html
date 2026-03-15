@@ -10,10 +10,11 @@
     
     <style>
         :root {
-            --cor-primaria: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %};
-            --cor-secundaria: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_secundaria }}{% else %}#FFFFFF{% endif %};
-            --cor-terciaria: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_terciaria }}{% else %}#1A1A1A{% endif %};
-            --cor-fundo: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_fundo }}{% else %}#F8F9FA{% endif %};
+            /* Adicionado "and user.perfil.aprovado" para bloquear as cores antes da aprovação */
+            --cor-primaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %};
+            --cor-secundaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_secundaria }}{% else %}#FFFFFF{% endif %};
+            --cor-terciaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_terciaria }}{% else %}#1A1A1A{% endif %};
+            --cor-fundo: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_fundo }}{% else %}#F8F9FA{% endif %};
         }
         
         body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo) !important; color: var(--cor-terciaria); margin: 0; }
@@ -44,10 +45,10 @@
                 <span class="font-bold text-sm hidden sm:inline">Buscar</span>
             </button>
             <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center h-full z-0">
-                {% if user.perfil.torcida and user.perfil.torcida.logo %}
+                {% if user.perfil.torcida and user.perfil.aprovado and user.perfil.torcida.logo %}
                     <img src="{{ user.perfil.torcida.logo.url }}" alt="Logo" class="h-10 object-contain drop-shadow-md">
                 {% else %}
-                    <h1 class="font-black italic texto-tema text-2xl uppercase tracking-tighter">{% if user.perfil.torcida %}{{ user.perfil.torcida.sigla }}{% else %}SAT{% endif %}</h1>
+                    <img src="{% static 'img/logo_sat.png' %}" alt="SAT Oficial" class="h-10 object-contain drop-shadow-md">
                 {% endif %}
             </div>
             <button onclick="toggleSidebar()" class="texto-main hover:opacity-70 transition-opacity relative z-10">
@@ -114,13 +115,15 @@
             <i class="bi bi-cart3 text-2xl font-bold"></i>
             <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Loja</span>
         </a>
-        <a href="{% if user.perfil.torcida %}{% url 'hub_organizadas' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex flex-col items-center relative -top-7 w-[24%] group">
+        <a href="{% if user.perfil.torcida and user.perfil.aprovado %}{% url 'hub_organizadas' %}{% else %}{% url 'hub_socio' %}{% endif %}" class="flex flex-col items-center relative -top-7 w-[24%] group">
             <div class="w-16 h-16 fundo-card rounded-full p-1.5 shadow-[0_-4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center border border-suave">
                 <div class="w-full h-full fundo-tema rounded-full flex items-center justify-center texto-claro shadow-inner group-hover:scale-105 transition-transform duration-300">
-                    <i class="bi {% if user.perfil.torcida %}bi-shield-check{% else %}bi-gem{% endif %} text-2xl"></i>
+                    <i class="bi {% if user.perfil.torcida and user.perfil.aprovado %}bi-shield-check{% else %}bi-gem{% endif %} text-2xl"></i>
                 </div>
             </div>
-            <span class="text-[9px] font-black texto-tema uppercase tracking-wider mt-1">{% if user.perfil.torcida %} Torcida {% else %} Sócio {% endif %}</span>
+            <span class="text-[9px] font-black texto-tema uppercase tracking-wider mt-1">
+                {% if user.perfil.torcida and user.perfil.aprovado %} Torcida {% else %} Beneficios {% endif %}
+            </span>
         </a>
         <a href="{% url 'bet_manutencao' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 transition-opacity {% if request.resolver_match.url_name == 'bet_manutencao' %}texto-tema{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
             <i class="bi bi-dice-5 text-2xl font-bold"></i>

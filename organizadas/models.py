@@ -144,3 +144,16 @@ class Publicidade(models.Model):
 
     def __str__(self):
         return self.titulo
+    
+
+class Comentario(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comentarios')
+    autor = models.ForeignKey(User, on_delete=models.CASCADE)
+    texto = models.TextField("Comentário", max_length=300)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['data_criacao'] # Organiza dos mais antigos para os mais recentes
+
+    def __str__(self):
+        return f"Comentário de {self.autor.username} no post {self.post.id}"

@@ -44,7 +44,8 @@ urlpatterns = [
     path('torcida/regras/', views.regras_view, name='regras'),
     path('torcida/aliadas/', views.aliadas_view, name='aliadas'),
     path('viagens/', views.viagens_view, name='viagens_view'),
-
+    path('hub-socio/', views.hub_socio, name='hub_socio'),
+    path('torcidas/', views.torcidas, name='torcidas'),
     # LINKS DE SEGURANÇA
     path('store', views.dashboard, name='loja'),
     path('games/', views.hub_games_view, name='games_hub'),
@@ -53,4 +54,6 @@ urlpatterns = [
     path('vincular/<int:torcida_id>/', views.vincular_torcida, name='vincular_torcida'),
     path('curtir/<int:post_id>/', views.curtir_post, name='curtir_post'),
     path('beneficios/', views.beneficios_view, name='beneficios'),
+   path('post/<int:post_id>/comentar/', views.adicionar_comentario, name='adicionar_comentario'),
+    
 ]

@@ -8,7 +8,6 @@ from io import BytesIO
 import base64
 import requests
 from django.db import models
-# Importações de outros Apps (Cada uma no seu lugar correto)
 from .models import Perfil, Presenca               # Modelos do App Accounts
 from .forms import CadastroForm, PerfilCompletoForm                  
 from content.api import api_noticias
@@ -35,6 +34,9 @@ from django.contrib.auth.models import User
 from organizadas.models import Parceiro
 from organizadas.models import Publicidade
 from django.db.models import Q
+from datetime import date
+from organizadas.models import Comentario
+
 
 # 1. Ecrã para escolher a torcida ANTES de logar
 def escolher_torcida_publico(request):
@@ -61,19 +63,30 @@ def entrada_torcida(request, torcida_id):
 def mural_social(request):
     perfil = request.user.perfil
     
-    # 1. Bloqueio de segurança: Se não tem torcida ou não tá aprovado, vaza!
-    if not perfil.torcida or not perfil.aprovado:
-        return redirect('dashboard')
-        
+    # Define a torcida APENAS se estiver aprovado
+    torcida_ativa = perfil.torcida if (perfil.torcida and perfil.aprovado) else None
+    
     if request.method == "POST":
         texto = request.POST.get('texto')
         imagem = request.FILES.get('imagem')
+        
         if texto or imagem:
-            Post.objects.create(autor=request.user, torcida=perfil.torcida, texto=texto, imagem=imagem)
+            # Se for aprovado, o post vai para a torcida. Se não, vai para o mural global da SAT.
+            PostTorcida.objects.create(
+                autor=request.user,
+                torcida=torcida_ativa,
+                texto=texto,
+                imagem=imagem
+            )
             return redirect('mural') 
 
-    # 2. O FILTRO MÁGICO: Puxa SÓ os posts da torcida dele
-    posts = Post.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')
+    # Busca os posts: Se está aprovado, puxa os da torcida. Se não, puxa os globais (sem torcida)
+    if torcida_ativa:
+        posts = PostTorcida.objects.filter(torcida=torcida_ativa).order_by('-data_criacao')
+    else:
+        # Puxa os posts gerais de fábrica (onde torcida é nula)
+        posts = PostTorcida.objects.filter(torcida__isnull=True).order_by('-data_criacao')
+        
     return render(request, 'mural.html', {'posts': posts})
 
 @login_required
@@ -252,23 +265,21 @@ def dashboard(request):
         except Exception:
             noticias_api = []
 
-    # BLOQUEIO ABSOLUTO: Se não estiver aprovado, torcida_ativa é NULA (None)
-    torcida_ativa = perfil.torcida if (perfil.torcida and perfil.aprovado) else None
+    # Aqui puxamos a torcida mesmo sem estar aprovado, para a máscara funcionar por cima
+    torcida_selecionada = perfil.torcida
 
-    # 2. Lógica Dinâmica baseada na Torcida Ativa
-    if torcida_ativa:
-        eventos = Evento.objects.filter(torcida=torcida_ativa, data__gte=agora).order_by('data')[:3]
-        posts_sociais = Post.objects.filter(torcida=torcida_ativa).order_by('-data_criacao')[:10]
-        parceiros = Parceiro.objects.filter(Q(torcida=torcida_ativa) | Q(torcida__isnull=True))
-        publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora).filter(Q(torcida=torcida_ativa) | Q(torcida__isnull=True))
+    if torcida_selecionada:
+        eventos = Evento.objects.filter(torcida=torcida_selecionada, data__gte=agora).order_by('data')[:3]
+        posts_sociais = Post.objects.filter(torcida=torcida_selecionada).order_by('-data_criacao')[:10]
+        parceiros = Parceiro.objects.filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))
+        publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora).filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))
     else:
-        # Tudo fica no modo padrão/fábrica
+        # Tudo fica no modo padrão/fábrica da SAT
         eventos = Evento.objects.filter(data__gte=agora).order_by('data')[:3]
         posts_sociais = Post.objects.all().order_by('-data_criacao')[:10]
         parceiros = Parceiro.objects.filter(torcida__isnull=True)
         publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora, torcida__isnull=True)
 
-    # Notícias oficiais da diretoria são sempre globais
     noticias_time = Noticia.objects.all().order_by('-data_publicacao')[:3]
 
     context = {
@@ -276,7 +287,7 @@ def dashboard(request):
         'perfil': perfil,
         'perfil_game': perfil_game,
         'xp_atual': perfil_game.xp_total or 0,
-        'torcida': torcida_ativa, # A VARIÁVEL DE BLOQUEIO É ENVIADA AQUI
+        'torcida': torcida_selecionada, 
         'noticias_api': noticias_api,
         'posts_sociais': posts_sociais,
         'noticias_time': noticias_time,
@@ -374,15 +385,19 @@ def seja_socio(request):
 def torcidas(request):
     perfil = request.user.perfil
     
-    # Se ele já escolheu, mostramos o Mural da torcida dele
-    if perfil.torcida:
-        return render(request, 'mural.html', {'torcida': perfil.torcida})
+    # 1. Se já tem torcida e está APROVADO, vai pro Hub com sucesso.
+    if perfil.torcida and perfil.aprovado:
+        return redirect('hub_organizadas') # <--- NOME CORRIGIDO AQUI!
     
-    # Caso contrário, listamos as opções
+    # 2. Se tem torcida mas NÃO está aprovado, ele fica na página a ver a mensagem "Pendente"
+    if perfil.torcida and not perfil.aprovado:
+        return render(request, 'torcidas.html', {'status': 'pendente', 'torcida': perfil.torcida})
+    
+    # 3. Se não tem torcida nenhuma, mostramos a lista para ele escolher
     lista_de_torcidas = Torcida.objects.all()
     return render(request, 'torcidas.html', {
         'torcidas': lista_de_torcidas,
-        'neutro': True # Flag para mostrar que ele pode continuar sem torcida
+        'neutro': True 
     })
 
 @login_required
@@ -456,6 +471,12 @@ def mural_social(request):
 @login_required
 def area_hub(request):
     perfil = request.user.perfil
+    
+    # BLOQUEIO ABSOLUTO: Se não tiver torcida ou NÃO estiver aprovado, volta para a página de torcidas!
+    if not perfil.torcida or not perfil.aprovado:
+        messages.warning(request, "Acesso restrito. Escolha uma torcida ou aguarde a aprovação da diretoria.")
+        return redirect('torcidas')
+        
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
     
     context = {
@@ -546,7 +567,24 @@ def detalhe_evento(request, evento_id):
     }
     return render(request, 'detalhe_evento.html', context)
 
+@login_required
 def bet_manutencao(request):
+    perfil = request.user.perfil
+    
+    # 1. Verifica se a data de nascimento está preenchida
+    if not perfil.data_nascimento:
+        messages.error(request, "Para acessar as Apostas, preencha sua data de nascimento no seu Perfil.")
+        return redirect('perfil')
+        
+    # 2. Calcula a idade
+    hoje = date.today()
+    idade = hoje.year - perfil.data_nascimento.year - ((hoje.month, hoje.day) < (perfil.data_nascimento.month, perfil.data_nascimento.day))
+    
+    # 3. Bloqueia menores de 18
+    if idade < 18:
+        messages.error(request, "Acesso Negado: A área de BET é permitida apenas para maiores de 18 anos.")
+        return redirect('dashboard')
+        
     return render(request, 'bet_manutencao.html', {'cor_tema': '#D37129'})
 
 @login_required
@@ -727,6 +765,7 @@ class CustomLoginView(LoginView):
 
 @login_required
 def curtir_post(request, post_id):
+    # Procura o post (certifique-se que o nome do modelo está correto, ex: Post ou PostTorcida)
     post = get_object_or_404(PostTorcida, id=post_id)
     curtida, created = Curtida.objects.get_or_create(post=post, usuario=request.user)
     
@@ -735,16 +774,24 @@ def curtir_post(request, post_id):
         perfil_autor, _ = PerfilGamificacao.objects.get_or_create(user=post.autor)
         perfil_autor.xp_total += 1
         perfil_autor.save()
+        liked = True # Avisa que foi curtido
     else:
         # Se clicar de novo, remove a curtida
         curtida.delete()
-        # Opcional: remover o 1 XP se a curtida for desfeita
         perfil_autor = PerfilGamificacao.objects.get(user=post.autor)
         if perfil_autor.xp_total > 0:
             perfil_autor.xp_total -= 1
             perfil_autor.save()
+        liked = False # Avisa que foi descurtido
+
+    # SE FOR UM PEDIDO DO NOSSO JAVASCRIPT (AJAX), DEVOLVE APENAS OS DADOS EM JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.accepts('application/json'):
+        return JsonResponse({'liked': liked, 'likes_count': post.curtidas.count()})
             
-    return redirect('mural') 
+    # Fallback de segurança (caso o utilizador acesse o link diretamente pelo navegador)
+    url_anterior = request.META.get('HTTP_REFERER', '/')
+    return redirect(url_anterior)
+
 
 @login_required
 def realizar_checkin(request, evento_id):
@@ -850,3 +897,37 @@ def pre_login(request):
 def beneficios_view(request):
     # ... aqui depois faremos a integração com a API do Lecupon ...
     return render(request, 'beneficios.html', context)
+
+@login_required
+def hub_socio(request):
+    perfil = request.user.perfil
+    
+    # Verifica de forma segura se o utilizador tem o plano de sócio ativo
+    # (Usando a mesma lógica que você já tem na sua beneficios_view)
+    is_socio = hasattr(perfil, 'socio') and perfil.socio 
+    
+    if is_socio:
+        return redirect('beneficios') # Vai para a página de benefícios
+    else:
+        return redirect('seja_socio')
+    
+
+@login_required
+def adicionar_comentario(request, post_id):
+    if request.method == "POST":
+        texto = request.POST.get('comentario')
+        
+        if texto:
+            from organizadas.models import Post # Importação local para evitar erros
+            post = get_object_or_404(Post, id=post_id)
+            
+            # Cria e guarda o comentário
+            Comentario.objects.create(
+                post=post,
+                autor=request.user,
+                texto=texto
+            )
+            
+    # Redireciona de volta para a exata página onde o utilizador estava (o Mural)
+    url_anterior = request.META.get('HTTP_REFERER', '/')
+    return redirect(url_anterior)

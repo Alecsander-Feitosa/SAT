@@ -60,9 +60,18 @@ def admin_dashboard(request):
 
 @login_required
 def hub_view(request):
-    # Uma view básica para o HUB para evitar o erro 404
-    # Depois podemos adicionar a lógica completa aqui
-    return render(request, 'hub.html') 
+    perfil = request.user.perfil
+    
+    # BLOQUEIO ABSOLUTO: Se não tiver torcida ou NÃO estiver aprovado, volta para a página de escolher/aguardar torcida!
+    if not perfil.torcida or not perfil.aprovado:
+        messages.warning(request, "Acesso restrito. Escolha uma torcida ou aguarde a aprovação da diretoria.")
+        return redirect('torcidas') 
+        
+    context = {
+        'perfil': perfil,
+        'torcida': perfil.torcida,
+    }
+    return render(request, 'hub.html', context)
 
 # --- VIEWS DE AÇÕES (EVENTOS E CARAVANAS) ---
 @login_required

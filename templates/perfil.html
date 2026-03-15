@@ -5,18 +5,12 @@
 <style>
 /* MOTOR DE CORES DINÂMICAS DA TORCIDA */
 :root {
-    --cor-primaria: {{ user.perfil.torcida.cor_primaria|default:'#D37129' }};
-    --cor-secundaria: {{ user.perfil.torcida.cor_secundaria|default:'#FFFFFF' }};
-    --cor-terciaria: {{ user.perfil.torcida.cor_terciaria|default:'#1A1A1A' }};
-    --cor-fundo: {{ user.perfil.torcida.cor_fundo|default:'#f9fafb' }};
-    
-    {% if user.perfil.torcida.cor_fundo|lower == '#ffffff' or user.perfil.torcida.cor_fundo|lower == '#f9fafb' or not user.perfil.torcida.cor_fundo %}
-        --cor-texto-fundo: var(--cor-terciaria);
-    {% else %}
-        --cor-texto-fundo: var(--cor-secundaria);
-    {% endif %}
-}
-
+            /* Adicionado "and user.perfil.aprovado" para bloquear as cores antes da aprovação */
+            --cor-primaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %};
+            --cor-secundaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_secundaria }}{% else %}#FFFFFF{% endif %};
+            --cor-terciaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_terciaria }}{% else %}#1A1A1A{% endif %};
+            --cor-fundo: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_fundo }}{% else %}#F8F9FA{% endif %};
+        }
 /* Oculta menus antigos do base.html */
 .sticky.top-0 { display: none !important; }
 
