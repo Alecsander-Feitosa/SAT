@@ -1,12 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from .models import Torcida, Evento, Caravana
+from .models import Torcida, Evento, Caravana,Post, Curtida 
 from django.utils import timezone
 from .forms import TorcidaForm
 from django.utils.text import slugify
 from accounts.models import Perfil
-
 
 
 # --- FUNÇÕES AUXILIARES DE SEGURANÇA ---
@@ -17,6 +16,27 @@ def is_admin_geral(user):
 def lista_torcidas(request):
     torcidas = Torcida.objects.all()
     return render(request, 'organizadas/lista.html', {'torcidas': torcidas})
+
+@login_required
+def curtir_post(request, post_id):
+    # Procura o post pelo ID
+    post = get_object_or_404(Post, id=post_id)
+    
+    # Verifica se o utilizador já curtiu este post
+    curtida_existente = Curtida.objects.filter(post=post, usuario=request.user).first()
+    
+    if curtida_existente:
+        # Se já curtiu, remove a curtida (Deslike)
+        curtida_existente.delete()
+    else:
+        # Se ainda não curtiu, cria a curtida (Like)
+        Curtida.objects.create(post=post, usuario=request.user)
+        
+    # Redireciona o utilizador de volta para a exata página onde ele estava
+    # (Seja no Dashboard ou no Mural Social)
+    url_anterior = request.META.get('HTTP_REFERER', '/')
+    return redirect(url_anterior)
+
 
 def perfil_torcida(request, slug):
     torcida = get_object_or_404(Torcida, slug=slug)

@@ -7,26 +7,73 @@
     <title>{{ nome_tema }} - SAT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
     <style>
-        :root { 
-            /* A variável agora puxa dinamicamente a cor do context_processor */
-            --sat-tema: {{ cor_tema|default:'#CD7F32' }}; 
+        :root {
+            --cor-primaria: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %};
+            --cor-secundaria: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_secundaria }}{% else %}#FFFFFF{% endif %};
+            --cor-terciaria: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_terciaria }}{% else %}#1A1A1A{% endif %};
+            --cor-fundo: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_fundo }}{% else %}#F8F9FA{% endif %};
         }
-        body { font-family: 'Inter', sans-serif; background-color: #FFFFFF !important; color: #1A1A1A; margin: 0; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Classes utilitárias dinâmicas baseadas na cor da Torcida */
-        .bg-tema { background-color: var(--sat-tema) !important; }
-        .text-tema { color: var(--sat-tema) !important; }
-        .border-tema { border-color: var(--sat-tema) !important; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo) !important; color: var(--cor-terciaria); margin: 0; }
+        
+        /* Classes Utilitárias SAT */
+        .fundo-app { background-color: var(--cor-fundo) !important; }
+        .fundo-card { background-color: var(--cor-secundaria) !important; }
+        .fundo-tema { background-color: var(--cor-primaria) !important; }
+        
+        .texto-main { color: var(--cor-terciaria) !important; }
+        .texto-tema { color: var(--cor-primaria) !important; }
+        .texto-claro { color: var(--cor-secundaria) !important; }
+        
+        .border-suave { border-color: rgba(150, 150, 150, 0.2) !important; }
+        .border-tema { border-color: var(--cor-primaria) !important; }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="p-8 text-white">
+<body class="fundo-app">
+    
     {% if user.is_authenticated %}
-    <div id="sidebarOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden transition-opacity" onclick="toggleSidebar()"></div>
-    <div id="satSidebar" class="fixed inset-y-0 left-0 w-72 bg-white z-[101] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out border-r border-gray-100 overflow-y-auto no-scrollbar">
+    <div class="fixed top-0 left-0 w-full fundo-card pt-6 shadow-md z-[90] border-b border-suave transition-colors duration-500">
+        <div class="flex justify-between items-center px-4 mb-4 relative min-h-[40px]">
+            <button onclick="toggleSearch()" class="flex items-center gap-2 texto-main hover:opacity-70 transition-opacity relative z-10">
+                <i class="bi bi-search text-xl font-bold"></i>
+                <span class="font-bold text-sm hidden sm:inline">Buscar</span>
+            </button>
+            <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center h-full z-0">
+                {% if user.perfil.torcida and user.perfil.torcida.logo %}
+                    <img src="{{ user.perfil.torcida.logo.url }}" alt="Logo" class="h-10 object-contain drop-shadow-md">
+                {% else %}
+                    <h1 class="font-black italic texto-tema text-2xl uppercase tracking-tighter">{% if user.perfil.torcida %}{{ user.perfil.torcida.sigla }}{% else %}SAT{% endif %}</h1>
+                {% endif %}
+            </div>
+            <button onclick="toggleSidebar()" class="texto-main hover:opacity-70 transition-opacity relative z-10">
+                <i class="bi bi-list text-3xl"></i>
+            </button>
+        </div>
         
-        <div class="p-8 bg-tema text-white">
+        <div id="searchBar" class="hidden px-4 pb-4 w-full transition-all duration-300">
+            <form action="#" method="GET" class="relative">
+                <input type="text" name="q" placeholder="Pesquisar..." class="w-full fundo-app border border-suave text-sm rounded-xl py-3 pl-4 pr-10 texto-main font-medium focus:outline-none shadow-inner transition-all">
+                <button type="submit" class="absolute right-3 top-3 texto-tema opacity-50 hover:opacity-100 transition-opacity"><i class="bi bi-search text-lg font-bold"></i></button>
+            </form>
+        </div>
+        
+        <div class="flex justify-between items-center w-full px-4">
+            <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'dashboard' %}border-tema texto-tema font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-sm transition-all whitespace-nowrap">Seu time</a>
+            <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'mural' %}border-tema texto-tema font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-sm transition-all whitespace-nowrap">SAT social</a>
+            <a href="{% if user.perfil.torcida %}{% url 'hub_organizadas' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex-1 text-center pb-2 border-b-[3px] {% if 'hub' in request.resolver_match.url_name %}border-tema texto-tema font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-sm transition-all whitespace-nowrap">
+                {% if user.perfil.torcida %} Torcida {% else %} Sócio {% endif %}
+            </a>
+        </div>
+    </div>
+
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden transition-opacity" onclick="toggleSidebar()"></div>
+    <div id="satSidebar" class="fixed inset-y-0 left-0 w-72 fundo-card z-[101] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out border-r border-suave overflow-y-auto no-scrollbar">
+        <div class="p-8 fundo-tema texto-claro">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
                     <i class="bi bi-person-fill text-2xl"></i>
@@ -37,72 +84,52 @@
                 </div>
             </div>
         </div>
-
         <div class="p-4 space-y-2">
-            <p class="px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest my-4">Menu Principal</p>
-            <a href="{% url 'dashboard' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-gray-50 no-underline group transition-all">
-                <i class="bi bi-grid-1x2-fill text-tema text-lg"></i>
-                <span class="text-sm font-bold text-[#1A1A1A]">Dashboard</span>
+            <p class="px-4 text-[9px] font-black texto-main opacity-40 uppercase tracking-widest my-4">Menu Principal</p>
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
+                <i class="bi bi-grid-1x2-fill texto-tema text-lg"></i><span class="text-sm font-bold texto-main">Dashboard</span>
             </a>
-            <a href="#" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-gray-50 no-underline group transition-all">
-                <i class="bi bi-chat-quote-fill text-tema text-lg"></i>
-                <span class="text-sm font-bold text-[#1A1A1A]">Mural Social</span>
+            <a href="{% url 'loja' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
+                <i class="bi bi-cart3 texto-tema text-lg"></i><span class="text-sm font-bold texto-main">Loja Oficial</span>
             </a>
-            <a href="{% url 'ranking' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-gray-50 no-underline group transition-all">
-                <i class="bi bi-trophy-fill text-tema text-lg"></i>
-                <span class="text-sm font-bold text-[#1A1A1A]">Ranking</span>
-            </a>
-            <hr class="border-gray-50 my-4">
+            <hr class="border-suave my-4">
             <a href="#" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-red-50 no-underline text-red-500">
-                <i class="bi bi-door-open-fill text-lg"></i>
-                <span class="text-sm font-bold">Sair</span>
+                <i class="bi bi-door-open-fill text-lg"></i><span class="text-sm font-bold">Sair</span>
             </a>
         </div>
     </div>
-
-    <div class="flex items-center justify-between px-5 py-4 bg-white sticky top-0 z-[50] border-b border-gray-100">
-        <button onclick="toggleSidebar()" class="text-2xl text-[#1A1A1A]"><i class="bi bi-list"></i></button>
-        <span class="font-black italic text-tema uppercase">{{ nome_tema }}</span>
-        <div class="w-8">
-            {% if logo_tema %}
-                <img src="{{ logo_tema }}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
-            {% endif %}
-        </div> 
-    </div>
     {% endif %}
 
-    <main class="{% if user.is_authenticated %}pb-28{% endif %} text-[#1A1A1A]">
+    <main class="{% if user.is_authenticated %}pt-[140px] pb-28{% endif %} w-full min-h-screen">
         {% block content %}{% endblock %}
     </main>
 
     {% if user.is_authenticated %}
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 flex justify-between items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-        
-        <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 no-underline w-14 group">
-            <i class="bi bi-house-door-fill text-2xl transition-colors {% if request.resolver_match.url_name == 'dashboard' %}text-tema{% else %}text-gray-300 group-hover:text-gray-400{% endif %}"></i>
-            <span class="text-[8px] font-black uppercase tracking-widest transition-colors {% if request.resolver_match.url_name == 'dashboard' %}text-tema{% else %}text-gray-400{% endif %}">Home</span>
+    <nav class="fixed bottom-0 left-0 w-full fundo-card shadow-[0_-15px_30px_rgba(0,0,0,0.08)] rounded-t-[30px] z-[100] px-2 pt-2 pb-6 flex justify-between items-end border-t border-suave">
+        <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 transition-opacity {% if request.resolver_match.url_name == 'dashboard' %}texto-tema{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
+            <i class="bi bi-house-door-fill text-2xl drop-shadow-sm"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Início</span>
         </a>
-
-        <a href="#" class="flex flex-col items-center gap-1 no-underline w-14 group">
-            <i class="bi bi-bag-fill text-2xl transition-colors {% if request.resolver_match.url_name == 'loja' %}text-tema{% else %}text-gray-300 group-hover:text-gray-400{% endif %}"></i>
-            <span class="text-[8px] font-black uppercase tracking-widest transition-colors {% if request.resolver_match.url_name == 'loja' %}text-tema{% else %}text-gray-400{% endif %}">Loja</span>
+        <a href="{% url 'loja' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 transition-opacity {% if 'loja' in request.resolver_match.url_name or 'carrinho' in request.resolver_match.url_name %}texto-tema{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
+            <i class="bi bi-cart3 text-2xl font-bold"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Loja</span>
         </a>
-        
-        <a href="#" class="flex flex-col items-center gap-1 no-underline w-14 group">
-            <i class="bi bi-star-fill text-2xl transition-colors {% if request.resolver_match.url_name == 'beneficios_view' %}text-tema{% else %}text-gray-300 group-hover:text-gray-400{% endif %}"></i>
-            <span class="text-[8px] font-black uppercase tracking-widest transition-colors {% if request.resolver_match.url_name == 'beneficios_view' %}text-tema{% else %}text-gray-400{% endif %}">Vantagens</span>
+        <a href="{% if user.perfil.torcida %}{% url 'hub_organizadas' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex flex-col items-center relative -top-7 w-[24%] group">
+            <div class="w-16 h-16 fundo-card rounded-full p-1.5 shadow-[0_-4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center border border-suave">
+                <div class="w-full h-full fundo-tema rounded-full flex items-center justify-center texto-claro shadow-inner group-hover:scale-105 transition-transform duration-300">
+                    <i class="bi {% if user.perfil.torcida %}bi-shield-check{% else %}bi-gem{% endif %} text-2xl"></i>
+                </div>
+            </div>
+            <span class="text-[9px] font-black texto-tema uppercase tracking-wider mt-1">{% if user.perfil.torcida %} Torcida {% else %} Sócio {% endif %}</span>
         </a>
-
-        <a href="#" class="flex flex-col items-center gap-1 no-underline w-14 group">
-            <i class="bi bi-dice-5-fill text-2xl transition-colors {% if request.resolver_match.url_name == 'bet_manutencao' %}text-tema{% else %}text-gray-300 group-hover:text-gray-400{% endif %}"></i>
-            <span class="text-[8px] font-black uppercase tracking-widest transition-colors {% if request.resolver_match.url_name == 'bet_manutencao' %}text-tema{% else %}text-gray-400{% endif %}">BET</span>
+        <a href="{% url 'bet_manutencao' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 transition-opacity {% if request.resolver_match.url_name == 'bet_manutencao' %}texto-tema{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
+            <i class="bi bi-dice-5 text-2xl font-bold"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">BET</span>
         </a>
-        
-        <a href="#" class="flex flex-col items-center gap-1 no-underline w-14 group">
-            <i class="bi bi-person-fill text-2xl transition-colors {% if request.resolver_match.url_name == 'perfil' %}text-tema{% else %}text-gray-300 group-hover:text-gray-400{% endif %}"></i>
-            <span class="text-[8px] font-black uppercase tracking-widest transition-colors {% if request.resolver_match.url_name == 'perfil' %}text-tema{% else %}text-gray-400{% endif %}">Perfil</span>
+        <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 transition-opacity {% if request.resolver_match.url_name == 'perfil' %}texto-tema{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
+            <i class="bi bi-person-fill text-2xl drop-shadow-sm"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Perfil</span>
         </a>
-
     </nav>
     {% endif %}
 
@@ -112,6 +139,15 @@
             const overlay = document.getElementById('sidebarOverlay');
             sidebar.classList.toggle('-translate-x-full');
             overlay.classList.toggle('hidden');
+        }
+        function toggleSearch() {
+            const searchBar = document.getElementById('searchBar');
+            if (searchBar.classList.contains('hidden')) {
+                searchBar.classList.remove('hidden');
+                setTimeout(() => searchBar.querySelector('input').focus(), 100); 
+            } else {
+                searchBar.classList.add('hidden');
+            }
         }
     </script>
 </body>

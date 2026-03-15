@@ -5,31 +5,35 @@ from django.db import transaction
 from django.db.models import Sum, Q
 from .models import Produto, ItemCarrinho, Pedido, ItemPedido, Variacao
 
+@login_required
 def loja_view(request):
     total_itens = 0
+    torcida_usuario = None
     
-    if request.user.is_authenticated:
-        # Se o utilizador tem uma torcida vinculada ao perfil
-        if request.user.perfil.torcida:
-            produtos = Produto.objects.filter(
-                Q(torcida=request.user.perfil.torcida) | Q(torcida__isnull=True)
-            )
-        else:
-            # Se for apenas um membro SAT sem torcida
-            produtos = Produto.objects.filter(torcida__isnull=True)
-            
-        total_itens = ItemCarrinho.objects.filter(usuario=request.user).aggregate(Sum('quantidade'))['quantidade__sum'] or 0
+    if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+        torcida_usuario = request.user.perfil.torcida
+        produtos = Produto.objects.filter(torcida=torcida_usuario)
     else:
-        # Visitantes não logados veem apenas produtos gerais
         produtos = Produto.objects.filter(torcida__isnull=True)
+        
+    total_itens = ItemCarrinho.objects.filter(usuario=request.user).aggregate(Sum('quantidade'))['quantidade__sum'] or 0
 
-    return render(request, 'store.html', {'produtos': produtos, 'total_itens_carrinho': total_itens})
+    # NOVO: Pega as categorias únicas dos produtos disponíveis (remove as vazias)
+    categorias = produtos.exclude(categoria__isnull=True).exclude(categoria__exact='').values_list('categoria', flat=True).distinct()
+
+    context = {
+        'produtos': produtos,
+        'total_itens_carrinho': total_itens,
+        'torcida': torcida_usuario,
+        'categorias': categorias # <- Enviamos a lista de categorias aqui
+    }
+    return render(request, 'store.html', context)
 
 @login_required
 def adicionar_ao_carrinho(request, produto_id):
-    # Proteção de segurança: Garantir que ele só adiciona produtos permitidos
-    if request.user.perfil.torcida:
-        produto = get_object_or_404(Produto, id=produto_id, torcida__in=[request.user.perfil.torcida, None])
+    # Proteção: Garantir que ele só adiciona produtos exclusivos da sua torcida
+    if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+        produto = get_object_or_404(Produto, id=produto_id, torcida=request.user.perfil.torcida)
     else:
         produto = get_object_or_404(Produto, id=produto_id, torcida__isnull=True)
 
@@ -51,6 +55,18 @@ def adicionar_ao_carrinho(request, produto_id):
             item.save()
             
     return redirect('loja')
+
+@login_required
+def detalhe_produto(request, produto_id):
+    # Proteção na visualização do detalhe do produto
+    if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+        produto = get_object_or_404(Produto, id=produto_id, torcida=request.user.perfil.torcida)
+    else:
+        produto = get_object_or_404(Produto, id=produto_id, torcida__isnull=True)
+        
+    return render(request, 'loja/detalhe_produto.html', {'produto': produto})
+
+
 
 @login_required
 def ver_carrinho(request):
@@ -82,14 +98,6 @@ def finalizar_checkout(request):
         
     return render(request, 'loja/sucesso.html', {'pedido': pedido})
     
-def detalhe_produto(request, produto_id):
-    # Proteção na visualização do detalhe do produto
-    if request.user.is_authenticated and request.user.perfil.torcida:
-        produto = get_object_or_404(Produto, id=produto_id, torcida__in=[request.user.perfil.torcida, None])
-    else:
-        produto = get_object_or_404(Produto, id=produto_id, torcida__isnull=True)
-        
-    return render(request, 'loja/detalhe_produto.html', {'produto': produto})
 
 @login_required
 def checkout_exemplo_view(request):

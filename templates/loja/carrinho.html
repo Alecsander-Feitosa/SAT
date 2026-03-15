@@ -2,73 +2,76 @@
 {% load static %}
 
 {% block content %}
-<div class="min-h-screen bg-[#F8F9FA] pb-40">
-    <div class="px-5 pt-10 mb-6 flex items-center">
-        <a href="{% url 'loja' %}" class="text-[#1A1A1A] mr-4">
-            <i class="bi bi-arrow-left text-2xl"></i>
-        </a>
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-[#1A1A1A]">
-            MEU <span class="text-[#D37129]">CARRINHO</span>
+<div class="px-5 mb-6 pt-6 flex items-center gap-4">
+    <a href="{% url 'loja' %}" class="w-10 h-10 fundo-card rounded-2xl flex items-center justify-center shadow-sm border border-suave texto-main hover:scale-105 transition-transform">
+        <i class="bi bi-arrow-left text-lg font-bold"></i>
+    </a>
+    <div>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">
+            MEU <span class="texto-tema">CARRINHO</span>
         </h1>
+        <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest">Revise os seus itens</p>
     </div>
-
-    <div class="px-5 space-y-4">
-        {% for item in itens %}
-        <div class="bg-white p-4 rounded-[24px] shadow-sm border border-gray-100 flex items-center gap-4">
-            <div class="w-20 h-20 bg-[#1a1c1e] rounded-2xl overflow-hidden flex-shrink-0">
-                {% if item.produto.imagem %}
-                    <img src="{{ item.produto.imagem.url }}" class="w-full h-full object-cover">
-                {% else %}
-                    <div class="w-full h-full flex items-center justify-center">
-                        <i class="bi bi-box text-gray-700"></i>
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="flex-grow">
-                <h3 class="font-bold text-[#1A1A1A] text-sm">{{ item.produto.nome }}</h3>
-                <p class="text-[#D37129] font-black text-xs mt-1">R$ {{ item.produto.preco }}</p>
-                
-                <div class="flex items-center mt-2 gap-3">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase">Qtd: {{ item.quantidade }}</span>
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-2">
-                <a href="{% url 'remover_do_carrinho' item.id %}" class="text-red-500 p-2">
-                    <i class="bi bi-trash"></i>
-                </a>
-            </div>
-        </div>
-        {% empty %}
-        <div class="text-center py-20">
-            <i class="bi bi-cart-dash text-5xl text-gray-200"></i>
-            <p class="text-gray-400 font-bold mt-4">O seu carrinho está vazio.</p>
-            <a href="{% url 'loja' %}" class="inline-block mt-6 px-8 py-3 bg-[#1a1c1e] text-white rounded-full font-black italic uppercase text-xs">
-                Voltar à Loja
-            </a>
-        </div>
-        {% endfor %}
-    </div>
-
-    {% if itens %}
-    <div class="fixed bottom-24 left-0 right-0 px-5">
-        <div class="bg-[#1a1c1e] p-6 rounded-[32px] shadow-2xl border border-white/10">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Total do Pedido</p>
-                    <p class="text-2xl font-black text-white italic">R$ {{ total_geral }}</p>
-                </div>
-                <i class="bi bi-credit-card-2-back text-[#D37129] text-3xl"></i>
-            </div>
-            
-            <form action="{% url 'checkout_exemplo' %}" method="GET"> 
-                <button type="submit" class="w-full py-4 bg-[#D37129] text-white rounded-2xl font-black italic uppercase shadow-lg">
-                    Finalizar Compra
-                </button>
-            </form>
-        </div>
-    </div>
-    {% endif %}
 </div>
+
+<div class="px-5 space-y-4 pb-48">
+    {% for item in itens %}
+    <div class="fundo-card p-4 rounded-[24px] shadow-sm border border-suave flex items-center gap-4 relative overflow-hidden group">
+        <div class="w-20 h-20 fundo-app rounded-2xl overflow-hidden flex-shrink-0 border border-suave">
+            {% if item.produto.imagem %}
+                <img src="{{ item.produto.imagem.url }}" class="w-full h-full object-cover">
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center">
+                    <i class="bi bi-box texto-main opacity-20 text-2xl"></i>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="flex-grow pr-6">
+            <h3 class="font-bold texto-main text-sm leading-tight line-clamp-2">{{ item.produto.nome }}</h3>
+            <p class="texto-tema font-black text-xs mt-1">R$ {{ item.produto.preco }}</p>
+            
+            <div class="flex items-center mt-2">
+                <span class="text-[10px] font-bold texto-main opacity-60 uppercase bg-black/5 px-2 py-1 rounded-md">Qtd: {{ item.quantidade }}</span>
+            </div>
+        </div>
+
+        <a href="{% url 'remover_do_carrinho' item.id %}" class="absolute top-4 right-4 w-8 h-8 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors shadow-sm">
+            <i class="bi bi-trash-fill text-sm"></i>
+        </a>
+    </div>
+    {% empty %}
+    <div class="text-center py-20 fundo-card rounded-[32px] border border-suave shadow-sm">
+        <div class="w-20 h-20 mx-auto fundo-app rounded-full flex items-center justify-center mb-4 border border-suave">
+            <i class="bi bi-cart-x text-3xl texto-main opacity-30"></i>
+        </div>
+        <p class="texto-main opacity-60 font-bold text-sm mb-6">O seu carrinho está vazio.</p>
+        <a href="{% url 'loja' %}" class="inline-block px-8 py-3 fundo-tema texto-claro rounded-2xl font-black italic uppercase text-xs shadow-md hover:opacity-90 active:scale-95 transition-all">
+            Ir para a Loja
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+{% if itens %}
+<div class="fixed bottom-24 left-0 w-full px-5 z-[80]">
+    <div class="fundo-card p-6 rounded-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] border border-suave">
+        <div class="flex justify-between items-center mb-5">
+            <div>
+                <p class="texto-main opacity-50 text-[10px] font-bold uppercase tracking-widest">Total a pagar</p>
+                <p class="text-2xl font-black texto-main italic">R$ {{ total_geral }}</p>
+            </div>
+            <div class="w-12 h-12 fundo-app rounded-full flex items-center justify-center border border-suave">
+                <i class="bi bi-credit-card-fill texto-tema text-xl"></i>
+            </div>
+        </div>
+        
+        <form action="{% url 'checkout_exemplo' %}" method="GET"> 
+            <button type="submit" class="w-full py-4 fundo-tema texto-claro rounded-2xl font-black italic uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+                Finalizar Pedido <i class="bi bi-arrow-right-short text-2xl leading-none"></i>
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

@@ -846,3 +846,7 @@ def pre_login(request):
         
     return render(request, 'pre_login.html')
 
+@login_required
+def beneficios_view(request):
+    # ... aqui depois faremos a integração com a API do Lecupon ...
+    return render(request, 'beneficios.html', context)

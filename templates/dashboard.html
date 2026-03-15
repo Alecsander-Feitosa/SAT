@@ -4,19 +4,29 @@
 {% block content %}
 <style>
     :root {
-        --cor-primaria: {{ torcida.cor_primaria|default:'#D37129' }};
-        --cor-secundaria: {{ torcida.cor_secundaria|default:'#FFFFFF' }};
-        --cor-terciaria: {{ torcida.cor_terciaria|default:'#000000' }};
-        --cor-fundo: {{ torcida.cor_fundo|default:'#121212' }};
-        
-        {% if torcida.cor_fundo|lower == '#ffffff' or torcida.cor_fundo|lower == '#f9fafb' or not torcida.cor_fundo %}
-            --cor-texto-fundo: var(--cor-terciaria);
+        /* FECHADURA ABSOLUTA: Só puxa as cores da torcida se estiver APROVADO */
+        {% if user.perfil.torcida and user.perfil.aprovado %}
+            --cor-primaria: {{ user.perfil.torcida.cor_primaria|default:'#D37129' }};
+            --cor-secundaria: {{ user.perfil.torcida.cor_secundaria|default:'#FFFFFF' }};
+            --cor-terciaria: {{ user.perfil.torcida.cor_terciaria|default:'#000000' }};
+            --cor-fundo: {{ user.perfil.torcida.cor_fundo|default:'#121212' }};
+            
+            {% if user.perfil.torcida.cor_fundo|lower == '#ffffff' or user.perfil.torcida.cor_fundo|lower == '#f9fafb' or not user.perfil.torcida.cor_fundo %}
+                --cor-texto-fundo: var(--cor-terciaria);
+            {% else %}
+                --cor-texto-fundo: var(--cor-secundaria);
+            {% endif %}
         {% else %}
-            --cor-texto-fundo: var(--cor-secundaria);
+            /* TEMA PADRÃO SAT - Para utilizadores PENDENTES ou sem torcida */
+            --cor-primaria: #D37129;
+            --cor-secundaria: #FFFFFF;
+            --cor-terciaria: #000000;
+            --cor-fundo: #121212;
+            --cor-texto-fundo: #FFFFFF;
         {% endif %}
     }
     
-    nav, .sticky.top-0 { display: none !important; }
+    .sticky.top-0 { display: none !important; }
     
     body, main { 
         padding: 0 !important; 
@@ -53,10 +63,10 @@
             </button>
             
             <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center h-full z-0">
-                {% if torcida.logo %}
-                    <img src="{{ torcida.logo.url }}" alt="{{ torcida.nome }}" class="h-16 object-contain drop-shadow-md transform scale-110">
+                {% if user.perfil.torcida and user.perfil.aprovado and user.perfil.torcida.logo %}
+                    <img src="{{ user.perfil.torcida.logo.url }}" alt="{{ user.perfil.torcida.nome }}" class="h-16 object-contain drop-shadow-md transform scale-110">
                 {% else %}
-                    <h1 class="font-black italic texto-tema text-2xl uppercase tracking-tighter">{{ torcida.sigla|default:"TIME" }}</h1>
+                    <h1 class="font-black italic texto-tema text-2xl uppercase tracking-tighter">TIME</h1>
                 {% endif %}
             </div>
             
@@ -80,9 +90,9 @@
             <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] border-tema texto-tema font-bold text-sm whitespace-nowrap">Seu time</a>
             <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-medium text-sm transition-opacity whitespace-nowrap">SAT social</a>
             
-            <a href="{% if torcida %}{% url 'hub' %}{% else %}{% url 'seja_socio' %}{% endif %}" 
+            <a href="{% if user.perfil.torcida and user.perfil.aprovado %}{% url 'hub' %}{% else %}{% url 'seja_socio' %}{% endif %}" 
                 class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-bold text-sm transition-opacity whitespace-nowrap">
-                {% if torcida %} Torcida {% elif user.perfil.torcida and not user.perfil.aprovado %} Pendente {% else %} Seja sócio {% endif %}
+                {% if user.perfil.torcida and user.perfil.aprovado %} Torcida {% elif user.perfil.torcida and not user.perfil.aprovado %} Pendente {% else %} Seja sócio {% endif %}
             </a>
         </div>
     </div>
@@ -299,36 +309,6 @@
     </div>
 </div>
 
-<div class="fixed bottom-0 left-0 w-full fundo-card shadow-[0_-15px_30px_rgba(0,0,0,0.08)] rounded-t-[30px] z-50 px-2 pt-2 pb-safe flex justify-between items-end border-t border-suave">
-    <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-tema">
-        <i class="bi bi-house-door-fill text-2xl drop-shadow-sm"></i>
-        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Início</span>
-    </a>
-    <a href="{% url 'loja' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
-        <i class="bi bi-cart3 text-2xl font-bold"></i>
-        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Loja</span>
-    </a>
-    
-    <a href="{% if torcida %}{% url 'hub' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex flex-col items-center relative -top-7 w-[24%] group">
-        <div class="w-16 h-16 fundo-card rounded-full p-1.5 shadow-[0_-4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center border border-suave">
-            <div class="w-full h-full fundo-tema rounded-full flex items-center justify-center texto-claro shadow-inner group-hover:scale-105 transition-transform duration-300">
-                <i class="bi {% if torcida %}bi-shield-check{% else %}bi-gem{% endif %} text-2xl"></i>
-            </div>
-        </div>
-        <span class="text-[9px] font-black texto-tema uppercase tracking-wider mt-1">
-            {% if torcida %} Torcida {% elif user.perfil.torcida and not user.perfil.aprovado %} Pendente {% else %} Seja Sócio {% endif %}
-        </span>
-    </a>
-    
-    <a href="{% url 'bet_manutencao' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
-        <i class="bi bi-dice-5 text-2xl font-bold"></i>
-        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">BET</span>
-    </a>
-    <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
-        <i class="bi bi-person text-2xl font-bold"></i>
-        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Perfil</span>
-    </a>
-</div>
 
 <script>
     function toggleSearch() {
@@ -342,31 +322,24 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        // 1. Script Scroll Infinito (Agora clona o Dashboard Completo)
+        // 1. Script Scroll Infinito
         const feedContainer = document.getElementById('feed-loop-container');
         if (feedContainer) {
-            // Guarda o HTML de TUDO (Notícias, Parceiros, Publicidade, Mural...)
             const originalFeedHTML = feedContainer.innerHTML;
             
             window.addEventListener('scroll', function() {
-                // Se o utilizador chegar perto do fundo (300px)
                 if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 300) {
-                    // Repete o dashboard inteiro
                     feedContainer.insertAdjacentHTML('beforeend', originalFeedHTML);
-                    
-                    // Reativa a rotação das publicidades no novo bloco clonado
                     iniciarRotacaoPublicidade();
                 }
             });
         }
 
-        // 2. Script Rotação Publicidade Paga (Isolado para funcionar no Loop)
+        // 2. Script Rotação Publicidade Paga
         function iniciarRotacaoPublicidade() {
-            // Procura todos os blocos de publicidade (incluindo os que acabaram de ser clonados)
             const carrosseis = document.querySelectorAll('#ad-carousel');
             
             carrosseis.forEach(carousel => {
-                // Evita duplicar o timer num carrossel que já está a rodar
                 if (carousel.dataset.ativo === "true") return;
                 carousel.dataset.ativo = "true";
                 
@@ -393,7 +366,6 @@
             });
         }
 
-        // Inicia a rotação de anúncios assim que a página carrega a primeira vez
         iniciarRotacaoPublicidade();
     });
 </script>

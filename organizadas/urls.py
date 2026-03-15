@@ -17,6 +17,8 @@ urlpatterns = [
     path('caravana/<int:caravana_id>/reservar/', views.reservar_caravana, name='reservar_caravana'),
     path('eventos/', views.lista_eventos, name='lista_eventos_org'),
     
+    path('post/<int:post_id>/curtir/', views.curtir_post, name='curtir_post'),
+
     # Mudei o nome para 'hub_organizadas' para não dar conflito com o 'hub' do accounts
     path('hub/', views.hub_view, name='hub_organizadas'), 
 

@@ -18,7 +18,7 @@
 }
 
 /* Oculta menus antigos do base.html */
-nav, .sticky.top-0 { display: none !important; }
+.sticky.top-0 { display: none !important; }
 
 body, main { 
     padding: 0 !important; 
@@ -264,40 +264,6 @@ input[type="file"]::file-selector-button {
 
         </form>
     </div>
-</div>
-
-<div class="fixed bottom-0 left-0 w-full fundo-card shadow-[0_-15px_30px_rgba(0,0,0,0.08)] rounded-t-[30px] z-50 px-2 pt-2 pb-safe flex justify-between items-end border-t border-suave">
-    
-    <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
-        <i class="bi bi-house-door-fill text-2xl drop-shadow-sm"></i>
-        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Início</span>
-    </a>
-    
-    <a href="{% url 'loja' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
-        <i class="bi bi-cart3 text-2xl font-bold"></i>
-        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Loja</span>
-    </a>
-    
-    <a href="{% if user.perfil.torcida %}{% url 'hub_organizadas' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex flex-col items-center relative -top-7 w-[24%] group">
-        <div class="w-16 h-16 fundo-card rounded-full p-1.5 shadow-[0_-4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center border border-suave">
-            <div class="w-full h-full fundo-tema rounded-full flex items-center justify-center texto-claro shadow-inner group-hover:scale-105 transition-transform duration-300">
-                <i class="bi {% if user.perfil.torcida %}bi-shield-check{% else %}bi-gem{% endif %} text-2xl"></i>
-            </div>
-        </div>
-        <span class="text-[9px] font-black texto-tema uppercase tracking-wider mt-1">
-            {% if user.perfil.torcida %} Torcida {% else %} Seja Sócio {% endif %}
-        </span>
-    </a>
-    
-    <a href="{% url 'bet_manutencao' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-main opacity-40 hover:opacity-100 transition-opacity">
-        <i class="bi bi-dice-5 text-2xl font-bold"></i>
-        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">BET</span>
-    </a>
-    
-    <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 w-[18%] pb-2 texto-tema">
-        <i class="bi bi-person-fill text-2xl drop-shadow-sm"></i>
-        <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Perfil</span>
-    </a>
 </div>
 
 <script>
