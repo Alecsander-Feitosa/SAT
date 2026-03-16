@@ -108,7 +108,7 @@
 
             <div class="px-5 py-4 flex items-center gap-6 fundo-app border-t border-suave">
                 
-                <button type="button" onclick="curtirPostAsync('{% url 'curtir_post' post.id %}', this)" class="btn-curtir flex items-center gap-2 transition-all group {% if user in post.curtidas.all %}text-red-500{% else %}texto-main opacity-50 hover:opacity-100{% endif %}">
+                <button type="button" onclick="curtirPostAsync('{% url 'social_curtir_post' post.id %}', this)" class="btn-curtir flex items-center gap-2 transition-all group {% if user in post.curtidas.all %}text-red-500{% else %}texto-main opacity-50 hover:opacity-100{% endif %}">
                     <i class="icone-coracao bi {% if user in post.curtidas.all %}bi-heart-fill{% else %}bi-heart{% endif %} text-xl drop-shadow-sm transition-transform group-active:scale-75"></i>
                     <span class="contador-curtidas text-xs font-black">{{ post.curtidas.count }}</span>
                 </button>
@@ -133,17 +133,17 @@
                         <div class="fundo-card p-2 px-3 rounded-2xl rounded-tl-none border border-suave flex-1 shadow-sm">
                             <div class="flex justify-between items-center mb-0.5">
                                 <h5 class="texto-tema font-black text-[9px] uppercase tracking-wider">{{ comentario.autor.username }}</h5>
-                                <span class="text-[8px] texto-main opacity-40 font-bold uppercase">{{ comentario.data_criacao|timesince }}</span>
+                                <span class="text-[8px] texto-main opacity-40 font-bold uppercase">{{ comentario.data|timesince }}</span>
                             </div>
                             <p class="texto-main text-xs font-medium">{{ comentario.texto }}</p>
                         </div>
                     </div>
                     {% empty %}
-                    <p class="text-xs texto-main opacity-50 font-medium text-center py-2">Sem comentários ainda. Seja o primeiro a comentar!</p>
+                    <p class="text-xs texto-main opacity-50 font-medium text-center py-2 msg-vazia">Sem comentários ainda. Seja o primeiro a comentar!</p>
                     {% endfor %}
                 </div>
 
-                <form action="{% url 'adicionar_comentario' post.id %}" method="POST" class="flex gap-2">
+                <form onsubmit="adicionarComentarioAsync(event, '{% url 'social_comentar_post' post.id %}', {{ post.id }})" class="flex gap-2">
                     {% csrf_token %}
                     <input type="text" name="comentario" placeholder="Escreva o seu comentário..." required class="flex-1 bg-transparent border border-suave rounded-full px-4 py-1.5 text-xs texto-main focus:outline-none focus:border-tema font-medium">
                     <button type="submit" class="fundo-tema texto-claro w-8 h-8 rounded-full flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 transition-transform">
@@ -186,54 +186,127 @@
         }
     }
 
-    // 3. Curtir Assíncrono (A Mágica acontece aqui!)
+    // 3. Função para pegar o token CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // 4. Curtir Assíncrono 
     async function curtirPostAsync(url, btnElement) {
         const icone = btnElement.querySelector('.icone-coracao');
         const contador = btnElement.querySelector('.contador-curtidas');
+        const csrftoken = getCookie('csrftoken'); 
 
-        // Animação de pulsar imediata
         icone.classList.add('animate-heartbeat');
         setTimeout(() => icone.classList.remove('animate-heartbeat'), 400);
 
         try {
             const response = await fetch(url, {
-                method: 'GET',
+                method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken 
                 }
             });
 
             if (response.ok) {
                 const data = await response.json();
-                console.log("Sucesso! Status da curtida:", data.liked); // Para ajudar a testar
-                
-                // Atualiza o contador
                 contador.textContent = data.likes_count;
 
                 if (data.liked) {
-                    // SE CURTIU: Fica Vermelho
                     btnElement.classList.remove('texto-main', 'opacity-50');
                     btnElement.classList.add('text-red-500');
-                    
                     icone.classList.remove('bi-heart');
                     icone.classList.add('bi-heart-fill');
-                    icone.style.color = '#ef4444'; // Força o vermelho vivo (Red-500)
+                    icone.style.color = '#ef4444'; 
                     icone.style.opacity = '1';
                 } else {
-                    // SE DESCURTIU: Fica Normal/Transparente
                     btnElement.classList.remove('text-red-500');
                     btnElement.classList.add('texto-main', 'opacity-50');
-                    
                     icone.classList.remove('bi-heart-fill');
                     icone.classList.add('bi-heart');
-                    icone.style.color = ''; // Remove a cor forçada
+                    icone.style.color = ''; 
                 }
-            } else {
-                console.error("O servidor não respondeu com OK", response.status);
             }
         } catch (error) {
             console.error('Erro ao curtir a publicação:', error);
+        }
+    }
+
+    // 5. Comentar Assíncrono
+    async function adicionarComentarioAsync(event, url, postId) {
+        event.preventDefault(); 
+        
+        const form = event.target;
+        const input = form.querySelector('input[name="comentario"]');
+        const texto = input.value;
+        const csrftoken = getCookie('csrftoken'); 
+
+        if (!texto.trim()) return;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                },
+                body: new URLSearchParams({'comentario': texto})
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    input.value = ''; // Limpa a caixa
+                    
+                    // Atualiza o contador de comentários no botão
+                    const btnComentario = document.querySelector(`button[onclick="toggleComentarios(${postId})"] span`);
+                    if(btnComentario) btnComentario.textContent = data.total_comentarios;
+
+                    // Procura o local para adicionar o HTML
+                    const listaComentarios = document.querySelector(`#comentarios-${postId} .space-y-3`);
+                    
+                    // Remove a mensagem de 'sem comentários'
+                    const msgVazia = listaComentarios.querySelector('.msg-vazia');
+                    if (msgVazia) msgVazia.remove();
+
+                    // Cria e injeta o HTML do novo comentário
+                    const novoComentarioHTML = `
+                        <div class="flex gap-2">
+                            <div class="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 border border-suave">
+                                <img src="${data.foto_autor}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="fundo-card p-2 px-3 rounded-2xl rounded-tl-none border border-suave flex-1 shadow-sm">
+                                <div class="flex justify-between items-center mb-0.5">
+                                    <h5 class="texto-tema font-black text-[9px] uppercase tracking-wider">${data.nome_autor}</h5>
+                                    <span class="text-[8px] texto-main opacity-40 font-bold uppercase">agora</span>
+                                </div>
+                                <p class="texto-main text-xs font-medium">${data.texto}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    listaComentarios.insertAdjacentHTML('beforeend', novoComentarioHTML);
+                    listaComentarios.scrollTop = listaComentarios.scrollHeight; // Desce o scroll pro novo comentário
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao enviar comentário:', error);
         }
     }
 </script>

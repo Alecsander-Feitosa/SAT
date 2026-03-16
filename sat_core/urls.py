@@ -10,7 +10,7 @@ urlpatterns = [
     path('gamification/', include('gamification.urls')),
     path('loja/', include('loja.urls')),
     
-    # --- A LINHA MÁGICA QUE FALTAVA ---
+    path('social/', include('social.urls')),
     path('organizadas/', include('organizadas.urls')), 
     
     path('ranking/', views.ranking_torcida, name='ranking'),

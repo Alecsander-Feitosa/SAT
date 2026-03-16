@@ -1,2 +1,8 @@
 from django.urls import path
-urlpatterns = [] # Pode deixar vazio por enquanto
+from . import views
+
+urlpatterns = [
+    path('mural/', views.mural_social, name='mural'),
+    path('curtir/<int:post_id>/', views.curtir_post, name='social_curtir_post'),
+    path('comentar/<int:post_id>/', views.adicionar_comentario, name='social_comentar_post'),
+]
