@@ -1,313 +1,155 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block content %}
 <style>
-    /* Animação de entrada dos posts (deslizam de baixo e surgem) */
+    /* ========== ANIMAÇÕES E ESTILOS PREMIUM ========== */
     @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(20px); }
+        from { opacity: 0; transform: translateY(15px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    .post-card {
-        animation: slideUpFade 0.6s ease-out forwards;
+    .animate-fade-up {
+        animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+    
+    /* Atrasos em cascata para os posts carregarem um a um */
+    .delay-100 { animation-delay: 0.1s; opacity: 0; }
+    .delay-200 { animation-delay: 0.2s; opacity: 0; }
+    .delay-300 { animation-delay: 0.3s; opacity: 0; }
 
-    /* Animação do coração ao curtir (batimento) */
-    @keyframes heartbeat {
-        0% { transform: scale(1); }
-        25% { transform: scale(1.4); }
-        50% { transform: scale(1); }
-        75% { transform: scale(1.2); }
-        100% { transform: scale(1); }
+    /* Esconder scrollbar para um visual mais limpo */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Botão Flutuante (FAB - Floating Action Button) */
+    .fab-btn {
+        box-shadow: 0 10px 25px rgba(255, 107, 0, 0.4);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .animate-heartbeat {
-        animation: heartbeat 0.4s ease-in-out;
+    .fab-btn:active {
+        transform: scale(0.9);
     }
 </style>
 
-<div class="px-5 pt-6 mb-6">
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">
-                SAT <span class="texto-tema">SOCIAL</span>
-            </h1>
-            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest">
-                {% if aba == 'sat' %}Mural Oficial{% else %}O mural da sua torcida{% endif %}
-            </p>
+<div class="w-full min-h-screen bg-[#f8f9fa] flex flex-col pb-32">
+
+    <div class="bg-white px-5 pt-6 pb-4 shadow-[0_4px_20px_rgba(0,0,0,0.02)] rounded-b-3xl z-10 sticky top-[70px]">
+        <div class="flex justify-between items-center mb-4 animate-fade-up">
+            <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tighter" style="font-family: 'Montserrat', sans-serif;">SAT <span class="text-[#ff6b00]">Social</span></h1>
+            <div class="bg-orange-50 text-[#ff6b00] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                <i class="bi bi-fire"></i> Em Alta
+            </div>
         </div>
-    </div>
 
-    <div class="flex border-b border-suave mb-6">
-        {% if tem_torcida_ativa %}
-        <a href="?aba=torcida" class="flex-1 text-center pb-3 font-black text-xs uppercase tracking-wider transition-all {% if aba == 'torcida' %}texto-tema border-b-[3px] border-tema{% else %}texto-main opacity-50 hover:opacity-100{% endif %}">
-            <i class="bi bi-people-fill mr-1"></i> Minha Torcida
-        </a>
-        {% endif %}
-        
-        <a href="?aba=sat" class="flex-1 text-center pb-3 font-black text-xs uppercase tracking-wider transition-all {% if aba == 'sat' %}texto-tema border-b-[3px] border-tema{% else %}texto-main opacity-50 hover:opacity-100{% endif %}">
-            <i class="bi bi-globe-americas mr-1"></i> Oficial SAT
-        </a>
-    </div>
-
-    {% if aba == 'torcida' and tem_torcida_ativa %}
-    <div class="fundo-card rounded-[32px] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave mb-8 transition-all focus-within:ring-2 focus-within:ring-tema focus-within:shadow-lg">
-        <form action="{% url 'mural' %}?aba=torcida" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="flex gap-3 mb-2">
-                <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-tema shadow-sm">
-                    <img src="{% if user.perfil.foto %}{{ user.perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=random&color=fff{% endif %}" class="w-full h-full object-cover">
-                </div>
-                <div class="flex-grow pt-1">
-                    <textarea name="texto" rows="2" class="w-full bg-transparent border-none p-0 texto-main focus:ring-0 resize-none font-medium placeholder:texto-main placeholder:opacity-40 text-sm outline-none transition-all" placeholder="O que está a acontecer na torcida, {{ user.username }}?"></textarea>
-                </div>
+        <a href="#" class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100 hover:border-[#ff6b00]/30 transition-colors animate-fade-up delay-100">
+            <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-200">
+                {% if user.perfil.foto %}
+                    <img src="{{ user.perfil.foto.url }}" alt="Perfil" class="w-full h-full object-cover">
+                {% else %}
+                    <div class="w-full h-full bg-white flex items-center justify-center text-gray-400">
+                        <i class="bi bi-person-fill text-lg"></i>
+                    </div>
+                {% endif %}
             </div>
-            
-            <div class="flex justify-between items-center border-t border-suave pt-3 mt-2">
-                <label for="foto-post" class="flex items-center gap-2 texto-tema font-bold text-[11px] uppercase tracking-wider cursor-pointer hover:opacity-70 transition-opacity px-3 py-1.5 bg-black/5 rounded-full border border-suave">
-                    <i class="bi bi-image text-lg"></i> 
-                    <span id="nome-arquivo">Anexar Foto</span>
-                    <input type="file" name="imagem" id="foto-post" class="hidden" accept="image/*" onchange="mostrarNomeArquivo(this)">
-                </label>
-                
-                <button type="submit" class="fundo-tema texto-claro px-6 py-2 rounded-full font-black uppercase text-xs tracking-widest shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center gap-2">
-                    <i class="bi bi-send-fill"></i> Publicar
-                </button>
+            <div class="flex-1">
+                <p class="text-sm font-medium text-gray-400">No que estás a pensar?</p>
             </div>
-        </form>
+            <i class="bi bi-image text-gray-400 text-lg hover:text-[#ff6b00] transition-colors"></i>
+        </a>
     </div>
-    {% endif %}
 
-    <div class="space-y-6 pb-10">
-        {% for post in posts %}
-        <div class="post-card fundo-card rounded-[32px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave overflow-hidden transition-transform hover:scale-[1.01]">
-            
-            <div class="flex items-center gap-3 p-4 pb-2">
-                <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-suave fundo-app flex-shrink-0">
-                    <img src="{% if post.autor.perfil.foto %}{{ post.autor.perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ post.autor.username }}&background=random&color=fff{% endif %}" class="w-full h-full object-cover">
+    <div class="flex flex-col gap-4 px-5 pt-6 animate-fade-up delay-200">
+
+        <div class="w-full bg-white border border-gray-100 rounded-[20px] shadow-[0_2px_15px_rgba(0,0,0,0.02)] p-4 relative overflow-hidden">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center shrink-0">
+                        <i class="bi bi-person-fill text-gray-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1">
+                            <h4 class="text-sm font-black text-gray-900 leading-none">Matheus Silva</h4>
+                            <i class="bi bi-patch-check-fill text-[#ff6b00] text-xs"></i> </div>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mt-1">Torcida Jovem • Há 2h</p>
+                    </div>
                 </div>
-                <div class="flex-1">
-                    <h4 class="texto-tema font-black text-sm leading-tight uppercase tracking-tight">{{ post.autor.username }}</h4>
-                    <p class="texto-main opacity-40 text-[9px] font-bold uppercase tracking-widest mt-0.5">
-                        <i class="bi bi-clock"></i> {{ post.data_criacao|timesince }} atrás
-                    </p>
-                </div>
-                <button class="w-8 h-8 rounded-full fundo-app border border-suave flex items-center justify-center texto-main opacity-50 hover:opacity-100 transition-opacity">
+                <button class="text-gray-400 hover:text-gray-900 transition-colors">
                     <i class="bi bi-three-dots"></i>
                 </button>
             </div>
 
-            <div class="px-5 pb-4 pt-2 texto-main text-sm font-medium leading-relaxed">
-                {{ post.texto|linebreaksbr }}
+            <p class="text-sm text-gray-800 mb-3 leading-relaxed font-medium">
+                Alguém sabe se os autocarros da caravana vão sair do local habitual no próximo domingo? Preciso de organizar a viagem com a malta. Vamos invadir! 🚌🔥
+            </p>
+
+            <div class="w-full h-48 bg-gray-100 rounded-[14px] overflow-hidden mb-4 border border-gray-50">
+                <img src="{% static 'img/hero-stadium.jpg' %}" alt="Post Media" class="w-full h-full object-cover">
             </div>
 
-            {% if post.imagem %}
-            <div class="w-full bg-[#1A1A1A] border-y border-suave relative flex justify-center">
-                <img src="{{ post.imagem.url }}" class="w-full h-auto max-h-[450px] object-cover" loading="lazy">
-            </div>
-            {% endif %}
-
-            <div class="px-5 py-4 flex items-center gap-6 fundo-app border-t border-suave">
-                
-                <button type="button" onclick="curtirPostAsync('{% url 'social_curtir_post' post.id %}', this)" class="btn-curtir flex items-center gap-2 transition-all group {% if user in post.curtidas.all %}text-red-500{% else %}texto-main opacity-50 hover:opacity-100{% endif %}">
-                    <i class="icone-coracao bi {% if user in post.curtidas.all %}bi-heart-fill{% else %}bi-heart{% endif %} text-xl drop-shadow-sm transition-transform group-active:scale-75"></i>
-                    <span class="contador-curtidas text-xs font-black">{{ post.curtidas.count }}</span>
-                </button>
-                
-                <button onclick="toggleComentarios({{ post.id }})" class="flex items-center gap-2 texto-main opacity-40 hover:opacity-100 transition-all">
-                    <i class="bi bi-chat-text text-xl"></i>
-                    <span class="text-xs font-black">{{ post.comentarios.count }}</span>
-                </button>
-                
-                <button class="flex items-center gap-2 texto-main opacity-40 hover:opacity-100 transition-all ml-auto">
-                    <i class="bi bi-share text-xl"></i>
-                </button>
-            </div>
-
-            <div id="comentarios-{{ post.id }}" class="hidden border-t border-suave p-4 fundo-app">
-                <div class="space-y-3 mb-4 max-h-40 overflow-y-auto hide-scrollbar">
-                    {% for comentario in post.comentarios.all %}
-                    <div class="flex gap-2">
-                        <div class="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 border border-suave">
-                            <img src="{% if comentario.autor.perfil.foto %}{{ comentario.autor.perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ comentario.autor.username }}&background=random&color=fff{% endif %}" class="w-full h-full object-cover">
-                        </div>
-                        <div class="fundo-card p-2 px-3 rounded-2xl rounded-tl-none border border-suave flex-1 shadow-sm">
-                            <div class="flex justify-between items-center mb-0.5">
-                                <h5 class="texto-tema font-black text-[9px] uppercase tracking-wider">{{ comentario.autor.username }}</h5>
-                                <span class="text-[8px] texto-main opacity-40 font-bold uppercase">{{ comentario.data|timesince }}</span>
-                            </div>
-                            <p class="texto-main text-xs font-medium">{{ comentario.texto }}</p>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <p class="text-xs texto-main opacity-50 font-medium text-center py-2 msg-vazia">Sem comentários ainda. Seja o primeiro a comentar!</p>
-                    {% endfor %}
-                </div>
-
-                <form onsubmit="adicionarComentarioAsync(event, '{% url 'social_comentar_post' post.id %}', {{ post.id }})" class="flex gap-2">
-                    {% csrf_token %}
-                    <input type="text" name="comentario" placeholder="Escreva o seu comentário..." required class="flex-1 bg-transparent border border-suave rounded-full px-4 py-1.5 text-xs texto-main focus:outline-none focus:border-tema font-medium">
-                    <button type="submit" class="fundo-tema texto-claro w-8 h-8 rounded-full flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 transition-transform">
-                        <i class="bi bi-send-fill text-xs"></i>
+            <div class="flex items-center justify-between border-t border-gray-50 pt-3">
+                <div class="flex items-center gap-6">
+                    <button class="flex items-center gap-1.5 text-gray-500 hover:text-[#ff6b00] transition-colors group">
+                        <i class="bi bi-heart text-lg group-hover:scale-110 group-active:scale-90 transition-transform"></i>
+                        <span class="text-xs font-bold">245</span>
                     </button>
-                </form>
+                    <button class="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors group">
+                        <i class="bi bi-chat text-lg group-hover:scale-110 group-active:scale-90 transition-transform"></i>
+                        <span class="text-xs font-bold">42</span>
+                    </button>
+                </div>
+                <button class="flex items-center gap-1.5 text-gray-400 hover:text-gray-900 transition-colors group">
+                    <i class="bi bi-share text-lg group-hover:scale-110 transition-transform"></i>
+                </button>
             </div>
-
-        </div> 
-        {% empty %}
-        <div class="text-center py-20 fundo-card rounded-[32px] border border-dashed border-suave shadow-sm mt-4">
-            <div class="w-20 h-20 mx-auto fundo-app rounded-full flex items-center justify-center mb-4 border border-suave">
-                <i class="bi bi-megaphone text-3xl texto-tema opacity-50"></i>
-            </div>
-            <p class="texto-main opacity-60 font-bold text-sm">O mural está silencioso.</p>
         </div>
-        {% endfor %}
+
+        <div class="w-full bg-white border border-gray-100 rounded-[20px] shadow-[0_2px_15px_rgba(0,0,0,0.02)] p-4 relative overflow-hidden">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center shrink-0">
+                        <i class="bi bi-person-fill text-gray-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-black text-gray-900 leading-none">Ana Beatriz</h4>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mt-1">Público Geral • Há 5h</p>
+                    </div>
+                </div>
+                <button class="text-gray-400 hover:text-gray-900 transition-colors">
+                    <i class="bi bi-three-dots"></i>
+                </button>
+            </div>
+
+            <p class="text-sm text-gray-800 mb-4 leading-relaxed font-medium">
+                Incrível a atmosfera de ontem. Sem dúvida a melhor claque de Portugal! Alguém tem fotos da coreografia inicial? Queria usar como wallpaper. ⚽🤍
+            </p>
+
+            <div class="flex items-center justify-between border-t border-gray-50 pt-3">
+                <div class="flex items-center gap-6">
+                    <button class="flex items-center gap-1.5 text-[#ff6b00] group">
+                        <i class="bi bi-heart-fill text-lg group-active:scale-90 transition-transform"></i>
+                        <span class="text-xs font-bold">89</span>
+                    </button>
+                    <button class="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors group">
+                        <i class="bi bi-chat text-lg group-hover:scale-110 group-active:scale-90 transition-transform"></i>
+                        <span class="text-xs font-bold">12</span>
+                    </button>
+                </div>
+                <button class="flex items-center gap-1.5 text-gray-400 hover:text-gray-900 transition-colors group">
+                    <i class="bi bi-share text-lg group-hover:scale-110 transition-transform"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="text-center py-6 mt-4">
+            <i class="bi bi-check-circle-fill text-gray-300 text-3xl mb-2"></i>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Estás a par de tudo!</p>
+        </div>
+
     </div>
+
+    <a href="#" class="fab-btn fixed bottom-[115px] right-5 w-14 h-14 bg-[#ff6b00] rounded-full flex items-center justify-center text-white text-2xl z-[100] hover:bg-[#e66000] hover:scale-105 active:scale-95 transition-all shadow-[0_8px_25px_rgba(255,107,0,0.5)]">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+
 </div>
-
-<script>
-    // 1. Mostrar ficheiro na área de post
-    function mostrarNomeArquivo(input) {
-        const span = document.getElementById('nome-arquivo');
-        if (input.files && input.files.length > 0) {
-            span.innerHTML = '<span class="text-green-500"><i class="bi bi-check-circle-fill"></i> Imagem Anexada</span>';
-        } else {
-            span.innerHTML = 'Anexar Foto';
-        }
-    }
-
-    // 2. Abrir/Fechar Comentários
-    function toggleComentarios(postId) {
-        const div = document.getElementById(`comentarios-${postId}`);
-        if (div.classList.contains('hidden')) {
-            div.classList.remove('hidden');
-            setTimeout(() => div.querySelector('input[name="comentario"]').focus(), 100);
-        } else {
-            div.classList.add('hidden');
-        }
-    }
-
-    // 3. Função para pegar o token CSRF
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    // 4. Curtir Assíncrono 
-    async function curtirPostAsync(url, btnElement) {
-        const icone = btnElement.querySelector('.icone-coracao');
-        const contador = btnElement.querySelector('.contador-curtidas');
-        const csrftoken = getCookie('csrftoken'); 
-
-        icone.classList.add('animate-heartbeat');
-        setTimeout(() => icone.classList.remove('animate-heartbeat'), 400);
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken 
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                contador.textContent = data.likes_count;
-
-                if (data.liked) {
-                    btnElement.classList.remove('texto-main', 'opacity-50');
-                    btnElement.classList.add('text-red-500');
-                    icone.classList.remove('bi-heart');
-                    icone.classList.add('bi-heart-fill');
-                    icone.style.color = '#ef4444'; 
-                    icone.style.opacity = '1';
-                } else {
-                    btnElement.classList.remove('text-red-500');
-                    btnElement.classList.add('texto-main', 'opacity-50');
-                    icone.classList.remove('bi-heart-fill');
-                    icone.classList.add('bi-heart');
-                    icone.style.color = ''; 
-                }
-            }
-        } catch (error) {
-            console.error('Erro ao curtir a publicação:', error);
-        }
-    }
-
-    // 5. Comentar Assíncrono
-    async function adicionarComentarioAsync(event, url, postId) {
-        event.preventDefault(); 
-        
-        const form = event.target;
-        const input = form.querySelector('input[name="comentario"]');
-        const texto = input.value;
-        const csrftoken = getCookie('csrftoken'); 
-
-        if (!texto.trim()) return;
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrftoken
-                },
-                body: new URLSearchParams({'comentario': texto})
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                
-                if (data.sucesso) {
-                    input.value = ''; // Limpa a caixa
-                    
-                    // Atualiza o contador de comentários no botão
-                    const btnComentario = document.querySelector(`button[onclick="toggleComentarios(${postId})"] span`);
-                    if(btnComentario) btnComentario.textContent = data.total_comentarios;
-
-                    // Procura o local para adicionar o HTML
-                    const listaComentarios = document.querySelector(`#comentarios-${postId} .space-y-3`);
-                    
-                    // Remove a mensagem de 'sem comentários'
-                    const msgVazia = listaComentarios.querySelector('.msg-vazia');
-                    if (msgVazia) msgVazia.remove();
-
-                    // Cria e injeta o HTML do novo comentário
-                    const novoComentarioHTML = `
-                        <div class="flex gap-2">
-                            <div class="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 border border-suave">
-                                <img src="${data.foto_autor}" class="w-full h-full object-cover">
-                            </div>
-                            <div class="fundo-card p-2 px-3 rounded-2xl rounded-tl-none border border-suave flex-1 shadow-sm">
-                                <div class="flex justify-between items-center mb-0.5">
-                                    <h5 class="texto-tema font-black text-[9px] uppercase tracking-wider">${data.nome_autor}</h5>
-                                    <span class="text-[8px] texto-main opacity-40 font-bold uppercase">agora</span>
-                                </div>
-                                <p class="texto-main text-xs font-medium">${data.texto}</p>
-                            </div>
-                        </div>
-                    `;
-                    
-                    listaComentarios.insertAdjacentHTML('beforeend', novoComentarioHTML);
-                    listaComentarios.scrollTop = listaComentarios.scrollHeight; // Desce o scroll pro novo comentário
-                }
-            }
-        } catch (error) {
-            console.error('Erro ao enviar comentário:', error);
-        }
-    }
-</script>
 {% endblock %}

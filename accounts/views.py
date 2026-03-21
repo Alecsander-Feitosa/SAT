@@ -59,35 +59,7 @@ def entrada_torcida(request, torcida_id):
     return render(request, 'pre_login_torcida.html', {'torcida': torcida})
 
 
-@login_required
-def mural_social(request):
-    perfil = request.user.perfil
-    
-    # Define a torcida APENAS se estiver aprovado
-    torcida_ativa = perfil.torcida if (perfil.torcida and perfil.aprovado) else None
-    
-    if request.method == "POST":
-        texto = request.POST.get('texto')
-        imagem = request.FILES.get('imagem')
-        
-        if texto or imagem:
-            # Se for aprovado, o post vai para a torcida. Se não, vai para o mural global da SAT.
-            PostTorcida.objects.create(
-                autor=request.user,
-                torcida=torcida_ativa,
-                texto=texto,
-                imagem=imagem
-            )
-            return redirect('mural') 
 
-    # Busca os posts: Se está aprovado, puxa os da torcida. Se não, puxa os globais (sem torcida)
-    if torcida_ativa:
-        posts = PostTorcida.objects.filter(torcida=torcida_ativa).order_by('-data_criacao')
-    else:
-        # Puxa os posts gerais de fábrica (onde torcida é nula)
-        posts = PostTorcida.objects.filter(torcida__isnull=True).order_by('-data_criacao')
-        
-    return render(request, 'mural.html', {'posts': posts})
 
 @login_required
 def viagens_view(request):
@@ -137,19 +109,22 @@ def cadastro(request):
     return render(request, 'cadastro.html', {'form': form, 'torcida': torcida})
 
 
+# INICIO DA ATUALIZAÇÃO: Classe CadastroForm (Arquivo: accounts/views.py)
 class CadastroForm(forms.ModelForm):
-    # Mudamos os nomes para bater com o name="" do seu HTML
+    # Campos que batem exatamente com o name="" no HTML do cadastro.html
     senha = forms.CharField(widget=forms.PasswordInput())
     confirmar_senha = forms.CharField(widget=forms.PasswordInput())
     cpf = forms.CharField(max_length=14)
-    telefone = forms.CharField(max_length=20) # Antes era 'whatsapp'
-    nome = forms.CharField(max_length=150)   # Antes era 'first_name'
+    telefone = forms.CharField(max_length=20) 
+    nome = forms.CharField(max_length=150)   
+    
+    # NOVO CAMPO OBRIGATÓRIO (Nível 1 - SAT Social)
+    time_coracao = forms.CharField(max_length=100, required=True)
 
     class Meta:
         model = User
         fields = ('email',)
 
-    # ADICIONE ESTE MÉTODO PARA VALIDAR O EMAIL
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(username=email).exists():
@@ -157,93 +132,78 @@ class CadastroForm(forms.ModelForm):
         return email
 
     def save(self, commit=True):
+        email_limpo = self.cleaned_data["email"]
+        
         user = super().save(commit=False)
-        user.username = self.cleaned_data["email"] # Define o e-mail como username
+        user.username = email_limpo 
         user.first_name = self.cleaned_data["nome"]
         user.set_password(self.cleaned_data["senha"])
         
         if commit:
-            user.save()
-            Perfil.objects.update_or_create(
-                user=user,
-                defaults={
-                    'cpf': self.cleaned_data.get('cpf'),
-                    'whatsapp': self.cleaned_data.get('telefone'),
-                }
-            )
+            from django.contrib.auth.models import User
+            if not User.objects.filter(username=email_limpo).exists():
+                user.save()
+                
+                # ATUALIZAÇÃO AQUI: Guardamos imediatamente o Time do Coração no Perfil
+                Perfil.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        'cpf': self.cleaned_data.get('cpf'),
+                        'whatsapp': self.cleaned_data.get('telefone'),
+                        'time_coracao': self.cleaned_data.get('time_coracao'), # Motor da personalização SAT!
+                    }
+                )
         return user
-
-def save(self, commit=True):
-    # Obtemos o e-mail que será usado como username
-    email_limpo = self.cleaned_data["email"]
-    
-    # Se commit for True, tentamos salvar o usuário
-    user = super().save(commit=False)
-    user.username = email_limpo
-    user.first_name = self.cleaned_data["nome"]
-    user.set_password(self.cleaned_data["senha"])
-    
-    if commit:
-        # Verificação preventiva para evitar o IntegrityError
-        from django.contrib.auth.models import User
-        if User.objects.filter(username=email_limpo).exists():
-             # Isso lançará um erro de validação em vez de quebrar o servidor
-             raise forms.ValidationError("Este e-mail já está em uso.")
-             
-        user.save()
-        Perfil.objects.update_or_create(
-            user=user,
-            defaults={
-                'cpf': self.cleaned_data.get('cpf'),
-                'whatsapp': self.cleaned_data.get('telefone'),
-            }
-        )
-    return user
+# FIM DA ATUALIZAÇÃO: Classe CadastroForm
 
 
+
+# INICIO DA ATUALIZAÇÃO: Função cadastro_etapa2 (Arquivo: accounts/views.py)
 @login_required
 def cadastro_etapa2(request):
     perfil = request.user.perfil
     
+    # Se já tem torcida vinculada, não tem de estar aqui, vai para o feed.
     if perfil.torcida:
         return redirect('dashboard')
 
-    # Lista dos principais times brasileiros (Série A, B e tradicionais)
-    times_brasileiros = [
-        "América-MG", "Athletico-PR", "Atlético-GO", "Atlético-MG", "Bahia", "Botafogo", "Bragantino",
-        "Ceará", "Chapecoense", "Corinthians", "Coritiba", "CRB", "Criciúma", "Cruzeiro", "Cuiabá",
-        "Flamengo", "Fluminense", "Fortaleza", "Goiás", "Grêmio", "Internacional", "Ituano", "Juventude",
-        "Mirassol", "Novorizontino", "Operário-PR", "Palmeiras", "Paysandu", "Ponte Preta", "Red Bull Bragantino",
-        "Santos", "São Paulo", "Sport", "Vasco da Gama", "Vila Nova", "Vitória"
-    ]
-
     if request.method == 'POST':
         torcida_id = request.POST.get('torcida_id')
-        time_coracao = request.POST.get('time_coracao')
         data_nasc = request.POST.get('data_nascimento')
         
-        if torcida_id and time_coracao:
+        # OPÇÃO A: O utilizador DECIDIU entrar para uma torcida (Caminho para o Nível 2)
+        if torcida_id:
             try:
                 torcida = Torcida.objects.get(id=torcida_id)
                 perfil.torcida = torcida
-                perfil.time_coracao = time_coracao
-                perfil.data_nascimento = data_nasc
-                perfil.aprovado = False 
+                
+                if data_nasc:
+                    perfil.data_nascimento = data_nasc
+                    
+                perfil.aprovado = False # Vai para a fila de aprovação dos diretores da torcida
                 perfil.save()
                 
-                messages.success(request, f"Pedido enviado! Aguarde a aprovação da {torcida.nome}.")
+                messages.success(request, f"Pedido enviado! Aguarde a aprovação da diretoria da {torcida.nome}.")
                 return redirect('dashboard')
             except Torcida.DoesNotExist:
-                messages.error(request, "Torcida inválida.")
+                messages.error(request, "Torcida não encontrada ou inválida.")
+                
+        # OPÇÃO B: O utilizador PULA a escolha de torcida (Fica no Nível 1 - Público Geral)
         else:
-            messages.error(request, "Por favor, preencha todos os campos.")
+            # Salvamos apenas a data de nascimento se ele preencheu, e mandamos para o feed
+            if data_nasc:
+                perfil.data_nascimento = data_nasc
+                perfil.save()
+            return redirect('dashboard')
 
+    # Carrega apenas as torcidas disponíveis para ele escolher. 
+    # (Removemos a lista de times, pois isso já foi tratado no Passo 1)
     torcidas = Torcida.objects.all()
     context = {
         'torcidas': torcidas,
-        'times': sorted(times_brasileiros) # Envia a lista em ordem alfabética
     }
     return render(request, 'cadastro_etapa2.html', context)
+# FIM DA ATUALIZAÇÃO: Função cadastro_etapa2
 
 
 @login_required
@@ -443,28 +403,6 @@ def mural_social(request):
     posts = PostTorcida.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')
     return render(request, 'mural.html', {'posts': posts})
 
-@login_required
-@torcida_required
-def mural_social(request):
-    perfil = request.user.perfil
-    
-    if request.method == "POST":
-        texto = request.POST.get('texto')
-        imagem = request.FILES.get('imagem')
-        
-        if texto or imagem:
-            # USANDO O MODELO DA TORCIDA (PostTorcida)
-            PostTorcida.objects.create(
-                autor=request.user,
-                torcida=perfil.torcida,
-                texto=texto,
-                imagem=imagem
-            )
-            return redirect('mural') 
-
-    # Busca os posts usando o modelo correto
-    posts = PostTorcida.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')
-    return render(request, 'mural.html', {'posts': posts})
 
 
 

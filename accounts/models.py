@@ -6,11 +6,19 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+# INICIO DA ATUALIZAÇÃO: Classe Perfil (Arquivo: accounts/models.py)
 class Perfil(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     foto = models.ImageField(upload_to='perfil_fotos/', null=True, blank=True)
+    
+    # Mantemos o time do coração em destaque e opcional. 
+    # Ele será o grande motor do Nível 1 (Público Geral).
     time_coracao = models.CharField("Time do Coração", max_length=100, null=True, blank=True)
-    torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.SET_NULL, null=True)
+    
+    # ATUALIZAÇÃO AQUI: Adicionado blank=True
+    # Agora a torcida é 100% opcional tanto no banco quanto nos formulários do sistema.
+    torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.SET_NULL, null=True, blank=True)
+    
     cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)
     whatsapp = models.CharField(max_length=20, blank=True)
     aprovado = models.BooleanField(default=False)
@@ -41,7 +49,9 @@ class Perfil(models.Model):
 
     def __str__(self):
         return f"Perfil de {self.user.username}"
-    
+# FIM DA ATUALIZAÇÃO: Classe Perfil
+
+
 class Aliada(models.Model):
     torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='aliadas')
     nome_organizada = models.CharField(max_length=100)

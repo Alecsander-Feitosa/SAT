@@ -8,6 +8,9 @@
         nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
         body, main { padding: 0 !important; margin: 0 !important; background-color: #000000 !important; min-height: 100vh; }
         :root { --tema-cor: {{ torcida.cor_primaria|default:"#D37129" }}; }
+        /* Remove o visual padrão do select no navegador */
+        select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+        select option { background-color: #0d1117; color: #fff; }
     </style>
 
     <div class="min-h-screen w-full flex flex-col relative overflow-hidden bg-black">
@@ -64,6 +67,35 @@
 
                     <div class="relative">
                         <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                            <i class="bi bi-chevron-down text-gray-500 text-lg"></i>
+                        </div>
+                        <select name="time_coracao" class="w-full bg-[#0d1117] border-2 border-gray-800 text-white text-sm font-semibold rounded-xl focus:border-[var(--tema-cor)] focus:ring-4 focus:ring-[var(--tema-cor)]/20 p-4 pr-12 outline-none transition-all cursor-pointer" required>
+                            <option value="" disabled selected>Qual o seu time do coração?</option>
+                            <option value="Flamengo">Flamengo</option>
+                            <option value="Corinthians">Corinthians</option>
+                            <option value="São Paulo">São Paulo</option>
+                            <option value="Palmeiras">Palmeiras</option>
+                            <option value="Vasco">Vasco da Gama</option>
+                            <option value="Grêmio">Grêmio</option>
+                            <option value="Cruzeiro">Cruzeiro</option>
+                            <option value="Internacional">Internacional</option>
+                            <option value="Atlético Mineiro">Atlético Mineiro</option>
+                            <option value="Botafogo">Botafogo</option>
+                            <option value="Fluminense">Fluminense</option>
+                            <option value="Santos">Santos</option>
+                            <option value="Bahia">Bahia</option>
+                            <option value="Sport">Sport Recife</option>
+                            <option value="Vitória">Vitória</option>
+                            <option value="Fortaleza">Fortaleza</option>
+                            <option value="Ceará">Ceará</option>
+                            <option value="Athletico Paranaense">Athletico Paranaense</option>
+                            <option value="Coritiba">Coritiba</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                             <i class="bi bi-lock text-gray-500 text-lg"></i>
                         </div>
                         <input type="password" name="senha" placeholder="Senha" class="w-full bg-[#0d1117] border-2 border-gray-800 text-white text-sm font-semibold rounded-xl focus:border-[var(--tema-cor)] focus:ring-4 focus:ring-[var(--tema-cor)]/20 p-4 pr-12 outline-none transition-all placeholder-gray-500" required>
@@ -104,10 +136,11 @@
     <style>
         nav, #satSidebar, #sidebarOverlay, .sticky.top-0 { display: none !important; }
         body, main { padding: 0 !important; margin: 0 !important; background-color: #ffffff !important; }
-        form input {
+        form input, form select {
             width: 100%; color: #1a1a1a; font-size: 0.875rem; font-weight: 600; border-radius: 1rem;
             padding: 1rem 3.25rem 1rem 1.25rem; outline: none; transition: all 0.3s ease;
         }
+        select { -webkit-appearance: none; -moz-appearance: none; appearance: none; cursor: pointer; }
     </style>
 
     <div class="min-h-screen bg-white flex flex-col items-center px-6 py-8 relative overflow-hidden">

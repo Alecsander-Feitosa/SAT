@@ -60,6 +60,7 @@ AUTHENTICATION_BACKENDS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware', # <--- NOVO: Obrigatório para Apps
     'django.middleware.common.CommonMiddleware',
@@ -144,6 +145,11 @@ LOGOUT_REDIRECT_URL = 'login'
 # Configurações opcionais do Allauth para capturar o email
 ACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_QUERY_EMAIL = True
+
+# ADICIONE ESTAS DUAS LINHAS:
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 
 # --- CONFIGURAÇÕES DO PAINEL ADMIN (JAZZMIN) ---

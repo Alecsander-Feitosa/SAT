@@ -1,280 +1,160 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block content %}
 <style>
-/* MOTOR DE CORES DINÂMICAS DA TORCIDA */
-:root {
-            /* Adicionado "and user.perfil.aprovado" para bloquear as cores antes da aprovação */
-            --cor-primaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %};
-            --cor-secundaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_secundaria }}{% else %}#FFFFFF{% endif %};
-            --cor-terciaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_terciaria }}{% else %}#1A1A1A{% endif %};
-            --cor-fundo: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_fundo }}{% else %}#F8F9FA{% endif %};
-        }
-/* Oculta menus antigos do base.html */
-.sticky.top-0 { display: none !important; }
+    /* ========== ANIMAÇÕES E ESTILOS DO PERFIL ========== */
+    @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-up {
+        animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    .delay-100 { animation-delay: 0.1s; opacity: 0; }
+    .delay-200 { animation-delay: 0.2s; opacity: 0; }
 
-body, main { 
-    padding: 0 !important; 
-    margin: 0 !important; 
-    background-color: var(--cor-fundo) !important; 
-}
+    /* Efeito de Vidro para o Header */
+    .profile-header-bg {
+        background: linear-gradient(180deg, #fff 0%, #f8f9fa 100%);
+    }
 
-/* Classes Utilitárias */
-.fundo-app { background-color: var(--cor-fundo) !important; }
-.fundo-card { background-color: var(--cor-secundaria) !important; }
-.fundo-tema { background-color: var(--cor-primaria) !important; }
-
-.texto-main { color: var(--cor-terciaria) !important; }
-.texto-tema { color: var(--cor-primaria) !important; }
-.texto-claro { color: var(--cor-secundaria) !important; }
-.texto-fundo { color: var(--cor-texto-fundo) !important; }
-
-.border-suave { border-color: rgba(150, 150, 150, 0.2) !important; }
-
-/* Estilo para os inputs */
-.sat-input {
-    background-color: var(--cor-fundo) !important;
-    border: 1px solid rgba(150, 150, 150, 0.2) !important;
-    border-radius: 12px !important;
-    color: var(--cor-terciaria) !important;
-    padding: 12px 16px !important;
-    width: 100%;
-    transition: all 0.3s ease;
-}
-
-.sat-input:focus {
-    border-color: var(--cor-primaria) !important;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
-}
-
-label {
-    font-size: 10px;
-    font-weight: 900;
-    text-transform: uppercase;
-    color: var(--cor-terciaria);
-    opacity: 0.6;
-    margin-left: 4px;
-    margin-bottom: 6px;
-    display: block;
-}
-
-/* Documentos / Uploads mais bonitos */
-input[type="file"] {
-    font-size: 11px;
-    color: var(--cor-terciaria);
-    background-color: var(--cor-fundo);
-    padding: 12px;
-    border-radius: 12px;
-    border: 1px dashed rgba(150, 150, 150, 0.4) !important;
-    width: 100%;
-    cursor: pointer;
-}
-
-input[type="file"]::file-selector-button {
-    background-color: var(--cor-primaria);
-    color: var(--cor-secundaria);
-    border: none;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-weight: 900;
-    text-transform: uppercase;
-    font-size: 9px;
-    margin-right: 10px;
-}
-
-.pb-safe { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); }
+    /* Item de Menu */
+    .menu-item {
+        transition: all 0.2s ease;
+    }
+    .menu-item:active {
+        background-color: #f3f4f6;
+        transform: scale(0.98);
+    }
 </style>
 
-<div class="min-h-screen w-full flex flex-col relative overflow-x-hidden fundo-app pb-32 transition-colors duration-500">
+<div class="w-full min-h-screen bg-[#f8f9fa] flex flex-col pb-32">
 
-    <div class="w-full fundo-card pt-6 shadow-sm relative z-20 border-b border-suave">
-        <div class="flex justify-between items-center px-4 mb-4 relative min-h-[40px]">
-            <button onclick="toggleSearch()" class="flex items-center gap-2 texto-main hover:opacity-70 transition-opacity relative z-10">
-                <i class="bi bi-search text-xl font-bold"></i>
-                <span class="font-bold text-sm">Buscar</span>
-            </button>
-            
-            <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center h-full z-0">
-                {% if user.perfil.torcida.logo %}
-                    <img src="{{ user.perfil.torcida.logo.url }}" alt="{{ user.perfil.torcida.nome }}" class="h-10 object-contain drop-shadow-md">
-                {% else %}
-                    <h1 class="font-black italic texto-tema text-2xl uppercase tracking-tighter">{{ user.perfil.torcida.sigla|default:"TIME" }}</h1>
-                {% endif %}
+    <div class="profile-header-bg px-5 pt-8 pb-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] rounded-b-[40px] z-10">
+        <div class="flex flex-col items-center animate-fade-up">
+            <div class="relative mb-4">
+                <div class="w-28 h-28 rounded-full border-4 border-white shadow-xl p-[3px] bg-gradient-to-tr from-[#ff6b00] to-[#ffaa00]">
+                    <div class="w-full h-full rounded-full bg-white overflow-hidden border-2 border-white">
+                        {% if user.perfil.foto %}
+                            <img src="{{ user.perfil.foto.url }}" alt="Foto de Perfil" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300">
+                                <i class="bi bi-person-fill text-5xl"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="absolute bottom-1 right-1 bg-gray-900 text-white text-[10px] font-black px-2 py-1 rounded-lg border-2 border-white shadow-md">
+                    LVL 12
+                </div>
             </div>
-            
-            <button onclick="toggleSidebar()" class="texto-main hover:opacity-70 transition-opacity relative z-10">
-                <i class="bi bi-list text-3xl"></i>
-            </button>
-        </div>
 
-        <div id="searchBar" class="hidden px-4 pb-4 w-full transition-all duration-300">
-            <form action="#" method="GET" class="relative">
-                <input type="text" name="q" placeholder="Pesquisar..." class="w-full fundo-app border border-suave text-sm rounded-xl py-3 pl-4 pr-10 texto-main font-medium focus:outline-none shadow-inner transition-all">
-                <button type="submit" class="absolute right-3 top-3 texto-tema opacity-50 hover:opacity-100 transition-opacity">
-                    <i class="bi bi-search text-lg font-bold"></i>
+            <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-1" style="font-family: 'Montserrat', sans-serif;">
+                {{ user.get_full_name|default:user.username }}
+            </h1>
+            <p class="text-[10px] font-bold text-[#ff6b00] uppercase tracking-widest flex items-center gap-1.5">
+                <i class="bi bi-shield-check"></i> 
+                {% if user.perfil.torcida %}{{ user.perfil.torcida.nome }}{% else %}Torcedor Neutro{% endif %}
+            </p>
+
+            <div class="flex gap-8 mt-6">
+                <div class="text-center">
+                    <p class="text-lg font-black text-gray-900 leading-none">1.2k</p>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Seguidores</p>
+                </div>
+                <div class="w-[1px] h-8 bg-gray-200 mt-1"></div>
+                <div class="text-center">
+                    <p class="text-lg font-black text-[#ff6b00] leading-none">450</p>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">SAT XP</p>
+                </div>
+                <div class="w-[1px] h-8 bg-gray-200 mt-1"></div>
+                <div class="text-center">
+                    <p class="text-lg font-black text-gray-900 leading-none">86</p>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Seguindo</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-5 pt-8 flex flex-col gap-2 animate-fade-up delay-100">
+        <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Configurações da Conta</h3>
+
+        <div class="bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm">
+            <a href="#" class="menu-item flex items-center justify-between p-4 border-b border-gray-50">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-orange-50 text-[#ff6b00] rounded-xl flex items-center justify-center">
+                        <i class="bi bi-person-gear text-xl"></i>
+                    </div>
+                    <span class="text-sm font-bold text-gray-700">Editar Perfil</span>
+                </div>
+                <i class="bi bi-chevron-right text-gray-300"></i>
+            </a>
+
+            <a href="#" class="menu-item flex items-center justify-between p-4 border-b border-gray-50">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                        <i class="bi bi-bag-check text-xl"></i>
+                    </div>
+                    <span class="text-sm font-bold text-gray-700">Meus Pedidos</span>
+                </div>
+                <i class="bi bi-chevron-right text-gray-300"></i>
+            </a>
+
+            <a href="#" class="menu-item flex items-center justify-between p-4 border-b border-gray-50">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
+                        <i class="bi bi-shield-lock text-xl"></i>
+                    </div>
+                    <span class="text-sm font-bold text-gray-700">Segurança e Senha</span>
+                </div>
+                <i class="bi bi-chevron-right text-gray-300"></i>
+            </a>
+
+            <a href="#" class="menu-item flex items-center justify-between p-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
+                        <i class="bi bi-bell text-xl"></i>
+                    </div>
+                    <span class="text-sm font-bold text-gray-700">Notificações</span>
+                </div>
+                <div class="form-switch">
+                    <i class="bi bi-toggle-on text-[#ff6b00] text-2xl"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="px-5 pt-6 flex flex-col gap-2 animate-fade-up delay-200">
+        <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Mais</h3>
+
+        <div class="bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm mb-6">
+            <a href="#" class="menu-item flex items-center justify-between p-4 border-b border-gray-50">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-gray-50 text-gray-500 rounded-xl flex items-center justify-center">
+                        <i class="bi bi-question-circle text-xl"></i>
+                    </div>
+                    <span class="text-sm font-bold text-gray-700">Central de Ajuda</span>
+                </div>
+                <i class="bi bi-chevron-right text-gray-300"></i>
+            </a>
+
+            <form action="{% url 'logout' %}" method="post" id="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="menu-item w-full flex items-center justify-between p-4 text-red-500">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center">
+                            <i class="bi bi-box-arrow-right text-xl"></i>
+                        </div>
+                        <span class="text-sm font-bold">Sair da Conta</span>
+                    </div>
                 </button>
             </form>
         </div>
-        
-        <div class="flex justify-between items-center w-full px-4">
-            <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-bold text-sm transition-opacity whitespace-nowrap">Seu time</a>
-            <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-medium text-sm transition-opacity whitespace-nowrap">SAT social</a>
-            
-            <a href="{% if user.perfil.torcida %}{% url 'hub_organizadas' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-bold text-sm transition-opacity whitespace-nowrap">
-                {% if user.perfil.torcida %} Torcida {% else %} Seja sócio {% endif %}
-            </a>
-        </div>
+
+        <p class="text-center text-[10px] font-bold text-gray-300 uppercase tracking-widest pb-10">SAT v1.0.4 • 2026</p>
     </div>
 
-    <div class="px-5 pt-8 space-y-6">
-        
-        <div class="flex items-center gap-3 mb-2">
-            <h1 class="text-xl font-black texto-fundo uppercase tracking-tight">Meu <span class="texto-tema">Perfil</span></h1>
-        </div>
-
-        <form method="POST" enctype="multipart/form-data" class="space-y-6">
-            {% csrf_token %}
-
-            <div class="fundo-card rounded-3xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave text-center relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-16 fundo-tema opacity-20"></div>
-                <div class="relative w-28 h-28 mx-auto mb-3 mt-4">
-                    <img src="{% if perfil.foto %}{{ perfil.foto.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=random&color=fff{% endif %}" class="w-full h-full rounded-full object-cover border-4 border-white shadow-md bg-white">
-                    <label for="id_foto" class="absolute bottom-0 right-0 fundo-tema texto-claro w-9 h-9 rounded-full flex items-center justify-center cursor-pointer border-2 border-white shadow-sm hover:scale-110 transition-transform">
-                        <i class="bi bi-camera-fill"></i>
-                    </label>
-                    <div class="hidden">{{ form.foto }}</div>
-                </div>
-                
-                <h2 class="text-lg font-black texto-main uppercase">{{ user.username }}</h2>
-                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest">{{ user.email }}</p>
-                
-                {% if user.perfil.torcida %}
-                    <span class="inline-flex items-center gap-1 mt-3 fundo-tema texto-claro text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
-                        <i class="bi bi-shield-fill"></i> {{ user.perfil.torcida.sigla }}
-                    </span>
-                {% else %}
-                    <span class="inline-block mt-3 bg-gray-100 text-gray-500 text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest border border-gray-200">
-                        Sócio SAT
-                    </span>
-                {% endif %}
-            </div>
-
-            <div class="fundo-card rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave space-y-4 relative overflow-hidden">
-                <div class="flex items-center gap-2 mb-2 relative z-10">
-                    <i class="bi bi-person-vcard texto-tema text-lg"></i>
-                    <h3 class="texto-main font-black text-xs uppercase tracking-widest">Informações Básicas</h3>
-                </div>
-                <div class="grid grid-cols-1 gap-4 relative z-10">
-                    <div>
-                        <label>Nome Completo</label>
-                        <input type="text" value="{{ user.first_name|default:user.username }}" class="sat-input opacity-70 cursor-not-allowed" disabled>
-                    </div>
-                    <div>
-                        <label>E-mail de Cadastro</label>
-                        <input type="text" value="{{ user.email }}" class="sat-input opacity-70 cursor-not-allowed" disabled>
-                    </div>
-                    <div>
-                        <label>CPF / Telefone</label>
-                        <input type="text" value="{{ perfil.cpf|default:'Registado' }} • {{ perfil.whatsapp|default:'S/N' }}" class="sat-input opacity-70 cursor-not-allowed" disabled>
-                    </div>
-                </div>
-            </div>
-
-            {% if user.perfil.torcida %}
-            
-            <div class="fundo-card rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave space-y-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <i class="bi bi-shield-exclamation texto-tema text-lg"></i>
-                    <h3 class="texto-main font-black text-xs uppercase tracking-widest">Exigências da Torcida</h3>
-                </div>
-                <div class="grid grid-cols-1 gap-4">
-                    {% if form.data_nascimento %}<div><label>Data de Nascimento</label>{{ form.data_nascimento }}</div>{% endif %}
-                    <div class="grid grid-cols-2 gap-3">
-                        {% if form.rg_cnh %}<div><label>RG ou CNH</label>{{ form.rg_cnh }}</div>{% endif %}
-                        {% if form.orgao_expedidor %}<div><label>Órgão Exp.</label>{{ form.orgao_expedidor }}</div>{% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="fundo-card rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave space-y-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <i class="bi bi-geo-alt-fill texto-tema text-lg"></i>
-                    <h3 class="texto-main font-black text-xs uppercase tracking-widest">Endereço</h3>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    {% if form.cep %}<div class="col-span-2"><label>CEP</label>{{ form.cep }}</div>{% endif %}
-                    {% if form.rua %}<div class="col-span-2"><label>Rua</label>{{ form.rua }}</div>{% endif %}
-                    {% if form.numero %}<div><label>Número</label>{{ form.numero }}</div>{% endif %}
-                    {% if form.bairro %}<div><label>Bairro</label>{{ form.bairro }}</div>{% endif %}
-                    {% if form.cidade %}<div><label>Cidade</label>{{ form.cidade }}</div>{% endif %}
-                    {% if form.uf %}<div><label>UF</label>{{ form.uf }}</div>{% endif %}
-                </div>
-            </div>
-
-            <div class="fundo-card rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave space-y-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <i class="bi bi-file-earmark-person texto-tema text-lg"></i>
-                    <h3 class="texto-main font-black text-xs uppercase tracking-widest">Documentação</h3>
-                </div>
-                <div class="grid grid-cols-1 gap-4">
-                    {% if form.foto_documento_frente %}
-                    <div class="border-2 border-dashed border-suave fundo-app p-4 rounded-2xl">
-                        <label class="text-center">Frente do Documento</label>
-                        <div class="mt-2">{{ form.foto_documento_frente }}</div>
-                    </div>
-                    {% endif %}
-                    {% if form.verificacao_facial %}
-                    <div class="border-2 border-dashed border-suave fundo-app p-4 rounded-2xl">
-                        <label class="text-center">Selfie (Verificação)</label>
-                        <div class="mt-2">{{ form.verificacao_facial }}</div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="fundo-card rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-suave space-y-4">
-                <div class="flex items-center gap-2 mb-2">
-                    <i class="bi bi-flag-fill texto-tema text-lg"></i>
-                    <h3 class="texto-main font-black text-xs uppercase tracking-widest">Dados do Pelotão</h3>
-                </div>
-                <div class="grid grid-cols-1 gap-4">
-                    {% if form.vulgo %}<div><label>Vulgo (Apelido)</label>{{ form.vulgo }}</div>{% endif %}
-                    {% if form.pelotao %}<div><label>Bonde / Pelotão</label>{{ form.pelotao }}</div>{% endif %}
-                    {% if form.rede_social %}<div><label>Rede Social (@)</label>{{ form.rede_social }}</div>{% endif %}
-                </div>
-            </div>
-            
-            {% endif %}
-
-            <button type="submit" class="w-full fundo-tema texto-claro font-black py-4 rounded-2xl uppercase tracking-widest shadow-lg hover:opacity-90 active:scale-95 transition-all mt-6 flex justify-center items-center gap-2 border border-suave">
-                <i class="bi bi-check-circle-fill text-lg"></i> Salvar Alterações
-            </button>
-            
-            <a href="#" class="w-full bg-red-50 text-red-500 font-bold py-4 rounded-2xl uppercase tracking-widest flex justify-center items-center gap-2 mt-4 hover:bg-red-100 transition-colors">
-                <i class="bi bi-box-arrow-right"></i> Terminar Sessão
-            </a>
-
-        </form>
-    </div>
 </div>
-
-<script>
-    function toggleSearch() {
-        const searchBar = document.getElementById('searchBar');
-        if (searchBar.classList.contains('hidden')) {
-            searchBar.classList.remove('hidden');
-            setTimeout(() => searchBar.querySelector('input').focus(), 100); 
-        } else {
-            searchBar.classList.add('hidden');
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll('input[type="text"], input[type="date"]').forEach(el => {
-            el.classList.add('sat-input');
-        });
-    });
-</script>
 {% endblock %}
