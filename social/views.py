@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from .models import Post, Comentario
 from accounts.decorators import torcida_required
 from django.views.decorators.http import require_POST
-
+from django.db.models import Q
 
 
 
@@ -29,7 +29,7 @@ def mural_social(request):
         
         if texto or imagem: 
             Post.objects.create(
-                autor_s=request.user,
+                autor_s=request.user, # Usa autor_s como no seu modelo!
                 texto=texto,
                 imagem=imagem,
                 torcida=perfil.torcida if (aba == 'torcida' and tem_torcida_ativa) else None,
@@ -68,12 +68,11 @@ def curtir_post(request, post_id):
         post.curtidas.add(request.user)
         liked = True
     
+    # Substituí post.total_curtidas() por post.curtidas.count() para ser 100% seguro
     return JsonResponse({
         'liked': liked,
-        'likes_count': post.total_curtidas()
+        'likes_count': post.curtidas.count() 
     })
-
-
 
 @login_required
 @require_POST
@@ -103,4 +102,43 @@ def adicionar_comentario(request, post_id):
                 'total_comentarios': post.comentarios.count()
             })
 
+    return redirect(request.META.get('HTTP_REFERER', '/social/mural/'))
+
+@login_required
+@require_POST
+def seguir_usuario(request, usuario_id):
+    from django.contrib.auth.models import User
+    
+    usuario_alvo = get_object_or_404(User, id=usuario_id)
+    
+    # Prevenção: o utilizador não pode seguir a si mesmo
+    if request.user == usuario_alvo:
+        return JsonResponse({'sucesso': False, 'erro': 'Não podes seguir a ti mesmo.'}, status=400)
+    
+    perfil_alvo = usuario_alvo.perfil
+    meu_perfil = request.user.perfil # Pega o perfil de quem clicou
+    
+    # BLINDAGEM: O Django tenta guardar o Perfil. Se o model exigir User, ele usa o User.
+    try:
+        if meu_perfil in perfil_alvo.seguidores.all():
+            perfil_alvo.seguidores.remove(meu_perfil)
+            seguindo = False
+        else:
+            perfil_alvo.seguidores.add(meu_perfil)
+            seguindo = True
+    except TypeError:
+        # Se der erro de tipo, é porque o seu model de seguidores exige o "User"
+        if request.user in perfil_alvo.seguidores.all():
+            perfil_alvo.seguidores.remove(request.user)
+            seguindo = False
+        else:
+            perfil_alvo.seguidores.add(request.user)
+            seguindo = True
+            
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'sucesso': True,
+            'seguindo': seguindo
+        })
+        
     return redirect(request.META.get('HTTP_REFERER', '/social/mural/'))

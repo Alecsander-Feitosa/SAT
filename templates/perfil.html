@@ -3,158 +3,348 @@
 
 {% block content %}
 <style>
-    /* ========== ANIMAÇÕES E ESTILOS DO PERFIL ========== */
-    @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-up {
-        animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    
-    .delay-100 { animation-delay: 0.1s; opacity: 0; }
-    .delay-200 { animation-delay: 0.2s; opacity: 0; }
-
-    /* Efeito de Vidro para o Header */
-    .profile-header-bg {
-        background: linear-gradient(180deg, #fff 0%, #f8f9fa 100%);
-    }
-
-    /* Item de Menu */
-    .menu-item {
+   /* Estilos automáticos para os campos do Django no Modal */
+    .modal-form-inputs input, .modal-form-inputs select, .modal-form-inputs textarea {
+        width: 100%;
+        background-color: #f9fafb;
+        border: 1px solid #f3f4f6;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+        outline: none;
         transition: all 0.2s ease;
     }
-    .menu-item:active {
-        background-color: #f3f4f6;
-        transform: scale(0.98);
+    .modal-form-inputs input:focus, .modal-form-inputs select:focus, .modal-form-inputs textarea:focus {
+        border-color: var(--cor-primaria);
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(var(--cor-primaria-rgb, 211, 113, 41), 0.1);
     }
+    .modal-form-inputs input[type="file"] { display: none; }
+
+    /* ========== SAT CORE - PERFIL PREMIUM ========== */
+    @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
+        to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+    
+    .animate-fade-up { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .delay-100 { animation-delay: 0.1s; opacity: 0; }
+    .delay-200 { animation-delay: 0.2s; opacity: 0; }
+    .delay-300 { animation-delay: 0.3s; opacity: 0; }
+
+    /* Variáveis Dinâmicas */
+    .text-dinamico { color: var(--cor-primaria) !important; }
+    .border-dinamico { border-color: var(--cor-primaria) !important; }
+    .bg-dinamico { background-color: var(--cor-primaria) !important; }
+    
+    /* Sombras Premium */
+    .shadow-dinamico {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08), 0 0 20px rgba(var(--cor-primaria-rgb, 211, 113, 41), 0.15); 
+    }
+    
+    .sat-light-card {
+        background-color: #ffffff;
+        border: 1px solid rgba(0,0,0,0.03);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.03);
+    }
+    
+    /* Itens de Menu Estilo iOS */
+    .menu-item-sat {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid rgba(0,0,0,0.02);
+    }
+    .menu-item-sat:last-child { border-bottom: none; }
+    .menu-item-sat:active { background-color: rgba(0,0,0,0.03); }
+
+    /* Cartão de Sócio Premium */
+    .carteirinha-card {
+        background: linear-gradient(135deg, var(--cor-primaria) 0%, rgba(0,0,0,0.9) 100%);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        color: white;
+    }
+    .carteirinha-glow {
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 140px;
+        height: 140px;
+        background-color: rgba(255, 255, 255, 0.15);
+        filter: blur(40px);
+        border-radius: 50%;
+    }
+
+    /* Fundo Escuro do Modal */
+    .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+    }
+    .bottom-sheet {
+        background: #ffffff;
+        border-radius: 32px 32px 0 0;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+    }
+    
+    /* Custom File Input (Input de Imagem Oculto) */
+    input[type="file"] { display: none; }
 </style>
 
-<div class="w-full min-h-screen bg-[#f8f9fa] flex flex-col pb-32">
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
 
-    <div class="profile-header-bg px-5 pt-8 pb-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] rounded-b-[40px] z-10">
-        <div class="flex flex-col items-center animate-fade-up">
-            <div class="relative mb-4">
-                <div class="w-28 h-28 rounded-full border-4 border-white shadow-xl p-[3px] bg-gradient-to-tr from-[#ff6b00] to-[#ffaa00]">
-                    <div class="w-full h-full rounded-full bg-white overflow-hidden border-2 border-white">
-                        {% if user.perfil.foto %}
-                            <img src="{{ user.perfil.foto.url }}" alt="Foto de Perfil" class="w-full h-full object-cover">
+    <div class="relative z-10 bg-white border-b border-gray-100 pb-8 pt-12 shadow-sm rounded-b-[40px]">
+        <div class="absolute top-0 left-0 w-full h-32 bg-dinamico opacity-10 rounded-b-[40px]"></div>
+
+        <div class="flex flex-col items-center animate-fade-up relative z-10">
+            
+            <div class="relative mb-4 cursor-pointer group" onclick="abrirModalEditar()">
+                <div class="w-28 h-28 rounded-full border-4 border-white shadow-dinamico bg-white relative">
+                    <div class="w-full h-full rounded-full overflow-hidden">
+                        {% if perfil.foto %}
+                            <img src="{{ perfil.foto.url }}" alt="Foto de Perfil" class="w-full h-full object-cover">
                         {% else %}
-                            <div class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300">
+                            <div class="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300">
                                 <i class="bi bi-person-fill text-5xl"></i>
                             </div>
                         {% endif %}
                     </div>
+                    <div class="absolute bottom-0 right-0 w-8 h-8 bg-dinamico text-white rounded-full flex items-center justify-center border-2 border-white shadow-md transform group-hover:scale-110 transition-transform">
+                        <i class="bi bi-camera-fill text-sm"></i>
+                    </div>
                 </div>
-                <div class="absolute bottom-1 right-1 bg-gray-900 text-white text-[10px] font-black px-2 py-1 rounded-lg border-2 border-white shadow-md">
-                    LVL 12
+                
+                <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 text-[9px] font-black px-3 py-1.5 rounded-full border border-gray-100 shadow-md whitespace-nowrap z-20">
+                    {% if perfil_game.nivel %} {{ perfil_game.nivel.nome|upper }} {% else %} LVL 1 {% endif %}
                 </div>
             </div>
 
-            <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-1" style="font-family: 'Montserrat', sans-serif;">
+            <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-1.5 mt-4" style="font-family: 'Montserrat', sans-serif;">
                 {{ user.get_full_name|default:user.username }}
             </h1>
-            <p class="text-[10px] font-bold text-[#ff6b00] uppercase tracking-widest flex items-center gap-1.5">
+            <p class="text-[10px] font-bold text-dinamico uppercase tracking-widest flex items-center gap-1.5 bg-dinamico/10 px-3 py-1 rounded-full">
                 <i class="bi bi-shield-check"></i> 
-                {% if user.perfil.torcida %}{{ user.perfil.torcida.nome }}{% else %}Torcedor Neutro{% endif %}
+                {% if perfil.torcida and perfil.aprovado %}{{ perfil.torcida.nome }}{% else %}Membro SAT{% endif %}
             </p>
 
-            <div class="flex gap-8 mt-6">
+            <div class="flex gap-8 mt-6 w-full justify-center">
                 <div class="text-center">
-                    <p class="text-lg font-black text-gray-900 leading-none">1.2k</p>
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Seguidores</p>
+                    <p class="text-xl font-black text-gray-800 leading-none">{{ perfil.seguidores.count|default:"0" }}</p>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1.5">Seguidores</p>
                 </div>
-                <div class="w-[1px] h-8 bg-gray-200 mt-1"></div>
-                <div class="text-center">
-                    <p class="text-lg font-black text-[#ff6b00] leading-none">450</p>
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">SAT XP</p>
+                <div class="w-[1px] h-10 border-r border-gray-200 mt-1"></div>
+                <div class="text-center relative">
+                    <p class="text-2xl font-black text-dinamico leading-none relative z-10">{{ perfil_game.xp_total|default:"0" }}</p>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1 relative z-10">SAT XP</p>
                 </div>
-                <div class="w-[1px] h-8 bg-gray-200 mt-1"></div>
+                <div class="w-[1px] h-10 border-r border-gray-200 mt-1"></div>
                 <div class="text-center">
-                    <p class="text-lg font-black text-gray-900 leading-none">86</p>
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Seguindo</p>
+                    <p class="text-xl font-black text-gray-800 leading-none">{{ seguindo_count }}</p>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1.5">A Seguir</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="px-5 pt-8 flex flex-col gap-2 animate-fade-up delay-100">
-        <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Configurações da Conta</h3>
+    <div class="px-5 pt-6 animate-fade-up delay-100">
+        <a href="#" class="block carteirinha-card rounded-3xl p-6 transition-transform active:scale-[0.98]">
+            <div class="carteirinha-glow"></div>
+            <div class="relative z-10 flex justify-between items-start mb-6">
+                <div>
+                    <h3 class="font-black text-2xl uppercase tracking-tighter leading-none text-white shadow-sm" style="font-family: 'Montserrat', sans-serif;">SAT MEMBER</h3>
+                    <p class="text-white/80 text-[10px] uppercase font-bold tracking-widest mt-1">
+                        {% if perfil.torcida %} {{ perfil.torcida.nome }} {% else %} Sócio Oficial {% endif %}
+                    </p>
+                </div>
+                <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20">
+                    {% if perfil.torcida and perfil.torcida.logo %}
+                        <img src="{{ perfil.torcida.logo.url }}" class="w-8 h-8 object-contain filter brightness-0 invert">
+                    {% else %}
+                        <i class="bi bi-shield-fill text-white opacity-90 text-2xl"></i>
+                    {% endif %}
+                </div>
+            </div>
 
-        <div class="bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm">
-            <a href="#" class="menu-item flex items-center justify-between p-4 border-b border-gray-50">
+            <div class="relative z-10">
+                <p class="text-white/60 text-[10px] uppercase font-bold tracking-widest mb-1">Nº do Membro</p>
+                <div class="flex justify-between items-end">
+                    <p class="text-xl font-black tracking-widest text-white" style="font-family: 'Montserrat', sans-serif;">
+                        {% if perfil.cpf %}{{ perfil.cpf|slice:"0:3" }}.***.***-{{ perfil.cpf|slice:"-2:" }}{% else %}123.***.***-00{% endif %}
+                    </p>
+                    <div class="bg-white text-gray-900 text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-lg">
+                        <i class="bi bi-qr-code mr-1"></i> Ver Cartão
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="px-5 pt-8 flex flex-col gap-2 animate-fade-up delay-200">
+        <h3 class="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">A Minha Conta</h3>
+
+        <div class="sat-light-card">
+            <button onclick="abrirModalEditar()" class="w-full menu-item-sat flex items-center justify-between p-4.5">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-orange-50 text-[#ff6b00] rounded-xl flex items-center justify-center">
+                    <div class="w-10 h-10 bg-dinamico/10 text-dinamico rounded-[14px] flex items-center justify-center">
                         <i class="bi bi-person-gear text-xl"></i>
                     </div>
-                    <span class="text-sm font-bold text-gray-700">Editar Perfil</span>
+                    <span class="text-[13px] font-bold text-gray-800">Editar Perfil da Conta</span>
                 </div>
                 <i class="bi bi-chevron-right text-gray-300"></i>
-            </a>
+            </button>
 
-            <a href="#" class="menu-item flex items-center justify-between p-4 border-b border-gray-50">
+            <a href="#" class="menu-item-sat flex items-center justify-between p-4.5">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                    <div class="w-10 h-10 bg-gray-50 text-gray-500 rounded-[14px] flex items-center justify-center">
                         <i class="bi bi-bag-check text-xl"></i>
                     </div>
-                    <span class="text-sm font-bold text-gray-700">Meus Pedidos</span>
+                    <span class="text-[13px] font-bold text-gray-800">Meus Pedidos na Loja</span>
                 </div>
                 <i class="bi bi-chevron-right text-gray-300"></i>
             </a>
 
-            <a href="#" class="menu-item flex items-center justify-between p-4 border-b border-gray-50">
+            <div class="menu-item-sat flex items-center justify-between p-4.5">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-shield-lock text-xl"></i>
-                    </div>
-                    <span class="text-sm font-bold text-gray-700">Segurança e Senha</span>
-                </div>
-                <i class="bi bi-chevron-right text-gray-300"></i>
-            </a>
-
-            <a href="#" class="menu-item flex items-center justify-between p-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
+                    <div class="w-10 h-10 bg-gray-50 text-gray-500 rounded-[14px] flex items-center justify-center">
                         <i class="bi bi-bell text-xl"></i>
                     </div>
-                    <span class="text-sm font-bold text-gray-700">Notificações</span>
+                    <span class="text-[13px] font-bold text-gray-800">Notificações Push</span>
                 </div>
-                <div class="form-switch">
-                    <i class="bi bi-toggle-on text-[#ff6b00] text-2xl"></i>
-                </div>
-            </a>
+                <i class="bi bi-toggle-on text-2xl text-dinamico"></i>
+            </div>
         </div>
     </div>
 
-    <div class="px-5 pt-6 flex flex-col gap-2 animate-fade-up delay-200">
-        <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Mais</h3>
+    <div class="px-5 pt-6 flex flex-col gap-2 animate-fade-up delay-300">
+        <h3 class="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Sistema</h3>
 
-        <div class="bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm mb-6">
-            <a href="#" class="menu-item flex items-center justify-between p-4 border-b border-gray-50">
+        <div class="sat-light-card mb-6">
+            <a href="#" class="menu-item-sat flex items-center justify-between p-4.5 border-b border-gray-50">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-gray-50 text-gray-500 rounded-xl flex items-center justify-center">
+                    <div class="w-10 h-10 bg-gray-50 text-gray-500 rounded-[14px] flex items-center justify-center">
                         <i class="bi bi-question-circle text-xl"></i>
                     </div>
-                    <span class="text-sm font-bold text-gray-700">Central de Ajuda</span>
+                    <span class="text-[13px] font-bold text-gray-800">Central de Ajuda</span>
                 </div>
                 <i class="bi bi-chevron-right text-gray-300"></i>
             </a>
 
-            <form action="{% url 'logout' %}" method="post" id="logout-form">
+            <form action="#" method="post" class="m-0">
                 {% csrf_token %}
-                <button type="submit" class="menu-item w-full flex items-center justify-between p-4 text-red-500">
+                <button type="submit" class="w-full flex items-center justify-between p-4.5 hover:bg-red-50 transition-colors">
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center">
+                        <div class="w-10 h-10 bg-red-100 text-red-500 rounded-[14px] flex items-center justify-center">
                             <i class="bi bi-box-arrow-right text-xl"></i>
                         </div>
-                        <span class="text-sm font-bold">Sair da Conta</span>
+                        <span class="text-[13px] font-black text-red-500">Sair da Conta (Logout)</span>
                     </div>
                 </button>
             </form>
         </div>
 
-        <p class="text-center text-[10px] font-bold text-gray-300 uppercase tracking-widest pb-10">SAT v1.0.4 • 2026</p>
+        <p class="text-center text-[10px] font-bold text-gray-300 uppercase tracking-[0.2em] pb-8">SAT Premium v2.0 • 2026</p>
+    </div>
+
+    <div id="modalEditarPerfil" class="fixed inset-0 modal-backdrop z-[200] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        
+        <div class="w-full max-w-md bg-white rounded-[28px] shadow-2xl p-6 transform scale-95 transition-transform duration-300 max-h-[90vh] flex flex-col relative" id="modalEditarContent">
+            
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100 shrink-0">
+                <h3 class="font-black text-gray-900 text-xl uppercase tracking-tighter">Editar Perfil</h3>
+                <button type="button" onclick="fecharModalEditar()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <form action="" method="POST" enctype="multipart/form-data" class="modal-form-inputs overflow-y-auto no-scrollbar pr-1 pb-4">
+                {% csrf_token %}
+                
+                <div class="flex flex-col items-center mb-6 mt-2">
+                    <div class="w-24 h-24 rounded-full bg-gray-100 mb-3 overflow-hidden border-2 border-gray-200 shadow-sm relative">
+                        {% if perfil.foto %}
+                            <img src="{{ perfil.foto.url }}" id="preview_foto" class="w-full h-full object-cover">
+                        {% else %}
+                            <i class="bi bi-person text-4xl text-gray-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+                            <img src="" id="preview_foto" class="w-full h-full object-cover hidden absolute inset-0 z-10">
+                        {% endif %}
+                    </div>
+                    
+                    <label for="id_foto" class="bg-dinamico/10 text-dinamico text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full cursor-pointer hover:bg-dinamico hover:text-white transition-colors">
+                        Alterar Foto
+                    </label>
+                    <input type="file" name="foto" accept="image/*" id="id_foto" onchange="previewImage(this)">
+                </div>
+                
+                <div class="space-y-4 mb-6">
+                    {% for field in form %}
+                        {% if field.name != 'foto' %}
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1 block">
+                                {{ field.label }}
+                            </label>
+                            
+                            {{ field }}
+                            
+                            {% if field.errors %}
+                                <p class="text-[10px] text-red-500 font-bold mt-1 ml-1">{{ field.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="w-full bg-dinamico text-white font-black text-sm uppercase tracking-[0.1em] py-4 rounded-2xl shadow-lg shadow-dinamico/30 active:scale-[0.98] transition-all mt-auto shrink-0">
+                    Guardar Alterações
+                </button>
+            </form>
+        </div>
     </div>
 
 </div>
+
+<script>
+    const modalEditar = document.getElementById('modalEditarPerfil');
+    const modalContent = document.getElementById('modalEditarContent');
+
+    function abrirModalEditar() {
+        modalEditar.classList.remove('hidden');
+        modalEditar.classList.add('flex'); // Fundamental para centrar
+        setTimeout(() => {
+            modalEditar.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }, 10);
+    }
+
+    function fecharModalEditar() {
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        modalEditar.classList.add('opacity-0');
+        setTimeout(() => { 
+            modalEditar.classList.add('hidden'); 
+            modalEditar.classList.remove('flex');
+        }, 300);
+    }
+
+    // Funcionalidade para mostrar a foto escolhida instantaneamente antes de salvar
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('preview_foto');
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Fecha o modal se clicar na parte escura do fundo
+    modalEditar.addEventListener('click', function(e) {
+        if (e.target === this) fecharModalEditar();
+    });
+</script>
 {% endblock %}

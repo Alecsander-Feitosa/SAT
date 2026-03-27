@@ -47,6 +47,8 @@ class Perfil(models.Model):
     pelotao = models.CharField(max_length=50, blank=True)
     rede_social = models.CharField(max_length=100, blank=True)
 
+
+    seguidores = models.ManyToManyField(User, related_name='seguindo', blank=True)
     def __str__(self):
         return f"Perfil de {self.user.username}"
 # FIM DA ATUALIZAÇÃO: Classe Perfil

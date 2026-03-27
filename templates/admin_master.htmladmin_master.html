@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Painel Administrativo - SAT{% endblock %}
+
+{% block content %}
+<style>
+    /* ========== SAT CORE - ADMIN DASHBOARD ========== */
+    .admin-wrapper {
+        display: flex;
+        height: 100vh;
+        background-color: #F8F9FA; /* Fundo App Oficial */
+        padding-top: 60px; /* Para não colidir com a nav mobile se houver */
+    }
+
+    /* Sidebar Fixa */
+    .admin-sidebar {
+        width: 280px;
+        background-color: #FFFFFF;
+        border-right: 1px solid rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        padding: 24px;
+        box-shadow: 2px 0 15px rgba(0,0,0,0.02);
+        z-index: 10;
+    }
+
+    .admin-menu-item {
+        padding: 14px 18px;
+        margin-bottom: 8px;
+        border-radius: 14px;
+        color: #6c757d;
+        font-weight: 800;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .admin-menu-item:hover {
+        background-color: rgba(211, 113, 41, 0.05);
+        color: #1A1A1A;
+        transform: translateX(5px);
+    }
+
+    .admin-menu-item.active {
+        background-color: #D37129;
+        color: #FFFFFF;
+        box-shadow: 0 4px 15px rgba(211, 113, 41, 0.3);
+    }
+
+    /* Área Central */
+    .admin-content {
+        flex: 1;
+        padding: 40px;
+        overflow-y: auto;
+    }
+
+    /* Cards de Ação Rápidas */
+    .admin-action-card {
+        background-color: #FFFFFF;
+        padding: 30px 20px;
+        border-radius: 24px;
+        text-align: center;
+        border: 1px solid rgba(0,0,0,0.04);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+
+    .admin-action-card:hover {
+        transform: translateY(-8px);
+        border-color: #D37129;
+        box-shadow: 0 15px 30px rgba(211, 113, 41, 0.1);
+    }
+
+    .icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        font-size: 28px;
+    }
+
+    @media (max-width: 768px) {
+        .admin-wrapper { flex-direction: column; height: auto; padding-top: 100px; }
+        .admin-sidebar { width: 100%; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.05); padding: 15px; }
+        .admin-content { padding: 20px; }
+    }
+</style>
+
+<div class="admin-wrapper">
+    <nav class="admin-sidebar hidden md:flex">
+        <div class="text-center mb-10">
+            <img src="{% static 'img/logo_sat.png' %}" alt="Logo SAT" class="max-w-[100px] mx-auto brightness-0">
+            <p class="text-[9px] font-black uppercase tracking-[3px] text-[#D37129] mt-2">Master Control</p>
+        </div>
+        
+        <div class="flex flex-col flex-1">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-2">Principal</p>
+            <a href="#" class="admin-menu-item active">
+                <i class="bi bi-grid-1x2-fill text-lg"></i> Dashboard
+            </a>
+            
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 mt-6 ml-2">Gestão</p>
+            <a href="{% url 'gerir_utilizadores' %}" class="admin-menu-item">
+                <i class="bi bi-people-fill text-lg"></i> Utilizadores
+            </a>
+            <a href="{% url 'gerenciar_torcidas' %}" class="admin-menu-item">
+                <i class="bi bi-shield-shaded text-lg"></i> Torcidas
+            </a>
+            
+            <div class="mt-auto">
+                <a href="{% url 'dashboard' %}" class="admin-menu-item bg-gray-50 border border-gray-100">
+                    <i class="bi bi-box-arrow-left text-lg"></i> Voltar ao App
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="admin-content">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+            <div>
+                <h2 class="text-3xl font-black italic uppercase tracking-tighter text-[#1A1A1A]">Visão <span class="text-[#D37129]">Geral</span></h2>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">Bem-vindo à gestão global do sistema SAT.</p>
+            </div>
+            
+            <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm">
+                <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-[#D37129]">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div class="text-right hidden sm:block">
+                    <p class="text-[10px] font-black uppercase text-[#1A1A1A] leading-tight">{{ request.user.username }}</p>
+                    <p class="text-[8px] font-bold uppercase text-gray-400">Administrador</p>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Ações Rápidas</h3>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            
+            <a href="{% url 'nova_torcida' %}" class="no-underline">
+                <div class="admin-action-card">
+                    <div class="icon-wrapper bg-orange-50 text-[#D37129]">
+                        <i class="bi bi-plus-circle-fill"></i>
+                    </div>
+                    <h4 class="text-xs font-black uppercase text-[#1A1A1A]">Nova Torcida</h4>
+                    <p class="text-[9px] font-bold text-gray-400 mt-1 uppercase">Cadastrar Parceiro</p>
+                </div>
+            </a>
+
+            <a href="{% url 'gerenciar_torcidas' %}" class="no-underline">
+                <div class="admin-action-card">
+                    <div class="icon-wrapper bg-blue-50 text-blue-500">
+                        <i class="bi bi-card-list"></i>
+                    </div>
+                    <h4 class="text-xs font-black uppercase text-[#1A1A1A]">Lista de Torcidas</h4>
+                    <p class="text-[9px] font-bold text-gray-400 mt-1 uppercase">Ver Todas</p>
+                </div>
+            </a>
+
+            <a href="#" class="no-underline">
+                <div class="admin-action-card">
+                    <div class="icon-wrapper bg-green-50 text-green-500">
+                        <i class="bi bi-person-check-fill"></i>
+                    </div>
+                    <h4 class="text-xs font-black uppercase text-[#1A1A1A]">Aprovações</h4>
+                    <p class="text-[9px] font-bold text-gray-400 mt-1 uppercase">Cadastros SAT</p>
+                </div>
+            </a>
+
+            <a href="#" class="no-underline">
+                <div class="admin-action-card border-red-100 hover:border-red-500">
+                    <div class="icon-wrapper bg-red-50 text-red-500">
+                        <i class="bi bi-slash-circle-fill"></i>
+                    </div>
+                    <h4 class="text-xs font-black uppercase text-[#1A1A1A]">Blacklist</h4>
+                    <p class="text-[9px] font-bold text-gray-400 mt-1 uppercase">Banimentos</p>
+                </div>
+            </a>
+
+        </div>
+    </main>
+</div>
+{% endblock %}

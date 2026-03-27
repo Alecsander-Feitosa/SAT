@@ -260,19 +260,35 @@ def dashboard(request):
 
 @login_required
 def editar_perfil(request):
-    # O use de get_or_create evita que o erro ocorra se o perfil sumir do banco
-    perfil, created = Perfil.objects.get_or_create(user=request.user) 
+    perfil = request.user.perfil
     
+    # 1. Busca os dados de XP e Nível do jogador
+    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+    
+    # 2. Calcula quantas pessoas o utilizador segue
+    seguindo_count = request.user.seguindo.count() if hasattr(request.user, 'seguindo') else 0
+
     if request.method == 'POST':
+        # request.FILES é obrigatório para a foto de perfil funcionar
         form = PerfilCompletoForm(request.POST, request.FILES, instance=perfil)
         if form.is_valid():
             form.save()
             messages.success(request, "Perfil atualizado com sucesso!")
-            return redirect('perfil')
+            # Mude 'perfil' para o nome correto da sua URL se for diferente
+            return redirect('perfil') 
     else:
         form = PerfilCompletoForm(instance=perfil)
+        
+    context = {
+        'form': form, 
+        'perfil': perfil,
+        'perfil_game': perfil_game,       # Agora o XP vai aparecer
+        'seguindo_count': seguindo_count  # Agora as estatísticas batem certo
+    }
     
-    return render(request, 'perfil.html', {'form': form, 'perfil': perfil})
+    return render(request, 'perfil.html', context)
+
+
 @login_required
 def carteirinha(request):
     perfil = get_object_or_404(Perfil, user=request.user)
@@ -541,20 +557,35 @@ def beneficios_view(request):
     }
     return render(request, 'beneficios.html', context)
 
-# Na sua views.py (App accounts)
+
 @login_required
 def perfil_view(request):
     perfil = request.user.perfil
+    
+    # Busca o perfil de gamificação para mostrar o XP e Nível
+    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+    
     if request.method == 'POST':
-        # Importante: request.FILES é necessário para fotos
+        # Importante: request.FILES é necessário para processar o upload da foto
         form = PerfilCompletoForm(request.POST, request.FILES, instance=perfil)
         if form.is_valid():
             form.save()
+            messages.success(request, "Perfil atualizado com sucesso!")
             return redirect('perfil')
     else:
         form = PerfilCompletoForm(instance=perfil)
+        
+    # Calcula quantas pessoas o utilizador está a seguir (relação inversa)
+    seguindo_count = request.user.seguindo.count() if hasattr(request.user, 'seguindo') else 0
+
+    context = {
+        'form': form, 
+        'perfil': perfil,
+        'perfil_game': perfil_game,
+        'seguindo_count': seguindo_count
+    }
     
-    return render(request, 'perfil.html', {'form': form, 'perfil': perfil})
+    return render(request, 'perfil.html', context)
 
 @login_required
 def ranking_torcida(request):

@@ -1,56 +1,97 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="p-5">
-    <div class="flex items-center gap-3 mb-6">
-        <i class="bi bi-shield-lock-fill text-3xl text-tema"></i>
-        <div>
-            <h2 class="text-xl font-black italic uppercase">Moderação</h2>
-            <p class="text-xs text-gray-500 font-bold">Gerencie os membros da sua torcida</p>
+<style>
+    @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-up { animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .delay-100 { animation-delay: 0.1s; opacity: 0; }
+    .delay-200 { animation-delay: 0.2s; opacity: 0; }
+
+    .text-dinamico { color: var(--cor-primaria) !important; }
+    .border-dinamico { border-color: var(--cor-primaria) !important; }
+    .bg-dinamico { background-color: var(--cor-primaria) !important; }
+    
+    .mod-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .mod-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+</style>
+
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+    <div class="px-5 pt-10 pb-4 animate-fade-up">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-12 h-12 rounded-xl bg-dinamico shadow-lg flex items-center justify-center text-white">
+                <i class="bi bi-shield-lock-fill text-2xl"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-black italic uppercase tracking-tighter texto-main">Moderação</h2>
+                <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest">Gestão de Sócios</p>
+            </div>
         </div>
     </div>
 
     {% if messages %}
-        {% for message in messages %}
-            <div class="p-4 mb-4 text-sm font-bold rounded-xl {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
-                {{ message }}
-            </div>
-        {% endfor %}
+        <div class="px-5 mb-4 animate-fade-up">
+            {% for message in messages %}
+                <div class="p-4 text-xs font-bold rounded-xl {% if message.tags == 'success' %}bg-green-50 text-green-600 border border-green-100{% else %}bg-red-50 text-red-600 border border-red-100{% endif %}">
+                    <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% else %}bi-exclamation-circle-fill{% endif %} mr-1"></i> {{ message }}
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
 
-    <div class="bg-gray-50 rounded-2xl p-1 mb-6">
-        <div class="flex bg-white rounded-xl shadow-sm overflow-hidden">
-            <button class="flex-1 py-3 text-sm font-black text-tema border-b-2 border-tema">Pendentes</button>
-            <button class="flex-1 py-3 text-sm font-bold text-gray-400">Sócios Ativos</button>
+    <div class="px-5 mb-6 animate-fade-up delay-100">
+        <div class="fundo-card rounded-[20px] p-1.5 border border-suave shadow-sm flex">
+            <button class="flex-1 py-3 text-xs font-black text-dinamico bg-black/5 rounded-xl uppercase tracking-widest">
+                Pendentes <span class="ml-1 bg-dinamico text-white px-2 py-0.5 rounded-full text-[9px]">{{ pendentes|length }}</span>
+            </button>
+            <button class="flex-1 py-3 text-xs font-bold texto-main opacity-40 uppercase tracking-widest hover:opacity-100 transition-opacity">
+                Ativos
+            </button>
         </div>
     </div>
 
-    <div class="space-y-4">
+    <div class="px-5 space-y-4 animate-fade-up delay-200">
         {% for perfil in pendentes %}
-        <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                    <i class="bi bi-person-fill text-gray-400 text-xl"></i>
+        <div class="fundo-card border border-suave rounded-[24px] p-5 shadow-sm mod-card flex flex-col gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-black/5 rounded-full flex items-center justify-center border border-suave">
+                    {% if perfil.foto %}
+                        <img src="{{ perfil.foto.url }}" class="w-full h-full object-cover rounded-full">
+                    {% else %}
+                        <i class="bi bi-person-fill texto-main opacity-20 text-2xl"></i>
+                    {% endif %}
                 </div>
                 <div>
-                    <h3 class="font-bold text-gray-900">{{ perfil.user.first_name|default:perfil.user.username }}</h3>
-                    <p class="text-xs text-gray-500">CPF: {{ perfil.cpf|default:"Não informado" }}</p>
+                    <h3 class="font-black text-sm uppercase italic texto-main">{{ perfil.user.first_name|default:perfil.user.username }}</h3>
+                    <p class="text-[10px] font-bold texto-main opacity-50 tracking-wide mt-0.5">CPF: {{ perfil.cpf|default:"Não informado" }}</p>
+                    <p class="text-[9px] font-bold text-dinamico uppercase tracking-widest mt-1">Aguardando Aprovação</p>
                 </div>
             </div>
             
-            <div class="flex gap-2 mt-2">
-                <a href="{% url 'aprovar_membro' perfil.id %}" class="flex-1 py-2 bg-tema text-white rounded-xl font-bold text-sm text-center no-underline">
-                    <i class="bi bi-check-circle-fill mr-1"></i> Aprovar
+            <div class="flex gap-3 pt-3 border-t border-suave">
+                <a href="{% url 'aprovar_membro' perfil.id %}" class="flex-1 py-3 bg-dinamico text-white rounded-xl font-black text-[11px] uppercase tracking-widest text-center shadow-lg transition-transform hover:scale-105">
+                    <i class="bi bi-check-lg text-lg align-middle mr-1"></i> Aprovar
                 </a>
-                <a href="#" class="flex-1 py-2 bg-red-100 text-red-600 rounded-xl font-bold text-sm text-center no-underline">
-                    <i class="bi bi-x-circle-fill mr-1"></i> Recusar
+                <a href="#" class="flex-1 py-3 bg-red-50 text-red-500 border border-red-100 rounded-xl font-black text-[11px] uppercase tracking-widest text-center transition-colors hover:bg-red-100">
+                    <i class="bi bi-x-lg text-lg align-middle mr-1"></i> Recusar
                 </a>
             </div>
         </div>
         {% empty %}
-        <div class="text-center py-10">
-            <i class="bi bi-inbox text-4xl text-gray-300"></i>
-            <p class="text-gray-500 font-bold mt-2">Nenhum membro pendente</p>
+        <div class="text-center py-12 bg-black/5 rounded-[24px] border border-suave border-dashed">
+            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                <i class="bi bi-inbox text-2xl texto-main opacity-30"></i>
+            </div>
+            <p class="text-[11px] font-black texto-main opacity-50 uppercase tracking-widest">Nenhum membro pendente</p>
+            <p class="text-[9px] font-bold texto-main opacity-30 mt-1">Sua torcida está atualizada.</p>
         </div>
         {% endfor %}
     </div>

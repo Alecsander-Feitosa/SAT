@@ -3,99 +3,92 @@
 
 {% block content %}
 <style>
-    /* Animações suaves */
+    /* ========== SAT CORE - DASHBOARD DINÂMICO ========== */
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; transform: translateY(15px); filter: blur(3px); }
+        to { opacity: 1; transform: translateY(0); filter: blur(0); }
     }
-    .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
+    .animate-fade { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .delay-100 { animation-delay: 0.1s; opacity: 0; }
     .delay-200 { animation-delay: 0.2s; opacity: 0; }
     .delay-300 { animation-delay: 0.3s; opacity: 0; }
     .delay-400 { animation-delay: 0.4s; opacity: 0; }
     .delay-500 { animation-delay: 0.5s; opacity: 0; }
-    .delay-600 { animation-delay: 0.6s; opacity: 0; }
-    .delay-700 { animation-delay: 0.7s; opacity: 0; }
 
-    /* Cartão Laranja Premium (Carteira) */
-    .carteira-card {
-        background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
-        box-shadow: 0 10px 25px rgba(255, 107, 0, 0.3);
-        border-radius: 20px;
-        position: relative;
-        overflow: hidden;
+    /* Classes Dinâmicas de Torcida */
+    .text-dinamico { color: var(--cor-primaria) !important; }
+    .bg-dinamico { background-color: var(--cor-primaria) !important; }
+    .border-dinamico { border-color: var(--cor-primaria) !important; }
+    
+    /* Cartão Premium Dinâmico */
+    .carteira-dinamica {
+        background: linear-gradient(135deg, var(--cor-primaria) 0%, rgba(0,0,0,0.8) 100%);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
 
-    /* Banner Escuro (SAT Bet) */
-    .banner-escuro {
-        background: #111827;
-        border-radius: 20px;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    .banner-bet {
+        background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
     }
 
-    /* Scroll oculto (Especial para o Carrossel) */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    
-    /* Scroll horizontal magnético (Snap) */
     .snap-x-mandatory { scroll-snap-type: x mandatory; }
     .snap-center-item { scroll-snap-align: center; }
 </style>
 
-<div class="w-full min-h-screen bg-white px-5 pt-2 flex flex-col gap-6 overflow-x-hidden pb-32">
+<div class="w-full min-h-screen fundo-app px-5 pt-4 flex flex-col gap-6 overflow-x-hidden pb-32">
 
     <div class="flex justify-between items-center w-full animate-fade">
         <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-full border-2 border-[#ff6b00] p-[2px] overflow-hidden">
+            <div class="w-12 h-12 rounded-full border-2 border-dinamico p-[2px] overflow-hidden fundo-card shadow-sm">
                 {% if user.perfil.foto %}
                     <img src="{{ user.perfil.foto.url }}" alt="Perfil" class="w-full h-full object-cover rounded-full">
                 {% else %}
                     <div class="w-full h-full bg-gray-100 rounded-full flex items-center justify-center">
-                        <i class="bi bi-person-fill text-gray-400 text-xl"></i>
+                        <i class="bi bi-person-fill texto-main opacity-30 text-xl"></i>
                     </div>
                 {% endif %}
             </div>
             <div>
-                <p class="text-[12px] text-gray-500 font-medium leading-none mb-1">Olá,</p>
-                <h1 class="text-xl font-black text-gray-900 leading-none" style="font-family: 'Montserrat', sans-serif;">
-                    {{ user.username|default:"Torcedor" }}
+                <p class="text-[12px] texto-main opacity-50 font-bold leading-none mb-1">Olá,</p>
+                <h1 class="text-xl font-black texto-main leading-none uppercase tracking-tighter" style="font-family: 'Montserrat', sans-serif;">
+                    {{ user.get_short_name|default:user.username }}
                 </h1>
             </div>
         </div>
-        <a href="{% url 'perfil' %}" class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 shadow-sm border border-gray-100 hover:bg-gray-100 transition-colors">
-            <i class="bi bi-gear-fill text-lg"></i>
+        <a href="{% url 'perfil' %}" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main shadow-sm border border-suave transition-colors">
+            <i class="bi bi-gear-fill text-lg opacity-60"></i>
         </a>
     </div>
 
-    <div class="banner-escuro w-full p-6 flex justify-between items-center animate-fade delay-100">
+    <div class="banner-bet w-full p-6 rounded-[20px] flex justify-between items-center animate-fade delay-100 relative overflow-hidden">
         <div class="z-10 relative">
-            <h2 class="text-white font-black text-2xl italic tracking-tight" style="font-family: 'Montserrat', sans-serif;">SAT <span class="text-[#ff6b00]">BET</span></h2>
+            <h2 class="text-white font-black text-2xl italic tracking-tight" style="font-family: 'Montserrat', sans-serif;">SAT <span class="text-dinamico">BET</span></h2>
             <p class="text-gray-400 text-xs font-medium mb-4">Faça sua fezinha</p>
-            <a href="{% url 'bet_manutencao' %}" class="bg-[#ff6b00] text-white text-[10px] font-black uppercase tracking-wider px-6 py-2.5 rounded-full inline-block hover:scale-105 transition-transform shadow-[0_4px_15px_rgba(255,107,0,0.4)]">
+            <a href="{% url 'bet_manutencao' %}" class="bg-dinamico text-white text-[10px] font-black uppercase tracking-wider px-6 py-2.5 rounded-full inline-block shadow-lg transition-transform hover:scale-105">
                 Acessar
             </a>
         </div>
         <div class="z-10 relative">
-            <i class="bi bi-dice-5-fill text-[50px] text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"></i>
+            <i class="bi bi-dice-5-fill text-[50px] text-white opacity-90 drop-shadow-md"></i>
         </div>
-        <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-[#ff6b00] opacity-30 blur-[30px] rounded-full pointer-events-none"></div>
+        <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-dinamico opacity-20 blur-[30px] rounded-full pointer-events-none"></div>
     </div>
 
-    <div class="carteira-card w-full p-6 text-white animate-fade delay-200 relative">
+    <a href="{% url 'perfil' %}" class="carteira-dinamica w-full p-6 text-white animate-fade delay-200 relative rounded-[20px] block no-underline transition-transform hover:scale-[1.02]">
         <div class="absolute top-0 right-0 w-40 h-40 bg-white opacity-5 rounded-full blur-2xl transform translate-x-10 -translate-y-10 pointer-events-none"></div>
 
         <div class="flex justify-between items-start mb-6 relative z-10">
             <div>
-                <h3 class="font-black text-[22px] uppercase tracking-tighter leading-none" style="font-family: 'Montserrat', sans-serif;">Membro SAT</h3>
-                <p class="text-white/90 text-[10px] uppercase font-bold tracking-widest mt-1">
-                    {% if user.perfil.torcida %} {{ user.perfil.torcida.nome }} {% else %} Torcedor Neutro {% endif %}
+                <h3 class="font-black text-[22px] uppercase tracking-tighter leading-none text-white" style="font-family: 'Montserrat', sans-serif;">Membro SAT</h3>
+                <p class="text-white/80 text-[10px] uppercase font-bold tracking-widest mt-1">
+                    {% if torcida %} {{ torcida.nome }} {% else %} Sócio Oficial SAT {% endif %}
                 </p>
             </div>
-            <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20">
-                {% if user.perfil.torcida and user.perfil.torcida.logo %}
-                    <img src="{{ user.perfil.torcida.logo.url }}" alt="Logo" class="w-6 h-6 object-contain filter brightness-0 invert">
+            <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20">
+                {% if torcida and torcida.logo %}
+                    <img src="{{ torcida.logo.url }}" alt="Logo" class="w-6 h-6 object-contain filter brightness-0 invert">
                 {% else %}
                     <i class="bi bi-shield-fill text-white opacity-90 text-xl"></i>
                 {% endif %}
@@ -103,271 +96,267 @@
         </div>
 
         <div class="relative z-10">
-            <p class="text-white/70 text-[10px] uppercase font-bold tracking-widest mb-1">Nº da carteira</p>
-            <p class="text-2xl font-black tracking-widest mb-5" style="font-family: 'Montserrat', sans-serif;">
-                {% if user.perfil.cpf %}{{ user.perfil.cpf|slice:"0:3" }}.***.***-{{ user.perfil.cpf|slice:"-2:" }}{% else %}123.456.789-00{% endif %}
-            </p>
+            <div class="flex justify-between items-end mb-4">
+                <div>
+                    <p class="text-white/60 text-[10px] uppercase font-bold tracking-widest mb-1">Nº da carteira</p>
+                    <p class="text-xl font-black tracking-widest text-white" style="font-family: 'Montserrat', sans-serif;">
+                        {% if user.perfil.cpf %}{{ user.perfil.cpf|slice:"0:3" }}.***.***-{{ user.perfil.cpf|slice:"-2:" }}{% else %}123.***.***-00{% endif %}
+                    </p>
+                </div>
+                <div class="text-right">
+                    <p class="text-white/60 text-[8px] uppercase font-bold tracking-widest mb-1">XP Atual</p>
+                    <p class="text-lg font-black text-white">{{ xp_atual }}</p>
+                </div>
+            </div>
 
             <div class="w-full border-t border-white/20 pt-4 flex justify-between items-center">
-                <a href="#" class="text-xs font-bold text-white flex items-center gap-1 hover:opacity-80 transition-opacity">
-                    Ver carteira inteira <i class="bi bi-chevron-right text-[10px] mt-0.5"></i>
-                </a>
-                <i class="bi bi-qr-code-scan text-2xl opacity-90"></i>
+                <span class="text-xs font-bold text-white flex items-center gap-1">
+                    Ver carteira <i class="bi bi-chevron-right text-[10px] mt-0.5"></i>
+                </span>
+                <i class="bi bi-qr-code-scan text-2xl opacity-90 text-white"></i>
             </div>
         </div>
-    </div>
+    </a>
 
     <div class="w-full animate-fade delay-300">
         <div class="grid grid-cols-4 gap-3">
             <a href="{% url 'lista_eventos' %}" class="flex flex-col items-center gap-2 group">
-                <div class="w-16 h-16 bg-white border border-gray-100 rounded-[20px] shadow-[0_4px_15px_rgba(0,0,0,0.04)] flex items-center justify-center group-hover:bg-[#ff6b00] transition-all duration-300 transform group-hover:-translate-y-1">
-                    <i class="bi bi-calendar-event text-2xl text-gray-700 group-hover:text-white transition-colors"></i>
+                <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
+                    <i class="bi bi-calendar-event text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
                 </div>
-                <span class="text-[11px] font-bold text-gray-600">Eventos</span>
+                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Eventos</span>
             </a>
             <a href="{% url 'loja' %}" class="flex flex-col items-center gap-2 group">
-                <div class="w-16 h-16 bg-white border border-gray-100 rounded-[20px] shadow-[0_4px_15px_rgba(0,0,0,0.04)] flex items-center justify-center group-hover:bg-[#ff6b00] transition-all duration-300 transform group-hover:-translate-y-1">
-                    <i class="bi bi-cart3 text-2xl text-gray-700 group-hover:text-white transition-colors"></i>
+                <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
+                    <i class="bi bi-cart3 text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
                 </div>
-                <span class="text-[11px] font-bold text-gray-600">Loja</span>
+                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Loja</span>
             </a>
             <a href="{% url 'mural' %}" class="flex flex-col items-center gap-2 group">
-                <div class="w-16 h-16 bg-white border border-gray-100 rounded-[20px] shadow-[0_4px_15px_rgba(0,0,0,0.04)] flex items-center justify-center group-hover:bg-[#ff6b00] transition-all duration-300 transform group-hover:-translate-y-1">
-                    <i class="bi bi-chat-square-text text-2xl text-gray-700 group-hover:text-white transition-colors"></i>
+                <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
+                    <i class="bi bi-chat-square-text text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
                 </div>
-                <span class="text-[11px] font-bold text-gray-600">Mural</span>
+                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Mural</span>
             </a>
             <a href="{% url 'noticias' %}" class="flex flex-col items-center gap-2 group">
-                <div class="w-16 h-16 bg-white border border-gray-100 rounded-[20px] shadow-[0_4px_15px_rgba(0,0,0,0.04)] flex items-center justify-center group-hover:bg-[#ff6b00] transition-all duration-300 transform group-hover:-translate-y-1">
-                    <i class="bi bi-newspaper text-2xl text-gray-700 group-hover:text-white transition-colors"></i>
+                <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
+                    <i class="bi bi-newspaper text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
                 </div>
-                <span class="text-[11px] font-bold text-gray-600">Notícias</span>
+                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Notícias</span>
             </a>
         </div>
     </div>
 
     <div class="w-full animate-fade delay-400 mt-2">
-        <div class="flex items-center justify-between mb-4 pl-1 pr-1">
+        <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm p-1">
-                    {% if user.perfil.torcida and user.perfil.torcida.logo %}
-                        <img src="{{ user.perfil.torcida.logo.url }}" alt="Escudo" class="w-full h-full object-contain">
-                    {% else %}
-                        <i class="bi bi-shield-shaded text-gray-300 text-lg"></i>
-                    {% endif %}
+                <div class="w-9 h-9 fundo-card border border-suave rounded-full flex items-center justify-center shadow-sm p-1">
+                    <i class="bi bi-shield-shaded texto-main opacity-30 text-lg"></i>
                 </div>
-                <h3 class="text-sm font-black text-gray-900 uppercase tracking-widest mt-1" style="font-family: 'Montserrat', sans-serif;">
-                    {% if user.perfil.torcida %} {{ user.perfil.torcida.nome }} {% elif user.perfil.time_coracao %} {{ user.perfil.time_coracao }} {% else %} Seu Time {% endif %}
+                <h3 class="text-sm font-black texto-main uppercase tracking-widest mt-1" style="font-family: 'Montserrat', sans-serif;">
+                    {% if user.perfil.time_coracao %} 
+                        {{ user.perfil.time_coracao }} 
+                    {% else %} 
+                        Notícias SAT
+                    {% endif %}
                 </h3>
             </div>
-            <a href="{% url 'noticias' %}" class="text-[10px] font-bold text-[#ff6b00] uppercase tracking-wider hover:underline">Ver todas</a>
+            <a href="{% url 'noticias' %}" class="text-[10px] font-black text-dinamico uppercase tracking-wider hover:underline">Ver todas</a>
         </div>
 
         <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
-            <a href="{% url 'noticias' %}" class="snap-center-item shrink-0 w-[75%] max-w-[280px] bg-white border border-gray-100 rounded-[20px] shadow-[0_4px_15px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col group">
-                <div class="w-full h-36 bg-gray-900 relative overflow-hidden">
-                    <img src="{% static 'img/hero-stadium.jpg' %}" alt="Notícia" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
+            {% for noticia in noticias_time %}
+            <a href="{% url 'noticias' %}" class="snap-center-item shrink-0 w-[75%] max-w-[280px] fundo-card border border-suave rounded-[20px] shadow-sm overflow-hidden flex flex-col group">
+                <div class="w-full h-36 relative overflow-hidden bg-gray-900">
+                    {% if noticia.imagem %}
+                        <img src="{{ noticia.imagem.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
+                    {% else %}
+                        <i class="bi bi-megaphone-fill text-4xl text-white/20 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+                    {% endif %}
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                    <span class="absolute bottom-3 left-3 bg-[#ff6b00] text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md">Destaque</span>
+                    <span class="absolute bottom-3 left-3 bg-dinamico text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-md">Oficial</span>
                 </div>
                 <div class="p-4 flex flex-col flex-1 justify-between">
-                    <h4 class="text-sm font-bold text-gray-900 leading-tight mb-2 group-hover:text-[#ff6b00] transition-colors line-clamp-2">Preparação intensa: Equipe faz último treino antes do grande clássico</h4>
-                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mt-2">
-                        <i class="bi bi-clock"></i> Há 2 horas
+                    <h4 class="text-sm font-bold texto-main leading-tight mb-2 line-clamp-2">{{ noticia.titulo }}</h4>
+                    <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider flex items-center gap-1 mt-2">
+                        <i class="bi bi-calendar3"></i> {{ noticia.data_publicacao|date:"d M Y" }}
                     </p>
                 </div>
             </a>
-            <a href="{% url 'noticias' %}" class="snap-center-item shrink-0 w-[75%] max-w-[280px] bg-white border border-gray-100 rounded-[20px] shadow-[0_4px_15px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col group">
-                <div class="w-full h-36 bg-gray-100 relative overflow-hidden flex items-center justify-center">
-                    <i class="bi bi-megaphone-fill text-4xl text-gray-300 group-hover:scale-110 transition-transform duration-700"></i>
-                    <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent"></div>
-                    <span class="absolute bottom-3 left-3 bg-gray-900 border border-gray-700 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md">Comunicado</span>
-                </div>
-                <div class="p-4 flex flex-col flex-1 justify-between">
-                    <h4 class="text-sm font-bold text-gray-900 leading-tight mb-2 group-hover:text-[#ff6b00] transition-colors line-clamp-2">Nova remessa de ingressos e camisas liberadas na loja oficial</h4>
-                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mt-2">
-                        <i class="bi bi-clock"></i> Há 5 horas
-                    </p>
-                </div>
-            </a>
+            {% empty %}
+            <div class="w-full text-center py-6 fundo-card border border-suave rounded-[20px]">
+                <p class="text-xs font-bold texto-main opacity-50 uppercase">Nenhuma notícia recente.</p>
+            </div>
+            {% endfor %}
             <div class="shrink-0 w-2"></div>
         </div>
     </div>
+
+    {% if noticias_api %}
+    <div class="w-full animate-fade delay-400 mt-2">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 fundo-card border border-suave rounded-full flex items-center justify-center shadow-sm text-dinamico">
+                    <i class="bi bi-globe-americas text-lg"></i>
+                </div>
+                <h3 class="text-sm font-black texto-main uppercase tracking-widest mt-1" style="font-family: 'Montserrat', sans-serif;">
+                    Giro do Futebol
+                </h3>
+            </div>
+        </div>
+
+        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
+            {% for noticia in noticias_api %}
+            <a href="{{ noticia.link|default:'#' }}" target="_blank" class="snap-center-item shrink-0 w-[75%] max-w-[280px] fundo-card border border-suave rounded-[20px] shadow-sm overflow-hidden flex flex-col group">
+                <div class="w-full h-36 relative overflow-hidden bg-gray-900">
+                    {% if noticia.image_url %}
+                        <img src="{{ noticia.image_url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
+                    {% else %}
+                        <i class="bi bi-newspaper text-4xl text-white/20 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+                    {% endif %}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <span class="absolute bottom-3 left-3 bg-gray-600/80 backdrop-blur text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-md">{{ noticia.source_id|default:"Desporto" }}</span>
+                </div>
+                <div class="p-4 flex flex-col flex-1 justify-between">
+                    <h4 class="text-sm font-bold texto-main leading-tight line-clamp-2">{{ noticia.title }}</h4>
+                </div>
+            </a>
+            {% endfor %}
+            <div class="shrink-0 w-2"></div>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="w-full animate-fade delay-500 mt-2">
-        <div class="flex justify-between items-end mb-4 pl-1 pr-1">
-            <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Acontecendo no Social</h3>
-            <a href="{% url 'mural' %}" class="text-[10px] font-black text-[#ff6b00] uppercase tracking-wider hover:underline">Ver Feed</a>
+        <div class="flex justify-between items-end mb-4">
+            <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest">Acontecendo no Social</h3>
+            <a href="{% url 'mural' %}" class="text-[10px] font-black text-dinamico uppercase tracking-wider hover:underline">Ver Feed</a>
         </div>
 
-        <div class="w-full bg-white border border-gray-100 rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-4 relative overflow-hidden">
+        {% for post in posts_sociais|slice:":2" %}
+        <div class="w-full fundo-card border border-suave rounded-[20px] shadow-sm p-4 relative overflow-hidden mb-4">
             <div class="flex justify-between items-start mb-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
-                        <i class="bi bi-person-fill text-gray-400 text-xl"></i>
+                    <div class="w-10 h-10 rounded-full bg-black/5 border border-suave overflow-hidden flex items-center justify-center">
+                        {% if post.autor.perfil.foto %}
+                            <img src="{{ post.autor.perfil.foto.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <i class="bi bi-person-fill texto-main opacity-30 text-xl"></i>
+                        {% endif %}
                     </div>
                     <div>
-                        <h4 class="text-sm font-black text-gray-900 leading-none">Carlos Torcedor</h4>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase mt-1">Gaviões da Fiel • 2h</p>
+                        <h4 class="text-sm font-black texto-main leading-none">{{ post.autor.first_name|default:post.autor.username }}</h4>
+                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-widest mt-1">
+                            {{ post.data_criacao|timesince }} atrás
+                        </p>
                     </div>
                 </div>
-                <button class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <i class="bi bi-three-dots-vertical"></i>
-                </button>
             </div>
 
-            <p class="text-sm text-gray-700 mb-3 leading-snug">
-                Que jogo sensacional ontem! A energia na bancada estava absurda. Alguém tem os vídeos do momento do golo? 🦅🔥 
-            </p>
+            <p class="text-sm texto-main mb-3 leading-snug">{{ post.texto }}</p>
 
-            <div class="w-full h-40 bg-gray-100 rounded-xl overflow-hidden mb-4">
-                <img src="{% static 'img/hero-stadium.jpg' %}" alt="Post Media" class="w-full h-full object-cover opacity-90">
+            {% if post.imagem %}
+            <div class="w-full h-40 bg-black/5 rounded-xl overflow-hidden mb-4 border border-suave">
+                <img src="{{ post.imagem.url }}" alt="Post Media" class="w-full h-full object-cover">
             </div>
+            {% endif %}
 
-            <div class="flex items-center gap-4 border-t border-gray-100 pt-3">
-                <button class="flex items-center gap-1.5 text-gray-500 hover:text-[#ff6b00] transition-colors group">
-                    <i class="bi bi-heart text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="text-xs font-bold">124</span>
-                </button>
-                <button class="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors group">
-                    <i class="bi bi-chat text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="text-xs font-bold">18</span>
-                </button>
+            <div class="flex items-center gap-4 border-t border-suave pt-3">
+                <span class="flex items-center gap-1.5 texto-main opacity-60">
+                    <i class="bi bi-heart-fill text-dinamico"></i>
+                    <span class="text-xs font-bold">{{ post.curtidas.count }}</span>
+                </span>
             </div>
         </div>
+        {% empty %}
+        <div class="w-full text-center py-6 fundo-card border border-suave rounded-[20px]">
+            <i class="bi bi-chat-square-dots text-3xl texto-main opacity-20 mb-2 block"></i>
+            <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest">Feed vazio no momento.</p>
+        </div>
+        {% endfor %}
     </div>
 
-    <div class="w-full animate-fade delay-600 mt-2">
-        <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 pl-1">Patrocinadores</h3>
+    <div class="w-full animate-fade delay-500 mt-4 mb-2">
+        <a href="#" class="block w-full h-28 bg-gray-900 rounded-[20px] shadow-sm overflow-hidden relative group border border-suave">
+            <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                <span class="text-white/50 text-[10px] font-black tracking-[0.2em] uppercase mb-1">Espaço Reservado</span>
+                <span class="text-white font-black italic text-lg tracking-tighter uppercase">Patrocínio Máster</span>
+            </div>
+            <div class="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors duration-500"></div>
+            <span class="absolute top-2 right-2 bg-dinamico/90 backdrop-blur-sm text-white text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">Patrocinador</span>
+        </a>
+    </div>
+
+    {% if publicidades or parceiros %}
+    <div class="w-full animate-fade delay-500 mt-2">
+        <h3 class="text-[10px] font-black texto-main opacity-40 uppercase tracking-widest mb-3">Clube de Vantagens</h3>
         
         <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
-            <a href="#" class="snap-center-item shrink-0 w-[80%] max-w-[300px] h-28 bg-gray-900 rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.06)] overflow-hidden relative group">
-                <img src="{% static 'img/hero-stadium.jpg' %}" alt="Anúncio 1" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60">
+            {% for pub in publicidades %}
+            <a href="{{ pub.link|default:'#' }}" class="snap-center-item shrink-0 w-[80%] max-w-[300px] h-28 bg-gray-900 rounded-2xl shadow-sm overflow-hidden relative group border border-suave">
+                {% if pub.imagem %}
+                    <img src="{{ pub.imagem.url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70">
+                {% endif %}
                 <div class="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent"></div>
-                <span class="absolute top-2 right-2 bg-black/40 backdrop-blur-sm text-white/90 text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm border border-white/10">Publicidade</span>
+                <span class="absolute top-2 right-2 bg-black/40 backdrop-blur-sm text-white/90 text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm border border-white/10">Oferta</span>
                 <div class="absolute bottom-3 left-4 right-4">
-                    <h4 class="text-white text-sm font-black uppercase tracking-tight leading-none mb-1">Oferta Exclusiva</h4>
-                    <p class="text-white/80 text-[9px] font-medium leading-tight">20% de desconto em artigos desportivos para Sócios.</p>
+                    <h4 class="text-white text-sm font-black uppercase tracking-tight leading-none mb-1">{{ pub.titulo }}</h4>
+                    <p class="text-white/80 text-[9px] font-medium leading-tight line-clamp-2">{{ pub.descricao }}</p>
                 </div>
             </a>
-            
-            <a href="#" class="snap-center-item shrink-0 w-[80%] max-w-[300px] h-28 bg-blue-600 rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.06)] overflow-hidden relative group">
-                <div class="absolute inset-0 bg-gradient-to-tr from-blue-800 to-blue-500 group-hover:scale-105 transition-transform duration-500"></div>
+            {% endfor %}
+
+            {% for parceiro in parceiros %}
+            <a href="#" class="snap-center-item shrink-0 w-[80%] max-w-[300px] h-28 bg-dinamico rounded-2xl shadow-sm overflow-hidden relative group">
+                <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
                 <span class="absolute top-2 right-2 bg-black/20 backdrop-blur-sm text-white/90 text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm border border-white/10">Parceiro Oficial</span>
                 <div class="absolute inset-0 flex flex-col justify-center p-4">
-                    <i class="bi bi-credit-card-fill text-white/40 text-3xl absolute right-4 bottom-2 transform -rotate-12"></i>
-                    <h4 class="text-white text-sm font-black uppercase tracking-tight leading-none mb-1 relative z-10">Cartão SAT Bank</h4>
-                    <p class="text-white/90 text-[9px] font-medium leading-tight w-2/3 relative z-10">Peça já o seu e não pague anuidade no primeiro ano.</p>
+                    {% if parceiro.logo %}
+                        <img src="{{ parceiro.logo.url }}" class="absolute right-4 bottom-2 h-12 w-auto opacity-50 filter brightness-0 invert transform -rotate-12">
+                    {% else %}
+                        <i class="bi bi-star-fill text-white/20 text-4xl absolute right-4 bottom-2 transform -rotate-12"></i>
+                    {% endif %}
+                    <h4 class="text-white text-sm font-black uppercase tracking-tight leading-none mb-1 relative z-10">{{ parceiro.nome }}</h4>
+                    <p class="text-white/90 text-[9px] font-medium leading-tight w-2/3 relative z-10">{{ parceiro.beneficio }}</p>
                 </div>
             </a>
+            {% endfor %}
             <div class="shrink-0 w-2"></div>
         </div>
     </div>
-
-    <div class="w-full animate-fade delay-700 mt-2">
-        
-        <div class="flex justify-between items-end mb-4 pl-1 pr-1">
-            <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Giro do Futebol</h3>
-            <a href="#" class="text-[10px] font-black text-[#ff6b00] uppercase tracking-wider hover:underline">Ver Todas</a>
-        </div>
-
-        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
-            
-            <a href="#" class="snap-center-item shrink-0 w-[75%] max-w-[280px] bg-white border border-gray-100 rounded-[20px] shadow-[0_4px_15px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col group hover:border-[#ff6b00]/50 transition-all">
-                <div class="w-full h-32 bg-gray-900 relative overflow-hidden">
-                    <img src="{% static 'img/hero-stadium.jpg' %}" alt="News" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                    <span class="absolute bottom-3 left-3 bg-[#ff6b00] text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md">Mercado da Bola</span>
-                </div>
-                <div class="p-4 flex flex-col flex-1 justify-between">
-                    <h4 class="text-sm font-bold text-gray-900 leading-tight mb-2 group-hover:text-[#ff6b00] transition-colors line-clamp-3">Gigante europeu prepara oferta milionária por joia do futebol brasileiro</h4>
-                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mt-2">
-                        <i class="bi bi-clock"></i> Há 30 min
-                    </p>
-                </div>
-            </a>
-
-            <a href="#" class="snap-center-item shrink-0 w-[75%] max-w-[280px] bg-white border border-gray-100 rounded-[20px] shadow-[0_4px_15px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col group hover:border-blue-500/50 transition-all">
-                <div class="w-full h-32 bg-blue-900 relative overflow-hidden flex items-center justify-center">
-                    <i class="bi bi-globe-americas text-white text-5xl opacity-30 group-hover:scale-110 transition-transform duration-700"></i>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                    <span class="absolute bottom-3 left-3 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md">Seleção</span>
-                </div>
-                <div class="p-4 flex flex-col flex-1 justify-between">
-                    <h4 class="text-sm font-bold text-gray-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors line-clamp-3">Convocados: Técnico anuncia a lista para os próximos jogos das Eliminatórias</h4>
-                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mt-2">
-                        <i class="bi bi-clock"></i> Há 2 horas
-                    </p>
-                </div>
-            </a>
-
-            <a href="#" class="snap-center-item shrink-0 w-[75%] max-w-[280px] bg-white border border-gray-100 rounded-[20px] shadow-[0_4px_15px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col group hover:border-green-500/50 transition-all">
-                <div class="w-full h-32 bg-green-700 relative overflow-hidden flex items-center justify-center">
-                    <i class="bi bi-trophy-fill text-white text-5xl opacity-40 group-hover:scale-110 transition-transform duration-700"></i>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                    <span class="absolute bottom-3 left-3 bg-green-600 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md">Brasileirão</span>
-                </div>
-                <div class="p-4 flex flex-col flex-1 justify-between">
-                    <h4 class="text-sm font-bold text-gray-900 leading-tight mb-2 group-hover:text-green-600 transition-colors line-clamp-3">Confira a tabela atualizada após a rodada do fim de semana</h4>
-                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1 mt-2">
-                        <i class="bi bi-clock"></i> Há 5 horas
-                    </p>
-                </div>
-            </a>
-
-            <div class="shrink-0 w-2"></div>
-        </div>
-    </div>
+    {% endif %}
 
 </div>
+
 <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Seleciona todos os carrosséis da página (Notícias, Patrocinadores, etc)
-            const carrosseis = document.querySelectorAll('.snap-x-mandatory');
-
-            carrosseis.forEach(carrossel => {
+    document.addEventListener('DOMContentLoaded', () => {
+        const carrosseis = document.querySelectorAll('.snap-x-mandatory');
+        
+        carrosseis.forEach(carrossel => {
+            
+            // Lógica do loop contínuo
+            let intervalo = setInterval(() => {
+                const scrollMaximo = carrossel.scrollWidth - carrossel.clientWidth;
                 
-                // 1. LÓGICA DE LOOP (Volta ao início quando chega ao fim)
-                carrossel.addEventListener('scroll', () => {
-                    // Calcula o limite máximo de scroll daquele carrossel
-                    const scrollMaximo = carrossel.scrollWidth - carrossel.clientWidth;
-                    
-                    // Se o utilizador chegou ao último cartão (com margem de segurança de 5px)
-                    if (carrossel.scrollLeft >= scrollMaximo - 5) {
-                        // Aguarda 1 segundo para o utilizador conseguir ler o último cartão
-                        setTimeout(() => {
-                            // "Rebobina" suavemente de volta para o primeiro cartão
-                            carrossel.scrollTo({
-                                left: 0,
-                                behavior: 'smooth'
-                            });
-                        }, 1000); 
-                    }
-                });
+                // Margem de segurança de 10px para garantir que deteta o fim
+                if (carrossel.scrollLeft >= scrollMaximo - 10) {
+                    // Quando chega ao fim, volta para o início de forma suave
+                    carrossel.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    // Anda para o lado (tamanho aproximado de um cartão)
+                    carrossel.scrollBy({ left: 280, behavior: 'smooth' });
+                }
+            }, 3500); // 3.5 segundos
 
-                // ------------------------------------------------------------------
-                // BÓNUS: AUTO-PLAY (Rolar sozinho)
-                // Se quiseres que os carrosséis se movam sozinhos como anúncios, 
-                // basta removeres as barras "/*" e "*/" do bloco abaixo:
-                // ------------------------------------------------------------------
-                
-                /*
-                let intervalo = setInterval(() => {
-                    const scrollMaximo = carrossel.scrollWidth - carrossel.clientWidth;
-                    
-                    if (carrossel.scrollLeft >= scrollMaximo - 5) {
-                        // Se estiver no fim, volta ao início
-                        carrossel.scrollTo({ left: 0, behavior: 'smooth' });
-                    } else {
-                        // Rola para a direita cerca de 280px (largura de um cartão)
-                        carrossel.scrollBy({ left: 280, behavior: 'smooth' });
-                    }
-                }, 3500); // Acontece a cada 3.5 segundos
-
-                // Pausa o Auto-Play se o utilizador estiver a tocar no ecrã (para não atrapalhar a leitura)
-                carrossel.addEventListener('touchstart', () => clearInterval(intervalo));
-                */
+            // Para não lutar com o dedo do utilizador, paramos o auto-play se ele interagir
+            carrossel.addEventListener('touchstart', () => {
+                clearInterval(intervalo);
+            }, { passive: true });
+            
+            carrossel.addEventListener('mouseenter', () => {
+                clearInterval(intervalo);
             });
         });
-    </script>
+    });
+</script>
 {% endblock %}
