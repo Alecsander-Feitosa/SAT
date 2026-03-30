@@ -26,8 +26,6 @@ from organizadas.models import Torcida, Evento, Post as PostTorcida, Curtida
 from .models import Evento
 from organizadas.models import Post, Caravana # Certifique-se de importar os modelos
 from django import forms
-# Importe os modelos corretos das suas apps
-from .models import Perfil 
 from gamification.models import PerfilGamificacao
 from organizadas.models import Evento, Torcida, Post, Noticia # Verifique se é Post ou PostTorcida
 from django.contrib.auth.models import User
@@ -36,6 +34,7 @@ from organizadas.models import Publicidade
 from django.db.models import Q
 from datetime import date
 from organizadas.models import Comentario
+from accounts.models import Perfil
 
 
 # 1. Ecrã para escolher a torcida ANTES de logar
@@ -73,6 +72,7 @@ def viagens_view(request):
 
 
 # accounts/views.py
+
 def cadastro(request):
     # Identifica se o utilizador veio de uma torcida específica (Sessão)
     torcida_id = request.session.get('torcida_pre_selecionada')
@@ -88,38 +88,101 @@ def cadastro(request):
 
             user = form.save()
             
-            # Se veio pelo fluxo da Torcida, vincula automaticamente
-            if torcida:
-                perfil = user.perfil
-                perfil.torcida = torcida
-                perfil.aprovado = False
-                perfil.save()
-            
+            # ATUALIZAÇÃO: Já não vinculamos a torcida aqui, deixamos isso para a Etapa 2!
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             
-            if torcida:
-                return redirect('dashboard')
-            return redirect('cadastro_etapa2') # Fluxo Global vai para escolha
+            # TODOS vão obrigatoriamente para a etapa 2 agora
+            return redirect('cadastro_etapa2') 
         else:
-            # Mostra no console por que o formulário falhou
-            print(form.errors) 
+            # Se cair aqui, o e-mail já existe ou falta algo
+            print("ERROS DO FORMULÁRIO:", form.errors)
+            messages.error(request, "Erro: Este e-mail já está registado ou os dados são inválidos.")
     else:
         form = CadastroForm()
         
     return render(request, 'cadastro.html', {'form': form, 'torcida': torcida})
 
 
-# INICIO DA ATUALIZAÇÃO: Classe CadastroForm (Arquivo: accounts/views.py)
+# accounts/views.py
+
+# accounts/views.py
+@login_required
+def cadastro_etapa2(request):
+    perfil = request.user.perfil
+    torcida_id_sessao = request.session.get('torcida_pre_selecionada')
+    
+    if perfil.torcida and perfil.time_coracao:
+        return redirect('dashboard')
+
+    # A LISTA DE ESCUDOS QUE TINHA SUMIDO
+    times_brasil = [
+        {"nome": "Flamengo", "escudo": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Flamengo_braz_logo.svg"},
+        {"nome": "Corinthians", "escudo": "https://upload.wikimedia.org/wikipedia/pt/b/b4/Corinthians_simbolo.png"},
+        {"nome": "São Paulo", "escudo": "https://upload.wikimedia.org/wikipedia/commons/2/2b/S%C3%A3o_Paulo_Futebol_Clube.svg"},
+        {"nome": "Palmeiras", "escudo": "https://upload.wikimedia.org/wikipedia/commons/1/10/Palmeiras_logo.svg"},
+        {"nome": "Vasco", "escudo": "https://upload.wikimedia.org/wikipedia/pt/a/ac/CRVascodaGama.png"},
+        {"nome": "Grêmio", "escudo": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Gr%C3%AAmio_Logo.svg"},
+        {"nome": "Internacional", "escudo": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Escudo_do_Sport_Club_Internacional.svg"},
+        {"nome": "Cruzeiro", "escudo": "https://upload.wikimedia.org/wikipedia/commons/9/90/Cruzeiro_Esporte_Clube_%28logo%29.svg"},
+        {"nome": "Atlético-MG", "escudo": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Atletico_mineiro_galo.png"},
+        {"nome": "Botafogo", "escudo": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Escudo_Botafogo.svg"},
+        {"nome": "Fluminense", "escudo": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Escudo_Fluminense_FC_2024.svg"},
+        {"nome": "Santos", "escudo": "https://upload.wikimedia.org/wikipedia/commons/1/15/Santos_Logo.png"},
+        {"nome": "Bahia", "escudo": "https://upload.wikimedia.org/wikipedia/pt/9/90/ECBahia.png"},
+        {"nome": "Sport", "escudo": "https://upload.wikimedia.org/wikipedia/pt/3/30/Sport_Club_do_Recife.png"},
+        {"nome": "Fortaleza", "escudo": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Fortaleza_Esporte_Clube_logo.svg"},
+        {"nome": "Ceará", "escudo": "https://upload.wikimedia.org/wikipedia/commons/3/38/Cear%C3%A1_Sporting_Club_logo.svg"},
+        {"nome": "Athletico-PR", "escudo": "https://upload.wikimedia.org/wikipedia/commons/b/b3/CA_Paranaense.svg"},
+        {"nome": "Coritiba", "escudo": "https://upload.wikimedia.org/wikipedia/commons/b/b0/Coritiba_FBC_%282011%29.svg"},
+    ]
+
+    if request.method == 'POST':
+        torcida_id_form = request.POST.get('torcida_id')
+        data_nasc = request.POST.get('data_nascimento')
+        time_coracao = request.POST.get('time_coracao')
+        
+        torcida_final_id = torcida_id_form if torcida_id_form else torcida_id_sessao
+        
+        if data_nasc:
+            perfil.data_nascimento = data_nasc
+        if time_coracao:
+            perfil.time_coracao = time_coracao
+
+        if torcida_final_id and torcida_final_id != "neutro":
+            try:
+                torcida = Torcida.objects.get(id=torcida_final_id)
+                perfil.torcida = torcida
+                perfil.aprovado = False 
+                perfil.save()
+                
+                if 'torcida_pre_selecionada' in request.session:
+                    del request.session['torcida_pre_selecionada']
+                    
+                messages.success(request, f"Pedido enviado! Aguarde a aprovação da {torcida.nome}.")
+                return redirect('dashboard')
+            except Torcida.DoesNotExist:
+                messages.error(request, "Torcida não encontrada.")
+        else:
+            perfil.save()
+            return redirect('dashboard')
+
+    torcidas = Torcida.objects.all()
+    context = {
+        'torcidas': torcidas,
+        'times_brasil': times_brasil,
+        'tem_torcida_pre_selecionada': bool(torcida_id_sessao)
+    }
+    return render(request, 'cadastro_etapa2.html', context)
+
+# accounts/views.py
 class CadastroForm(forms.ModelForm):
-    # Campos que batem exatamente com o name="" no HTML do cadastro.html
     senha = forms.CharField(widget=forms.PasswordInput())
     confirmar_senha = forms.CharField(widget=forms.PasswordInput())
     cpf = forms.CharField(max_length=14)
     telefone = forms.CharField(max_length=20) 
     nome = forms.CharField(max_length=150)   
     
-    # NOVO CAMPO OBRIGATÓRIO (Nível 1 - SAT Social)
-    time_coracao = forms.CharField(max_length=100, required=True)
+    # O time não pode estar aqui, foi para a Etapa 2
 
     class Meta:
         model = User
@@ -144,13 +207,11 @@ class CadastroForm(forms.ModelForm):
             if not User.objects.filter(username=email_limpo).exists():
                 user.save()
                 
-                # ATUALIZAÇÃO AQUI: Guardamos imediatamente o Time do Coração no Perfil
                 Perfil.objects.update_or_create(
                     user=user,
                     defaults={
                         'cpf': self.cleaned_data.get('cpf'),
                         'whatsapp': self.cleaned_data.get('telefone'),
-                        'time_coracao': self.cleaned_data.get('time_coracao'), # Motor da personalização SAT!
                     }
                 )
         return user
@@ -158,74 +219,62 @@ class CadastroForm(forms.ModelForm):
 
 
 
-# INICIO DA ATUALIZAÇÃO: Função cadastro_etapa2 (Arquivo: accounts/views.py)
-@login_required
-def cadastro_etapa2(request):
-    perfil = request.user.perfil
-    
-    # Se já tem torcida vinculada, não tem de estar aqui, vai para o feed.
-    if perfil.torcida:
-        return redirect('dashboard')
+# accounts/views.py
 
-    if request.method == 'POST':
-        torcida_id = request.POST.get('torcida_id')
-        data_nasc = request.POST.get('data_nascimento')
-        
-        # OPÇÃO A: O utilizador DECIDIU entrar para uma torcida (Caminho para o Nível 2)
-        if torcida_id:
-            try:
-                torcida = Torcida.objects.get(id=torcida_id)
-                perfil.torcida = torcida
-                
-                if data_nasc:
-                    perfil.data_nascimento = data_nasc
-                    
-                perfil.aprovado = False # Vai para a fila de aprovação dos diretores da torcida
-                perfil.save()
-                
-                messages.success(request, f"Pedido enviado! Aguarde a aprovação da diretoria da {torcida.nome}.")
-                return redirect('dashboard')
-            except Torcida.DoesNotExist:
-                messages.error(request, "Torcida não encontrada ou inválida.")
-                
-        # OPÇÃO B: O utilizador PULA a escolha de torcida (Fica no Nível 1 - Público Geral)
-        else:
-            # Salvamos apenas a data de nascimento se ele preencheu, e mandamos para o feed
-            if data_nasc:
-                perfil.data_nascimento = data_nasc
-                perfil.save()
-            return redirect('dashboard')
-
-    # Carrega apenas as torcidas disponíveis para ele escolher. 
-    # (Removemos a lista de times, pois isso já foi tratado no Passo 1)
-    torcidas = Torcida.objects.all()
-    context = {
-        'torcidas': torcidas,
-    }
-    return render(request, 'cadastro_etapa2.html', context)
-# FIM DA ATUALIZAÇÃO: Função cadastro_etapa2
-
-
+# accounts/views.py
 @login_required
 def dashboard(request):
     perfil = request.user.perfil
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
     agora = timezone.now() 
     
-    # 1. Cache da API de Futebol
-    noticias_api = cache.get('news_api_futebol_v4')
-    if not noticias_api:
+    time_busca = perfil.time_coracao
+    api_key = "pub_629d163494fb4b3c9f19c706166a65e9"
+    
+    noticias_gerais = cache.get('news_api_futebol_v6')
+    if not noticias_gerais:
         try:
-            api_key = "pub_629d163494fb4b3c9f19c706166a65e9"
-            url = f'https://newsdata.io/api/1/news?apikey={api_key}&country=br&category=sports&language=pt&q=futebol'
-            response = requests.get(url, timeout=5)
-            if response.status_code == 200:
-                noticias_api = response.json().get('results', [])[:5]
-                cache.set('news_api_futebol_v4', noticias_api, 900)
+            url_geral = 'https://newsdata.io/api/1/news'
+            params_gerais = {'apikey': api_key, 'country': 'br', 'category': 'sports', 'language': 'pt', 'q': 'futebol'}
+            response_geral = requests.get(url_geral, params=params_gerais, timeout=5)
+            if response_geral.status_code == 200:
+                noticias_gerais = response_geral.json().get('results', [])[:5]
+                cache.set('news_api_futebol_v6', noticias_gerais, 900)
         except Exception:
-            noticias_api = []
+            noticias_gerais = []
 
-    # Aqui puxamos a torcida mesmo sem estar aprovado, para a máscara funcionar por cima
+    noticias_time_api = []
+    if time_busca and time_busca != "Outro":
+        cache_key_time = f'news_api_{time_busca.replace(" ", "_")}_v6'
+        noticias_time_api = cache.get(cache_key_time)
+        
+        if noticias_time_api is None:
+            try:
+                url_time = 'https://newsdata.io/api/1/news'
+                params = {'apikey': api_key, 'country': 'br', 'language': 'pt', 'q': time_busca}
+                response_time = requests.get(url_time, params=params, timeout=5)
+                
+                if response_time.status_code == 200:
+                    noticias_time_api = response_time.json().get('results', [])[:3]
+                    if noticias_time_api:
+                        cache.set(cache_key_time, noticias_time_api, 900)
+                    else:
+                        cache.set(cache_key_time, [], 60)
+            except Exception:
+                noticias_time_api = []
+
+    noticias_combinadas = (noticias_time_api or []) + (noticias_gerais or [])
+    
+    noticias_api_finais = []
+    urls_vistas = set()
+    for n in noticias_combinadas:
+        link = n.get('link')
+        if link and link not in urls_vistas:
+            urls_vistas.add(link)
+            noticias_api_finais.append(n)
+            
+    noticias_api_finais = noticias_api_finais[:5]
+
     torcida_selecionada = perfil.torcida
 
     if torcida_selecionada:
@@ -234,7 +283,6 @@ def dashboard(request):
         parceiros = Parceiro.objects.filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))
         publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora).filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))
     else:
-        # Tudo fica no modo padrão/fábrica da SAT
         eventos = Evento.objects.filter(data__gte=agora).order_by('data')[:3]
         posts_sociais = Post.objects.all().order_by('-data_criacao')[:10]
         parceiros = Parceiro.objects.filter(torcida__isnull=True)
@@ -248,7 +296,7 @@ def dashboard(request):
         'perfil_game': perfil_game,
         'xp_atual': perfil_game.xp_total or 0,
         'torcida': torcida_selecionada, 
-        'noticias_api': noticias_api,
+        'noticias_api': noticias_api_finais, 
         'posts_sociais': posts_sociais,
         'noticias_time': noticias_time,
         'parceiros': parceiros,
@@ -292,12 +340,23 @@ def editar_perfil(request):
 @login_required
 def carteirinha(request):
     perfil = get_object_or_404(Perfil, user=request.user)
-    img = qrcode.make(f"SAT-{request.user.id}")
+    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+    
+    # Geração do QR Code Único do Sócio
+    qr_data = f"SAT-MEMBER-{request.user.id}-{perfil.cpf}"
+    img = qrcode.make(qr_data)
     buffer = BytesIO()
     img.save(buffer, format="PNG")
     qr_base64 = base64.b64encode(buffer.getvalue()).decode()
-    return render(request, 'carteirinha.html', {'perfil': perfil, 'qr_code': qr_base64, 'torcida': perfil.torcida})
-
+    
+    context = {
+        'perfil': perfil,
+        'perfil_game': perfil_game,
+        'qr_code': qr_base64,
+        'torcida': perfil.torcida,
+    }
+    
+    return render(request, 'carteirinha.html', context)
 
 # accounts/views.py
 import requests
@@ -308,13 +367,19 @@ import requests
 from django.shortcuts import render
 
 # accounts/views.py
+
+# accounts/views.py
+
+@login_required
 def noticias(request):
+    perfil = request.user.perfil
+    time_busca = perfil.time_coracao
+
     api_key = "pub_629d163494fb4b3c9f19c706166a65e9"
-    url_api = f"https://newsdata.io/api/1/news?apikey={api_key}&country=br&category=sports&language=pt"
+    url_api = 'https://newsdata.io/api/1/news'
     
     lista_final = []
     
-    # 1. Notícia da Fábrica com campos padronizados
     lista_final.append({
         'url': '#',
         'title': 'NOVA COLEÇÃO DE BONÉS DA BONELARIA',
@@ -323,37 +388,95 @@ def noticias(request):
         'source': 'DIRETORIA'
     })
 
+    urls_vistas = set()
+
+    # Só pesquisa o time se ele não escolheu a opção "Outro"
+    if time_busca and time_busca != "Outro":
+        try:
+            # Sem restrição de categoria para encontrar mais facilmente
+            params_time = {'apikey': api_key, 'country': 'br', 'language': 'pt', 'q': time_busca}
+            resp_time = requests.get(url_api, params=params_time, timeout=5)
+            if resp_time.status_code == 200:
+                for art in resp_time.json().get('results', []):
+                    link = art.get('link') or '#'
+                    if link not in urls_vistas:
+                        urls_vistas.add(link)
+                        lista_final.append({
+                            'url': link,
+                            'title': art.get('title') or f'Notícia do {time_busca.title()}',
+                            'description': art.get('description') or '',
+                            'image': art.get('image_url') or f'https://placehold.co/600x400/D37129/white?text={time_busca.upper()}',
+                            'source': art.get('source_id') or time_busca.upper()
+                        })
+        except Exception as e:
+            print(f"Erro ao buscar time: {e}")
+
     try:
-        response = requests.get(url_api, timeout=5)
-        data = response.json()
-        results = data.get('results', [])
-        
-        for art in results:
-            # 2. Padronizamos os dados da API para os mesmos nomes
-            lista_final.append({
-                'url': art.get('link') or '#',
-                'title': art.get('title') or 'Notícia SAT',
-                'description': art.get('description') or '',
-                'image': art.get('image_url') or 'https://placehold.co/600x400/4A4D4E/white?text=SAT+NEWS',
-                'source': art.get('source_id') or 'FUTEBOL'
-            })
+        params_gerais = {'apikey': api_key, 'country': 'br', 'category': 'sports', 'language': 'pt', 'q': 'futebol'}
+        resp_geral = requests.get(url_api, params=params_gerais, timeout=5)
+        if resp_geral.status_code == 200:
+            for art in resp_geral.json().get('results', []):
+                link = art.get('link') or '#'
+                if link not in urls_vistas:
+                    urls_vistas.add(link)
+                    lista_final.append({
+                        'url': link,
+                        'title': art.get('title') or 'Futebol Nacional',
+                        'description': art.get('description') or '',
+                        'image': art.get('image_url') or 'https://placehold.co/600x400/4A4D4E/white?text=FUTEBOL+SAT',
+                        'source': art.get('source_id') or 'FUTEBOL GERAL'
+                    })
     except Exception as e:
-        print(f"Erro: {e}")
+        print(f"Erro ao buscar futebol geral: {e}")
 
     return render(request, 'noticias.html', {'noticias': lista_final})
 
-
 @login_required
 def seja_socio(request):
-    # Pega o perfil de gamificação ou cria um se não existir
-    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+    perfil = request.user.perfil
     
-    # Define cor padrão se o nível for Nulo
-    cor_tema = "#ff6b00"
-    if perfil_game.nivel:
-        cor_tema = perfil_game.nivel.cor_tema
+    # ======= NOVA REGRA AQUI =======
+    # Se o usuário já tiver uma torcida E estiver aprovado, redireciona para a área da torcida
+    if perfil.torcida and perfil.aprovado:
+        # ATENÇÃO: Substitua 'hub_torcida' pelo nome real da url da sua área da torcida 
+        # (ex: 'hub', 'dashboard_torcida', etc, conforme configurado no seu urls.py)
+        return redirect('hub_torcida')
+    # ===============================
+
+    torcidas = Torcida.objects.all()
     
-    return render(request, 'seja_socio.html', {'cor_tema': cor_tema})
+    times = [
+        "Flamengo", "Corinthians", "São Paulo", "Palmeiras", "Vasco", 
+        "Cruzeiro", "Grêmio", "Internacional", "Atlético-MG", "Botafogo", 
+        "Fluminense", "Santos", "Bahia", "Vitória", "Sport", "Santa Cruz", 
+        "Náutico", "Ceará", "Fortaleza", "Outro"
+    ]
+    
+    if request.method == 'POST':
+        time_coracao = request.POST.get('time_coracao')
+        torcida_id = request.POST.get('torcida_id')
+        
+        if time_coracao:
+            perfil.time_coracao = time_coracao
+            
+        if torcida_id:
+            nova_torcida = Torcida.objects.get(id=torcida_id)
+            
+            if perfil.torcida != nova_torcida:
+                perfil.torcida = nova_torcida
+                perfil.aprovado = False # Fica pendente de aprovação
+                messages.success(request, f'Solicitação enviada para a torcida {nova_torcida.nome}. Aguarde a aprovação da diretoria.')
+        
+        perfil.save()
+        messages.success(request, 'Suas preferências foram atualizadas com sucesso!')
+        return redirect('seja_socio') 
+        
+    context = {
+        'perfil': perfil,
+        'torcidas': torcidas,
+        'times': sorted(times), 
+    }
+    return render(request, 'seja_socio.html', context)
 
 # accounts/views.py
 
@@ -561,21 +684,34 @@ def beneficios_view(request):
 @login_required
 def perfil_view(request):
     perfil = request.user.perfil
-    
-    # Busca o perfil de gamificação para mostrar o XP e Nível
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
     
     if request.method == 'POST':
-        # Importante: request.FILES é necessário para processar o upload da foto
+        # O request.FILES é quem captura a foto enviada pelo input type="file"
         form = PerfilCompletoForm(request.POST, request.FILES, instance=perfil)
+        
         if form.is_valid():
+            # 1. Salva os dados do formulário (Foto, CPF, Telefone, etc)
             form.save()
+            
+            # 2. Salva o Nome e Sobrenome na tabela base do Django (User), se estiverem no form
+            user = request.user
+            nome_alterado = False
+            if 'first_name' in request.POST:
+                user.first_name = request.POST.get('first_name')
+                nome_alterado = True
+            if 'last_name' in request.POST:
+                user.last_name = request.POST.get('last_name')
+                nome_alterado = True
+                
+            if nome_alterado:
+                user.save()
+
             messages.success(request, "Perfil atualizado com sucesso!")
             return redirect('perfil')
     else:
         form = PerfilCompletoForm(instance=perfil)
         
-    # Calcula quantas pessoas o utilizador está a seguir (relação inversa)
     seguindo_count = request.user.seguindo.count() if hasattr(request.user, 'seguindo') else 0
 
     context = {
@@ -819,9 +955,6 @@ def hub_games_view(request):
 def viagens_view(request):
     return render(request, 'viagens.html')
 
-@login_required
-def noticias_view(request):
-    return render(request, 'noticias.html')
 
 @login_required
 def ranking_view(request):

@@ -40,18 +40,20 @@
             
             <a href="{% url 'ver_carrinho' %}" class="relative w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 shadow-sm border border-gray-100 hover:text-[#ff6b00] hover:bg-orange-50 transition-colors">
                 <i class="bi bi-cart3 text-lg"></i>
+                {% if total_itens_carrinho > 0 %}
                 <span class="absolute -top-1 -right-1 bg-[#ff6b00] text-white text-[8px] font-black w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                    2
+                    {{ total_itens_carrinho }}
                 </span>
+                {% endif %}
             </a>
         </div>
 
         <div class="flex overflow-x-auto gap-2 mt-5 pb-2 no-scrollbar animate-fade-up delay-100 -mx-5 px-5">
-            <button class="cat-pill active px-4 py-2 rounded-xl text-xs font-bold border border-gray-200 whitespace-nowrap transition-colors">Todos</button>
-            <button class="cat-pill px-4 py-2 bg-white text-gray-500 rounded-xl text-xs font-bold border border-gray-200 whitespace-nowrap hover:border-[#ff6b00] hover:text-[#ff6b00] transition-colors">Vestuário</button>
-            <button class="cat-pill px-4 py-2 bg-white text-gray-500 rounded-xl text-xs font-bold border border-gray-200 whitespace-nowrap hover:border-[#ff6b00] hover:text-[#ff6b00] transition-colors">Acessórios</button>
-            <button class="cat-pill px-4 py-2 bg-white text-gray-500 rounded-xl text-xs font-bold border border-gray-200 whitespace-nowrap hover:border-[#ff6b00] hover:text-[#ff6b00] transition-colors">Ingressos</button>
-            <button class="cat-pill px-4 py-2 bg-white text-gray-500 rounded-xl text-xs font-bold border border-gray-200 whitespace-nowrap hover:border-[#ff6b00] hover:text-[#ff6b00] transition-colors">Colecionáveis</button>
+            <a href="{% url 'loja' %}" class="cat-pill {% if not categoria_atual %}active{% else %}bg-white text-gray-500 hover:border-[#ff6b00] hover:text-[#ff6b00]{% endif %} px-4 py-2 rounded-xl text-xs font-bold border border-gray-200 whitespace-nowrap transition-colors">Todos</a>
+            
+            {% for cat in categorias %}
+            <a href="?categoria={{ cat }}" class="cat-pill {% if categoria_atual == cat %}active{% else %}bg-white text-gray-500 hover:border-[#ff6b00] hover:text-[#ff6b00]{% endif %} px-4 py-2 rounded-xl text-xs font-bold border border-gray-200 whitespace-nowrap transition-colors">{{ cat }}</a>
+            {% endfor %}
         </div>
     </div>
 
@@ -73,86 +75,59 @@
 
         <div>
             <div class="flex justify-between items-end mb-4">
-                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Destaques</h3>
-                <button class="text-[10px] font-bold text-[#ff6b00] uppercase tracking-wider hover:underline"><i class="bi bi-funnel"></i> Filtrar</button>
+                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                    {% if categoria_atual %}{{ categoria_atual }}{% else %}Destaques{% endif %}
+                </h3>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 
+                {% for produto in produtos %}
                 <div class="bg-white rounded-[20px] p-3 border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative group hover:border-[#ff6b00]/30 transition-all flex flex-col">
                     
-                    <span class="absolute top-2 left-2 z-10 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-sm">-20%</span>
+                    {% if produto.estoque <= 0 %}
+                        <span class="absolute top-2 left-2 z-10 bg-gray-800 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-sm">Esgotado</span>
+                    {% elif produto.destaque %}
+                        <span class="absolute top-2 left-2 z-10 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-sm">Destaque</span>
+                    {% endif %}
                     
-                    <button class="absolute top-2 right-2 z-10 w-7 h-7 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors shadow-sm">
-                        <i class="bi bi-heart"></i>
-                    </button>
-                    
-                    <a href="#" class="block w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-3 relative">
-                        <img src="{% static 'img/logo_sat.png' %}" alt="Produto" class="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500">
+                    <a href="{% url 'detalhe_produto' produto.id %}" class="block w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-3 relative flex items-center justify-center">
+                        {% if produto.imagem %}
+                            <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}" class="w-full h-full object-cover p-0 group-hover:scale-110 transition-transform duration-500 {% if produto.estoque <= 0 %}opacity-40 grayscale{% endif %}">
+                        {% else %}
+                            <img src="{% static 'img/logo_sat.png' %}" alt="Produto" class="w-2/3 h-2/3 object-contain opacity-20 p-4 group-hover:scale-110 transition-transform duration-500 {% if produto.estoque <= 0 %}grayscale{% endif %}">
+                        {% endif %}
                     </a>
                     
                     <div class="flex flex-col flex-1">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Vestuário</span>
-                        <a href="#"><h4 class="text-xs font-black text-gray-900 leading-tight mb-2 group-hover:text-[#ff6b00] transition-colors line-clamp-2">Camisa SAT Oficial 2026</h4></a>
+                        <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ produto.categoria|default:"Oficial" }}</span>
+                        <a href="{% url 'detalhe_produto' produto.id %}"><h4 class="text-xs font-black text-gray-900 leading-tight mb-2 group-hover:text-[#ff6b00] transition-colors line-clamp-2">{{ produto.nome }}</h4></a>
                         
                         <div class="mt-auto flex justify-between items-end pt-2">
                             <div>
-                                <p class="text-[9px] text-gray-400 line-through leading-none">R$ 149,90</p>
-                                <p class="text-sm font-black text-[#ff6b00] leading-none mt-1">R$ 119,90</p>
+                                <p class="text-sm font-black {% if produto.estoque <= 0 %}text-gray-400{% else %}text-[#ff6b00]{% endif %} leading-none mt-1">R$ {{ produto.preco }}</p>
                             </div>
-                            <button class="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center hover:bg-[#ff6b00] transition-colors shadow-md transform group-hover:-translate-y-1">
-                                <i class="bi bi-plus-lg"></i>
-                            </button>
+                            
+                            {% if produto.estoque > 0 %}
+                                <form action="{% url 'adicionar_ao_carrinho' produto.id %}" method="POST" class="m-0 p-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center hover:bg-[#ff6b00] transition-colors shadow-md transform group-hover:-translate-y-1">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button disabled class="w-8 h-8 bg-gray-100 text-gray-300 rounded-full flex items-center justify-center cursor-not-allowed">
+                                    <i class="bi bi-dash-lg"></i>
+                                </button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
-
-                <div class="bg-white rounded-[20px] p-3 border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative group hover:border-[#ff6b00]/30 transition-all flex flex-col">
-                    
-                    <span class="absolute top-2 left-2 z-10 bg-gray-800 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-sm">Esgotado</span>
-                    
-                    <a href="#" class="block w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-3 relative">
-                        <img src="{% static 'img/logo_sat.png' %}" alt="Produto" class="w-full h-full object-contain p-4 opacity-40 grayscale">
-                    </a>
-                    
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Acessórios</span>
-                        <a href="#"><h4 class="text-xs font-black text-gray-900 leading-tight mb-2 transition-colors line-clamp-2">Boné Clássico Aba Reta SAT</h4></a>
-                        
-                        <div class="mt-auto flex justify-between items-end pt-2">
-                            <div>
-                                <p class="text-sm font-black text-gray-400 leading-none mt-1">R$ 59,90</p>
-                            </div>
-                            <button disabled class="w-8 h-8 bg-gray-100 text-gray-300 rounded-full flex items-center justify-center cursor-not-allowed">
-                                <i class="bi bi-dash-lg"></i>
-                            </button>
-                        </div>
-                    </div>
+                {% empty %}
+                <div class="col-span-2 text-center py-10">
+                    <p class="text-[12px] text-gray-400 font-bold uppercase tracking-widest">Nenhum produto encontrado.</p>
                 </div>
-                
-                <div class="bg-white rounded-[20px] p-3 border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative group hover:border-[#ff6b00]/30 transition-all flex flex-col">
-                    <button class="absolute top-2 right-2 z-10 w-7 h-7 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors shadow-sm">
-                        <i class="bi bi-heart"></i>
-                    </button>
-                    
-                    <a href="#" class="block w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-3 relative">
-                        <img src="{% static 'img/logo_sat.png' %}" alt="Produto" class="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500">
-                    </a>
-                    
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Colecionáveis</span>
-                        <a href="#"><h4 class="text-xs font-black text-gray-900 leading-tight mb-2 group-hover:text-[#ff6b00] transition-colors line-clamp-2">Copo Personalizado Térmico Mágico</h4></a>
-                        
-                        <div class="mt-auto flex justify-between items-end pt-2">
-                            <div>
-                                <p class="text-sm font-black text-[#ff6b00] leading-none mt-1">R$ 35,00</p>
-                            </div>
-                            <button class="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center hover:bg-[#ff6b00] transition-colors shadow-md transform group-hover:-translate-y-1">
-                                <i class="bi bi-plus-lg"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                {% endfor %}
                 
             </div>
         </div>

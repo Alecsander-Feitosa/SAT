@@ -30,9 +30,8 @@
         color: #1a1a1a !important;
         min-height: 100vh;
     }
-
-    /* Ocultar o rádio padrão */
-    .torcida-radio { display: none; }
+    /* Ocultar o rádio padrão de forma acessível para o navegador não travar */
+    .torcida-radio { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
     
     /* Estilo do cartão inativo */
     .torcida-card {
@@ -108,24 +107,38 @@
         <form method="post" action="{% url 'cadastro_etapa2' %}" class="flex-grow flex flex-col h-full relative" id="form-etapa2">
             {% csrf_token %}
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 fade-in-2">
-                <div class="relative">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Time do Coração</label>
-                    <select name="time_coracao" class="input-sat w-full px-5 py-4 rounded-2xl text-sm font-bold uppercase tracking-tight text-gray-700 cursor-pointer" required>
-                        <option value="" disabled selected>Escolha seu time...</option>
-                        {% for time in times %}
-                            <option value="{{ time }}">{{ time }}</option>
-                        {% endfor %}
-                    </select>
-                    <div class="pointer-events-none absolute bottom-0 right-0 flex items-center px-4 h-[54px] text-gray-400">
-                        <i class="bi bi-chevron-down text-lg"></i>
-                    </div>
-                </div>
+            <div class="mb-6 fade-in-2">
+                <label for="data_nascimento" class="block text-sm font-black text-gray-800 uppercase tracking-widest mb-2 ml-1 text-center">Nascimento</label>
+                <input type="date" name="data_nascimento" id="data_nascimento" 
+                    class="input-sat w-full px-5 py-4 rounded-2xl text-sm font-bold text-gray-700 uppercase cursor-pointer" required>
+            </div>
 
-                <div>
-                    <label for="data_nascimento" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Nascimento</label>
-                    <input type="date" name="data_nascimento" id="data_nascimento" 
-                        class="input-sat w-full px-5 py-4 rounded-2xl text-sm font-bold text-gray-700 uppercase cursor-pointer" required>
+            <div class="mb-8 fade-in-2">
+                <label class="block text-sm font-black text-gray-800 mb-4 uppercase tracking-wider text-center">O seu Time do Coração</label>
+                
+                <div class="grid grid-cols-3 gap-3 max-h-60 overflow-y-auto p-2 rounded-xl border border-gray-200 hide-scrollbar bg-gray-50/50">
+                    
+                    {% for time in times_brasil %}
+                    <label class="cursor-pointer group">
+                        <input type="radio" name="time_coracao" value="{{ time.nome }}" class="peer absolute opacity-0 w-0 h-0" required>
+                        
+                        <div class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-transparent bg-white shadow-sm peer-checked:border-[#ff6b00] peer-checked:bg-[#ff6b00]/10 hover:border-gray-300 transition-all h-full">
+                            <img src="{{ time.escudo }}" alt="{{ time.nome }}" class="w-10 h-10 object-contain mb-2 group-hover:scale-110 transition-transform">
+                            <span class="text-[9px] font-bold text-center text-gray-600 peer-checked:text-[#ff6b00]">{{ time.nome }}</span>
+                        </div>
+                    </label>
+                    {% endfor %}
+                    
+                    <label class="cursor-pointer group">
+                        <input type="radio" name="time_coracao" value="Outro" class="peer absolute opacity-0 w-0 h-0" required>
+                        <div class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-transparent bg-white shadow-sm peer-checked:border-[#ff6b00] peer-checked:bg-[#ff6b00]/10 hover:border-gray-300 transition-all h-full">
+                            <div class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 mb-2 group-hover:scale-110 transition-transform">
+                                <i class="bi bi-three-dots text-xl text-gray-400"></i>
+                            </div>
+                            <span class="text-[9px] font-bold text-center text-gray-600 peer-checked:text-[#ff6b00]">Outro</span>
+                        </div>
+                    </label>
+
                 </div>
             </div>
 
@@ -140,7 +153,7 @@
             <div class="grid grid-cols-2 gap-4 mb-4 overflow-y-auto no-scrollbar pb-10 fade-in-3" id="torcidas-grid" style="max-height: 45vh;">
                 
                 <label class="block relative h-full torcida-item">
-                    <input type="radio" name="torcida_id" value="neutro" class="torcida-radio">
+                    <input type="radio" name="time_coracao" value="{{ time.nome }}" class="peer absolute opacity-0 w-0 h-0" required>
                     <div class="torcida-card p-5 flex flex-col items-center justify-center text-center h-full">
                         <div class="w-14 h-14 bg-gray-50 border border-gray-200 rounded-full flex items-center justify-center mb-4 transition-all">
                             <i class="bi bi-person-fill text-2xl text-gray-400"></i>
@@ -151,7 +164,7 @@
 
                 {% for torcida in torcidas %}
                     <label class="block relative h-full torcida-item">
-                        <input type="radio" name="torcida_id" value="{{ torcida.id }}" class="torcida-radio" required>
+                        <input type="radio" name="time_coracao" value="{{ time.nome }}" class="peer absolute opacity-0 w-0 h-0" required>
                         <div class="torcida-card p-5 flex flex-col items-center justify-center text-center h-full">
                             {% if torcida.logo %}
                                 <img src="{{ torcida.logo.url }}" alt="{{ torcida.nome }}" class="w-14 h-14 object-contain mb-4 transition-all">

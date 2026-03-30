@@ -3,461 +3,403 @@
 
 {% block content %}
 <style>
-    /* ========== SAT SOCIAL - MODERN UI & MICROINTERAÇÕES ========== */
+    /* ========== SAT SOCIAL PREMIUM ========== */
     @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
+        to { opacity: 1; transform: translateY(0); filter: blur(0); }
     }
-    .animate-fade-up { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    .delay-100 { animation-delay: 0.1s; opacity: 0; }
-    .delay-200 { animation-delay: 0.2s; opacity: 0; }
-
-    @keyframes heartBurst {
-        0% { transform: scale(1); }
-        40% { transform: scale(1.4); }
-        60% { transform: scale(0.9); }
-        100% { transform: scale(1); }
-    }
-    .heart-animating i {
-        animation: heartBurst 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-
+    .animate-fade-up { animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    .text-dinamico { color: var(--cor-primaria) !important; }
-    .bg-dinamico { background-color: var(--cor-primaria) !important; }
-    
     .glass-header {
-        background: rgba(248, 249, 250, 0.85);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-bottom: 1px solid rgba(0,0,0,0.03);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.03);
     }
 
     .social-card {
         background: #ffffff;
-        border-radius: 28px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
-        border: 1px solid rgba(0,0,0,0.02);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .action-pill {
-        background: #f3f4f6;
-        border-radius: 100px;
-        padding: 8px 16px;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: 800;
-        font-size: 12px;
-        color: #6b7280;
-    }
-    .action-pill:active { transform: scale(0.95); }
-    
-    .comments-section {
-        max-height: 0;
+        border-radius: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        border: 1px solid rgba(0,0,0,0.03);
         overflow: hidden;
-        transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-        opacity: 0;
-    }
-    .comments-section.open {
-        max-height: 500px; 
-        opacity: 1;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     
-    .comment-bubble {
-        background: #f8f9fa;
-        border-radius: 4px 16px 16px 16px;
-        padding: 10px 14px;
-        display: inline-block;
+    .post-image {
+        border-radius: 16px;
+        max-height: 400px;
+        width: 100%;
+        object-fit: cover;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
 
-    .bottom-sheet {
-        background: #ffffff;
-        border-radius: 32px 32px 0 0;
-        box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
-    }
     .modal-backdrop {
-        background-color: rgba(0, 0, 0, 0.4);
+        background-color: rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(5px);
     }
+    
+    .action-btn { transition: all 0.2s ease; cursor: pointer; }
+    .action-btn:active { transform: scale(0.9); }
+    
+    .text-dinamico { color: var(--cor-primaria, #D37129); }
+    .bg-dinamico { background-color: var(--cor-primaria, #D37129); }
 </style>
 
-<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+<div class="w-full min-h-screen bg-[#f8f9fa] flex flex-col pb-32">
 
-    <div class="glass-header px-5 pt-6 pb-4 z-20 sticky top-0 md:top-[70px]">
-        <div class="flex justify-between items-center mb-5 animate-fade-up">
-            <div>
-                <h1 class="text-2xl font-black texto-main uppercase tracking-tighter leading-none" style="font-family: 'Montserrat', sans-serif;">
-                    Mural <span class="text-dinamico">SAT</span>
-                </h1>
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">A voz da torcida</p>
-            </div>
-            <div class="w-10 h-10 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center text-dinamico">
-                <i class="bi bi-bell-fill"></i>
-            </div>
+    <div class="sticky top-[70px] z-40 glass-header px-5 py-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-black italic uppercase tracking-tighter text-gray-900 leading-none">
+                SAT <span class="text-dinamico">SOCIAL</span>
+            </h1>
+            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                <i class="bi bi-globe-americas"></i> Comunidade Oficial
+            </p>
         </div>
-
-        <button onclick="abrirModalPost()" class="w-full bg-white rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.03)] border border-gray-100 p-2 flex items-center gap-3 animate-fade-up delay-100 group">
-            <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-100 shadow-inner">
-                {% if user.perfil.foto %}
-                    <img src="{{ user.perfil.foto.url }}" class="w-full h-full object-cover">
-                {% else %}
-                    <div class="w-full h-full bg-gray-50 flex items-center justify-center text-gray-400">
-                        <i class="bi bi-person-fill text-lg"></i>
-                    </div>
-                {% endif %}
-            </div>
-            <div class="flex-1 text-left">
-                <p class="text-xs font-bold text-gray-400 group-hover:text-gray-600 transition-colors">O que tens a dizer, {{ user.first_name|default:user.username }}?</p>
-            </div>
-            <div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-dinamico mr-1 group-hover:bg-dinamico group-hover:text-white transition-colors">
-                <i class="bi bi-plus-lg text-lg"></i>
-            </div>
-        </button>
+        
+        <div class="flex gap-2">
+            <button class="w-9 h-9 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 hover:text-dinamico transition-colors border border-gray-100">
+                <i class="bi bi-search text-sm"></i>
+            </button>
+            <button class="w-9 h-9 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 hover:text-dinamico transition-colors border border-gray-100 relative">
+                <i class="bi bi-bell text-sm"></i>
+                <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            </button>
+        </div>
     </div>
 
-    <div class="flex flex-col gap-6 px-5 pt-6 animate-fade-up delay-200">
-
+    <div class="px-4 pt-4 flex flex-col gap-5">
+        
         {% for post in posts %}
-        <div class="w-full social-card p-5 relative overflow-hidden" id="post-{{ post.id }}">
-            <div class="absolute top-0 left-0 w-1.5 h-full bg-dinamico opacity-80"></div>
-
-            <div class="flex justify-between items-start mb-4 pl-2">
+        <div class="social-card p-4 animate-fade-up" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
+            
+            <div class="flex justify-between items-start mb-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-full border-2 border-white shadow-md overflow-hidden flex items-center justify-center shrink-0">
+                    <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
                         {% if post.autor_s.perfil.foto %}
                             <img src="{{ post.autor_s.perfil.foto.url }}" class="w-full h-full object-cover">
                         {% else %}
-                            <div class="w-full h-full bg-gray-100 flex items-center justify-center">
-                                <i class="bi bi-person-fill text-gray-300 text-xl"></i>
-                            </div>
+                            <i class="bi bi-person-fill text-gray-400 text-2xl mt-1 text-center block"></i>
                         {% endif %}
                     </div>
                     <div>
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <h4 class="text-sm font-black text-gray-900 leading-none">{{ post.autor_s.first_name|default:post.autor_s.username }}</h4>
-                            
-                            {% if post.autor_s.perfil.aprovado %}
-                                <i class="bi bi-patch-check-fill text-dinamico text-[11px]" title="Membro Oficial"></i>
+                        <h3 class="text-sm font-black text-gray-900 leading-tight flex items-center gap-1">
+                            {{ post.autor_s.get_full_name|default:post.autor_s.username }}
+                            {% if post.autor_s.perfil.torcida %}
+                                <i class="bi bi-patch-check-fill text-dinamico text-[11px]"></i>
                             {% endif %}
-                            
-                            {% if post.autor_s != request.user %}
-                                <form action="{% url 'seguir_usuario' post.autor_s.id %}" method="POST" class="m-0 form-seguir inline-block ml-1">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-seguir text-[8px] font-black uppercase tracking-widest px-2 py-[2px] rounded-md transition-colors shadow-sm 
-                                        {% if request.user in post.autor_s.perfil.seguidores.all or request.user.perfil in post.autor_s.perfil.seguidores.all %}
-                                            bg-gray-100 text-gray-500 hover:bg-gray-200
-                                        {% else %}
-                                            bg-dinamico text-white hover:brightness-110
-                                        {% endif %}">
-                                        {% if request.user in post.autor_s.perfil.seguidores.all or request.user.perfil in post.autor_s.perfil.seguidores.all %}
-                                            Seguindo
-                                        {% else %}
-                                            Seguir
-                                        {% endif %}
-                                    </button>
-                                </form>
-                            {% endif %}
-                        </div>
-                        
-                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-1.5">
-                            {% if post.torcida %}{{ post.torcida.nome }}{% else %}SAT Oficial{% endif %} • {{ post.data_criacao|timesince }}
+                        </h3>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+                            {{ post.data_criacao|timesince }} atrás
                         </p>
                     </div>
                 </div>
             </div>
 
-            <div class="pl-2">
-                <p class="text-[13px] text-gray-700 mb-4 leading-relaxed font-medium">{{ post.texto }}</p>
+            {% if post.texto %}
+            <p class="text-sm text-gray-800 leading-relaxed font-medium mb-3">
+                {{ post.texto|linebreaksbr }}
+            </p>
+            {% endif %}
 
-                {% if post.imagem %}
-                <div class="w-full max-h-80 bg-gray-100 rounded-2xl overflow-hidden mb-4 shadow-sm border border-gray-100">
-                    <img src="{{ post.imagem.url }}" class="w-full h-full object-cover">
-                </div>
-                {% endif %}
+            {% if post.imagem %}
+            <div class="mb-3">
+                <img src="{{ post.imagem.url }}" class="post-image" loading="lazy">
             </div>
+            {% endif %}
 
-            <div class="flex items-center gap-3 pt-2 pl-2 border-t border-gray-50 mt-2">
+            <div class="w-full h-[1px] bg-gray-50 my-3"></div>
+
+            <div class="flex justify-between items-center px-2">
                 
-                <form action="{% url 'social_curtir_post' post.id %}" method="POST" class="m-0 form-like" data-post-id="{{ post.id }}">
+                <form action="{% url 'social_curtir_post' post.id %}" method="POST" class="m-0" onsubmit="return curtirPostAjax(event, this, {{ post.id }})">
                     {% csrf_token %}
-                    <button type="button" class="btn-like action-pill {% if request.user in post.curtidas.all %}text-red-500 bg-red-50{% else %}hover:bg-gray-200{% endif %}">
-                        <i class="bi {% if request.user in post.curtidas.all %}bi-heart-fill{% else %}bi-heart{% endif %} text-base icone-coracao"></i>
-                        <span class="contador-likes">{{ post.curtidas.count }}</span>
+                    <button type="submit" class="action-btn flex items-center gap-2 group outline-none bg-transparent border-none p-0 cursor-pointer">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-red-50 transition-colors">
+                            <i id="icone-coracao-{{ post.id }}" class="bi {% if request.user in post.curtidas.all %}bi-heart-fill text-red-500{% else %}bi-heart text-gray-400{% endif %} text-lg group-hover:text-red-500 transition-colors"></i>
+                        </div>
+                        <span id="contador-curtidas-{{ post.id }}" class="text-xs font-bold text-gray-500 group-hover:text-red-500">{{ post.curtidas.count|default:"0" }}</span>
                     </button>
                 </form>
-                
-                <button type="button" onclick="toggleComentarios({{ post.id }})" class="action-pill hover:bg-gray-200">
-                    <i class="bi bi-chat-text text-base"></i>
-                    <span id="contador-comentarios-{{ post.id }}">{{ post.comentarios.count|default:"0" }}</span>
-                </button>
 
-                <button class="action-pill hover:bg-gray-200 ml-auto px-3">
-                    <i class="bi bi-share text-base"></i>
-                </button>
-            </div>
-
-            <div id="comments-section-{{ post.id }}" class="comments-section pl-2 mt-1">
-                <div class="pt-4 border-t border-gray-50">
-                    
-                    <div id="lista-comentarios-{{ post.id }}" class="flex flex-col gap-3 mb-4 max-h-48 overflow-y-auto no-scrollbar pr-2">
-                        {% for comentario in post.comentarios.all|slice:":5" %}
-                        <div class="flex items-start gap-2">
-                            <div class="w-6 h-6 rounded-full overflow-hidden shrink-0 mt-1">
-                                {% if comentario.autor.perfil.foto %}
-                                    <img src="{{ comentario.autor.perfil.foto.url }}" class="w-full h-full object-cover">
-                                {% else %}
-                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
-                                        <i class="bi bi-person text-[10px] text-gray-500"></i>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="comment-bubble">
-                                <p class="text-[10px] font-black text-gray-900 mb-0.5">{{ comentario.autor.first_name|default:comentario.autor.username }}</p>
-                                <p class="text-[11px] text-gray-600 leading-snug">{{ comentario.texto }}</p>
-                            </div>
-                        </div>
-                        {% empty %}
-                        <p class="text-xs text-gray-400 font-medium italic vazio-msg" id="vazio-{{ post.id }}">Seja o primeiro a comentar.</p>
-                        {% endfor %}
+                <button type="button" onclick="toggleComentarios({{ post.id }})" class="action-btn flex items-center gap-2 group outline-none bg-transparent border-none p-0 cursor-pointer">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                        <i class="bi bi-chat text-gray-400 text-lg group-hover:text-blue-500"></i>
                     </div>
+                    <span id="contador-comentarios-{{ post.id }}" class="text-xs font-bold text-gray-500 group-hover:text-blue-500">{{ post.comentarios.count|default:"0" }}</span>
+                </button>
 
-                    <form action="{% url 'social_comentar_post' post.id %}" method="POST" class="form-comentario flex gap-2 items-center">
-                        {% csrf_token %}
-                        <div class="flex-1 bg-gray-50 rounded-full border border-gray-100 flex items-center px-3 py-1.5 focus-within:border-gray-300 transition-colors">
-                            <input type="text" name="comentario" placeholder="Adicione um comentário..." required class="w-full bg-transparent text-xs text-gray-700 focus:outline-none placeholder-gray-400">
-                        </div>
-                        <button type="submit" class="w-8 h-8 rounded-full bg-dinamico text-white flex items-center justify-center shadow-md active:scale-90 transition-transform">
-                            <i class="bi bi-send-fill text-[11px] ml-0.5"></i>
-                        </button>
-                    </form>
-                </div>
+                <button type="button" class="action-btn flex items-center gap-2 group outline-none bg-transparent border-none p-0 cursor-pointer">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-green-50 transition-colors">
+                        <i class="bi bi-share text-gray-400 text-lg group-hover:text-green-500"></i>
+                    </div>
+                </button>
             </div>
+
+            <div id="secao-comentarios-{{ post.id }}" class="hidden mt-4 pt-4 border-t border-gray-50 transition-all">
+                
+                <div id="lista-comentarios-{{ post.id }}" class="space-y-3 mb-4 max-h-48 overflow-y-auto no-scrollbar">
+                    {% for comentario in post.comentarios.all %}
+                    <div class="flex gap-2 items-start">
+                        <div class="w-6 h-6 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 mt-0.5">
+                            {% if comentario.autor.perfil.foto %}
+                            <img src="{{ comentario.autor.perfil.foto.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                            <i class="bi bi-person-fill text-gray-400 text-xs flex justify-center items-center h-full"></i>
+                            {% endif %}
+                        </div>
+                        <div class="bg-gray-50 rounded-2xl rounded-tl-none px-3 py-2 text-xs flex-1 border border-gray-100">
+                            <span class="font-black text-gray-900 block mb-0.5">{{ comentario.autor.get_full_name|default:comentario.autor.username }}</span>
+                            <span class="text-gray-700 leading-relaxed">{{ comentario.texto }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="no-comments-msg text-[10px] text-center text-gray-400 font-bold uppercase tracking-widest">Sem comentários. Seja o primeiro!</p>
+                    {% endfor %}
+                </div>
+                
+                <form action="{% url 'social_comentar_post' post.id %}" method="POST" class="flex gap-2 items-center" onsubmit="return comentarPostAjax(event, this, {{ post.id }})">
+                    {% csrf_token %}
+                    <input type="text" name="comentario" placeholder="Escreva um comentário..." class="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-xs text-gray-800 focus:outline-none focus:border-dinamico focus:ring-1 focus:ring-dinamico" required autocomplete="off">
+                    <button type="submit" class="w-9 h-9 bg-dinamico text-white rounded-full flex items-center justify-center flex-shrink-0 shadow-md active:scale-95 transition-transform border-none outline-none cursor-pointer">
+                        <i class="bi bi-send-fill text-xs ml-0.5"></i>
+                    </button>
+                </form>
+            </div>
+
         </div>
         {% empty %}
-        <div class="text-center py-16 mt-4">
-            <div class="w-24 h-24 mx-auto bg-white rounded-full shadow-lg flex items-center justify-center mb-5">
-                <i class="bi bi-chat-square-quote text-4xl text-gray-200"></i>
+        <div class="flex flex-col items-center justify-center py-20 text-center animate-fade-up">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 border border-gray-200">
+                <i class="bi bi-camera text-3xl text-gray-300"></i>
             </div>
-            <h3 class="text-lg font-black text-gray-800 uppercase tracking-tight mb-2">Mural Vazio</h3>
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">Sê a primeira voz da tua torcida a publicar aqui.</p>
+            <h3 class="text-sm font-black text-gray-800 uppercase tracking-widest mb-1">Nenhuma Publicação</h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider w-2/3">Seja o primeiro a partilhar algo!</p>
         </div>
         {% endfor %}
-
+        
     </div>
+</div>
 
-    <div id="modalCriarPost" class="fixed inset-0 modal-backdrop z-[200] hidden flex-col justify-end items-center opacity-0 transition-opacity duration-300">
-        <div class="w-full max-w-md bottom-sheet p-6 transform translate-y-full transition-transform duration-400" id="modalContent">
-            
-            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
-            
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="font-black text-gray-900 text-xl uppercase tracking-tighter">Nova Publicação</h3>
-                <button onclick="fecharModalPost()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors">
+<button type="button" onclick="abrirModalPost()" class="fixed bottom-24 right-5 w-14 h-14 bg-dinamico text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(211,113,41,0.4)] hover:scale-105 active:scale-95 transition-all z-50 border-none outline-none cursor-pointer">
+    <i class="bi bi-plus-lg text-2xl"></i>
+</button>
+
+<div id="modalNovoPost" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md bg-white rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300 flex flex-col relative" id="modalPostContent">
+        
+        <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
+            <h3 class="font-black text-gray-900 text-sm uppercase tracking-widest">Nova Publicação</h3>
+            <button type="button" onclick="fecharModalPost()" class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors border-none outline-none cursor-pointer">
+                <i class="bi bi-x-lg text-sm"></i>
+            </button>
+        </div>
+
+        <form action="{% url 'mural' %}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
+            {% csrf_token %}
+            <div class="flex gap-3">
+                <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+                    {% if user.perfil.foto %}
+                        <img src="{{ user.perfil.foto.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <i class="bi bi-person-fill text-gray-400 text-2xl mt-1 text-center block"></i>
+                    {% endif %}
+                </div>
+                <textarea name="texto" rows="4" placeholder="O que está a pensar?" class="w-full bg-transparent border-none focus:ring-0 text-sm font-medium text-gray-800 placeholder-gray-400 resize-none outline-none mt-2" required></textarea>
+            </div>
+
+            <div id="imagePreviewContainer" class="hidden relative w-full mb-2">
+                <img id="imagePreview" src="" class="w-full h-48 object-cover rounded-2xl shadow-sm border border-gray-100">
+                <button type="button" onclick="removerImagem()" class="absolute top-2 right-2 w-8 h-8 bg-black/50 backdrop-blur text-white rounded-full flex items-center justify-center hover:bg-black/70 transition-colors border-none outline-none cursor-pointer">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
 
-            <form action="/social/mural/?aba={{ aba }}" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
+            <div class="flex items-center justify-between pt-3 border-t border-gray-100 mt-2">
+                <label for="imagemPost" class="w-10 h-10 bg-gray-50 text-dinamico rounded-full flex items-center justify-center cursor-pointer hover:bg-dinamico hover:text-white transition-colors border border-gray-100">
+                    <i class="bi bi-image text-lg"></i>
+                </label>
+                <input type="file" id="imagemPost" name="imagem" accept="image/*" class="hidden" onchange="mostrarPreview(this)">
                 
-                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 mb-4 focus-within:border-gray-300 focus-within:bg-white transition-colors shadow-inner">
-                    <textarea name="texto" rows="4" placeholder="O que está a acontecer no mundo do desporto?" class="w-full bg-transparent text-sm font-medium text-gray-800 focus:outline-none resize-none" required></textarea>
-                </div>
-                
-                <div class="flex items-center gap-3 mb-6">
-                    <label for="imagem_upload" class="flex-1 bg-white border-2 border-dashed border-gray-200 rounded-2xl p-4 flex flex-col justify-center items-center gap-2 cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all group">
-                        <div class="w-10 h-10 rounded-full bg-dinamico/10 flex items-center justify-center text-dinamico group-hover:scale-110 transition-transform">
-                            <i class="bi bi-image text-lg"></i>
-                        </div>
-                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest" id="nome_arquivo">Adicionar Foto</span>
-                        <input type="file" id="imagem_upload" name="imagem" accept="image/*" class="hidden" onchange="mostrarNomeArquivo(this)">
-                    </label>
-                </div>
-
-                <button type="submit" class="w-full bg-dinamico text-white font-black text-sm uppercase tracking-[0.1em] py-4 rounded-2xl shadow-lg shadow-dinamico/30 active:scale-[0.98] transition-all">
+                <button type="submit" class="bg-dinamico text-white font-black text-xs uppercase tracking-widest px-6 py-3 rounded-full shadow-md active:scale-95 transition-transform border-none outline-none cursor-pointer">
                     Publicar
                 </button>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
-
 </div>
 
 <script>
-    // 1. LÓGICA DO MODAL DE POST
-    const modal = document.getElementById('modalCriarPost');
-    const modalContent = document.getElementById('modalContent');
+    // 1. FUNÇÃO DE CURTIR BLINDADA
+    window.curtirPostAjax = function(event, formElement, postId) {
+        event.preventDefault(); // Impede o recarregamento!
+        
+        var url = formElement.action; // O form agora tem a URL correta 'social_curtir_post'
+        var formData = new FormData(formElement);
+        var csrfToken = formElement.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    function abrirModalPost() {
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            modal.classList.remove('opacity-0');
-            modalContent.classList.remove('translate-y-full');
-        }, 10);
-    }
-
-    function fecharModalPost() {
-        modalContent.classList.add('translate-y-full');
-        modal.classList.add('opacity-0');
-        setTimeout(() => { modal.classList.add('hidden'); }, 400);
-    }
-
-    function mostrarNomeArquivo(input) {
-        const spanNome = document.getElementById('nome_arquivo');
-        if (input.files && input.files.length > 0) {
-            spanNome.textContent = "Imagem Pronta ✓";
-            spanNome.classList.remove('text-gray-400');
-            spanNome.classList.add('text-green-500');
-        }
-    }
-
-    // 2. LÓGICA DE LIKE 
-    document.querySelectorAll('.btn-like').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const form = this.closest('.form-like');
-            const url = form.action;
-            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
-            
-            const icone = this.querySelector('.icone-coracao');
-            const contador = this.querySelector('.contador-likes');
-
-            this.classList.add('heart-animating');
-            setTimeout(() => { this.classList.remove('heart-animating'); }, 400);
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                contador.textContent = data.likes_count;
-                if (data.liked) {
-                    this.classList.add('text-red-500', 'bg-red-50');
-                    this.classList.remove('hover:bg-gray-200');
-                    icone.classList.remove('bi-heart');
-                    icone.classList.add('bi-heart-fill');
-                } else {
-                    this.classList.remove('text-red-500', 'bg-red-50');
-                    this.classList.add('hover:bg-gray-200');
-                    icone.classList.remove('bi-heart-fill');
-                    icone.classList.add('bi-heart');
-                }
-            });
-        });
-    });
-
-    // 3. EXPANDIR/RECOLHER COMENTÁRIOS
-    function toggleComentarios(postId) {
-        const secao = document.getElementById(`comments-section-${postId}`);
-        secao.classList.toggle('open');
-    }
-
-    // 4. SUBMISSÃO DE COMENTÁRIO VIA AJAX
-    document.querySelectorAll('.form-comentario').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const inputField = this.querySelector('input[name="comentario"]');
-            const texto = inputField.value.trim();
-            const url = this.action;
-            const csrfToken = this.querySelector('[name=csrfmiddlewaretoken]').value;
-            const postId = this.closest('.social-card').id.split('-')[1];
-            
-            if (!texto) return;
-
-            inputField.disabled = true;
-            
-            const listaComentarios = document.getElementById(`lista-comentarios-${postId}`);
-            const msgVazia = document.getElementById(`vazio-${postId}`);
-            const contador = document.getElementById(`contador-comentarios-${postId}`);
-
-            if (msgVazia) msgVazia.style.display = 'none';
-
-            const novoComentarioHTML = `
-                <div class="flex items-start gap-2 animate-fade-up">
-                    <div class="w-6 h-6 rounded-full bg-dinamico text-white flex items-center justify-center shrink-0 mt-1">
-                        <i class="bi bi-person text-[10px]"></i>
-                    </div>
-                    <div class="comment-bubble">
-                        <p class="text-[10px] font-black text-gray-900 mb-0.5">Você</p>
-                        <p class="text-[11px] text-gray-600 leading-snug">${texto}</p>
-                    </div>
-                </div>
-            `;
-            
-            listaComentarios.insertAdjacentHTML('beforeend', novoComentarioHTML);
-            contador.textContent = parseInt(contador.textContent) + 1;
-            listaComentarios.scrollTop = listaComentarios.scrollHeight;
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams({ 'comentario': texto })
-            }).then(() => {
-                inputField.value = '';
-                inputField.disabled = false;
-                inputField.focus();
-            }).catch(() => { inputField.disabled = false; });
-        });
-    });
-
-    // 5. LÓGICA DO BOTÃO "SEGUIR" (AJAX Optimistic UI)
-    document.querySelectorAll('.form-seguir').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const url = this.action;
-            const csrfToken = this.querySelector('[name=csrfmiddlewaretoken]').value;
-            const btn = this.querySelector('.btn-seguir');
-
-            // Feedback Visual Imediato (Inverte as cores na hora do clique)
-            const isSeguindo = btn.textContent.trim() === 'Seguindo';
-            
-            if (isSeguindo) {
-                // Fazer Unfollow Visualmente
-                btn.textContent = 'Seguir';
-                btn.className = 'btn-seguir text-[8px] font-black uppercase tracking-widest px-2 py-[2px] rounded-md transition-colors shadow-sm bg-dinamico text-white hover:brightness-110';
-            } else {
-                // Fazer Follow Visualmente
-                btn.textContent = 'Seguindo';
-                btn.className = 'btn-seguir text-[8px] font-black uppercase tracking-widest px-2 py-[2px] rounded-md transition-colors shadow-sm bg-gray-100 text-gray-500 hover:bg-gray-200';
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
             }
-
-            // Manda o pedido para o Django
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            }).then(response => response.json())
-            .then(data => {
-                // Se o servidor devolver resposta, confirma o estado (Ajuste caso tenha dado erro)
-                if (data.seguindo) {
-                    btn.textContent = 'Seguindo';
-                    btn.className = 'btn-seguir text-[8px] font-black uppercase tracking-widest px-2 py-[2px] rounded-md transition-colors shadow-sm bg-gray-100 text-gray-500 hover:bg-gray-200';
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            var icone = document.getElementById('icone-coracao-' + postId);
+            var contador = document.getElementById('contador-curtidas-' + postId);
+            
+            if(contador) contador.innerText = data.likes_count;
+            
+            if(icone) {
+                if(data.liked) {
+                    icone.className = "bi bi-heart-fill text-red-500 text-lg group-hover:text-red-500 transition-colors";
                 } else {
-                    btn.textContent = 'Seguir';
-                    btn.className = 'btn-seguir text-[8px] font-black uppercase tracking-widest px-2 py-[2px] rounded-md transition-colors shadow-sm bg-dinamico text-white hover:brightness-110';
+                    icone.className = "bi bi-heart text-gray-400 text-lg group-hover:text-red-500 transition-colors";
                 }
-            }).catch(error => {
-                console.log("A função de seguir ainda não suporta AJAX na Views.py, recarregando a página...");
-                // Se a sua view não retornar JsonResponse ainda, recarrega a página normalmente
-                window.location.reload(); 
-            });
+            }
+        })
+        .catch(function(error) {
+            console.error("Erro no Like:", error);
         });
+        
+        return false;
+    };
+
+    // 2. FUNÇÃO DE COMENTAR BLINDADA
+    window.comentarPostAjax = function(event, formElement, postId) {
+        event.preventDefault();
+        
+        var url = formElement.action; // URL correta 'social_comentar_post'
+        var formData = new FormData(formElement);
+        var csrfToken = formElement.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if(data.sucesso) {
+                var inputElement = formElement.querySelector('input[name="comentario"]');
+                if(inputElement) inputElement.value = '';
+
+                var countSpan = document.getElementById('contador-comentarios-' + postId);
+                if(countSpan) countSpan.innerText = data.total_comentarios;
+
+                var lista = document.getElementById('lista-comentarios-' + postId);
+                var msgVazia = lista.querySelector('.no-comments-msg');
+                if(msgVazia) msgVazia.remove();
+
+                var novoHtml = '<div class="flex gap-2 items-start animate-fade-up">' +
+                                   '<div class="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 mt-0.5">' +
+                                       '<img src="' + data.foto_autor + '" class="w-full h-full object-cover">' +
+                                   '</div>' +
+                                   '<div class="bg-gray-50 rounded-2xl rounded-tl-none px-3 py-2 text-xs flex-1 border border-gray-100">' +
+                                       '<span class="font-black text-gray-900 block mb-0.5">' + data.nome_autor + '</span>' +
+                                       '<span class="text-gray-700 leading-relaxed">' + data.texto + '</span>' +
+                                   '</div>' +
+                               '</div>';
+                lista.insertAdjacentHTML('beforeend', novoHtml);
+                lista.scrollTop = lista.scrollHeight;
+            }
+        })
+        .catch(function(error) {
+            console.error("Erro no Comentário:", error);
+        });
+        
+        return false;
+    };
+
+    // 3. ABRIR E FECHAR COMENTÁRIOS
+    window.toggleComentarios = function(postId) {
+        var div = document.getElementById('secao-comentarios-' + postId);
+        if (div) {
+            if (div.classList.contains('hidden')) {
+                div.classList.remove('hidden');
+                div.classList.add('block');
+            } else {
+                div.classList.add('hidden');
+                div.classList.remove('block');
+            }
+        }
+    };
+
+    // 4. LÓGICA DO MODAL (NOVO POST)
+    window.abrirModalPost = function() {
+        var modal = document.getElementById('modalNovoPost');
+        var content = document.getElementById('modalPostContent');
+        if(!modal) return;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex'); 
+        setTimeout(function() {
+            modal.classList.remove('opacity-0');
+            if(window.innerWidth < 640) {
+                content.classList.remove('translate-y-full');
+            } else {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }
+        }, 10);
+    };
+
+    window.fecharModalPost = function() {
+        var modal = document.getElementById('modalNovoPost');
+        var content = document.getElementById('modalPostContent');
+        if(!modal) return;
+
+        if(window.innerWidth < 640) {
+            content.classList.add('translate-y-full');
+        } else {
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+        }
+        modal.classList.add('opacity-0');
+        setTimeout(function() { 
+            modal.classList.add('hidden'); 
+            modal.classList.remove('flex');
+        }, 300);
+    };
+
+    window.mostrarPreview = function(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('imagePreviewContainer').classList.remove('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    window.removerImagem = function() {
+        document.getElementById('imagemPost').value = "";
+        document.getElementById('imagePreviewContainer').classList.add('hidden');
+        document.getElementById('imagePreview').src = "";
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('modalNovoPost');
+        if(modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) window.fecharModalPost();
+            });
+        }
     });
 </script>
 {% endblock %}

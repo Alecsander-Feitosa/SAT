@@ -2,190 +2,95 @@
 {% load static %}
 
 {% block content %}
-<style>
-    /* ========== SAT CORE - ANIMAÇÕES E COMPONENTES ========== */
-    @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
-        to { opacity: 1; transform: translateY(0); filter: blur(0); }
-    }
-    
-    .animate-fade-up { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    .delay-100 { animation-delay: 0.1s; opacity: 0; }
-    .delay-200 { animation-delay: 0.2s; opacity: 0; }
-    .delay-300 { animation-delay: 0.3s; opacity: 0; }
-
-    /* Utilitários Dinâmicos */
-    .text-dinamico { color: var(--cor-primaria) !important; }
-    .border-dinamico { border-color: var(--cor-primaria) !important; }
-    .bg-dinamico { background-color: var(--cor-primaria) !important; }
-    
-    /* Efeitos de Sombra e Destaque */
-    .shadow-dinamico { box-shadow: 0 10px 30px rgba(0,0,0,0.08), 0 0 15px rgba(211, 113, 41, 0.15); }
-    .card-beneficio {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .card-beneficio:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    }
-
-    /* Cards de Planos */
-    .plan-card {
-        background-color: var(--cor-secundaria);
-        border: 1px solid rgba(0,0,0,0.05);
-        border-radius: 24px;
-        padding: 20px;
-        position: relative;
-        overflow: hidden;
-    }
-    .plan-featured {
-        border: 2px solid var(--cor-primaria);
-        background: linear-gradient(145deg, var(--cor-secundaria) 0%, rgba(211, 113, 41, 0.03) 100%);
-    }
-    .btn-assinar {
-        background-color: var(--cor-primaria);
-        color: white !important; /* Força contraste */
-        border: none;
-        padding: 12px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 900;
-        text-transform: uppercase;
-        width: 100%;
-        transition: opacity 0.3s;
-    }
-    .btn-assinar:hover { opacity: 0.9; }
-    
-    .btn-outline {
-        background: transparent;
-        border: 1px solid rgba(0,0,0,0.1);
-        color: var(--cor-terciaria);
-        padding: 10px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 800;
-        text-transform: uppercase;
-        width: 100%;
-    }
-</style>
-
-<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
-
-    <div class="px-5 pt-12 pb-8 text-center animate-fade-up">
-        <div class="w-16 h-16 bg-dinamico rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-dinamico text-white">
-            <i class="bi bi-star-fill text-3xl"></i>
-        </div>
-        <h1 class="text-3xl font-black italic uppercase tracking-tighter texto-main">
-            Suba de <span class="text-dinamico">Patamar</span>
+<div class="px-5 mb-6 pt-6 flex items-center gap-4">
+    <a href="javascript:history.back()" class="w-10 h-10 fundo-card rounded-2xl flex items-center justify-center shadow-sm border border-suave texto-main hover:scale-105 transition-transform">
+        <i class="bi bi-arrow-left text-lg font-bold"></i>
+    </a>
+    <div>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">
+            SEJA <span class="text-[#ff6b00]">SÓCIO</span>
         </h1>
-        <p class="text-xs texto-main opacity-60 font-bold uppercase tracking-widest mt-2 px-4">
-            Faça parte da elite, apoie sua torcida e desbloqueie vantagens exclusivas.
-        </p>
+        <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest">Defina seu time e torcida</p>
     </div>
+</div>
 
-    <div class="px-5 mb-10 animate-fade-up delay-100">
-        <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest mb-3 ml-1 text-center">Por que ser Sócio SAT?</h3>
+<div class="px-5 pb-32">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-6 p-4 rounded-[20px] text-xs font-bold shadow-sm {% if 'success' in message.tags %}bg-green-50 text-green-600 border border-green-100{% else %}bg-blue-50 text-blue-600 border border-blue-100{% endif %} flex items-center gap-2">
+                <i class="bi bi-info-circle-fill text-lg"></i> {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="{% url 'seja_socio' %}" class="space-y-6">
+        {% csrf_token %}
         
-        <div class="grid grid-cols-2 gap-3">
-            <div class="fundo-card p-4 rounded-2xl border border-suave card-beneficio">
-                <i class="bi bi-ticket-perforated-fill text-2xl text-dinamico mb-2 block"></i>
-                <h4 class="text-[11px] font-black texto-main uppercase mb-1">Prioridade</h4>
-                <p class="text-[9px] font-medium texto-main opacity-60 leading-tight">Acesso antecipado a ingressos, caravanas e eventos oficiais.</p>
-            </div>
-            
-            <div class="fundo-card p-4 rounded-2xl border border-suave card-beneficio">
-                <i class="bi bi-bag-heart-fill text-2xl text-dinamico mb-2 block"></i>
-                <h4 class="text-[11px] font-black texto-main uppercase mb-1">Descontos</h4>
-                <p class="text-[9px] font-medium texto-main opacity-60 leading-tight">Economize na Loja Oficial e em nossa rede de parceiros.</p>
-            </div>
-
-            <div class="fundo-card p-4 rounded-2xl border border-suave card-beneficio">
-                <i class="bi bi-controller text-2xl text-dinamico mb-2 block"></i>
-                <h4 class="text-[11px] font-black texto-main uppercase mb-1">Gamificação</h4>
-                <p class="text-[9px] font-medium texto-main opacity-60 leading-tight">Ganhe XP em check-ins, suba de ranking e resgate prêmios.</p>
-            </div>
-
-            <div class="fundo-card p-4 rounded-2xl border border-suave card-beneficio">
-                <i class="bi bi-qr-code-scan text-2xl text-dinamico mb-2 block"></i>
-                <h4 class="text-[11px] font-black texto-main uppercase mb-1">Carteira Digital</h4>
-                <p class="text-[9px] font-medium texto-main opacity-60 leading-tight">Sua identidade de torcedor oficial na palma da mão.</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="px-5 animate-fade-up delay-200">
-        <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest mb-4 ml-1 text-center">Escolha seu Plano</h3>
-
-        <div class="plan-card plan-featured shadow-dinamico mb-4">
-            <div class="absolute top-0 right-0 bg-dinamico text-white text-[8px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-widest">
-                Mais Popular
-            </div>
-            
-            <div class="mb-4 pt-2">
-                <h3 class="text-xl font-black italic uppercase texto-main">Plano Ouro</h3>
-                <div class="flex items-baseline gap-1 mt-1">
-                    <span class="text-sm font-bold texto-main opacity-50">R$</span>
-                    <span class="text-3xl font-black texto-main">29</span>
-                    <span class="text-sm font-bold texto-main opacity-50">,90/mês</span>
+        <div class="fundo-card p-6 rounded-[32px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-suave relative overflow-hidden">
+            <div class="flex items-center gap-4 mb-5 relative z-10">
+                <div class="w-12 h-12 fundo-app rounded-2xl flex items-center justify-center border border-suave shadow-sm">
+                    <i class="bi bi-heart-fill text-xl text-[#ff6b00]"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black uppercase texto-main leading-tight">Time do Coração</h2>
+                    <p class="text-[10px] texto-main opacity-60 font-bold uppercase tracking-wider mt-0.5">Qual clube você apoia?</p>
                 </div>
             </div>
             
-            <ul class="space-y-2 mb-6 border-t border-suave pt-4">
-                <li class="flex items-center gap-2 text-[10px] font-bold texto-main uppercase">
-                    <i class="bi bi-check-circle-fill text-dinamico"></i> 10% OFF na Loja Oficial
-                </li>
-                <li class="flex items-center gap-2 text-[10px] font-bold texto-main uppercase">
-                    <i class="bi bi-check-circle-fill text-dinamico"></i> +20% de XP em Eventos
-                </li>
-                <li class="flex items-center gap-2 text-[10px] font-bold texto-main uppercase">
-                    <i class="bi bi-check-circle-fill text-dinamico"></i> Carteirinha Digital Pro
-                </li>
-                <li class="flex items-center gap-2 text-[10px] font-bold texto-main uppercase">
-                    <i class="bi bi-check-circle-fill text-dinamico"></i> Sorteios Exclusivos Mensais
-                </li>
-            </ul>
+            <select name="time_coracao" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-xs font-bold texto-main focus:outline-none focus:ring-2 focus:ring-[#ff6b00]/20 transition-all appearance-none relative z-10">
+                <option value="" disabled {% if not perfil.time_coracao %}selected{% endif %}>Selecione o seu time</option>
+                {% for time in times %}
+                    <option value="{{ time }}" {% if perfil.time_coracao == time %}selected{% endif %}>{{ time }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="fundo-card p-6 rounded-[32px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-suave relative overflow-hidden">
+            <div class="flex items-center gap-4 mb-5 relative z-10">
+                <div class="w-12 h-12 fundo-app rounded-2xl flex items-center justify-center border border-suave shadow-sm">
+                    <i class="bi bi-flag-fill text-xl text-[#ff6b00]"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black uppercase texto-main leading-tight">Filiação a Torcida</h2>
+                    <p class="text-[10px] texto-main opacity-60 font-bold uppercase tracking-wider mt-0.5">Solicite sua entrada</p>
+                </div>
+            </div>
             
-            <button class="btn-assinar">Assinar Plano Ouro</button>
+            {% if perfil.torcida %}
+                <div class="mb-5 p-4 fundo-app rounded-2xl border border-suave flex items-center gap-4">
+                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="bi bi-shield-fill text-gray-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] uppercase font-black text-gray-400 tracking-widest mb-1">Torcida Atual</p>
+                        <p class="text-sm font-black texto-main leading-none">{{ perfil.torcida.nome }}</p>
+                        <div class="mt-2">
+                            {% if perfil.aprovado %}
+                                <span class="inline-flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
+                                    <i class="bi bi-check-circle-fill"></i> Aprovado
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
+                                    <i class="bi bi-clock-fill"></i> Em Análise
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <p class="text-[9px] text-red-500 font-bold mb-4 leading-relaxed">*Atenção: Ao trocar de torcida, você perderá a verificação atual e precisará ser aprovado pela nova diretoria.</p>
+            {% endif %}
+
+            <select name="torcida_id" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-xs font-bold texto-main focus:outline-none focus:ring-2 focus:ring-[#ff6b00]/20 transition-all appearance-none relative z-10">
+                <option value="" disabled {% if not perfil.torcida %}selected{% endif %}>Escolha uma torcida para se juntar</option>
+                {% for torcida in torcidas %}
+                    <option value="{{ torcida.id }}" {% if perfil.torcida and perfil.torcida.id == torcida.id %}selected{% endif %}>{{ torcida.nome }}</option>
+                {% endfor %}
+            </select>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-4">
-            <div class="plan-card p-4">
-                <h3 class="text-sm font-black italic uppercase texto-main">Básico</h3>
-                <div class="font-black texto-main text-lg mb-2">R$ 14<span class="text-[10px] opacity-50">,90</span></div>
-                
-                <ul class="space-y-1 mb-4 min-h-[50px]">
-                    <li class="flex items-center gap-1 text-[8px] font-bold texto-main opacity-70 uppercase">
-                        <i class="bi bi-check text-dinamico text-sm"></i> Acesso Social
-                    </li>
-                    <li class="flex items-center gap-1 text-[8px] font-bold texto-main opacity-70 uppercase">
-                        <i class="bi bi-check text-dinamico text-sm"></i> Carteira Digital
-                    </li>
-                </ul>
-                
-                <button class="btn-outline border-suave">Escolher</button>
-            </div>
-
-            <div class="plan-card p-4 border-gray-300">
-                <h3 class="text-sm font-black italic uppercase texto-main">Lendário</h3>
-                <div class="font-black texto-main text-lg mb-2">R$ 89<span class="text-[10px] opacity-50">,90</span></div>
-                
-                <ul class="space-y-1 mb-4 min-h-[50px]">
-                    <li class="flex items-center gap-1 text-[8px] font-bold texto-main opacity-70 uppercase">
-                        <i class="bi bi-check text-dinamico text-sm"></i> XP em Dobro
-                    </li>
-                    <li class="flex items-center gap-1 text-[8px] font-bold texto-main opacity-70 uppercase">
-                        <i class="bi bi-check text-dinamico text-sm"></i> Kit Brindes
-                    </li>
-                </ul>
-                
-                <button class="btn-outline border-suave">Escolher</button>
-            </div>
-        </div>
-
-        <p class="text-center text-[9px] font-bold texto-main opacity-30 mt-6 px-4">
-            Planos sem fidelidade. Pode cancelar a qualquer momento diretamente pela plataforma.
-        </p>
-
-    </div>
+        <button type="submit" class="w-full py-4 bg-gray-900 text-white rounded-2xl font-black italic uppercase tracking-widest shadow-xl flex items-center justify-center gap-3 hover:bg-[#ff6b00] active:scale-95 transition-all mt-4">
+            Salvar e Enviar Pedido <i class="bi bi-check2-circle text-xl leading-none"></i>
+        </button>
+    </form>
 </div>
 {% endblock %}

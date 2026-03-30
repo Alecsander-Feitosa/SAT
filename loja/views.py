@@ -4,28 +4,39 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Sum, Q
 from .models import Produto, ItemCarrinho, Pedido, ItemPedido, Variacao
+# loja/views.py (substitua a função loja_view)
 
 @login_required
 def loja_view(request):
     total_itens = 0
     torcida_usuario = None
     
+    # 1. Definir a base de produtos (para a torcida atual ou geral)
     if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
         torcida_usuario = request.user.perfil.torcida
-        produtos = Produto.objects.filter(torcida=torcida_usuario)
+        base_produtos = Produto.objects.filter(torcida=torcida_usuario)
     else:
-        produtos = Produto.objects.filter(torcida__isnull=True)
+        base_produtos = Produto.objects.filter(torcida__isnull=True)
         
+    produtos = base_produtos
+
+    # 2. Aplicar o filtro de categoria se o usuário clicou em alguma
+    categoria_atual = request.GET.get('categoria')
+    if categoria_atual:
+        produtos = produtos.filter(categoria=categoria_atual)
+        
+    # 3. Calcular os itens do carrinho
     total_itens = ItemCarrinho.objects.filter(usuario=request.user).aggregate(Sum('quantidade'))['quantidade__sum'] or 0
 
-    # NOVO: Pega as categorias únicas dos produtos disponíveis (remove as vazias)
-    categorias = produtos.exclude(categoria__isnull=True).exclude(categoria__exact='').values_list('categoria', flat=True).distinct()
+    # 4. Puxar categorias da 'base_produtos' (assim os botões não somem quando filtramos)
+    categorias = base_produtos.exclude(categoria__isnull=True).exclude(categoria__exact='').values_list('categoria', flat=True).distinct()
 
     context = {
         'produtos': produtos,
         'total_itens_carrinho': total_itens,
         'torcida': torcida_usuario,
-        'categorias': categorias # <- Enviamos a lista de categorias aqui
+        'categorias': categorias,
+        'categoria_atual': categoria_atual, # Para marcar o botão ativo no HTML
     }
     return render(request, 'store.html', context)
 

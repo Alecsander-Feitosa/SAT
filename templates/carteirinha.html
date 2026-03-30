@@ -1,99 +1,217 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block content %}
 <style>
-    .card-canvas {
-        background: linear-gradient(145deg, #4A4D4E, #2A2C2D);
-        border-radius: 30px;
-        padding: 30px;
+    @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
+        to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+    .animate-fade-up { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    
+    /* Cartão Estilo Sócio Premium - Adapta-se à cor da torcida */
+    .cartao-socio {
+        /* Fundo base escuro, com gradiente refinado */
+        background: linear-gradient(135deg, #1a1a1a 0%, #050505 100%);
+        box-shadow: 
+            0 20px 40px rgba(0,0,0,0.4), 
+            inset 0 1px 1px rgba(255,255,255,0.2),
+            inset 0 -1px 1px rgba(0,0,0,0.5);
         position: relative;
         overflow: hidden;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        color: white;
+        border: 1px solid rgba(255,255,255,0.1);
+        aspect-ratio: 1.586 / 1; /* Proporção real de um cartão de crédito/sócio */
     }
-    .card-glow {
+
+    /* Brilho colorido dinâmico no topo direito */
+    .cartao-glow {
         position: absolute;
-        top: -50px;
-        right: -50px;
-        width: 150px;
-        height: 150px;
-        background: rgba(211, 113, 41, 0.2);
-        filter: blur(50px);
-        border-radius: 50%;
+        top: -30%;
+        right: -10%;
+        width: 150%;
+        height: 150%;
+        background: radial-gradient(circle at top right, var(--cor-primaria, #D37129) 0%, transparent 60%);
+        opacity: 0.25;
+        pointer-events: none;
     }
-    .qr-container {
-        background: white;
-        padding: 15px;
-        border-radius: 20px;
-        display: inline-block;
+
+    /* Marca de água gigante do logótipo da torcida no fundo */
+    .cartao-watermark {
+        position: absolute;
+        right: -10%;
+        bottom: -20%;
+        width: 80%;
+        height: 80%;
+        opacity: 0.08; /* Muito suave para não atrapalhar a leitura */
+        filter: grayscale(100%) brightness(200%);
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: bottom right;
+        pointer-events: none;
+        z-index: 1;
     }
-    .medal-slot {
-        width: 40px;
-        height: 40px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid rgba(211, 113, 41, 0.3);
+
+    /* O Chip do Cartão */
+    .cartao-chip {
+        width: 42px;
+        height: 30px;
+        background: linear-gradient(135deg, #ffd700 0%, #daa520 100%);
+        border-radius: 6px;
+        position: relative;
+        box-shadow: inset 0 0 4px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2);
+        overflow: hidden;
+    }
+    .cartao-chip::before, .cartao-chip::after {
+        content: '';
+        position: absolute;
+        background: rgba(0,0,0,0.2);
+    }
+    .cartao-chip::before { width: 100%; height: 1px; top: 50%; left: 0; }
+    .cartao-chip::after { width: 1px; height: 100%; top: 0; left: 50%; }
+
+    /* Efeito de Relevo (Emboss) no texto do Nome */
+    .texto-emboss {
+        text-shadow: 0px 1px 1px rgba(255,255,255,0.3), 0px -1px 1px rgba(0,0,0,0.8);
+        letter-spacing: 2px;
+    }
+
+    /* Layout do Scanner do QR Code */
+    .scanner-box {
+        position: relative;
+    }
+    /* Bordas cantoneiras simulando a câmara do scanner */
+    .scanner-box::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border: 2px solid var(--cor-primaria, #D37129);
+        border-radius: 1.5rem;
+        clip-path: polygon(0 0, 20px 0, 20px 2px, 2px 2px, 2px 20px, 0 20px, 0 100%, 0 calc(100% - 20px), 2px calc(100% - 20px), 2px calc(100% - 2px), 20px calc(100% - 2px), 20px 100%, 0 100%, calc(100% - 20px) 100%, calc(100% - 20px) calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) calc(100% - 20px), 100% calc(100% - 20px), 100% 100%, 100% 0, calc(100% - 20px) 0, calc(100% - 20px) 2px, calc(100% - 2px) 2px, calc(100% - 2px) 20px, 100% 20px);
+    }
+    /* Linha de Laser animada */
+    .scanner-line {
+        position: absolute;
+        width: 90%;
+        height: 2px;
+        background: var(--cor-primaria, #D37129);
+        box-shadow: 0 0 10px var(--cor-primaria, #D37129);
+        top: 10%;
+        left: 5%;
+        z-index: 20;
+        animation: scan 2.5s infinite linear alternate;
+    }
+    @keyframes scan {
+        0% { top: 10%; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { top: 90%; opacity: 0; }
     }
 </style>
 
-<div class="px-6 py-8 pb-32">
-    <div class="flex items-center gap-3 mb-8">
-        <a href="{% url 'dashboard' %}" class="text-gray-400"><i class="bi bi-chevron-left text-xl"></i></a>
-        <h1 class="text-xl font-black text-[#4A4D4E] uppercase italic">Carteirinha Digital</h1>
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+    
+    <div class="px-5 mb-6 pt-6 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="javascript:history.back()" class="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 text-gray-800 hover:scale-105 transition-transform">
+                <i class="bi bi-arrow-left text-lg font-bold"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-black italic uppercase tracking-tighter text-gray-900 leading-none">
+                    CARTÃO DE <span class="text-dinamico">SÓCIO</span>
+                </h1>
+            </div>
+        </div>
+        <button class="w-10 h-10 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 hover:text-dinamico transition-colors">
+            <i class="bi bi-share-fill"></i>
+        </button>
     </div>
 
-    <div class="card-canvas animate-slide-up">
-        <div class="card-glow"></div>
+    <div class="px-5 pt-2 animate-fade-up flex flex-col items-center">
         
-        <div class="flex justify-between items-start mb-10">
-            <div class="flex items-center gap-2">
-                <img src="{% static 'img/sat_logo.png' %}" class="h-8 w-auto">
-                <div class="h-4 w-[1px] bg-white/30"></div>
-                <span class="text-[10px] font-black uppercase tracking-widest text-[#D37129]">Sócio Elite</span>
+        <div class="w-full max-w-sm cartao-socio rounded-3xl p-6 text-white flex flex-col relative z-10 shadow-2xl">
+            <div class="cartao-glow"></div>
+            {% if torcida and torcida.logo %}
+                <div class="cartao-watermark" style="background-image: url('{{ torcida.logo.url }}');"></div>
+            {% endif %}
+            
+            <div class="flex justify-between items-start relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 p-1.5 overflow-hidden">
+                        {% if torcida and torcida.logo %}
+                            <img src="{{ torcida.logo.url }}" class="w-full h-full object-contain">
+                        {% else %}
+                            <i class="bi bi-shield-fill text-white/90 text-2xl"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h2 class="font-black text-lg tracking-tighter uppercase leading-none" style="font-family: 'Montserrat', sans-serif;">
+                            {% if torcida %}{{ torcida.nome }}{% else %}SAT MEMBER{% endif %}
+                        </h2>
+                        <p class="text-[8px] text-white/70 font-bold uppercase tracking-[0.2em] mt-0.5">
+                            Sócio Oficial Autorizado
+                        </p>
+                    </div>
+                </div>
+                <i class="bi bi-contactless text-2xl text-white/60"></i>
             </div>
-            <i class="bi bi-wifi text-xl opacity-50 rotate-90"></i>
-        </div>
 
-        <div class="text-center mb-8">
-            <div class="qr-container shadow-inner">
-                <img src="data:image/png;base64,{{ qr_code }}" class="w-32 h-32">
+            <div class="mt-6 mb-auto relative z-10 flex items-center justify-between">
+                <div class="cartao-chip"></div>
+                <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
+                    <i class="bi bi-star-fill text-yellow-400 text-[10px]"></i>
+                    <span class="text-[10px] font-black uppercase text-white tracking-widest">
+                        {% if perfil_game.nivel %}{{ perfil_game.nivel.nome }}{% else %}NÍVEL 1{% endif %}
+                    </span>
+                </div>
             </div>
-            <p class="text-[10px] mt-3 font-mono opacity-50 tracking-widest">ID: SAT-{{ user.id|add:"1000" }}</p>
-        </div>
 
-        <div class="flex justify-between items-end">
-            <div>
-                <p class="text-[10px] font-bold text-[#D37129] uppercase tracking-tighter">Torcedor</p>
-                <h2 class="text-lg font-black uppercase tracking-tight">{{ user.first_name }} {{ user.last_name }}</h2>
-                <p class="text-[11px] font-medium opacity-70">{{ torcida.nome|default:"Torcedor Independente" }}</p>
+            <div class="relative z-10 flex justify-between items-end mt-6">
+                <div class="flex-1">
+                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Membro Titular</p>
+                    <p class="text-sm font-black uppercase texto-emboss text-white truncate w-48">
+                        {{ user.get_full_name|default:user.username }}
+                    </p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Membro Desde</p>
+                    <p class="text-xs font-black uppercase text-white texto-emboss">
+                        {{ user.date_joined|date:"Y"|default:"2026" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="w-full max-w-sm bg-white rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-gray-100 mt-8 p-8 flex flex-col items-center text-center relative overflow-hidden">
+            
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-dinamico to-transparent opacity-60"></div>
+
+            <div class="w-12 h-12 bg-dinamico/10 text-dinamico rounded-full flex items-center justify-center mb-4">
+                <i class="bi bi-qr-code-scan text-2xl"></i>
+            </div>
+
+            <h3 class="text-sm font-black text-gray-900 uppercase tracking-tight mb-1">Passe Livre Digital</h3>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">Apresente nas catracas ou eventos</p>
+            
+            <div class="scanner-box w-52 h-52 bg-white p-4 relative flex items-center justify-center">
+                <div class="scanner-line"></div>
+                <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="w-full h-full object-contain relative z-10">
             </div>
             
-            <div class="text-right">
-                <span class="text-[9px] font-black bg-[#D37129] px-2 py-1 rounded text-[#1A1A1A] uppercase italic">
-                    {{ perfil_game.nivel.nome|default:"Recruta" }}
-                </span>
+            <div class="w-full mt-6 pt-5 border-t border-gray-100 flex justify-between items-center">
+                <div class="text-left">
+                    <p class="text-[8px] text-gray-400 font-black uppercase tracking-widest">Matrícula SAT</p>
+                    <p class="text-xs font-black text-gray-800 tracking-widest mt-0.5">
+                        {{ user.id|stringformat:"05d" }}-{{ perfil.cpf|slice:"0:3"|default:"000" }}
+                    </p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[8px] text-gray-400 font-black uppercase tracking-widest">Status</p>
+                    <p class="text-xs font-black text-green-500 tracking-widest mt-0.5 flex items-center gap-1">
+                        <i class="bi bi-shield-check"></i> ATIVO
+                    </p>
+                </div>
             </div>
         </div>
 
-        <div class="flex gap-2 mt-6 pt-4 border-t border-white/10">
-            {% for badge_user in badges_conquistadas|slice:":4" %}
-            <div class="medal-slot">
-                <img src="{{ badge_user.badge.imagem.url }}" class="w-6 h-6 object-contain">
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="mt-10 text-center px-4">
-        <p class="text-xs text-gray-400 font-medium">Apresente este QR Code na entrada dos estádios ou em caravanas para validar sua presença e ganhar pontos de XP.</p>
-        
-        <button class="mt-8 flex items-center gap-2 mx-auto text-[#4A4D4E] font-black text-xs uppercase border-b-2 border-[#D37129] pb-1">
-            <i class="bi bi-download"></i> Baixar como Imagem
-        </button>
     </div>
 </div>
 {% endblock %}

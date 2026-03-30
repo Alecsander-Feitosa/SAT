@@ -192,6 +192,17 @@
         </div>
     </div>
 
+    <div class="w-full animate-fade delay-500 mt-4 mb-2">
+        <a href="#" class="block w-full h-28 bg-gray-900 rounded-[20px] shadow-sm overflow-hidden relative group border border-suave">
+            <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                <span class="text-white/50 text-[10px] font-black tracking-[0.2em] uppercase mb-1">Espaço Reservado</span>
+                <span class="text-white font-black italic text-lg tracking-tighter uppercase">Patrocínio Máster</span>
+            </div>
+            <div class="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors duration-500"></div>
+            <span class="absolute top-2 right-2 bg-dinamico/90 backdrop-blur-sm text-white text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">Patrocinador</span>
+        </a>
+    </div>
+
     {% if noticias_api %}
     <div class="w-full animate-fade delay-400 mt-2">
         <div class="flex items-center justify-between mb-4">
@@ -226,6 +237,48 @@
         </div>
     </div>
     {% endif %}
+
+
+    {% if publicidades or parceiros %}
+    <div class="w-full animate-fade delay-500 mt-2">
+        <h3 class="text-[10px] font-black texto-main opacity-40 uppercase tracking-widest mb-3">Clube de Vantagens</h3>
+        
+        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
+            {% for pub in publicidades %}
+            <a href="{{ pub.link|default:'#' }}" class="snap-center-item shrink-0 w-[80%] max-w-[300px] h-28 bg-gray-900 rounded-2xl shadow-sm overflow-hidden relative group border border-suave">
+                {% if pub.imagem %}
+                    <img src="{{ pub.imagem.url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70">
+                {% endif %}
+                <div class="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent"></div>
+                <span class="absolute top-2 right-2 bg-black/40 backdrop-blur-sm text-white/90 text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm border border-white/10">Oferta</span>
+                <div class="absolute bottom-3 left-4 right-4">
+                    <h4 class="text-white text-sm font-black uppercase tracking-tight leading-none mb-1">{{ pub.titulo }}</h4>
+                    <p class="text-white/80 text-[9px] font-medium leading-tight line-clamp-2">{{ pub.descricao }}</p>
+                </div>
+            </a>
+            {% endfor %}
+
+            {% for parceiro in parceiros %}
+            <a href="#" class="snap-center-item shrink-0 w-[80%] max-w-[300px] h-28 bg-dinamico rounded-2xl shadow-sm overflow-hidden relative group">
+                <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
+                <span class="absolute top-2 right-2 bg-black/20 backdrop-blur-sm text-white/90 text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm border border-white/10">Parceiro Oficial</span>
+                <div class="absolute inset-0 flex flex-col justify-center p-4">
+                    {% if parceiro.logo %}
+                        <img src="{{ parceiro.logo.url }}" class="absolute right-4 bottom-2 h-12 w-auto opacity-50 filter brightness-0 invert transform -rotate-12">
+                    {% else %}
+                        <i class="bi bi-star-fill text-white/20 text-4xl absolute right-4 bottom-2 transform -rotate-12"></i>
+                    {% endif %}
+                    <h4 class="text-white text-sm font-black uppercase tracking-tight leading-none mb-1 relative z-10">{{ parceiro.nome }}</h4>
+                    <p class="text-white/90 text-[9px] font-medium leading-tight w-2/3 relative z-10">{{ parceiro.beneficio }}</p>
+                </div>
+            </a>
+            {% endfor %}
+            <div class="shrink-0 w-2"></div>
+        </div>
+    </div>
+    {% endif %}
+
+
 
     <div class="w-full animate-fade delay-500 mt-2">
         <div class="flex justify-between items-end mb-4">
@@ -276,87 +329,89 @@
         {% endfor %}
     </div>
 
-    <div class="w-full animate-fade delay-500 mt-4 mb-2">
-        <a href="#" class="block w-full h-28 bg-gray-900 rounded-[20px] shadow-sm overflow-hidden relative group border border-suave">
-            <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
-                <span class="text-white/50 text-[10px] font-black tracking-[0.2em] uppercase mb-1">Espaço Reservado</span>
-                <span class="text-white font-black italic text-lg tracking-tighter uppercase">Patrocínio Máster</span>
-            </div>
-            <div class="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors duration-500"></div>
-            <span class="absolute top-2 right-2 bg-dinamico/90 backdrop-blur-sm text-white text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">Patrocinador</span>
-        </a>
-    </div>
+    
 
-    {% if publicidades or parceiros %}
-    <div class="w-full animate-fade delay-500 mt-2">
-        <h3 class="text-[10px] font-black texto-main opacity-40 uppercase tracking-widest mb-3">Clube de Vantagens</h3>
-        
-        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
-            {% for pub in publicidades %}
-            <a href="{{ pub.link|default:'#' }}" class="snap-center-item shrink-0 w-[80%] max-w-[300px] h-28 bg-gray-900 rounded-2xl shadow-sm overflow-hidden relative group border border-suave">
-                {% if pub.imagem %}
-                    <img src="{{ pub.imagem.url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70">
-                {% endif %}
-                <div class="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent"></div>
-                <span class="absolute top-2 right-2 bg-black/40 backdrop-blur-sm text-white/90 text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm border border-white/10">Oferta</span>
-                <div class="absolute bottom-3 left-4 right-4">
-                    <h4 class="text-white text-sm font-black uppercase tracking-tight leading-none mb-1">{{ pub.titulo }}</h4>
-                    <p class="text-white/80 text-[9px] font-medium leading-tight line-clamp-2">{{ pub.descricao }}</p>
-                </div>
-            </a>
-            {% endfor %}
-
-            {% for parceiro in parceiros %}
-            <a href="#" class="snap-center-item shrink-0 w-[80%] max-w-[300px] h-28 bg-dinamico rounded-2xl shadow-sm overflow-hidden relative group">
-                <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
-                <span class="absolute top-2 right-2 bg-black/20 backdrop-blur-sm text-white/90 text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm border border-white/10">Parceiro Oficial</span>
-                <div class="absolute inset-0 flex flex-col justify-center p-4">
-                    {% if parceiro.logo %}
-                        <img src="{{ parceiro.logo.url }}" class="absolute right-4 bottom-2 h-12 w-auto opacity-50 filter brightness-0 invert transform -rotate-12">
-                    {% else %}
-                        <i class="bi bi-star-fill text-white/20 text-4xl absolute right-4 bottom-2 transform -rotate-12"></i>
-                    {% endif %}
-                    <h4 class="text-white text-sm font-black uppercase tracking-tight leading-none mb-1 relative z-10">{{ parceiro.nome }}</h4>
-                    <p class="text-white/90 text-[9px] font-medium leading-tight w-2/3 relative z-10">{{ parceiro.beneficio }}</p>
-                </div>
-            </a>
-            {% endfor %}
-            <div class="shrink-0 w-2"></div>
-        </div>
-    </div>
-    {% endif %}
-
+    
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const carrosseis = document.querySelectorAll('.snap-x-mandatory');
-        
-        carrosseis.forEach(carrossel => {
-            
-            // Lógica do loop contínuo
-            let intervalo = setInterval(() => {
-                const scrollMaximo = carrossel.scrollWidth - carrossel.clientWidth;
-                
-                // Margem de segurança de 10px para garantir que deteta o fim
-                if (carrossel.scrollLeft >= scrollMaximo - 10) {
-                    // Quando chega ao fim, volta para o início de forma suave
-                    carrossel.scrollTo({ left: 0, behavior: 'smooth' });
-                } else {
-                    // Anda para o lado (tamanho aproximado de um cartão)
-                    carrossel.scrollBy({ left: 280, behavior: 'smooth' });
-                }
-            }, 3500); // 3.5 segundos
+        // =========================================================
+        // 1. LÓGICA DOS CARROSSEIS HORIZONTAIS
+        // =========================================================
+        function iniciarCarrosseis(container) {
+            const carrosseis = container.querySelectorAll('.snap-x-mandatory');
+            carrosseis.forEach(carrossel => {
+                let intervalo = setInterval(() => {
+                    const scrollMaximo = carrossel.scrollWidth - carrossel.clientWidth;
+                    if (carrossel.scrollLeft >= scrollMaximo - 10) {
+                        carrossel.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        carrossel.scrollBy({ left: 280, behavior: 'smooth' });
+                    }
+                }, 3500);
 
-            // Para não lutar com o dedo do utilizador, paramos o auto-play se ele interagir
-            carrossel.addEventListener('touchstart', () => {
-                clearInterval(intervalo);
-            }, { passive: true });
-            
-            carrossel.addEventListener('mouseenter', () => {
-                clearInterval(intervalo);
+                // Para se o utilizador colocar o dedo/rato
+                carrossel.addEventListener('touchstart', () => clearInterval(intervalo), { passive: true });
+                carrossel.addEventListener('mouseenter', () => clearInterval(intervalo));
             });
-        });
+        }
+
+        // =========================================================
+        // 2. O VERDADEIRO CARROSSEL VERTICAL INFINITO (Seamless Loop)
+        // =========================================================
+        const mainContainer = document.querySelector('.fundo-app');
+        
+        // Remove o espaçamento gigante (pb-32) do final para a emenda ficar colada e perfeita
+        mainContainer.classList.remove('pb-32');
+        mainContainer.classList.add('pb-6');
+        
+        // 2.1 Separa apenas os elementos visuais (ignora a própria tag script)
+        const elementosOriginais = Array.from(mainContainer.children).filter(el => el.tagName !== 'SCRIPT');
+        
+        // 2.2 Cria a caixa "Original" e move tudo lá para dentro
+        const caixaOriginal = document.createElement('div');
+        caixaOriginal.className = 'w-full flex flex-col gap-6'; 
+        elementosOriginais.forEach(el => caixaOriginal.appendChild(el));
+        mainContainer.insertBefore(caixaOriginal, mainContainer.firstChild);
+
+        // 2.3 Cria a caixa "Clone" (A mágica do infinito que fica em baixo)
+        const caixaClone = caixaOriginal.cloneNode(true);
+        mainContainer.insertBefore(caixaClone, caixaOriginal.nextSibling);
+
+        // 2.4 Ativa os carrosseis horizontais de notícias em ambas as caixas!
+        iniciarCarrosseis(caixaOriginal);
+        iniciarCarrosseis(caixaClone);
+
+        // 2.5 O Truque do Teletransporte Invisível
+        // Esperamos 1 segundo para as imagens carregarem e termos a altura exata do ecrã
+        setTimeout(() => {
+            // Calcula a distância exata em píxeis entre o original e o clone
+            const alturaParaPular = caixaClone.offsetTop - caixaOriginal.offsetTop;
+
+            window.addEventListener('scroll', () => {
+                // Se a tela rolou para baixo o suficiente para chegar ao clone...
+                if (window.scrollY >= alturaParaPular) {
+                    // ...teletransporta de volta para cima sem dar solavanco!
+                    window.scrollTo(0, window.scrollY - alturaParaPular);
+                }
+            }, { passive: true });
+
+            /* ========================================================
+               OPCIONAL: AUTO-SCROLL VERTICAL (COMO UM TOTEM SOZINHO)
+               Se quiser que a tela ande sozinha para baixo sem ninguém tocar, 
+               basta apagar os símbolos de comentário /* e */ /* abaixo:
+            ======================================================== */
+            
+            /*
+            let velocidade = 1; 
+            let autoScroll = setInterval(() => { window.scrollBy(0, velocidade); }, 30);
+            // Para o scroll automático se o usuário tocar na tela para ler algo
+            window.addEventListener('touchstart', () => clearInterval(autoScroll), { passive: true });
+            window.addEventListener('wheel', () => clearInterval(autoScroll), { passive: true });
+            */
+            
+        }, 1000);
     });
 </script>
 {% endblock %}

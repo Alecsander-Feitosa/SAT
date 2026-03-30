@@ -1,144 +1,117 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.contrib import messages
+from django.contrib.auth.models import User
 from .models import Post, Comentario
-from accounts.decorators import torcida_required
-from django.views.decorators.http import require_POST
-from django.db.models import Q
-
-
 
 @login_required
 def mural_social(request):
-    aba = request.GET.get('aba', 'sat')
+    # Puxa os posts ordenados do mais recente para o mais antigo
+    posts = Post.objects.all().order_by('-data_criacao')
     
-    # Usamos getattr para evitar erros caso o utilizador recém-criado ainda não tenha perfil
-    perfil = getattr(request.user, 'perfil', None)
-    
-    # Define se o utilizador tem o Nível 2 desbloqueado (Torcida ativa E aprovada)
-    tem_torcida_ativa = bool(perfil and perfil.torcida and getattr(perfil, 'aprovado', False))
-
-    # BLOQUEIO DE SEGURANÇA: Se tentar aceder à aba da torcida sem permissão, é redirecionado para o feed geral
-    if aba == 'torcida' and not tem_torcida_ativa:
-        aba = 'sat'
-
-    # LÓGICA DE CRIAÇÃO DE POSTS
     if request.method == 'POST':
-        texto = request.POST.get('texto')
+        texto = request.POST.get('texto', '')
         imagem = request.FILES.get('imagem')
         
-        if texto or imagem: 
-            Post.objects.create(
-                autor_s=request.user, # Usa autor_s como no seu modelo!
-                texto=texto,
-                imagem=imagem,
-                torcida=perfil.torcida if (aba == 'torcida' and tem_torcida_ativa) else None,
-                time_relacionado=perfil.time_coracao if perfil else None 
-            )
-            return redirect(f'/social/mural/?aba={aba}')
-
-    if aba == 'sat':
-        if perfil and getattr(perfil, 'time_coracao', None):
-            posts = Post.objects.filter(
-                Q(time_relacionado=perfil.time_coracao) | Q(time_relacionado__isnull=True)
-            ).order_by('-data_criacao')
-        else:
-            posts = Post.objects.all().order_by('-data_criacao')
-    else:
-        posts = Post.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')
-
-    context = {
-        'posts': posts,
-        'aba': aba,
-        'tem_torcida_ativa': tem_torcida_ativa,
-        'perfil': perfil
-    }
+        if texto or imagem:
+            # 1. SOLUÇÃO DO TÍTULO: Cria um título automático usando as 50 primeiras letras do texto
+            titulo_gerado = texto[:50] + "..." if texto else "Publicação com Imagem"
+            
+            try:
+                novo_post = Post(
+                    autor_s=request.user, 
+                    titulo=titulo_gerado, # Preenche o campo obrigatório do banco de dados!
+                    texto=texto, 
+                    imagem=imagem
+                )
+                
+                # Associa a torcida se existir
+                if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+                    novo_post.torcida = request.user.perfil.torcida
+                    
+                novo_post.save()
+                messages.success(request, 'Publicação criada com sucesso!')
+            except Exception as e:
+                # Se falhar, não crasha a tela inteira, apenas avisa
+                messages.error(request, f'Erro ao salvar: {str(e)}')
+                
+            return redirect('mural')
+            
+    context = {'posts': posts}
     return render(request, 'mural.html', context)
-# FIM DA ATUALIZAÇÃO: Função mural_social
 
 @login_required
-@require_POST 
 def curtir_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
+    is_ajax = request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
     
-    if request.user in post.curtidas.all():
-        post.curtidas.remove(request.user)
-        liked = False
-    else:
-        post.curtidas.add(request.user)
-        liked = True
-    
-    # Substituí post.total_curtidas() por post.curtidas.count() para ser 100% seguro
-    return JsonResponse({
-        'liked': liked,
-        'likes_count': post.curtidas.count() 
-    })
+    try:
+        # Lógica de curtir / descurtir
+        if request.user in post.curtidas.all():
+            post.curtidas.remove(request.user)
+            liked = False
+        else:
+            post.curtidas.add(request.user)
+            liked = True
+            
+        if is_ajax:
+            return JsonResponse({
+                'likes_count': post.curtidas.count(),
+                'liked': liked
+            })
+    except Exception as e:
+        if is_ajax:
+            return JsonResponse({'sucesso': False, 'erro': str(e)}, status=500)
+            
+    return redirect('mural')
 
 @login_required
-@require_POST
 def adicionar_comentario(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-    texto = request.POST.get('comentario')
+    is_ajax = request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
     
-    if texto:
-        comentario = Comentario.objects.create(
-            post=post,
-            autor=request.user,
-            texto=texto
-        )
+    if request.method == 'POST':
+        texto = request.POST.get('comentario') or request.POST.get('texto') 
         
-        # Pega a foto de perfil se existir, senão usa o avatar gerado
-        foto_url = f"https://ui-avatars.com/api/?name={request.user.username}&background=random&color=fff"
-        if hasattr(request.user, 'perfil') and request.user.perfil.foto:
-            foto_url = request.user.perfil.foto.url
-
-        # Se for requisição do JavaScript (AJAX), devolvemos os dados em JSON
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({
-                'sucesso': True,
-                'texto': comentario.texto,
-                'nome_autor': request.user.username,
-                'foto_autor': foto_url,
-                'total_comentarios': post.comentarios.count()
-            })
-
-    return redirect(request.META.get('HTTP_REFERER', '/social/mural/'))
+        if texto:
+            try:
+                comentario = Comentario.objects.create(
+                    post=post,
+                    autor=request.user,
+                    texto=texto
+                )
+                
+                if is_ajax:
+                    foto_url = ""
+                    # 2. SOLUÇÃO DA FOTO: Tenta pegar a url da foto. Se ela não existir, captura o erro e envia vazio.
+                    try:
+                        if hasattr(request.user, 'perfil') and request.user.perfil.foto:
+                            foto_url = request.user.perfil.foto.url
+                    except ValueError:
+                        foto_url = "" # Contorna o erro de quando a foto está em branco
+                        
+                    return JsonResponse({
+                        'sucesso': True,
+                        'total_comentarios': post.comentarios.count(),
+                        'nome_autor': request.user.get_full_name() or request.user.username,
+                        'texto': comentario.texto,
+                        'foto_autor': foto_url
+                    })
+            except Exception as e:
+                if is_ajax:
+                    return JsonResponse({'sucesso': False, 'erro': str(e)}, status=500)
+                
+    return redirect('mural')
 
 @login_required
-@require_POST
 def seguir_usuario(request, usuario_id):
-    from django.contrib.auth.models import User
-    
     usuario_alvo = get_object_or_404(User, id=usuario_id)
     
-    # Prevenção: o utilizador não pode seguir a si mesmo
-    if request.user == usuario_alvo:
-        return JsonResponse({'sucesso': False, 'erro': 'Não podes seguir a ti mesmo.'}, status=400)
-    
-    perfil_alvo = usuario_alvo.perfil
-    meu_perfil = request.user.perfil # Pega o perfil de quem clicou
-    
-    # BLINDAGEM: O Django tenta guardar o Perfil. Se o model exigir User, ele usa o User.
-    try:
-        if meu_perfil in perfil_alvo.seguidores.all():
-            perfil_alvo.seguidores.remove(meu_perfil)
-            seguindo = False
+    if request.user != usuario_alvo and hasattr(usuario_alvo, 'perfil'):
+        if request.user in usuario_alvo.perfil.seguidores.all():
+            usuario_alvo.perfil.seguidores.remove(request.user)
         else:
-            perfil_alvo.seguidores.add(meu_perfil)
-            seguindo = True
-    except TypeError:
-        # Se der erro de tipo, é porque o seu model de seguidores exige o "User"
-        if request.user in perfil_alvo.seguidores.all():
-            perfil_alvo.seguidores.remove(request.user)
-            seguindo = False
-        else:
-            perfil_alvo.seguidores.add(request.user)
-            seguindo = True
+            usuario_alvo.perfil.seguidores.add(request.user)
             
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({
-            'sucesso': True,
-            'seguindo': seguindo
-        })
-        
-    return redirect(request.META.get('HTTP_REFERER', '/social/mural/'))
+    return redirect(request.META.get('HTTP_REFERER', 'mural'))

@@ -14,6 +14,7 @@ urlpatterns = [
     
     # LOGIN PERSONALIZADO (A Mágica acontece aqui!)
     path('login/', views.CustomLoginView.as_view(), name='login'),
+    path('logout/', views.logout_view, name='logout'),
     
     path('cadastro/', views.cadastro, name='cadastro'),
     path('cadastro_etapa2/', views.cadastro_etapa2, name='cadastro_etapa2'),
@@ -32,7 +33,7 @@ urlpatterns = [
     
     # EVENTOS
     path('eventos/', views.lista_eventos, name='lista_eventos'),
-    
+    path('carteirinha/', views.carteirinha, name='carteirinha'),
     # MANUTENÇÃO BET
     path('bet/manutencao/', views.bet_manutencao, name='bet_manutencao'),
 
@@ -54,6 +55,6 @@ urlpatterns = [
     path('vincular/<int:torcida_id>/', views.vincular_torcida, name='vincular_torcida'),
     path('curtir/<int:post_id>/', views.curtir_post, name='curtir_post'),
     path('beneficios/', views.beneficios_view, name='beneficios'),
-   path('post/<int:post_id>/comentar/', views.adicionar_comentario, name='adicionar_comentario'),
+    path('post/<int:post_id>/comentar/', views.adicionar_comentario, name='adicionar_comentario'),
     
 ]

@@ -6,6 +6,9 @@ from django.utils import timezone
 from .forms import TorcidaForm
 from django.utils.text import slugify
 from accounts.models import Perfil
+from social.models import Post
+
+
 
 
 # --- FUNÇÕES AUXILIARES DE SEGURANÇA ---
@@ -60,18 +63,32 @@ def admin_dashboard(request):
 
 @login_required
 def hub_view(request):
-    perfil = request.user.perfil
+    perfil = getattr(request.user, 'perfil', None)
     
-    # BLOQUEIO ABSOLUTO: Se não tiver torcida ou NÃO estiver aprovado, volta para a página de escolher/aguardar torcida!
-    if not perfil.torcida or not perfil.aprovado:
+    # BLOQUEIO ABSOLUTO
+    if not perfil or not getattr(perfil, 'torcida', None) or not getattr(perfil, 'aprovado', False):
         messages.warning(request, "Acesso restrito. Escolha uma torcida ou aguarde a aprovação da diretoria.")
-        return redirect('torcidas') 
+        return redirect('seja_socio') 
         
+    torcida = perfil.torcida
+    
+    # Puxa os eventos e caravanas específicos desta torcida (usando os related_names do teu models)
+    try:
+        eventos = torcida.torcida_eventos.all()[:3] # Pega os 3 mais recentes
+        caravanas = torcida.caravanas.order_by('saida_horario')[:3]
+    except AttributeError:
+        # Prevenção de erro caso os models Evento/Caravana ainda não estejam linkados perfeitamente
+        eventos = []
+        caravanas = []
+    
     context = {
         'perfil': perfil,
-        'torcida': perfil.torcida,
+        'torcida': torcida,
+        'eventos': eventos,
+        'caravanas': caravanas,
     }
     return render(request, 'hub.html', context)
+
 
 # --- VIEWS DE AÇÕES (EVENTOS E CARAVANAS) ---
 @login_required

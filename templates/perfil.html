@@ -94,7 +94,17 @@
     input[type="file"] { display: none; }
 </style>
 
-<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32 relative">
+
+    {% if messages %}
+    <div class="fixed top-20 left-0 w-full z-[100] flex flex-col items-center gap-2 px-5 pointer-events-none">
+        {% for message in messages %}
+            <div class="bg-green-500/90 backdrop-blur-md text-white text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-full shadow-lg animate-fade-up border border-green-400">
+                <i class="bi bi-check-circle-fill mr-1"></i> {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <div class="relative z-10 bg-white border-b border-gray-100 pb-8 pt-12 shadow-sm rounded-b-[40px]">
         <div class="absolute top-0 left-0 w-full h-32 bg-dinamico opacity-10 rounded-b-[40px]"></div>
@@ -150,13 +160,15 @@
     </div>
 
     <div class="px-5 pt-6 animate-fade-up delay-100">
-        <a href="#" class="block carteirinha-card rounded-3xl p-6 transition-transform active:scale-[0.98]">
+        <a href="{% url 'carteirinha' %}" class="block carteirinha-card rounded-3xl p-6 transition-transform active:scale-[0.98]">
             <div class="carteirinha-glow"></div>
             <div class="relative z-10 flex justify-between items-start mb-6">
                 <div>
-                    <h3 class="font-black text-2xl uppercase tracking-tighter leading-none text-white shadow-sm" style="font-family: 'Montserrat', sans-serif;">SAT MEMBER</h3>
-                    <p class="text-white/80 text-[10px] uppercase font-bold tracking-widest mt-1">
-                        {% if perfil.torcida %} {{ perfil.torcida.nome }} {% else %} Sócio Oficial {% endif %}
+                    <h2 class="font-black text-2xl tracking-tighter uppercase leading-none" style="font-family: 'Montserrat', sans-serif;">
+                        {% if torcida %}{{ torcida.nome }}{% else %}SAT MEMBER{% endif %}
+                    </h2>
+                    <p class="text-[10px] text-white/60 font-bold uppercase tracking-[0.2em] mt-1">
+                        Sócio Oficial
                     </p>
                 </div>
                 <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20">
@@ -232,7 +244,7 @@
                 <i class="bi bi-chevron-right text-gray-300"></i>
             </a>
 
-            <form action="#" method="post" class="m-0">
+            <form action="{% url 'logout' %}" method="post" class="m-0">
                 {% csrf_token %}
                 <button type="submit" class="w-full flex items-center justify-between p-4.5 hover:bg-red-50 transition-colors">
                     <div class="flex items-center gap-4">
@@ -259,7 +271,7 @@
                 </button>
             </div>
 
-            <form action="" method="POST" enctype="multipart/form-data" class="modal-form-inputs overflow-y-auto no-scrollbar pr-1 pb-4">
+            <form action="{% url 'perfil' %}" method="POST" enctype="multipart/form-data" class="modal-form-inputs overflow-y-auto no-scrollbar pr-1 pb-4">
                 {% csrf_token %}
                 
                 <div class="flex flex-col items-center mb-6 mt-2">
@@ -311,7 +323,7 @@
 
     function abrirModalEditar() {
         modalEditar.classList.remove('hidden');
-        modalEditar.classList.add('flex'); // Fundamental para centrar
+        modalEditar.classList.add('flex'); 
         setTimeout(() => {
             modalEditar.classList.remove('opacity-0');
             modalContent.classList.remove('scale-95');
