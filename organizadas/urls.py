@@ -18,7 +18,8 @@ urlpatterns = [
     path('eventos/', views.lista_eventos, name='lista_eventos_org'),
     
     path('post/<int:post_id>/curtir/', views.curtir_post, name='curtir_post'),
-
+    
+    path('moderacao/', views.painel_moderador, name='painel_moderador'), 
     # Mudei o nome para 'hub_organizadas' para não dar conflito com o 'hub' do accounts
     path('hub/', views.hub_view, name='hub_organizadas'), 
 

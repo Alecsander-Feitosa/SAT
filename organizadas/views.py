@@ -1,15 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from .models import Torcida, Evento, Caravana,Post, Curtida 
+from .models import Torcida, Evento, Caravana,Post, Curtida, Parceiro, Publicidade
 from django.utils import timezone
 from .forms import TorcidaForm
 from django.utils.text import slugify
-from accounts.models import Perfil
 from social.models import Post
-
-
-
+from accounts.models import Perfil
 
 # --- FUNÇÕES AUXILIARES DE SEGURANÇA ---
 def is_admin_geral(user):
@@ -197,3 +194,41 @@ def alternar_status_utilizador(request, perfil_id):
     messages.success(request, f'O utilizador {perfil.user.username} foi {status} com sucesso!')
     
     return redirect('gerir_utilizadores')
+
+@login_required
+def painel_moderador(request):
+    if not request.user.is_staff or request.user.is_superuser:
+        messages.error(request, "Acesso negado. Apenas moderadores podem aceder.")
+        return redirect('dashboard')
+
+    try:
+        minha_torcida = request.user.perfil.torcida
+    except AttributeError:
+        minha_torcida = None
+
+    if not minha_torcida:
+        messages.error(request, "Não tem nenhuma torcida vinculada.")
+        return redirect('dashboard')
+
+    # PESQUISA DIRETA NO BANCO DE DADOS (Mais robusta e à prova de falhas)
+    membros_ativos = Perfil.objects.filter(torcida=minha_torcida, aprovado=True).count()
+    membros_pendentes = Perfil.objects.filter(torcida=minha_torcida, aprovado=False).count()
+
+    # ISTO VAI APARECER NO SEU TERMINAL PARA DESCOBRIRMOS O MISTÉRIO
+    print("\n" + "="*40)
+    print(f"🔎 DEBUG DO MODERADOR")
+    print(f"Líder: {request.user.username}")
+    print(f"Torcida que ele lidera: {minha_torcida.nome} (ID da Torcida no Banco: {minha_torcida.id})")
+    print(f"Membros encontrados: {membros_ativos} ativos, {membros_pendentes} pendentes")
+    print("="*40 + "\n")
+
+    context = {
+        'torcida': minha_torcida,
+        'parceiros': Parceiro.objects.filter(torcida=minha_torcida),
+        'publicidades': Publicidade.objects.filter(torcida=minha_torcida),
+        'eventos': Evento.objects.filter(torcida=minha_torcida).order_by('-data')[:5],
+        'membros_ativos': membros_ativos,
+        'membros_pendentes': membros_pendentes,
+    }
+
+    return render(request, 'moderacao.html', context)
