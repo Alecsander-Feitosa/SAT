@@ -59,7 +59,8 @@
 
     <div class="px-5 animate-fade-up flex flex-col items-center">
         
-        <div class="w-full max-w-sm cartao-socio rounded-3xl p-6 text-white flex flex-col relative z-10 shadow-2xl">
+        <div class="w-full max-w-sm cartao-socio rounded-3xl p-6 text-white flex flex-col relative z-10 shadow-2xl"
+             style="--cor-primaria: {% if user.perfil.torcida and user.perfil.torcida.cor_primaria %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %}; background: linear-gradient(135deg, var(--cor-primaria) 0%, rgba(15,15,15,0.95) 100%);">
             <div class="cartao-glow"></div>
             {% if user.perfil.torcida and user.perfil.torcida.logo %}
                 <div class="cartao-watermark" style="background-image: url('{{ user.perfil.torcida.logo.url }}');"></div>

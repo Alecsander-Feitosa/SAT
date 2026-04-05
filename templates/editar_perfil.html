@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen fundo-app px-5 pt-10 pb-40">
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'perfil' %}" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">EDITAR <span class="texto-tema">PERFIL</span></h1>
+    </div>
+
+    <form action="{% url 'editar_perfil' %}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm flex flex-col items-center">
+            <div class="relative w-28 h-28 mb-4">
+                <div class="w-full h-full rounded-full overflow-hidden fundo-app border-[3px] border-tema p-1 shadow-inner">
+                    {% if user.perfil.foto %}
+                        <img id="previewFoto" src="{{ user.perfil.foto.url }}" class="w-full h-full object-cover rounded-full">
+                    {% else %}
+                        <div id="placeholderFoto" class="w-full h-full bg-black/5 rounded-full flex items-center justify-center">
+                            <i class="bi bi-person-fill texto-main opacity-20 text-5xl"></i>
+                        </div>
+                        <img id="previewFoto" src="" class="w-full h-full object-cover rounded-full hidden">
+                    {% endif %}
+                </div>
+                <label for="id_foto" class="absolute bottom-1 right-1 w-9 h-9 fundo-tema rounded-full flex items-center justify-center texto-claro border-2 border-fundo-app shadow-lg cursor-pointer">
+                    <i class="bi bi-camera-fill text-sm"></i>
+                </label>
+                <input type="file" id="id_foto" name="foto" accept="image/*" class="hidden" onchange="previewImage(this)">
+            </div>
+            <h3 class="text-xs font-black texto-main uppercase tracking-widest">Foto de Perfil</h3>
+        </div>
+
+        <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
+            <h4 class="text-[10px] font-black texto-tema uppercase tracking-[0.2em] mb-2">Identidade na Torcida</h4>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Vulgo / Apelido</label>
+                    <input type="text" name="vulgo" value="{{ user.perfil.vulgo|default:'' }}" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Pelotão / Bonde</label>
+                    <input type="text" name="pelotao" value="{{ user.perfil.pelotao|default:'' }}" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Instagram / Rede Social</label>
+                <div class="relative">
+                    <span class="absolute left-4 top-3.5 texto-main opacity-30 text-sm">@</span>
+                    <input type="text" name="rede_social" value="{{ user.perfil.rede_social|default:'' }}" class="w-full fundo-app border border-suave rounded-2xl pl-9 pr-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+            </div>
+        </div>
+
+        <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
+            <h4 class="text-[10px] font-black texto-tema uppercase tracking-[0.2em] mb-2">Dados Pessoais</h4>
+            
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Nome Completo</label>
+                <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Time do Coração</label>
+                <input type="text" name="time_coracao" value="{{ user.perfil.time_coracao|default:'' }}" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">WhatsApp</label>
+                <input type="text" name="whatsapp" value="{{ user.perfil.whatsapp|default:'' }}" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+            </div>
+        </div>
+
+        <button type="submit" class="w-full fundo-tema texto-claro font-black text-xs uppercase tracking-[0.2em] py-5 rounded-2xl shadow-lg active:scale-95 transition-all border-none">
+            Atualizar Perfil
+        </button>
+    </form>
+</div>
+
+<script>
+    // Script para mostrar a imagem selecionada antes de enviar o formulário
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewFoto').src = e.target.result;
+                document.getElementById('previewFoto').classList.remove('hidden');
+                if(document.getElementById('placeholderFoto')) document.getElementById('placeholderFoto').classList.add('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}

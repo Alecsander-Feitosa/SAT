@@ -3,360 +3,192 @@
 
 {% block content %}
 <style>
-   /* Estilos automáticos para os campos do Django no Modal */
-    .modal-form-inputs input, .modal-form-inputs select, .modal-form-inputs textarea {
-        width: 100%;
-        background-color: #f9fafb;
-        border: 1px solid #f3f4f6;
-        border-radius: 0.75rem;
-        padding: 0.75rem 1rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: #1f2937;
-        outline: none;
-        transition: all 0.2s ease;
-    }
-    .modal-form-inputs input:focus, .modal-form-inputs select:focus, .modal-form-inputs textarea:focus {
-        border-color: var(--cor-primaria);
-        background-color: #ffffff;
-        box-shadow: 0 0 0 3px rgba(var(--cor-primaria-rgb, 211, 113, 41), 0.1);
-    }
-    .modal-form-inputs input[type="file"] { display: none; }
-
-    /* ========== SAT CORE - PERFIL PREMIUM ========== */
+    /* ========== SAT PERFIL PREMIUM ========== */
     @keyframes slideUpFade {
         from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
         to { opacity: 1; transform: translateY(0); filter: blur(0); }
     }
-    
-    .animate-fade-up { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-fade-up { animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .delay-100 { animation-delay: 0.1s; opacity: 0; }
     .delay-200 { animation-delay: 0.2s; opacity: 0; }
     .delay-300 { animation-delay: 0.3s; opacity: 0; }
-
-    /* Variáveis Dinâmicas */
-    .text-dinamico { color: var(--cor-primaria) !important; }
-    .border-dinamico { border-color: var(--cor-primaria) !important; }
-    .bg-dinamico { background-color: var(--cor-primaria) !important; }
     
-    /* Sombras Premium */
-    .shadow-dinamico {
-        box-shadow: 0 10px 25px rgba(0,0,0,0.08), 0 0 20px rgba(var(--cor-primaria-rgb, 211, 113, 41), 0.15); 
-    }
-    
-    .sat-light-card {
-        background-color: #ffffff;
-        border: 1px solid rgba(0,0,0,0.03);
-        border-radius: 28px;
-        overflow: hidden;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.03);
-    }
-    
-    /* Itens de Menu Estilo iOS */
-    .menu-item-sat {
-        transition: all 0.2s ease;
-        border-bottom: 1px solid rgba(0,0,0,0.02);
-    }
-    .menu-item-sat:last-child { border-bottom: none; }
-    .menu-item-sat:active { background-color: rgba(0,0,0,0.03); }
-
-    /* Cartão de Sócio Premium */
-    .carteirinha-card {
-        background: linear-gradient(135deg, var(--cor-primaria) 0%, rgba(0,0,0,0.9) 100%);
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-        color: white;
-    }
-    .carteirinha-glow {
-        position: absolute;
-        top: -40px;
-        right: -40px;
-        width: 140px;
-        height: 140px;
-        background-color: rgba(255, 255, 255, 0.15);
-        filter: blur(40px);
-        border-radius: 50%;
-    }
-
-    /* Fundo Escuro do Modal */
-    .modal-backdrop {
-        background-color: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(8px);
-    }
-    .bottom-sheet {
-        background: #ffffff;
-        border-radius: 32px 32px 0 0;
-        box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
-    }
-    
-    /* Custom File Input (Input de Imagem Oculto) */
-    input[type="file"] { display: none; }
+    .menu-item { transition: all 0.2s ease; cursor: pointer; }
+    .menu-item:active { transform: scale(0.98); }
 </style>
 
-<div class="w-full min-h-screen fundo-app flex flex-col pb-32 relative">
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
 
-    {% if messages %}
-    <div class="fixed top-20 left-0 w-full z-[100] flex flex-col items-center gap-2 px-5 pointer-events-none">
-        {% for message in messages %}
-            <div class="bg-green-500/90 backdrop-blur-md text-white text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-full shadow-lg animate-fade-up border border-green-400">
-                <i class="bi bi-check-circle-fill mr-1"></i> {{ message }}
-            </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="relative z-10 bg-white border-b border-gray-100 pb-8 pt-12 shadow-sm rounded-b-[40px]">
-        <div class="absolute top-0 left-0 w-full h-32 bg-dinamico opacity-10 rounded-b-[40px]"></div>
-
-        <div class="flex flex-col items-center animate-fade-up relative z-10">
-            
-            <div class="relative mb-4 cursor-pointer group" onclick="abrirModalEditar()">
-                <div class="w-28 h-28 rounded-full border-4 border-white shadow-dinamico bg-white relative">
-                    <div class="w-full h-full rounded-full overflow-hidden">
-                        {% if perfil.foto %}
-                            <img src="{{ perfil.foto.url }}" alt="Foto de Perfil" class="w-full h-full object-cover">
-                        {% else %}
-                            <div class="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300">
-                                <i class="bi bi-person-fill text-5xl"></i>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="absolute bottom-0 right-0 w-8 h-8 bg-dinamico text-white rounded-full flex items-center justify-center border-2 border-white shadow-md transform group-hover:scale-110 transition-transform">
-                        <i class="bi bi-camera-fill text-sm"></i>
-                    </div>
-                </div>
-                
-                <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 text-[9px] font-black px-3 py-1.5 rounded-full border border-gray-100 shadow-md whitespace-nowrap z-20">
-                    {% if perfil_game.nivel %} {{ perfil_game.nivel.nome|upper }} {% else %} LVL 1 {% endif %}
-                </div>
-            </div>
-
-            <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-1.5 mt-4" style="font-family: 'Montserrat', sans-serif;">
-                {{ user.get_full_name|default:user.username }}
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'dashboard' %}" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
+            <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">
+                MEU <span class="texto-tema">PERFIL</span>
             </h1>
-            <p class="text-[10px] font-bold text-dinamico uppercase tracking-widest flex items-center gap-1.5 bg-dinamico/10 px-3 py-1 rounded-full">
-                <i class="bi bi-shield-check"></i> 
-                {% if perfil.torcida and perfil.aprovado %}{{ perfil.torcida.nome }}{% else %}Membro SAT{% endif %}
-            </p>
-
-            <div class="flex gap-8 mt-6 w-full justify-center">
-                <div class="text-center">
-                    <p class="text-xl font-black text-gray-800 leading-none">{{ perfil.seguidores.count|default:"0" }}</p>
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1.5">Seguidores</p>
-                </div>
-                <div class="w-[1px] h-10 border-r border-gray-200 mt-1"></div>
-                <div class="text-center relative">
-                    <p class="text-2xl font-black text-dinamico leading-none relative z-10">{{ perfil_game.xp_total|default:"0" }}</p>
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1 relative z-10">SAT XP</p>
-                </div>
-                <div class="w-[1px] h-10 border-r border-gray-200 mt-1"></div>
-                <div class="text-center">
-                    <p class="text-xl font-black text-gray-800 leading-none">{{ seguindo_count }}</p>
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1.5">A Seguir</p>
-                </div>
-            </div>
         </div>
+        <button class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-tema transition-colors border border-suave">
+            <i class="bi bi-gear-fill text-sm"></i>
+        </button>
     </div>
 
-    <div class="px-5 pt-6 animate-fade-up delay-100">
-        <a href="{% url 'carteirinha' %}" class="block carteirinha-card rounded-3xl p-6 transition-transform active:scale-[0.98]">
-            <div class="carteirinha-glow"></div>
-            <div class="relative z-10 flex justify-between items-start mb-6">
-                <div>
-                    <h2 class="font-black text-2xl tracking-tighter uppercase leading-none" style="font-family: 'Montserrat', sans-serif;">
-                        {% if torcida %}{{ torcida.nome }}{% else %}SAT MEMBER{% endif %}
-                    </h2>
-                    <p class="text-[10px] text-white/60 font-bold uppercase tracking-[0.2em] mt-1">
-                        Sócio Oficial
-                    </p>
-                </div>
-                <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20">
-                    {% if perfil.torcida and perfil.torcida.logo %}
-                        <img src="{{ perfil.torcida.logo.url }}" class="w-8 h-8 object-contain filter brightness-0 invert">
+    <div class="px-5 pt-6 animate-fade-up">
+        
+        <div class="flex flex-col items-center mb-6">
+            <div class="w-24 h-24 rounded-full overflow-hidden fundo-card border-[3px] border-tema shadow-lg relative mb-3 p-1">
+                <div class="w-full h-full rounded-full overflow-hidden bg-black/5 flex items-center justify-center">
+                    {% if user.perfil.foto %}
+                        <img src="{{ user.perfil.foto.url }}" class="w-full h-full object-cover">
                     {% else %}
-                        <i class="bi bi-shield-fill text-white opacity-90 text-2xl"></i>
+                        <i class="bi bi-person-fill texto-main opacity-30 text-4xl mt-2"></i>
                     {% endif %}
                 </div>
+                <div class="absolute bottom-0 right-0 w-7 h-7 fundo-tema rounded-full flex items-center justify-center border-2 border-fundo-app shadow-sm">
+                    <i class="bi {% if user.perfil.aprovado %}bi-check-lg{% else %}bi-clock-history{% endif %} texto-claro text-[10px] font-black"></i>
+                </div>
+            </div>
+            <h2 class="text-lg font-black texto-main uppercase leading-none">{{ user.get_full_name|default:user.username }}</h2>
+            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mt-1">
+                {% if user.perfil.torcida %}{{ user.perfil.torcida.nome }}{% else %}Membro SAT{% endif %}
+            </p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center justify-center shadow-sm">
+                <span class="text-lg font-black texto-tema leading-none mb-1">{% if perfil_game.nivel %}{{ perfil_game.nivel.nome|slice:"-1" }}{% else %}1{% endif %}</span>
+                <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Nível</span>
+            </div>
+            <div class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center justify-center shadow-sm">
+                <span class="text-lg font-black texto-main leading-none mb-1">{{ perfil_game.xp_total|default:"0" }}</span>
+                <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">SAT XP</span>
+            </div>
+            <div class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center justify-center shadow-sm">
+                <span class="text-lg font-black texto-main leading-none mb-1">{{ user.perfil.seguidores.count|default:"0" }}</span>
+                <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Amigos</span>
+            </div>
+        </div>
+
+        <a href="{% url 'carteirinha' %}" class="block w-full max-w-sm mx-auto cartao-socio rounded-3xl p-6 text-white flex flex-col relative z-10 shadow-2xl transition-transform active:scale-[0.98]" style="--cor-primaria: {% if user.perfil.torcida and user.perfil.torcida.cor_primaria %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %}; background: linear-gradient(135deg, var(--cor-primaria) 0%, rgba(15,15,15,0.95) 100%); border: 1px solid rgba(255,255,255,0.1);">
+            <div class="cartao-glow"></div>
+            {% if user.perfil.torcida and user.perfil.torcida.logo %}
+                <div class="cartao-watermark" style="background-image: url('{{ user.perfil.torcida.logo.url }}'); opacity: 0.08;"></div>
+            {% endif %}
+            
+            <div class="flex justify-between items-start relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 p-1.5 overflow-hidden">
+                        {% if user.perfil.torcida and user.perfil.torcida.logo %}
+                            <img src="{{ user.perfil.torcida.logo.url }}" class="w-full h-full object-contain filter brightness-0 invert">
+                        {% else %}
+                            <i class="bi bi-shield-fill text-white/90 text-2xl"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h2 class="font-black text-lg tracking-tighter uppercase leading-none">
+                            {% if user.perfil.torcida %}{{ user.perfil.torcida.sigla|default:"SAT" }}{% else %}SAT{% endif %} MEMBER
+                        </h2>
+                        <p class="text-[8px] text-white/70 font-bold uppercase tracking-[0.2em] mt-0.5">
+                            Sócio Oficial Autorizado
+                        </p>
+                    </div>
+                </div>
+                <i class="bi bi-contactless text-2xl text-white/60"></i>
             </div>
 
-            <div class="relative z-10">
-                <p class="text-white/60 text-[10px] uppercase font-bold tracking-widest mb-1">Nº do Membro</p>
-                <div class="flex justify-between items-end">
-                    <p class="text-xl font-black tracking-widest text-white" style="font-family: 'Montserrat', sans-serif;">
-                        {% if perfil.cpf %}{{ perfil.cpf|slice:"0:3" }}.***.***-{{ perfil.cpf|slice:"-2:" }}{% else %}123.***.***-00{% endif %}
+            <div class="mt-6 mb-auto relative z-10 flex items-center justify-between">
+                <div class="cartao-chip"></div>
+                <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
+                    <i class="bi bi-star-fill text-yellow-400 text-[10px]"></i>
+                    <span class="text-[10px] font-black uppercase text-white tracking-widest">
+                        {% if perfil_game.nivel %}{{ perfil_game.nivel.nome }}{% else %}NÍVEL 1{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="relative z-10 flex justify-between items-end mt-6">
+                <div class="flex-1">
+                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Nº Identificação</p>
+                    <p class="text-sm font-black uppercase texto-emboss text-white truncate w-48 font-mono tracking-widest">
+                         {% if user.perfil.cpf %}{{ user.perfil.cpf|slice:"0:3" }}.***.***-{{ user.perfil.cpf|slice:"-2:" }}{% else %}***.***.***-**{% endif %}
                     </p>
-                    <div class="bg-white text-gray-900 text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-lg">
-                        <i class="bi bi-qr-code mr-1"></i> Ver Cartão
-                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Membro Desde</p>
+                    <p class="text-xs font-black uppercase text-white texto-emboss font-mono">
+                        {{ user.date_joined|date:"m/Y" }}
+                    </p>
                 </div>
             </div>
         </a>
     </div>
 
-    <div class="px-5 pt-8 flex flex-col gap-2 animate-fade-up delay-200">
-        <h3 class="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">A Minha Conta</h3>
-
-        <div class="sat-light-card">
-            <button onclick="abrirModalEditar()" class="w-full menu-item-sat flex items-center justify-between p-4.5">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-dinamico/10 text-dinamico rounded-[14px] flex items-center justify-center">
-                        <i class="bi bi-person-gear text-xl"></i>
-                    </div>
-                    <span class="text-[13px] font-bold text-gray-800">Editar Perfil da Conta</span>
-                </div>
-                <i class="bi bi-chevron-right text-gray-300"></i>
-            </button>
-
-            <a href="#" class="menu-item-sat flex items-center justify-between p-4.5">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-gray-50 text-gray-500 rounded-[14px] flex items-center justify-center">
-                        <i class="bi bi-bag-check text-xl"></i>
-                    </div>
-                    <span class="text-[13px] font-bold text-gray-800">Meus Pedidos na Loja</span>
-                </div>
-                <i class="bi bi-chevron-right text-gray-300"></i>
-            </a>
-
-            <div class="menu-item-sat flex items-center justify-between p-4.5">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-gray-50 text-gray-500 rounded-[14px] flex items-center justify-center">
-                        <i class="bi bi-bell text-xl"></i>
-                    </div>
-                    <span class="text-[13px] font-bold text-gray-800">Notificações Push</span>
-                </div>
-                <i class="bi bi-toggle-on text-2xl text-dinamico"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="px-5 pt-6 flex flex-col gap-2 animate-fade-up delay-300">
-        <h3 class="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Sistema</h3>
-
-        <div class="sat-light-card mb-6">
-            <a href="#" class="menu-item-sat flex items-center justify-between p-4.5 border-b border-gray-50">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-gray-50 text-gray-500 rounded-[14px] flex items-center justify-center">
-                        <i class="bi bi-question-circle text-xl"></i>
-                    </div>
-                    <span class="text-[13px] font-bold text-gray-800">Central de Ajuda</span>
-                </div>
-                <i class="bi bi-chevron-right text-gray-300"></i>
-            </a>
-
-            <form action="{% url 'logout' %}" method="post" class="m-0">
-                {% csrf_token %}
-                <button type="submit" class="w-full flex items-center justify-between p-4.5 hover:bg-red-50 transition-colors">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-red-100 text-red-500 rounded-[14px] flex items-center justify-center">
-                            <i class="bi bi-box-arrow-right text-xl"></i>
-                        </div>
-                        <span class="text-[13px] font-black text-red-500">Sair da Conta (Logout)</span>
-                    </div>
-                </button>
-            </form>
-        </div>
-
-        <p class="text-center text-[10px] font-bold text-gray-300 uppercase tracking-[0.2em] pb-8">SAT Premium v2.0 • 2026</p>
-    </div>
-
-    <div id="modalEditarPerfil" class="fixed inset-0 modal-backdrop z-[200] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="px-5 pt-8 space-y-6 animate-fade-up delay-100">
         
-        <div class="w-full max-w-md bg-white rounded-[28px] shadow-2xl p-6 transform scale-95 transition-transform duration-300 max-h-[90vh] flex flex-col relative" id="modalEditarContent">
-            
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100 shrink-0">
-                <h3 class="font-black text-gray-900 text-xl uppercase tracking-tighter">Editar Perfil</h3>
-                <button type="button" onclick="fecharModalEditar()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-
-            <form action="{% url 'perfil' %}" method="POST" enctype="multipart/form-data" class="modal-form-inputs overflow-y-auto no-scrollbar pr-1 pb-4">
-                {% csrf_token %}
+        <div>
+            <h4 class="text-[10px] font-black texto-main opacity-40 uppercase tracking-widest mb-3 pl-2">Configurações da Conta</h4>
+            <div class="fundo-card border border-suave rounded-3xl overflow-hidden shadow-sm">
                 
-                <div class="flex flex-col items-center mb-6 mt-2">
-                    <div class="w-24 h-24 rounded-full bg-gray-100 mb-3 overflow-hidden border-2 border-gray-200 shadow-sm relative">
-                        {% if perfil.foto %}
-                            <img src="{{ perfil.foto.url }}" id="preview_foto" class="w-full h-full object-cover">
-                        {% else %}
-                            <i class="bi bi-person text-4xl text-gray-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
-                            <img src="" id="preview_foto" class="w-full h-full object-cover hidden absolute inset-0 z-10">
-                        {% endif %}
-                    </div>
-                    
-                    <label for="id_foto" class="bg-dinamico/10 text-dinamico text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full cursor-pointer hover:bg-dinamico hover:text-white transition-colors">
-                        Alterar Foto
-                    </label>
-                    <input type="file" name="foto" accept="image/*" id="id_foto" onchange="previewImage(this)">
-                </div>
-                
-                <div class="space-y-4 mb-6">
-                    {% for field in form %}
-                        {% if field.name != 'foto' %}
-                        <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1 block">
-                                {{ field.label }}
-                            </label>
-                            
-                            {{ field }}
-                            
-                            {% if field.errors %}
-                                <p class="text-[10px] text-red-500 font-bold mt-1 ml-1">{{ field.errors.0 }}</p>
-                            {% endif %}
+                <a href="{% url 'editar_perfil' %}" class="menu-item flex items-center justify-between p-4 border-b border-suave no-underline hover:bg-black/5 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 fundo-app rounded-xl flex items-center justify-center texto-tema border border-suave">
+                            <i class="bi bi-person-lines-fill text-lg"></i>
                         </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
+                        <span class="text-xs font-bold texto-main uppercase">Editar Perfil</span>
+                    </div>
+                    <i class="bi bi-chevron-right texto-main opacity-30"></i>
+                </a>
+                
+                <a href="{% url 'meus_pedidos' %}" class="menu-item flex items-center justify-between p-4 border-b border-suave no-underline hover:bg-black/5 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 fundo-app rounded-xl flex items-center justify-center texto-tema border border-suave">
+                            <i class="bi bi-box-seam-fill text-lg"></i>
+                        </div>
+                        <span class="text-xs font-bold texto-main uppercase">Meus Pedidos</span>
+                    </div>
+                    <i class="bi bi-chevron-right texto-main opacity-30"></i>
+                </a>
 
-                <button type="submit" class="w-full bg-dinamico text-white font-black text-sm uppercase tracking-[0.1em] py-4 rounded-2xl shadow-lg shadow-dinamico/30 active:scale-[0.98] transition-all mt-auto shrink-0">
-                    Guardar Alterações
-                </button>
-            </form>
+                <a href="{% url 'seguranca' %}" class="menu-item flex items-center justify-between p-4 no-underline hover:bg-black/5 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 fundo-app rounded-xl flex items-center justify-center texto-tema border border-suave">
+                            <i class="bi bi-shield-lock-fill text-lg"></i>
+                        </div>
+                        <span class="text-xs font-bold texto-main uppercase">Segurança & Senha</span>
+                    </div>
+                    <i class="bi bi-chevron-right texto-main opacity-30"></i>
+                </a>
+            </div>
         </div>
+
+        <div class="animate-fade-up delay-200">
+            <h4 class="text-[10px] font-black texto-main opacity-40 uppercase tracking-widest mb-3 pl-2">Sistema</h4>
+            <div class="fundo-card border border-suave rounded-3xl overflow-hidden shadow-sm">
+                
+                <a href="#" class="menu-item flex items-center justify-between p-4 border-b border-suave no-underline hover:bg-black/5 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 fundo-app rounded-xl flex items-center justify-center texto-main opacity-50 border border-suave">
+                            <i class="bi bi-question-circle-fill text-lg"></i>
+                        </div>
+                        <span class="text-xs font-bold texto-main uppercase">Central de Ajuda</span>
+                    </div>
+                    <i class="bi bi-chevron-right texto-main opacity-30"></i>
+                </a>
+
+                <a href="{% url 'logout' %}" class="menu-item flex items-center justify-between p-4 no-underline hover:bg-red-500/10 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-red-500/10 rounded-xl flex items-center justify-center text-red-500 border border-red-500/20">
+                            <i class="bi bi-box-arrow-right text-lg"></i>
+                        </div>
+                        <span class="text-xs font-bold text-red-500 uppercase">Encerrar Sessão</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="text-center pb-8 animate-fade-up delay-300">
+            <img src="{% static 'img/logo_sat.png' %}" class="h-6 mx-auto mb-2 opacity-30 grayscale filter invert dark:invert-0">
+            <p class="text-[8px] font-black texto-main opacity-30 uppercase tracking-widest">SAT Sistema de Apoio a Torcidas v2.0<br>Made with ⚽ in Brazil</p>
+        </div>
+
     </div>
-
 </div>
-
-<script>
-    const modalEditar = document.getElementById('modalEditarPerfil');
-    const modalContent = document.getElementById('modalEditarContent');
-
-    function abrirModalEditar() {
-        modalEditar.classList.remove('hidden');
-        modalEditar.classList.add('flex'); 
-        setTimeout(() => {
-            modalEditar.classList.remove('opacity-0');
-            modalContent.classList.remove('scale-95');
-            modalContent.classList.add('scale-100');
-        }, 10);
-    }
-
-    function fecharModalEditar() {
-        modalContent.classList.remove('scale-100');
-        modalContent.classList.add('scale-95');
-        modalEditar.classList.add('opacity-0');
-        setTimeout(() => { 
-            modalEditar.classList.add('hidden'); 
-            modalEditar.classList.remove('flex');
-        }, 300);
-    }
-
-    // Funcionalidade para mostrar a foto escolhida instantaneamente antes de salvar
-    function previewImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById('preview_foto');
-                preview.src = e.target.result;
-                preview.classList.remove('hidden');
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    // Fecha o modal se clicar na parte escura do fundo
-    modalEditar.addEventListener('click', function(e) {
-        if (e.target === this) fecharModalEditar();
-    });
-</script>
 {% endblock %}

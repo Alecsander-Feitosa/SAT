@@ -3,135 +3,134 @@
 
 {% block content %}
 <style>
-    /* ========== ANIMAÇÕES E ESTILOS DA LOJA ========== */
     @keyframes slideUpFade {
         from { opacity: 0; transform: translateY(15px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    .animate-fade-up {
-        animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    
+    .animate-fade-up { animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .delay-100 { animation-delay: 0.1s; opacity: 0; }
     .delay-200 { animation-delay: 0.2s; opacity: 0; }
-    .delay-300 { animation-delay: 0.3s; opacity: 0; }
-
-    /* Esconder scrollbar para os filtros */
+    
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-    /* Pílulas de Categoria (Ativa/Inativa) */
-    .cat-pill.active {
-        background-color: #ff6b00;
-        color: white;
-        border-color: #ff6b00;
-        box-shadow: 0 4px 10px rgba(255, 107, 0, 0.2);
-    }
 </style>
 
-<div class="w-full min-h-screen bg-[#f8f9fa] flex flex-col pb-32">
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
 
-    <div class="bg-white px-5 pt-6 pb-4 shadow-[0_4px_20px_rgba(0,0,0,0.02)] rounded-b-3xl z-10 sticky top-[70px]">
-        <div class="flex justify-between items-center animate-fade-up">
-            <div>
-                <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tighter" style="font-family: 'Montserrat', sans-serif;">SAT <span class="text-[#ff6b00]">Store</span></h1>
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Produtos Oficiais</p>
-            </div>
-            
-            <a href="{% url 'ver_carrinho' %}" class="relative w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 shadow-sm border border-gray-100 hover:text-[#ff6b00] hover:bg-orange-50 transition-colors">
-                <i class="bi bi-cart3 text-lg"></i>
-                {% if total_itens_carrinho > 0 %}
-                <span class="absolute -top-1 -right-1 bg-[#ff6b00] text-white text-[8px] font-black w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                    {{ total_itens_carrinho }}
-                </span>
-                {% endif %}
+    <div class="px-5 pt-8 pb-6 flex justify-between items-center animate-fade-up">
+        <div class="flex items-center gap-4">
+            <a href="javascript:history.back()" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main border border-suave hover:scale-105 transition-transform shadow-sm">
+                <i class="bi bi-arrow-left text-lg"></i>
             </a>
-        </div>
-
-        <div class="flex overflow-x-auto gap-2 mt-5 pb-2 no-scrollbar animate-fade-up delay-100 -mx-5 px-5">
-            <a href="{% url 'loja' %}" class="cat-pill {% if not categoria_atual %}active{% else %}bg-white text-gray-500 hover:border-[#ff6b00] hover:text-[#ff6b00]{% endif %} px-4 py-2 rounded-xl text-xs font-bold border border-gray-200 whitespace-nowrap transition-colors">Todos</a>
-            
-            {% for cat in categorias %}
-            <a href="?categoria={{ cat }}" class="cat-pill {% if categoria_atual == cat %}active{% else %}bg-white text-gray-500 hover:border-[#ff6b00] hover:text-[#ff6b00]{% endif %} px-4 py-2 rounded-xl text-xs font-bold border border-gray-200 whitespace-nowrap transition-colors">{{ cat }}</a>
-            {% endfor %}
+            <div>
+                <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">
+                    {% if user.perfil.torcida %}
+                        {{ user.perfil.torcida.sigla|default:user.perfil.torcida.nome }}
+                    {% else %}
+                        SAT
+                    {% endif %} 
+                    <span class="texto-tema">STORE</span>
+                </h1>
+                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Coleção Oficial</p>
+            </div>
         </div>
     </div>
 
-    <div class="px-5 pt-6 flex flex-col gap-6 animate-fade-up delay-200">
-        
-        <a href="#" class="w-full h-40 rounded-[20px] overflow-hidden relative group shadow-[0_4px_15px_rgba(0,0,0,0.05)] block">
-            <img src="{% static 'img/hero-stadium.jpg' %}" alt="Destaque" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90">
-            <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
-            
-            <div class="absolute inset-0 p-5 flex flex-col justify-center">
-                <span class="bg-[#ff6b00] text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded w-max mb-2 shadow-sm">Lançamento</span>
-                <h3 class="text-white text-xl font-black uppercase tracking-tight leading-none mb-1" style="font-family: 'Montserrat', sans-serif;">Nova Camisa Oficial</h3>
-                <p class="text-white/80 text-[10px] font-medium w-2/3 mb-3">Garanta o manto da temporada com desconto de sócio.</p>
-                <div class="text-[9px] font-bold text-[#ff6b00] uppercase tracking-wider flex items-center gap-1 group-hover:underline">
-                    Comprar Agora <i class="bi bi-arrow-right"></i>
-                </div>
-            </div>
+    <div class="pl-5 pr-5 pb-6 flex overflow-x-auto gap-3 no-scrollbar animate-fade-up delay-100">
+        <a href="{% url 'loja' %}" class="px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {% if not categoria_atual %}fundo-tema texto-claro shadow-md scale-105{% else %}fundo-card texto-main opacity-60 border border-suave hover:opacity-100{% endif %}">
+            Todos
         </a>
+        
+        {% for cat in categorias %}
+        <a href="?categoria={{ cat }}" class="px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {% if categoria_atual == cat %}fundo-tema texto-claro shadow-md scale-105{% else %}fundo-card texto-main opacity-60 border border-suave hover:opacity-100{% endif %}">
+            {{ cat }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <div class="px-5 flex flex-col gap-8 animate-fade-up delay-200">
+        
+        <div class="w-full h-44 rounded-[28px] overflow-hidden relative group shadow-lg border border-suave">
+            <img src="{% static 'img/hero-stadium.jpg' %}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+            
+            <div class="absolute inset-0 p-6 flex flex-col justify-end">
+                <span class="fundo-tema texto-claro text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full w-max mb-2 shadow-sm border border-white/20">Novo Manto</span>
+                <h3 class="text-white text-xl font-black uppercase tracking-tight leading-tight mb-1">Linha Arquibancada</h3>
+                <p class="text-white/70 text-[10px] font-bold uppercase tracking-wider">Garanta já com desconto de sócio.</p>
+            </div>
+        </div>
 
         <div>
-            <div class="flex justify-between items-end mb-4">
-                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                    {% if categoria_atual %}{{ categoria_atual }}{% else %}Destaques{% endif %}
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 border-tema pl-2">
+                    {% if categoria_atual %}{{ categoria_atual }}{% else %}Populares{% endif %}
                 </h3>
+                <span class="text-[10px] font-bold texto-main opacity-40 uppercase">{{ produtos|length }} Itens</span>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
-                
                 {% for produto in produtos %}
-                <div class="bg-white rounded-[20px] p-3 border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative group hover:border-[#ff6b00]/30 transition-all flex flex-col">
+                <div class="fundo-card border border-suave rounded-[28px] p-2 flex flex-col shadow-sm hover:shadow-md transition-shadow relative">
                     
-                    {% if produto.estoque <= 0 %}
-                        <span class="absolute top-2 left-2 z-10 bg-gray-800 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-sm">Esgotado</span>
-                    {% elif produto.destaque %}
-                        <span class="absolute top-2 left-2 z-10 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-sm">Destaque</span>
-                    {% endif %}
-                    
-                    <a href="{% url 'detalhe_produto' produto.id %}" class="block w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-3 relative flex items-center justify-center">
+                    <a href="{% url 'detalhe_produto' produto.id %}" class="w-full aspect-square bg-white rounded-[20px] overflow-hidden relative flex items-center justify-center p-3">
+                        {% if produto.estoque <= 0 %}
+                            <span class="absolute top-2 left-2 z-10 bg-black/80 backdrop-blur-md text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full">Esgotado</span>
+                        {% elif produto.destaque %}
+                            <span class="absolute top-2 left-2 z-10 fundo-tema texto-claro text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full shadow-sm">Hot</span>
+                        {% endif %}
+                        
                         {% if produto.imagem %}
-                            <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}" class="w-full h-full object-cover p-0 group-hover:scale-110 transition-transform duration-500 {% if produto.estoque <= 0 %}opacity-40 grayscale{% endif %}">
+                            <img src="{{ produto.imagem.url }}" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 {% if produto.estoque <= 0 %}opacity-40 grayscale{% endif %}">
                         {% else %}
-                            <img src="{% static 'img/logo_sat.png' %}" alt="Produto" class="w-2/3 h-2/3 object-contain opacity-20 p-4 group-hover:scale-110 transition-transform duration-500 {% if produto.estoque <= 0 %}grayscale{% endif %}">
+                            <i class="bi bi-box-seam texto-main opacity-10 text-4xl"></i>
                         {% endif %}
                     </a>
                     
-                    <div class="flex flex-col flex-1">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">{{ produto.categoria|default:"Oficial" }}</span>
-                        <a href="{% url 'detalhe_produto' produto.id %}"><h4 class="text-xs font-black text-gray-900 leading-tight mb-2 group-hover:text-[#ff6b00] transition-colors line-clamp-2">{{ produto.nome }}</h4></a>
+                    <div class="px-2 pt-3 pb-2 flex flex-col flex-1">
+                        <span class="text-[8px] font-black texto-main opacity-40 uppercase tracking-widest mb-1">{{ produto.categoria|default:"Oficial" }}</span>
+                        <a href="{% url 'detalhe_produto' produto.id %}" class="no-underline">
+                            <h4 class="text-xs font-black texto-main leading-tight line-clamp-2 mb-3">{{ produto.nome }}</h4>
+                        </a>
                         
-                        <div class="mt-auto flex justify-between items-end pt-2">
-                            <div>
-                                <p class="text-sm font-black {% if produto.estoque <= 0 %}text-gray-400{% else %}text-[#ff6b00]{% endif %} leading-none mt-1">R$ {{ produto.preco }}</p>
-                            </div>
+                        <div class="mt-auto flex justify-between items-center">
+                            <span class="text-sm font-black {% if produto.estoque <= 0 %}texto-main opacity-40{% else %}texto-tema{% endif %}">
+                                R$ {{ produto.preco }}
+                            </span>
                             
                             {% if produto.estoque > 0 %}
                                 <form action="{% url 'adicionar_ao_carrinho' produto.id %}" method="POST" class="m-0 p-0">
                                     {% csrf_token %}
-                                    <button type="submit" class="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center hover:bg-[#ff6b00] transition-colors shadow-md transform group-hover:-translate-y-1">
-                                        <i class="bi bi-plus-lg"></i>
+                                    <button type="submit" class="w-8 h-8 fundo-tema texto-claro rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform border-none cursor-pointer">
+                                        <i class="bi bi-bag-plus-fill text-xs"></i>
                                     </button>
                                 </form>
                             {% else %}
-                                <button disabled class="w-8 h-8 bg-gray-100 text-gray-300 rounded-full flex items-center justify-center cursor-not-allowed">
-                                    <i class="bi bi-dash-lg"></i>
-                                </button>
+                                <div class="w-8 h-8 fundo-app texto-main opacity-20 border border-suave rounded-full flex items-center justify-center">
+                                    <i class="bi bi-dash"></i>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
                 {% empty %}
-                <div class="col-span-2 text-center py-10">
-                    <p class="text-[12px] text-gray-400 font-bold uppercase tracking-widest">Nenhum produto encontrado.</p>
+                <div class="col-span-2 flex flex-col items-center justify-center py-16 fundo-card rounded-[32px] border border-suave shadow-sm">
+                    <i class="bi bi-basket text-4xl texto-main opacity-20 mb-3"></i>
+                    <p class="text-[11px] font-black texto-main opacity-50 uppercase tracking-widest">Nenhum artigo disponível.</p>
                 </div>
                 {% endfor %}
-                
             </div>
         </div>
-
     </div>
 </div>
+
+<a href="{% url 'ver_carrinho' %}" class="fixed bottom-24 right-5 w-14 h-14 fundo-card border-2 border-tema rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all z-50 group">
+    <i class="bi bi-cart3 text-xl texto-tema group-hover:scale-110 transition-transform"></i>
+    
+    {% if total_itens_carrinho > 0 %}
+    <span class="absolute -top-2 -right-2 fundo-tema texto-claro text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-fundo-app shadow-md animate-bounce">
+        {{ total_itens_carrinho }}
+    </span>
+    {% endif %}
+</a>
 {% endblock %}

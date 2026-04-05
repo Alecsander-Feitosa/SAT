@@ -56,9 +56,9 @@
             </button>
             <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center h-full z-0">
                 {% if user.perfil.torcida and user.perfil.aprovado and user.perfil.torcida.logo %}
-                    <img src="{{ user.perfil.torcida.logo.url }}" alt="Logo" class="h-10 object-contain drop-shadow-md">
+                    <img src="{{ user.perfil.torcida.logo.url }}" alt="Logo" class="h-20 object-contain drop-shadow-lg scale-100">
                 {% else %}
-                    <img src="{% static 'img/logo_sat.png' %}" alt="SAT Oficial" class="h-10 object-contain drop-shadow-md">
+                    <img src="{% static 'img/logo_sat.png' %}" alt="SAT Oficial" class="h-16 object-contain drop-shadow-lg scale-110">
                 {% endif %}
             </div>
             <button onclick="toggleSidebar()" class="texto-main hover:opacity-70 transition-opacity relative z-10">

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen fundo-app px-5 pt-10 pb-40">
+    <div class="flex items-center gap-4 mb-8">
+        <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">SEGURANÇA <span class="texto-tema">& SENHA</span></h1>
+    </div>
+
+    <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl flex items-start gap-3 mb-6">
+        <i class="bi bi-shield-check text-blue-500 text-lg mt-0.5"></i>
+        <p class="text-[11px] text-blue-600 font-bold leading-relaxed">
+            As tuas informações estão protegidas. Usa uma palavra-passe forte que não uses noutros sites.
+        </p>
+    </div>
+
+    <form action="" method="POST" class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm">
+        {% csrf_token %}
+
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Senha Atual</label>
+                <div class="relative">
+                    <input type="password" name="senha_atual" required class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-medium texto-main focus:outline-none focus:border-tema transition-colors">
+                    <i class="bi bi-lock-fill absolute right-4 top-3.5 texto-main opacity-30"></i>
+                </div>
+            </div>
+
+            <div class="w-full h-[1px] bg-gray-200 opacity-20 my-4"></div>
+
+            <div>
+                <label class="text-[10px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Nova Senha</label>
+                <div class="relative">
+                    <input type="password" name="nova_senha" required class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-medium texto-main focus:outline-none focus:border-tema transition-colors">
+                    <i class="bi bi-key-fill absolute right-4 top-3.5 texto-main opacity-30"></i>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Confirmar Nova Senha</label>
+                <div class="relative">
+                    <input type="password" name="confirmar_senha" required class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-medium texto-main focus:outline-none focus:border-tema transition-colors">
+                    <i class="bi bi-check-circle-fill absolute right-4 top-3.5 texto-main opacity-30"></i>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="w-full bg-red-500/10 text-red-500 font-black text-xs uppercase tracking-widest py-4 rounded-2xl shadow-sm active:scale-95 transition-transform mt-8 border border-red-500/20 cursor-pointer hover:bg-red-500 hover:text-white">
+            Atualizar Senha
+        </button>
+    </form>
+</div>
+{% endblock %}

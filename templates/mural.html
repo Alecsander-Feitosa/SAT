@@ -13,18 +13,9 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    .glass-header {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-    }
-
     .social-card {
-        background: #ffffff;
         border-radius: 24px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-        border: 1px solid rgba(0,0,0,0.03);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         overflow: hidden;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
@@ -44,56 +35,101 @@
     
     .action-btn { transition: all 0.2s ease; cursor: pointer; }
     .action-btn:active { transform: scale(0.9); }
-    
-    .text-dinamico { color: var(--cor-primaria, #D37129); }
-    .bg-dinamico { background-color: var(--cor-primaria, #D37129); }
 </style>
 
-<div class="w-full min-h-screen bg-[#f8f9fa] flex flex-col pb-32">
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
 
-    <div class="sticky top-[70px] z-40 glass-header px-5 py-4 flex justify-between items-center">
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex justify-between items-center">
         <div>
-            <h1 class="text-xl font-black italic uppercase tracking-tighter text-gray-900 leading-none">
-                SAT <span class="text-dinamico">SOCIAL</span>
+            <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">
+                SAT <span class="texto-tema">SOCIAL</span>
             </h1>
-            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1">
+            <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1">
                 <i class="bi bi-globe-americas"></i> Comunidade Oficial
             </p>
         </div>
         
-        <div class="flex gap-2">
-            <button class="w-9 h-9 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 hover:text-dinamico transition-colors border border-gray-100">
+        <div class="flex gap-2 relative">
+            <form action="{% url 'dashboard' %}" method="GET" id="barraPesquisa" class="hidden absolute right-12 top-0 h-9 fundo-app border border-suave rounded-full flex items-center px-3 shadow-sm z-50">
+                <input type="text" name="q" placeholder="Buscar perfil..." class="bg-transparent border-none outline-none text-xs w-32 texto-main focus:ring-0">
+                <button type="button" onclick="togglePesquisa()" class="text-gray-400 hover:text-red-500 ml-2">
+                    <i class="bi bi-x-lg text-[10px]"></i>
+                </button>
+            </form>
+
+            <button type="button" onclick="togglePesquisa()" class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-tema transition-colors border border-suave">
                 <i class="bi bi-search text-sm"></i>
             </button>
-            <button class="w-9 h-9 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 hover:text-dinamico transition-colors border border-gray-100 relative">
+
+            <button type="button" onclick="toggleNotificacoes()" class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-tema transition-colors border border-suave relative">
                 <i class="bi bi-bell text-sm"></i>
                 <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
+
+            <div id="painelNotificacoes" class="hidden absolute top-12 right-0 w-64 fundo-card border border-suave rounded-2xl shadow-xl z-50 overflow-hidden">
+                <div class="p-3 border-b border-suave fundo-app">
+                    <h4 class="text-[10px] font-black texto-main uppercase tracking-widest">Notificações</h4>
+                </div>
+                
+                <div class="max-h-64 overflow-y-auto no-scrollbar">
+                    <a href="#" class="p-3 border-b border-suave hover:bg-black/5 transition-colors flex gap-3 items-center no-underline">
+                        <div class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center flex-shrink-0">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs texto-main leading-tight"><span class="font-bold">Matheus</span> começou a seguir-te.</p>
+                            <p class="text-[8px] texto-main opacity-50 font-bold uppercase mt-1">Agora mesmo</p>
+                        </div>
+                    </a>
+                    <a href="#" class="p-3 border-b border-suave hover:bg-black/5 transition-colors flex gap-3 items-center no-underline">
+                        <div class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center flex-shrink-0">
+                            <i class="bi bi-heart-fill"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs texto-main leading-tight"><span class="font-bold">Lucas</span> curtiu a tua foto.</p>
+                            <p class="text-[8px] texto-main opacity-50 font-bold uppercase mt-1">Há 5 min</p>
+                        </div>
+                    </a>
+                    <a href="#" class="p-3 hover:bg-black/5 transition-colors flex gap-3 items-center no-underline">
+                        <div class="w-8 h-8 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center flex-shrink-0">
+                            <i class="bi bi-chat-fill"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs texto-main leading-tight"><span class="font-bold">Diretoria</span> comentou no teu post.</p>
+                            <p class="text-[8px] texto-main opacity-50 font-bold uppercase mt-1">Há 1 hora</p>
+                        </div>
+                    </a>
+                </div>
+                
+                <div class="p-2 text-center fundo-app border-t border-suave">
+                    <button class="text-[9px] font-black texto-tema uppercase tracking-widest border-none bg-transparent cursor-pointer">Marcar todas como lidas</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="px-4 pt-4 flex flex-col gap-5">
         
         {% for post in posts %}
-        <div class="social-card p-4 animate-fade-up" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
+        <div class="social-card fundo-card border border-suave p-4 animate-fade-up" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
             
             <div class="flex justify-between items-start mb-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 flex items-center justify-center">
                         {% if post.autor_s.perfil.foto %}
                             <img src="{{ post.autor_s.perfil.foto.url }}" class="w-full h-full object-cover">
                         {% else %}
-                            <i class="bi bi-person-fill text-gray-400 text-2xl mt-1 text-center block"></i>
+                            <i class="bi bi-person-fill texto-main opacity-30 text-2xl mt-1"></i>
                         {% endif %}
                     </div>
                     <div>
-                        <h3 class="text-sm font-black text-gray-900 leading-tight flex items-center gap-1">
+                        <h3 class="text-sm font-black texto-main leading-tight flex items-center gap-1">
                             {{ post.autor_s.get_full_name|default:post.autor_s.username }}
                             {% if post.autor_s.perfil.torcida %}
-                                <i class="bi bi-patch-check-fill text-dinamico text-[11px]"></i>
+                                <i class="bi bi-patch-check-fill texto-tema text-[11px]"></i>
                             {% endif %}
                         </h3>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+                        <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-wider mt-0.5">
                             {{ post.data_criacao|timesince }} atrás
                         </p>
                     </div>
@@ -101,71 +137,71 @@
             </div>
 
             {% if post.texto %}
-            <p class="text-sm text-gray-800 leading-relaxed font-medium mb-3">
+            <p class="text-sm texto-main opacity-90 leading-relaxed font-medium mb-3">
                 {{ post.texto|linebreaksbr }}
             </p>
             {% endif %}
 
             {% if post.imagem %}
             <div class="mb-3">
-                <img src="{{ post.imagem.url }}" class="post-image" loading="lazy">
+                <img src="{{ post.imagem.url }}" class="post-image border border-suave" loading="lazy">
             </div>
             {% endif %}
 
-            <div class="w-full h-[1px] bg-gray-50 my-3"></div>
+            <div class="w-full h-[1px] bg-gray-200 opacity-20 my-3"></div>
 
             <div class="flex justify-between items-center px-2">
                 
                 <form action="{% url 'social_curtir_post' post.id %}" method="POST" class="m-0" onsubmit="return curtirPostAjax(event, this, {{ post.id }})">
                     {% csrf_token %}
                     <button type="submit" class="action-btn flex items-center gap-2 group outline-none bg-transparent border-none p-0 cursor-pointer">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-red-50 transition-colors">
-                            <i id="icone-coracao-{{ post.id }}" class="bi {% if request.user in post.curtidas.all %}bi-heart-fill text-red-500{% else %}bi-heart text-gray-400{% endif %} text-lg group-hover:text-red-500 transition-colors"></i>
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-red-500/10 transition-colors">
+                            <i id="icone-coracao-{{ post.id }}" class="bi {% if request.user in post.curtidas.all %}bi-heart-fill text-red-500{% else %}bi-heart texto-main opacity-40{% endif %} text-lg group-hover:text-red-500 transition-colors"></i>
                         </div>
-                        <span id="contador-curtidas-{{ post.id }}" class="text-xs font-bold text-gray-500 group-hover:text-red-500">{{ post.curtidas.count|default:"0" }}</span>
+                        <span id="contador-curtidas-{{ post.id }}" class="text-xs font-bold texto-main opacity-60 group-hover:text-red-500">{{ post.curtidas.count|default:"0" }}</span>
                     </button>
                 </form>
 
                 <button type="button" onclick="toggleComentarios({{ post.id }})" class="action-btn flex items-center gap-2 group outline-none bg-transparent border-none p-0 cursor-pointer">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                        <i class="bi bi-chat text-gray-400 text-lg group-hover:text-blue-500"></i>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-blue-500/10 transition-colors">
+                        <i class="bi bi-chat texto-main opacity-40 text-lg group-hover:text-blue-500"></i>
                     </div>
-                    <span id="contador-comentarios-{{ post.id }}" class="text-xs font-bold text-gray-500 group-hover:text-blue-500">{{ post.comentarios.count|default:"0" }}</span>
+                    <span id="contador-comentarios-{{ post.id }}" class="text-xs font-bold texto-main opacity-60 group-hover:text-blue-500">{{ post.comentarios.count|default:"0" }}</span>
                 </button>
 
                 <button type="button" class="action-btn flex items-center gap-2 group outline-none bg-transparent border-none p-0 cursor-pointer">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-green-50 transition-colors">
-                        <i class="bi bi-share text-gray-400 text-lg group-hover:text-green-500"></i>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-green-500/10 transition-colors">
+                        <i class="bi bi-share texto-main opacity-40 text-lg group-hover:text-green-500"></i>
                     </div>
                 </button>
             </div>
 
-            <div id="secao-comentarios-{{ post.id }}" class="hidden mt-4 pt-4 border-t border-gray-50 transition-all">
+            <div id="secao-comentarios-{{ post.id }}" class="hidden mt-4 pt-4 border-t border-suave transition-all">
                 
                 <div id="lista-comentarios-{{ post.id }}" class="space-y-3 mb-4 max-h-48 overflow-y-auto no-scrollbar">
                     {% for comentario in post.comentarios.all %}
                     <div class="flex gap-2 items-start">
-                        <div class="w-6 h-6 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 mt-0.5">
+                        <div class="w-6 h-6 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 mt-0.5 flex items-center justify-center">
                             {% if comentario.autor.perfil.foto %}
                             <img src="{{ comentario.autor.perfil.foto.url }}" class="w-full h-full object-cover">
                             {% else %}
-                            <i class="bi bi-person-fill text-gray-400 text-xs flex justify-center items-center h-full"></i>
+                            <i class="bi bi-person-fill texto-main opacity-30 text-xs"></i>
                             {% endif %}
                         </div>
-                        <div class="bg-gray-50 rounded-2xl rounded-tl-none px-3 py-2 text-xs flex-1 border border-gray-100">
-                            <span class="font-black text-gray-900 block mb-0.5">{{ comentario.autor.get_full_name|default:comentario.autor.username }}</span>
-                            <span class="text-gray-700 leading-relaxed">{{ comentario.texto }}</span>
+                        <div class="fundo-app border border-suave rounded-2xl rounded-tl-none px-3 py-2 text-xs flex-1">
+                            <span class="font-black texto-main block mb-0.5">{{ comentario.autor.get_full_name|default:comentario.autor.username }}</span>
+                            <span class="texto-main opacity-80 leading-relaxed">{{ comentario.texto }}</span>
                         </div>
                     </div>
                     {% empty %}
-                    <p class="no-comments-msg text-[10px] text-center text-gray-400 font-bold uppercase tracking-widest">Sem comentários. Seja o primeiro!</p>
+                    <p class="no-comments-msg text-[10px] text-center texto-main opacity-40 font-bold uppercase tracking-widest">Sem comentários. Seja o primeiro!</p>
                     {% endfor %}
                 </div>
                 
                 <form action="{% url 'social_comentar_post' post.id %}" method="POST" class="flex gap-2 items-center" onsubmit="return comentarPostAjax(event, this, {{ post.id }})">
                     {% csrf_token %}
-                    <input type="text" name="comentario" placeholder="Escreva um comentário..." class="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-xs text-gray-800 focus:outline-none focus:border-dinamico focus:ring-1 focus:ring-dinamico" required autocomplete="off">
-                    <button type="submit" class="w-9 h-9 bg-dinamico text-white rounded-full flex items-center justify-center flex-shrink-0 shadow-md active:scale-95 transition-transform border-none outline-none cursor-pointer">
+                    <input type="text" name="comentario" placeholder="Escreva um comentário..." class="flex-1 fundo-app border border-suave rounded-full px-4 py-2 text-xs texto-main focus:outline-none focus:border-tema" required autocomplete="off">
+                    <button type="submit" class="w-9 h-9 fundo-tema texto-claro rounded-full flex items-center justify-center flex-shrink-0 shadow-md active:scale-95 transition-transform border-none outline-none cursor-pointer">
                         <i class="bi bi-send-fill text-xs ml-0.5"></i>
                     </button>
                 </form>
@@ -174,27 +210,27 @@
         </div>
         {% empty %}
         <div class="flex flex-col items-center justify-center py-20 text-center animate-fade-up">
-            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 border border-gray-200">
-                <i class="bi bi-camera text-3xl text-gray-300"></i>
+            <div class="w-20 h-20 fundo-card rounded-full flex items-center justify-center mb-4 border border-suave shadow-sm">
+                <i class="bi bi-camera text-3xl texto-main opacity-20"></i>
             </div>
-            <h3 class="text-sm font-black text-gray-800 uppercase tracking-widest mb-1">Nenhuma Publicação</h3>
-            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider w-2/3">Seja o primeiro a partilhar algo!</p>
+            <h3 class="text-sm font-black texto-main uppercase tracking-widest mb-1">Nenhuma Publicação</h3>
+            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-wider w-2/3">Seja o primeiro a partilhar algo!</p>
         </div>
         {% endfor %}
         
     </div>
 </div>
 
-<button type="button" onclick="abrirModalPost()" class="fixed bottom-24 right-5 w-14 h-14 bg-dinamico text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(211,113,41,0.4)] hover:scale-105 active:scale-95 transition-all z-50 border-none outline-none cursor-pointer">
+<button type="button" onclick="abrirModalPost()" class="fixed bottom-24 right-5 w-14 h-14 fundo-tema texto-claro rounded-full flex items-center justify-center shadow-lg shadow-black/20 hover:scale-105 active:scale-95 transition-all z-50 border-none outline-none cursor-pointer">
     <i class="bi bi-plus-lg text-2xl"></i>
 </button>
 
 <div id="modalNovoPost" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
-    <div class="w-full max-w-md bg-white rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300 flex flex-col relative" id="modalPostContent">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300 flex flex-col relative" id="modalPostContent">
         
-        <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
-            <h3 class="font-black text-gray-900 text-sm uppercase tracking-widest">Nova Publicação</h3>
-            <button type="button" onclick="fecharModalPost()" class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors border-none outline-none cursor-pointer">
+        <div class="flex justify-between items-center mb-4 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Nova Publicação</h3>
+            <button type="button" onclick="fecharModalPost()" class="w-8 h-8 fundo-app rounded-full flex items-center justify-center texto-main opacity-60 hover:opacity-100 transition-colors border-none outline-none cursor-pointer">
                 <i class="bi bi-x-lg text-sm"></i>
             </button>
         </div>
@@ -202,30 +238,30 @@
         <form action="{% url 'mural' %}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
             {% csrf_token %}
             <div class="flex gap-3">
-                <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+                <div class="w-10 h-10 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 flex items-center justify-center">
                     {% if user.perfil.foto %}
                         <img src="{{ user.perfil.foto.url }}" class="w-full h-full object-cover">
                     {% else %}
-                        <i class="bi bi-person-fill text-gray-400 text-2xl mt-1 text-center block"></i>
+                        <i class="bi bi-person-fill texto-main opacity-30 text-2xl mt-1"></i>
                     {% endif %}
                 </div>
-                <textarea name="texto" rows="4" placeholder="O que está a pensar?" class="w-full bg-transparent border-none focus:ring-0 text-sm font-medium text-gray-800 placeholder-gray-400 resize-none outline-none mt-2" required></textarea>
+                <textarea name="texto" rows="4" placeholder="O que está a pensar?" class="w-full bg-transparent border-none focus:ring-0 text-sm font-medium texto-main placeholder-gray-400 resize-none outline-none mt-2" required></textarea>
             </div>
 
             <div id="imagePreviewContainer" class="hidden relative w-full mb-2">
-                <img id="imagePreview" src="" class="w-full h-48 object-cover rounded-2xl shadow-sm border border-gray-100">
+                <img id="imagePreview" src="" class="w-full h-48 object-cover rounded-2xl shadow-sm border border-suave">
                 <button type="button" onclick="removerImagem()" class="absolute top-2 right-2 w-8 h-8 bg-black/50 backdrop-blur text-white rounded-full flex items-center justify-center hover:bg-black/70 transition-colors border-none outline-none cursor-pointer">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
 
-            <div class="flex items-center justify-between pt-3 border-t border-gray-100 mt-2">
-                <label for="imagemPost" class="w-10 h-10 bg-gray-50 text-dinamico rounded-full flex items-center justify-center cursor-pointer hover:bg-dinamico hover:text-white transition-colors border border-gray-100">
+            <div class="flex items-center justify-between pt-3 border-t border-suave mt-2">
+                <label for="imagemPost" class="w-10 h-10 fundo-app texto-tema rounded-full flex items-center justify-center cursor-pointer border border-suave transition-colors">
                     <i class="bi bi-image text-lg"></i>
                 </label>
                 <input type="file" id="imagemPost" name="imagem" accept="image/*" class="hidden" onchange="mostrarPreview(this)">
                 
-                <button type="submit" class="bg-dinamico text-white font-black text-xs uppercase tracking-widest px-6 py-3 rounded-full shadow-md active:scale-95 transition-transform border-none outline-none cursor-pointer">
+                <button type="submit" class="fundo-tema texto-claro font-black text-xs uppercase tracking-widest px-6 py-3 rounded-full shadow-md active:scale-95 transition-transform border-none outline-none cursor-pointer">
                     Publicar
                 </button>
             </div>
@@ -263,7 +299,7 @@
                 if(data.liked) {
                     icone.className = "bi bi-heart-fill text-red-500 text-lg group-hover:text-red-500 transition-colors";
                 } else {
-                    icone.className = "bi bi-heart text-gray-400 text-lg group-hover:text-red-500 transition-colors";
+                    icone.className = "bi bi-heart texto-main opacity-40 text-lg group-hover:text-red-500 transition-colors";
                 }
             }
         })
@@ -306,12 +342,12 @@
                 if(msgVazia) msgVazia.remove();
 
                 var novoHtml = '<div class="flex gap-2 items-start animate-fade-up">' +
-                                   '<div class="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 mt-0.5">' +
-                                       '<img src="' + data.foto_autor + '" class="w-full h-full object-cover">' +
+                                   '<div class="w-6 h-6 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 mt-0.5 flex items-center justify-center">' +
+                                       (data.foto_autor ? '<img src="' + data.foto_autor + '" class="w-full h-full object-cover">' : '<i class="bi bi-person-fill texto-main opacity-30 text-xs"></i>') +
                                    '</div>' +
-                                   '<div class="bg-gray-50 rounded-2xl rounded-tl-none px-3 py-2 text-xs flex-1 border border-gray-100">' +
-                                       '<span class="font-black text-gray-900 block mb-0.5">' + data.nome_autor + '</span>' +
-                                       '<span class="text-gray-700 leading-relaxed">' + data.texto + '</span>' +
+                                   '<div class="fundo-app border border-suave rounded-2xl rounded-tl-none px-3 py-2 text-xs flex-1">' +
+                                       '<span class="font-black texto-main block mb-0.5">' + data.nome_autor + '</span>' +
+                                       '<span class="texto-main opacity-80 leading-relaxed">' + data.texto + '</span>' +
                                    '</div>' +
                                '</div>';
                 lista.insertAdjacentHTML('beforeend', novoHtml);
@@ -401,5 +437,36 @@
             });
         }
     });
+
+    // 5. ABRIR E FECHAR BARRA DE PESQUISA
+    window.togglePesquisa = function() {
+        var form = document.getElementById('barraPesquisa');
+        var painelNotif = document.getElementById('painelNotificacoes');
+        
+        // Fecha as notificações se estiverem abertas
+        if(!painelNotif.classList.contains('hidden')) {
+            painelNotif.classList.add('hidden');
+        }
+
+        form.classList.toggle('hidden');
+        if(!form.classList.contains('hidden')) {
+            form.querySelector('input').focus();
+        }
+    };
+
+    // 6. ABRIR E FECHAR NOTIFICAÇÕES
+    window.toggleNotificacoes = function() {
+        var dropdown = document.getElementById('painelNotificacoes');
+        var barraPesquisa = document.getElementById('barraPesquisa');
+        
+        // Fecha a pesquisa se estiver aberta
+        if(!barraPesquisa.classList.contains('hidden')) {
+            barraPesquisa.classList.add('hidden');
+        }
+
+        dropdown.classList.toggle('hidden');
+    };
+
+
 </script>
 {% endblock %}

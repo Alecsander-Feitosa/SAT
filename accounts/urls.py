@@ -18,7 +18,6 @@ urlpatterns = [
     
     path('cadastro/', views.cadastro, name='cadastro'),
     path('cadastro_etapa2/', views.cadastro_etapa2, name='cadastro_etapa2'),
-    path('perfil/', views.editar_perfil, name='perfil'),
     path('noticias/', views.noticias, name='noticias'),
     
     # REDE SOCIAL (SAT Social - Fotos)
@@ -56,5 +55,11 @@ urlpatterns = [
     path('curtir/<int:post_id>/', views.curtir_post, name='curtir_post'),
     path('beneficios/', views.beneficios_view, name='beneficios'),
     path('post/<int:post_id>/comentar/', views.adicionar_comentario, name='adicionar_comentario'),
+
+    path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
+    path('perfil/pedidos/', views.meus_pedidos, name='meus_pedidos'),
+    path('perfil/seguranca/', views.seguranca, name='seguranca'),
+    
+    path('perfil/', views.perfil_view, name='perfil'),
     
 ]

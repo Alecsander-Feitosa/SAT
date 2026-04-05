@@ -157,3 +157,61 @@ class Comentario(models.Model):
 
     def __str__(self):
         return f"Comentário de {self.autor.username} no post {self.post.id}"
+    
+# Adicione no final de organizadas/models.py
+
+class FotoGaleria(models.Model):
+    torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='fotos_galeria')
+    imagem = models.ImageField("Foto", upload_to='galeria_torcida/')
+    legenda = models.CharField("Legenda", max_length=200, blank=True)
+    data_publicacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Foto da Galeria"
+        verbose_name_plural = "Fotos da Galeria"
+
+    def __str__(self):
+        return f"Foto de {self.torcida.nome} - {self.data_publicacao.strftime('%d/%m/%Y')}"
+
+class ConquistaTorcida(models.Model):
+    torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='conquistas')
+    titulo = models.CharField("Título da Conquista", max_length=150, help_text="Ex: Maior Bandeirão, Campeão do Carnaval")
+    ano = models.IntegerField("Ano")
+    descricao = models.TextField("Descrição", blank=True)
+    imagem = models.ImageField("Foto da Conquista", upload_to='conquistas_torcida/', blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Conquista"
+        verbose_name_plural = "Conquistas"
+
+    def __str__(self):
+        return f"{self.titulo} ({self.ano}) - {self.torcida.sigla}"
+
+class MembroDiretoria(models.Model):
+    torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='diretoria')
+    nome = models.CharField("Nome", max_length=100)
+    cargo = models.CharField("Cargo", max_length=100, help_text="Ex: Presidente, Diretor de Bateria, Puxador")
+    foto = models.ImageField("Foto de Perfil", upload_to='diretoria_torcida/', blank=True, null=True)
+    ordem = models.IntegerField("Ordem de Exibição", default=0, help_text="0 aparece primeiro (Ex: Presidente)")
+
+    class Meta:
+        ordering = ['ordem', 'nome']
+        verbose_name = "Membro da Diretoria"
+        verbose_name_plural = "Membros da Diretoria"
+
+    def __str__(self):
+        return f"{self.nome} - {self.cargo}"
+
+class Regra(models.Model):
+    torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='regras')
+    titulo = models.CharField("Título da Regra", max_length=150)
+    descricao = models.TextField("Descrição da Regra")
+    ordem = models.IntegerField("Ordem (Nº da Regra)", default=1)
+
+    class Meta:
+        ordering = ['ordem']
+        verbose_name = "Regra/Estatuto"
+        verbose_name_plural = "Regras/Estatutos"
+
+    def __str__(self):
+        return f"Regra {self.ordem}: {self.titulo} ({self.torcida.sigla})"

@@ -37,24 +37,33 @@ def dashboard(request):
 
 @login_required
 def confirmar_presenca(request, evento_id):
+    from organizadas.models import Evento
+    from gamification.models import CheckIn
+    from django.contrib import messages
+    
+    evento = get_object_or_404(Evento, id=evento_id)
+    
     if request.method == "POST":
-        # Coordenadas do estádio (exemplo)
-        ESTADIO_LAT = -23.5505
-        ESTADIO_LON = -46.6333
+        foto_enviada = request.FILES.get('foto')
         
-        lat_user = float(request.POST.get('latitude', 0))
-        lon_user = float(request.POST.get('longitude', 0))
-        
-        # Calcula se o torcedor está num raio de 500 metros
-        # (Lógica simplificada para teste)
-        distancia = abs(lat_user - ESTADIO_LAT) + abs(lon_user - ESTADIO_LON)
-        
-        if distancia < 0.005: # Aproximadamente 500m
-             # Cria o check-in e dispara o Signal de XP acima
-             CheckIn.objects.create(user=request.user, evento_id=evento_id)
-             return JsonResponse({'status': 'sucesso', 'xp': 50})
+        # Verifica se já não tem checkin para evitar que ganhem XP duplicado
+        if CheckIn.objects.filter(user=request.user, evento=evento).exists():
+            messages.info(request, "Você já confirmou presença neste evento!")
         else:
-             return JsonResponse({'status': 'erro', 'mensagem': 'Você não está no estádio!'})
+            if foto_enviada:
+                # MÁGICA 2: Salva a foto e dá como validado!
+                CheckIn.objects.create(
+                    user=request.user, 
+                    evento=evento, 
+                    foto=foto_enviada,
+                    validado=True 
+                )
+                messages.success(request, "Presença confirmada! +50 XP conquistados!")
+            else:
+                messages.error(request, "Você precisa enviar uma foto para confirmar presença.")
+                
+    # MÁGICA 3: Em vez de mostrar código na tela, redireciona de volta para o evento
+    return redirect('detalhe_evento', evento_id=evento.id)
 
 @login_required
 def noticias(request):
@@ -217,13 +226,22 @@ def lista_eventos(request):
     eventos_encontrados = Evento.objects.filter(data_evento__gte=timezone.now()).order_by('data_evento')
     return render(request, 'eventos.html', {'eventos': eventos_encontrados})
 
+@login_required
 def detalhe_evento(request, evento_id):
     from organizadas.models import Evento
+    from gamification.models import CheckIn
+    
     # Busca o evento pelo ID ou retorna erro 404 se não existir
     evento = get_object_or_404(Evento, id=evento_id)
     
+    # MÁGICA 1: Verifica se este usuário já fez check-in / mandou a foto
+    confirmado = False
+    if request.user.is_authenticated:
+        confirmado = CheckIn.objects.filter(user=request.user, evento=evento).exists()
+    
     context = {
         'evento': evento,
+        'confirmado': confirmado, # Agora o HTML sabe se deve esconder o botão!
     }
     return render(request, 'detalhe_evento.html', context)
 

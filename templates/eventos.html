@@ -2,95 +2,37 @@
 {% load static %}
 
 {% block content %}
-<style>
-    /* Estilização de Elite SAT */
-    .event-container { background: #121212; min-height: 100vh; color: white; }
-    
-    .event-card { 
-        background: #1A1C1E; 
-        border-radius: 28px; 
-        overflow: hidden; 
-        border: 1px solid rgba(255,255,255,0.05); 
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        margin-bottom: 24px;
-    }
-
-    .event-card:active { transform: scale(0.97); }
-
-    .date-badge {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        background: rgba(18, 18, 18, 0.8);
-        backdrop-filter: blur(10px);
-        padding: 10px;
-        border-radius: 18px;
-        text-align: center;
-        min-width: 60px;
-        border: 1px solid rgba(211, 113, 41, 0.3);
-    }
-
-    .status-badge {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: #4E9F3D;
-        color: white;
-        font-[9px] font-black uppercase px-3 py-1 rounded-full tracking-tighter;
-    }
-
-    .btn-detalhes {
-        background: #D37129;
-        color: white;
-        width: 100%;
-        padding: 15px;
-        border-radius: 18px;
-        font-weight: 900;
-        text-transform: uppercase;
-        font-style: italic;
-        letter-spacing: 1px;
-        font-size: 12px;
-        transition: 0.3s;
-    }
-
-    /* Modal Styling */
-    #modalDetalhes.hidden { display: none; }
-    .modal-content {
-        background: #1A1C1E;
-        width: 90%;
-        max-width: 400px;
-        border-radius: 32px;
-        padding: 30px;
-        border: 1px solid rgba(255,255,255,0.1);
-        position: relative;
-    }
-</style>
-
-<div class="min-h-screen bg-white pb-32">
+<div class="min-h-screen fundo-app pb-32">
     <div class="px-6 pt-10 mb-8">
-        <h1 class="text-3xl font-black italic uppercase text-[#1A1A1A]">Eventos <span class="text-[#CD7F32]">SAT</span></h1>
-        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Confirme sua presença e ganhe XP</p>
+        <div class="flex items-center gap-4 mb-2">
+            <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
+            <h1 class="text-3xl font-black italic uppercase texto-main leading-none">Eventos <span class="texto-tema">{% if user.perfil.torcida.sigla %}{{ user.perfil.torcida.sigla }}{% else %}SAT{% endif %}</span></h1>
+        </div>
+        <p class="texto-main opacity-50 text-[10px] font-bold uppercase tracking-widest pl-10">Confirme sua presença e ganhe XP</p>
     </div>
 
     <div class="px-5">
         {% for evento in eventos %}
-        <div class="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm mb-4">
+        <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm mb-4">
             <div class="flex justify-between items-start mb-4">
                 <div>
-                    <span class="text-[#CD7F32] text-[10px] font-black uppercase">{{ evento.data|date:"d/m/Y" }}</span>
-                    <h3 class="text-[#1A1A1A] text-lg font-black uppercase italic">{{ evento.nome }}</h3>
+                    <span class="texto-tema text-[10px] font-black uppercase">{{ evento.data|date:"d/m/Y" }}</span>
+                    <h3 class="texto-main text-lg font-black uppercase italic">{{ evento.nome }}</h3>
                 </div>
-                <div class="bg-[#CD7F32]/10 text-[#CD7F32] px-3 py-1 rounded-full text-[10px] font-black">
+                <div class="fundo-app texto-tema border border-tema px-3 py-1 rounded-full text-[10px] font-black shadow-sm">
                     +{{ evento.xp_recompensa }} XP
                 </div>
             </div>
             
-            <a href="{% url 'detalhe_evento' evento.id %}" class="w-full bg-[#CD7F32] text-white py-4 rounded-2xl flex items-center justify-center font-black uppercase text-[11px] no-underline shadow-lg shadow-[#CD7F32]/20">
+            <a href="{% url 'detalhe_evento' evento.id %}" class="w-full fundo-tema texto-claro py-4 rounded-2xl flex items-center justify-center font-black uppercase text-[11px] no-underline shadow-md hover:scale-[1.02] transition-transform">
                 Ver Detalhes / Check-in
             </a>
         </div>
         {% empty %}
-        <p class="text-center text-gray-400 text-xs font-bold uppercase py-20">Nenhum evento disponível.</p>
+        <div class="text-center py-20 fundo-card rounded-[32px] border border-suave">
+            <i class="bi bi-calendar-x text-3xl texto-main opacity-20 mb-2"></i>
+            <p class="texto-main opacity-50 text-xs font-bold uppercase">Nenhum evento disponível.</p>
+        </div>
         {% endfor %}
     </div>
 </div>

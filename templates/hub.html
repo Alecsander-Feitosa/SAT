@@ -1,272 +1,129 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block content %}
 <style>
-    /* 1. AS VARIÁVEIS DO MODERADOR: Só alteram os detalhes (brilhos e ícones) */
-    :root {
-        --cor-primaria: {{ user.perfil.torcida.cor_primaria|default:"#D37129" }};
-    }
-
-    /* ========== SAT HUB PREMIUM - MODERN UI (INTACTO) ========== */
-    @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
-        to { opacity: 1; transform: translateY(0); filter: blur(0); }
-    }
-    .animate-fade-up { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-    .glass-header {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-    }
-
-    /* ==========================================
-       CARTEIRINHA DE SÓCIO (FUNDO NEGRO INTACTO)
-       ========================================== */
-    .cartao-socio {
-        background: linear-gradient(135deg, #1a1a1a 0%, #050505 100%); /* Fundo premium mantido */
-        box-shadow: 
-            0 20px 40px rgba(0,0,0,0.4), 
-            inset 0 1px 1px rgba(255,255,255,0.2),
-            inset 0 -1px 1px rgba(0,0,0,0.5);
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.1);
-        aspect-ratio: 1.586 / 1; 
-    }
-
-    .cartao-glow {
-        position: absolute;
-        top: -30%;
-        right: -10%;
-        width: 150%;
-        height: 150%;
-        /* O brilho do cartão muda para a cor da torcida! */
-        background: radial-gradient(circle at top right, var(--cor-primaria) 0%, transparent 60%);
-        opacity: 0.25;
-        pointer-events: none;
-    }
-
-    .cartao-watermark {
-        position: absolute;
-        right: -10%;
-        bottom: -20%;
-        width: 80%;
-        height: 80%;
-        opacity: 0.08; 
-        filter: grayscale(100%) brightness(200%);
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: bottom right;
-        pointer-events: none;
-        z-index: 1;
-    }
-
-    .cartao-chip {
-        width: 42px;
-        height: 30px;
-        background: linear-gradient(135deg, #ffd700 0%, #daa520 100%);
-        border-radius: 6px;
-        position: relative;
-        box-shadow: inset 0 0 4px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2);
-        overflow: hidden;
-    }
-    .cartao-chip::before, .cartao-chip::after {
-        content: '';
-        position: absolute;
-        background: rgba(0,0,0,0.2);
-    }
-    .cartao-chip::before { width: 100%; height: 1px; top: 50%; left: 0; }
-    .cartao-chip::after { width: 1px; height: 100%; top: 0; left: 50%; }
-
-    .texto-emboss {
-        text-shadow: 0px 1px 1px rgba(255,255,255,0.3), 0px -1px 1px rgba(0,0,0,0.8);
-        letter-spacing: 2px;
-    }
-
-    /* ==========================================
-       OS 6 BOTÕES DO HUB (DESIGN BRANCO INTACTO)
-       ========================================== */
-    .modern-hub-grid { 
-        display: grid; 
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 16px; 
-    }
+    .torcida-bg { background-color: var(--cor-fundo, #0c0d0e); min-height: 100vh; color: white; }
+    .hub-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
     
-    .modern-hub-item { 
-        background: #ffffff; 
-        border-radius: 28px; 
-        padding: 24px 16px; 
-        border: 1px solid rgba(0,0,0,0.03); 
-        box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+    .hub-item { 
+        background: var(--cor-secundaria, #161b22); 
+        border-radius: 24px; 
+        padding: 25px 15px; 
+        border: 1px solid rgba(255, 255, 255, 0.05); 
+        text-align: center;
         text-decoration: none; 
+        transition: 0.3s; 
         display: flex; 
         flex-direction: column; 
         align-items: center;
-        justify-content: center;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    
-    .modern-hub-item:active { 
-        transform: scale(0.95); 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.01);
-    }
-    
-    .icon-wrapper {
-        width: 60px;
-        height: 60px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 14px;
-        /* O fundo e a cor dos ícones mudam para a cor da torcida */
-        background-color: color-mix(in srgb, var(--cor-primaria) 12%, transparent);
-        color: var(--cor-primaria);
-    }
+    .hub-item:active { transform: scale(0.95); filter: brightness(1.2); }
+    .hub-item i { font-size: 28px; color: var(--cor-primaria); margin-bottom: 10px; }
+    .hub-item span { font-size: 10px; font-weight: 900; color: var(--cor-terciaria, #f8f9fa); text-transform: uppercase; letter-spacing: 1px; }
 
-    .icon-wrapper i { 
-        font-size: 28px; 
-        filter: drop-shadow(0 4px 6px color-mix(in srgb, var(--cor-primaria) 30%, transparent));
+    /* Cartão de Sócio Estilo Banco Premium */
+    .bank-card {
+        background: linear-gradient(135deg, #1a1c1e 0%, #050505 100%);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 24px;
+        aspect-ratio: 1.58/1;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
-    
-    .modern-hub-item span { 
-        font-size: 11px; 
-        font-weight: 900; 
-        color: #2d3748; 
-        text-transform: uppercase; 
-        letter-spacing: 0.5px;
+    .card-chip {
+        width: 40px; height: 30px;
+        background: linear-gradient(135deg, #ffd700, #b8860b);
+        border-radius: 6px;
+        box-shadow: inset 0 0 4px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2);
     }
+    .card-chip::before, .card-chip::after { content: ''; position: absolute; background: rgba(0,0,0,0.2); }
+    .card-chip::before { width: 100%; height: 1px; top: 50%; left: 0; }
+    .card-chip::after { width: 1px; height: 100%; top: 0; left: 50%; }
 </style>
 
-<div class="w-full min-h-screen bg-[#f8f9fa] flex flex-col pb-32">
+<div class="torcida-bg pb-40">
+    <div class="px-5 pt-10 mb-6">
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter" style="color: var(--cor-terciaria, #ffffff);">
+            COMUNIDADE <span style="color: var(--cor-primaria);">{% if torcida.sigla %}{{ torcida.sigla }}{% else %}SAT{% endif %}</span>
+        </h1>
+    </div>
 
-    <div class="sticky top-[70px] z-40 glass-header px-5 py-4 flex justify-between items-center mb-2">
-        <div>
-            <h1 class="text-xl font-black italic uppercase tracking-tighter text-gray-900 leading-none">
-                HUB <span style="color: var(--cor-primaria);">{% if user.perfil.torcida %}{{ user.perfil.torcida.sigla|default:user.perfil.torcida.nome }}{% else %}SAT{% endif %}</span>
-            </h1>
-            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1">
-                <i class="bi bi-shield-fill" style="color: var(--cor-primaria);"></i> Quartel General
-            </p>
-        </div>
-        
-        <div class="flex gap-2">
-            <a href="{% url 'dashboard' %}" class="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 text-gray-800 hover:scale-105 transition-transform" title="Voltar ao Início">
-                <i class="bi bi-house-door-fill text-lg font-bold"></i>
-            </a>
-            <button class="w-10 h-10 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 transition-colors" style="color: var(--cor-primaria);">
-                <i class="bi bi-gear-fill"></i>
-            </button>
+    <div class="px-5 mb-10">
+        <div class="bank-card p-6 w-full max-w-sm mx-auto">
+            <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-30" style="background-color: var(--cor-primaria);"></div>
+            {% if torcida.logo %}
+                <div class="absolute right-[-10%] bottom-[-20%] w-[80%] h-[80%] opacity-10 pointer-events-none" style="background-image: url('{{ torcida.logo.url }}'); background-size: contain; background-repeat: no-repeat; background-position: bottom right; filter: grayscale(100%) brightness(200%);"></div>
+            {% endif %}
+            <div class="relative z-10 h-full flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    {% if torcida.logo %}
+                        <img src="{{ torcida.logo.url }}" class="h-8 w-auto object-contain drop-shadow-md">
+                    {% else %}
+                        <img src="{% static 'img/logo_sat.png' %}" class="h-6 w-auto brightness-200">
+                    {% endif %}
+                    <div class="card-chip"></div>
+                </div>
+                <div>
+                    <p class="text-[16px] font-mono tracking-[4px] text-white/90">SAT • {{ user.id|add:"1000" }} • {% now "Y" %}</p>
+                    <p class="text-[10px] font-black uppercase italic mt-1 text-white">{{ user.get_full_name|default:user.username }}</p>
+                </div>
+                <div class="flex justify-between items-end">
+                    <div>
+                        <p class="text-[7px] uppercase opacity-50 font-bold text-white">Membro desde</p>
+                        <p class="text-[9px] font-bold text-white">{{ user.date_joined|date:"M Y" }}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-3 py-1 text-[8px] font-black rounded-full text-white shadow-md" style="background-color: var(--cor-primaria);">
+                            SÓCIO {% if perfil_game.nivel %}{{ perfil_game.nivel.nome|upper }}{% else %}NÍVEL 1{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="px-5 flex flex-col items-center gap-8">
-        
-        <div class="w-full max-w-sm cartao-socio rounded-3xl p-6 text-white flex flex-col relative z-10 animate-fade-up">
-            <div class="cartao-glow"></div>
-            
-            {% if user.perfil.torcida.logo %}
-                <div class="cartao-watermark" style="background-image: url('{{ user.perfil.torcida.logo.url }}');"></div>
-            {% endif %}
-            
-            <div class="flex justify-between items-start relative z-10">
-                <div class="flex items-center gap-3">
-                    
-                    <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 p-1.5 overflow-hidden">
-                        {% if user.perfil.torcida.logo %}
-                            <img src="{{ user.perfil.torcida.logo.url }}" class="w-full h-full object-contain">
-                        {% else %}
-                            <i class="bi bi-shield-fill text-white/90 text-2xl"></i>
-                        {% endif %}
-                    </div>
-                    
-                    <div>
-                        <h2 class="font-black text-lg tracking-tighter uppercase leading-none" style="font-family: 'Montserrat', sans-serif;">
-                            {% if user.perfil.torcida %}{{ user.perfil.torcida.nome }}{% else %}SAT MEMBER{% endif %}
-                        </h2>
-                        <p class="text-[8px] text-white/70 font-bold uppercase tracking-[0.2em] mt-0.5">
-                            Sócio Oficial Autorizado
-                        </p>
-                    </div>
-                </div>
-                <i class="bi bi-contactless text-2xl text-white/60"></i>
-            </div>
+    <div class="hub-grid">
+        <a href="{% url 'galeria_fotos' %}" class="hub-item">
+            <i class="bi bi-images"></i>
+            <span>Galeria</span>
+        </a>
 
-            <div class="mt-6 mb-auto relative z-10 flex items-center justify-between">
-                <div class="cartao-chip"></div>
-                <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
-                    <i class="bi bi-star-fill text-yellow-400 text-[10px]"></i>
-                    <span class="text-[10px] font-black uppercase text-white tracking-widest">
-                        {% if perfil_game.nivel %}{{ perfil_game.nivel.nome }}{% else %}NÍVEL 1{% endif %}
-                    </span>
-                </div>
-            </div>
+        <a href="{% url 'diretoria' %}" class="hub-item">
+            <i class="bi bi-microsoft"></i>
+            <span>Diretoria</span>
+        </a>
 
-            <div class="relative z-10 flex justify-between items-end mt-6">
-                <div class="flex-1">
-                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Membro Titular</p>
-                    <p class="text-sm font-black uppercase texto-emboss text-white truncate w-48">
-                        {{ user.get_full_name|default:user.username }}
-                    </p>
-                </div>
-                <div class="text-right">
-                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Membro Desde</p>
-                    <p class="text-xs font-black uppercase text-white texto-emboss">
-                        {{ user.date_joined|date:"Y"|default:"2026" }}
-                    </p>
-                </div>
-            </div>
-        </div>
+        <a href="{% url 'mural_conquistas' %}" class="hub-item">
+            <i class="bi bi-trophy"></i>
+            <span>Conquistas</span>
+        </a>
 
-        <div class="w-full modern-hub-grid animate-fade-up" style="animation-delay: 150ms;">
-            
-            <a href="{% url 'loja' %}" class="modern-hub-item group">
-                <div class="icon-wrapper">
-                    <i class="bi bi-bag-check-fill group-hover:scale-110 transition-transform"></i>
-                </div>
-                <span>Loja Oficial</span>
-            </a>
-            
-            <a href="{% url 'mural' %}" class="modern-hub-item group">
-                <div class="icon-wrapper">
-                    <i class="bi bi-chat-dots-fill group-hover:scale-110 transition-transform"></i>
-                </div>
-                <span>Mural Feed</span>
-            </a>
-            
-            <a href="{% url 'galeria_fotos' %}" class="modern-hub-item group">
-                <div class="icon-wrapper">
-                    <i class="bi bi-images group-hover:scale-110 transition-transform"></i>
-                </div>
-                <span>Galeria</span>
-            </a>
-            
-            <a href="{% url 'diretoria' %}" class="modern-hub-item group">
-                <div class="icon-wrapper">
-                    <i class="bi bi-diagram-3-fill group-hover:scale-110 transition-transform"></i>
-                </div>
-                <span>Diretoria</span>
-            </a>
-            
-            <a href="{% url 'cancoes' %}" class="modern-hub-item group">
-                <div class="icon-wrapper">
-                    <i class="bi bi-music-note-beamed group-hover:scale-110 transition-transform"></i>
-                </div>
-                <span>Canções</span>
-            </a>
-            
-            <a href="{% url 'viagens_view' %}" class="modern-hub-item group">
-                <div class="icon-wrapper">
-                    <i class="bi bi-bus-front-fill group-hover:scale-110 transition-transform"></i>
-                </div>
-                <span>Viagens</span>
-            </a>
+        <a href="{% url 'cancoes' %}" class="hub-item">
+            <i class="bi bi-music-note-beamed"></i>
+            <span>Canções</span>
+        </a>
 
-        </div>
+        <a href="{% url 'lista_eventos' %}" class="hub-item">
+            <i class="bi bi-calendar-check"></i>
+            <span>Eventos</span>
+        </a>
 
+        <a href="{% url 'regras' %}" class="hub-item">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>Regras</span>
+        </a>
+
+        <a href="{% url 'aliadas' %}" class="hub-item">
+            <i class="bi bi-shield-check"></i>
+            <span>Aliadas</span>
+        </a>
+
+        <a href="{% url 'viagens' %}" class="hub-item">
+            <i class="bi bi-bus-front"></i>
+            <span>Viagens</span>
+        </a>
     </div>
 </div>
 {% endblock %}

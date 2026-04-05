@@ -25,4 +25,12 @@ urlpatterns = [
 
     # --- A ROTA DO SLUG VAI PARA O FIM (A Armadilha foi desarmada) ---
     path('<slug:slug>/', views.perfil_torcida, name='perfil_torcida'),
+
+    path('hub/galeria/', views.galeria_fotos, name='galeria_fotos'),
+    path('hub/diretoria/', views.diretoria, name='diretoria'),
+    path('hub/conquistas/', views.mural_conquistas, name='mural_conquistas'),
+    path('hub/cancoes/', views.cancoes, name='cancoes'),
+    path('hub/regras/', views.regras, name='regras'),
+    path('hub/aliadas/', views.aliadas, name='aliadas'),
+    path('hub/viagens/', views.viagens, name='viagens'),
 ]

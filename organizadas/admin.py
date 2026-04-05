@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Torcida, Caravana, Evento, Noticia, Post, Curtida, Parceiro, Publicidade
+from .models import FotoGaleria, ConquistaTorcida, MembroDiretoria, Regra, Caravana, Evento, Noticia, Post, Curtida, Parceiro, Publicidade, Torcida
+
+
 
 class ModeradorBaseAdmin(admin.ModelAdmin):
     """
@@ -115,3 +117,11 @@ class PublicidadeAdmin(ModeradorBaseAdmin):
     list_display = ('titulo', 'data_inicio', 'data_fim', 'tempo_exibicao', 'ativo', 'torcida')
     list_filter = ('ativo', 'torcida', 'data_inicio', 'data_fim')
     search_fields = ('titulo',)
+
+from .models import Regra, MembroDiretoria, ConquistaTorcida, FotoGaleria
+
+# Registre os modelos no Admin
+admin.site.register(Regra)
+admin.site.register(MembroDiretoria)
+admin.site.register(ConquistaTorcida)
+admin.site.register(FotoGaleria)

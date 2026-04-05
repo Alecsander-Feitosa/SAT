@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="min-h-screen bg-[#0c0d0e] px-5 pt-10 pb-40">
+<div class="min-h-screen fundo-app px-5 pt-10 pb-40">
     <div class="flex items-center gap-4 mb-8">
-       <a href="{% url 'torcida' %}" class="text-white text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-white">CÓDIGO DE <span class="text-[#D37129]">CONDUTA</span></h1>
+       <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">CÓDIGO DE <span class="texto-tema">CONDUTA</span></h1>
     </div>
 
     <div class="space-y-3">
-        <div class="bg-[#161b22] p-5 rounded-[28px] border-l-4 border-[#D37129]">
-            <span class="text-[10px] font-black text-[#D37129] uppercase tracking-widest">Regra #01</span>
-            <h4 class="text-white font-bold text-sm mt-1 uppercase">Lealdade Total</h4>
-            <p class="text-gray-400 text-[11px] mt-2 leading-relaxed">Apoiar a SAT e o time em qualquer circunstância, dentro e fora do estádio.</p>
+        {% for regra in regras %}
+        <div class="fundo-card p-5 rounded-[28px] {% if forloop.first %}border-l-4 border-tema{% else %}border-l-4 border-suave{% endif %} shadow-sm">
+            <span class="text-[10px] font-black {% if forloop.first %}texto-tema{% else %}texto-main opacity-50{% endif %} uppercase tracking-widest">Regra #{{ regra.ordem|stringformat:"02d" }}</span>
+            <h4 class="texto-main font-bold text-sm mt-1 uppercase">{{ regra.titulo }}</h4>
+            <p class="texto-main opacity-70 text-[11px] mt-2 leading-relaxed">
+                {{ regra.descricao }}
+            </p>
         </div>
-
-        <div class="bg-[#161b22] p-5 rounded-[28px] border-l-4 border-gray-600">
-            <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Regra #02</span>
-            <h4 class="text-white font-bold text-sm mt-1 uppercase">Respeito às Aliadas</h4>
-            <p class="text-gray-400 text-[11px] mt-2 leading-relaxed">Manter a união e o respeito com todas as torcidas do nosso bloco de alianças.</p>
-        </div>
+        {% empty %}
+        <p class="text-center text-xs opacity-50 texto-main">Nenhuma regra cadastrada.</p>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

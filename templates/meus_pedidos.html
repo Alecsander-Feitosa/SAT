@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen fundo-app px-5 pt-10 pb-40">
+    <div class="flex items-center gap-4 mb-8">
+        <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">MEUS <span class="texto-tema">PEDIDOS</span></h1>
+    </div>
+
+    <div class="space-y-4">
+        {% for pedido in pedidos %}
+        <div class="fundo-card border border-suave p-5 rounded-3xl shadow-sm">
+            <div class="flex justify-between items-start mb-3 border-b border-suave pb-3">
+                <div>
+                    <h4 class="texto-main font-black uppercase text-sm">Pedido #{{ pedido.id|stringformat:"04d" }}</h4>
+                    <p class="text-[10px] font-bold texto-main opacity-50 uppercase mt-0.5">{{ pedido.data_pedido|date:"d M Y" }}</p>
+                </div>
+                <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full 
+                    {% if pedido.status == 'Concluído' %}bg-green-500/10 text-green-500
+                    {% elif pedido.status == 'Pendente' %}bg-yellow-500/10 text-yellow-500
+                    {% else %}bg-blue-500/10 text-blue-500{% endif %}">
+                    {{ pedido.status|default:"Em Processamento" }}
+                </span>
+            </div>
+            
+            <div class="flex items-center justify-between mt-3">
+                <span class="text-xs font-bold texto-main opacity-70">{{ pedido.itens.count|default:"1" }} iten(s)</span>
+                <span class="text-sm font-black texto-tema">R$ {{ pedido.total|default:"0,00" }}</span>
+            </div>
+            <button class="w-full mt-4 fundo-app border border-suave texto-main py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black/5 transition-colors">
+                Ver Detalhes
+            </button>
+        </div>
+        {% empty %}
+        <div class="flex flex-col items-center justify-center py-16 text-center fundo-card border border-suave rounded-3xl">
+            <div class="w-16 h-16 fundo-app rounded-full flex items-center justify-center mb-4 border border-suave shadow-inner">
+                <i class="bi bi-box-seam-fill text-2xl texto-main opacity-30"></i>
+            </div>
+            <h3 class="text-sm font-black texto-main uppercase tracking-widest mb-1">Nenhum pedido</h3>
+            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-wider w-2/3">Ainda não efetuaste nenhuma compra na loja.</p>
+            <a href="{% url 'loja' %}" class="mt-6 fundo-tema texto-claro px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest no-underline shadow-md">
+                Ir para a Loja
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

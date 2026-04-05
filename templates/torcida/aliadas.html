@@ -1,27 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="min-h-screen bg-[#0c0d0e] px-5 pt-10 pb-40">
+<div class="min-h-screen fundo-app px-5 pt-10 pb-40">
     <div class="flex items-center gap-4 mb-8">
-        <a href="{% url 'torcida' %}" class="text-white text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-white">UNIÃO <span class="text-[#D37129]">SINISTRA</span></h1>
+        <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">UNIÃO <span class="texto-tema">SINISTRA</span></h1>
     </div>
 
     <div class="grid grid-cols-2 gap-4">
-        <div class="bg-[#161b22] p-6 rounded-3xl border border-white/5 text-center">
-            <div class="w-16 h-16 bg-white/5 rounded-full mx-auto mb-3 flex items-center justify-center border border-[#D37129]/30">
-                <i class="bi bi-shield-shaded text-[#D37129] text-3xl"></i>
+        {% for aliada in aliadas %}
+        <div class="fundo-card p-6 rounded-3xl border border-suave text-center shadow-sm">
+            <div class="w-16 h-16 fundo-app rounded-full mx-auto mb-3 flex items-center justify-center border border-tema shadow-inner overflow-hidden">
+                {% if aliada.logo %}
+                    <img src="{{ aliada.logo.url }}" class="w-full h-full object-cover">
+                {% else %}
+                    <i class="bi bi-shield-shaded texto-tema text-3xl"></i>
+                {% endif %}
             </div>
-            <h4 class="text-white font-black uppercase italic text-[10px]">Torcida Aliada A</h4>
-            <p class="text-[8px] text-gray-500 font-bold uppercase mt-1">Desde 1990</p>
+            <h4 class="texto-main font-black uppercase italic text-[10px]">{{ aliada.nome }}</h4>
         </div>
-
-        <div class="bg-[#161b22] p-6 rounded-3xl border border-white/5 text-center">
-            <div class="w-16 h-16 bg-white/5 rounded-full mx-auto mb-3 flex items-center justify-center border border-white/10">
-                <i class="bi bi-shield-shaded text-gray-400 text-3xl"></i>
-            </div>
-            <h4 class="text-white font-black uppercase italic text-[10px]">Torcida Aliada B</h4>
-            <p class="text-[8px] text-gray-400 font-bold uppercase mt-1">Parceiro SAT</p>
-        </div>
+        {% empty %}
+        <p class="col-span-2 text-center text-xs opacity-50 texto-main">Nenhuma aliada cadastrada.</p>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

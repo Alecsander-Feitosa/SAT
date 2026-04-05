@@ -35,6 +35,8 @@ from django.db.models import Q
 from datetime import date
 from organizadas.models import Comentario
 from accounts.models import Perfil
+from django.contrib.auth import update_session_auth_hash
+from django.contrib import messages
 
 
 # 1. Ecrã para escolher a torcida ANTES de logar
@@ -217,11 +219,6 @@ class CadastroForm(forms.ModelForm):
         return user
 # FIM DA ATUALIZAÇÃO: Classe CadastroForm
 
-
-
-# accounts/views.py
-
-# accounts/views.py
 @login_required
 def dashboard(request):
     perfil = request.user.perfil
@@ -231,21 +228,23 @@ def dashboard(request):
     time_busca = perfil.time_coracao
     api_key = "pub_629d163494fb4b3c9f19c706166a65e9"
     
-    noticias_gerais = cache.get('news_api_futebol_v6')
-    if not noticias_gerais:
+    # 1. GIRO DO FUTEBOL (Notícias Gerais)
+    noticias_gerais_api = cache.get('news_geral_v1')
+    if not noticias_gerais_api:
         try:
             url_geral = 'https://newsdata.io/api/1/news'
             params_gerais = {'apikey': api_key, 'country': 'br', 'category': 'sports', 'language': 'pt', 'q': 'futebol'}
             response_geral = requests.get(url_geral, params=params_gerais, timeout=5)
             if response_geral.status_code == 200:
-                noticias_gerais = response_geral.json().get('results', [])[:5]
-                cache.set('news_api_futebol_v6', noticias_gerais, 900)
+                noticias_gerais_api = response_geral.json().get('results', [])[:5]
+                cache.set('news_geral_v1', noticias_gerais_api, 900)
         except Exception:
-            noticias_gerais = []
+            noticias_gerais_api = []
 
+    # 2. NOTÍCIAS DO TIME DO CORAÇÃO
     noticias_time_api = []
     if time_busca and time_busca != "Outro":
-        cache_key_time = f'news_api_{time_busca.replace(" ", "_")}_v6'
+        cache_key_time = f'news_time_{time_busca.replace(" ", "_")}_v1'
         noticias_time_api = cache.get(cache_key_time)
         
         if noticias_time_api is None:
@@ -253,27 +252,14 @@ def dashboard(request):
                 url_time = 'https://newsdata.io/api/1/news'
                 params = {'apikey': api_key, 'country': 'br', 'language': 'pt', 'q': time_busca}
                 response_time = requests.get(url_time, params=params, timeout=5)
-                
                 if response_time.status_code == 200:
-                    noticias_time_api = response_time.json().get('results', [])[:3]
-                    if noticias_time_api:
-                        cache.set(cache_key_time, noticias_time_api, 900)
-                    else:
-                        cache.set(cache_key_time, [], 60)
+                    noticias_time_api = response_time.json().get('results', [])[:5]
+                    cache.set(cache_key_time, noticias_time_api, 900)
             except Exception:
                 noticias_time_api = []
 
-    noticias_combinadas = (noticias_time_api or []) + (noticias_gerais or [])
-    
-    noticias_api_finais = []
-    urls_vistas = set()
-    for n in noticias_combinadas:
-        link = n.get('link')
-        if link and link not in urls_vistas:
-            urls_vistas.add(link)
-            noticias_api_finais.append(n)
-            
-    noticias_api_finais = noticias_api_finais[:5]
+    # 3. COMUNICADOS SAT (Base de Dados Local)
+    noticias_sat = Noticia.objects.all().order_by('-data_publicacao')[:3]
 
     torcida_selecionada = perfil.torcida
 
@@ -288,53 +274,24 @@ def dashboard(request):
         parceiros = Parceiro.objects.filter(torcida__isnull=True)
         publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora, torcida__isnull=True)
 
-    noticias_time = Noticia.objects.all().order_by('-data_publicacao')[:3]
-
     context = {
         'proximos_eventos': eventos,
         'perfil': perfil,
         'perfil_game': perfil_game,
         'xp_atual': perfil_game.xp_total or 0,
         'torcida': torcida_selecionada, 
-        'noticias_api': noticias_api_finais, 
+        
+        # --- AS TRÊS VARIÁVEIS EXATAS PARA O HTML ---
+        'noticias_time_api': noticias_time_api, 
+        'noticias_gerais_api': noticias_gerais_api,
+        'noticias_sat': noticias_sat,
+        
         'posts_sociais': posts_sociais,
-        'noticias_time': noticias_time,
         'parceiros': parceiros,
         'publicidades': publicidades,
     }
     
     return render(request, 'dashboard.html', context)
-
-
-@login_required
-def editar_perfil(request):
-    perfil = request.user.perfil
-    
-    # 1. Busca os dados de XP e Nível do jogador
-    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
-    
-    # 2. Calcula quantas pessoas o utilizador segue
-    seguindo_count = request.user.seguindo.count() if hasattr(request.user, 'seguindo') else 0
-
-    if request.method == 'POST':
-        # request.FILES é obrigatório para a foto de perfil funcionar
-        form = PerfilCompletoForm(request.POST, request.FILES, instance=perfil)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Perfil atualizado com sucesso!")
-            # Mude 'perfil' para o nome correto da sua URL se for diferente
-            return redirect('perfil') 
-    else:
-        form = PerfilCompletoForm(instance=perfil)
-        
-    context = {
-        'form': form, 
-        'perfil': perfil,
-        'perfil_game': perfil_game,       # Agora o XP vai aparecer
-        'seguindo_count': seguindo_count  # Agora as estatísticas batem certo
-    }
-    
-    return render(request, 'perfil.html', context)
 
 
 @login_required
@@ -1033,3 +990,62 @@ def adicionar_comentario(request, post_id):
     # Redireciona de volta para a exata página onde o utilizador estava (o Mural)
     url_anterior = request.META.get('HTTP_REFERER', '/')
     return redirect(url_anterior)
+
+@login_required
+def editar_perfil(request):
+    perfil = request.user.perfil
+    if request.method == 'POST':
+        # Dados do User
+        request.user.first_name = request.POST.get('first_name', request.user.first_name)
+        request.user.save()
+        
+        # Dados do Perfil
+        perfil.vulgo = request.POST.get('vulgo', perfil.vulgo)
+        perfil.pelotao = request.POST.get('pelotao', perfil.pelotao)
+        perfil.rede_social = request.POST.get('rede_social', perfil.rede_social)
+        perfil.time_coracao = request.POST.get('time_coracao', perfil.time_coracao)
+        perfil.whatsapp = request.POST.get('whatsapp', perfil.whatsapp)
+        
+        if 'foto' in request.FILES:
+            perfil.foto = request.FILES['foto']
+            
+        perfil.save()
+        messages.success(request, 'Perfil atualizado com sucesso!')
+        return redirect('perfil')
+        
+    return render(request, 'editar_perfil.html', {'perfil': perfil})
+
+@login_required
+def meus_pedidos(request):
+    # Tenta importar os pedidos da tua app 'loja'
+    try:
+        from loja.models import Pedido
+        pedidos = Pedido.objects.filter(cliente=request.user).order_by('-data_pedido')
+    except Exception:
+        pedidos = [] # Se a loja ainda não estiver configurada, mostra vazio
+        
+    return render(request, 'loja/meus_pedidos.html', {'pedidos': pedidos})
+
+@login_required
+def seguranca(request):
+    if request.method == 'POST':
+        senha_atual = request.POST.get('senha_atual')
+        nova_senha = request.POST.get('nova_senha')
+        confirmar_senha = request.POST.get('confirmar_senha')
+        
+        # 1. Verifica se a senha antiga está certa
+        if not request.user.check_password(senha_atual):
+            messages.error(request, 'A senha atual está incorreta.')
+        # 2. Verifica se as senhas novas coincidem
+        elif nova_senha != confirmar_senha:
+            messages.error(request, 'As novas senhas não coincidem.')
+        # 3. Se estiver tudo OK, guarda a nova senha
+        else:
+            request.user.set_password(nova_senha)
+            request.user.save()
+            # Esta linha garante que o utilizador não é deslogado ao mudar a senha:
+            update_session_auth_hash(request, request.user) 
+            messages.success(request, 'Senha atualizada com sucesso e segurança!')
+            return redirect('perfil')
+            
+    return render(request, 'seguranca.html')

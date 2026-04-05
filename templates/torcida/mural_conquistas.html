@@ -1,27 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="min-h-screen bg-[#0c0d0e] px-5 pt-10 pb-40">
+<div class="min-h-screen fundo-app px-5 pt-10 pb-40">
     <div class="flex items-center gap-4 mb-8">
-       <a href="{% url 'torcida' %}" class="text-white text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-white">MURAL DE <span class="text-[#D37129]">GLÓRIAS</span></h1>
+       <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">MURAL DE <span class="texto-tema">GLÓRIAS</span></h1>
     </div>
 
     <div class="grid grid-cols-3 gap-4">
-        {% for conquista in todas_conquistas %}
-        <div class="flex flex-col items-center gap-2 opacity-40 grayscale">
-            <div class="w-20 h-20 bg-[#161b22] rounded-[24px] flex items-center justify-center border border-white/5">
-                <i class="bi {{ conquista.icone }} text-2xl"></i>
-            </div>
-            <span class="text-[8px] font-black text-gray-500 uppercase text-center leading-tight">{{ conquista.nome }}</span>
-        </div>
-        {% endfor %}
-        
+        {% for conquista in conquistas %}
         <div class="flex flex-col items-center gap-2">
-            <div class="w-20 h-20 bg-[#161b22] rounded-[24px] flex items-center justify-center border border-[#D37129] shadow-[0_0_15px_rgba(211,113,41,0.2)]">
-                <i class="bi bi-fire text-[#D37129] text-3xl"></i>
+            <div class="w-20 h-20 fundo-card rounded-[24px] flex items-center justify-center shadow-lg transition-transform hover:scale-105 overflow-hidden" style="border: 1px solid var(--cor-primaria); box-shadow: 0 0 15px rgba(0,0,0,0.1);">
+                {% if conquista.imagem %}
+                    <img src="{{ conquista.imagem.url }}" class="w-full h-full object-cover">
+                {% else %}
+                    <i class="bi bi-trophy-fill texto-tema text-3xl" style="filter: drop-shadow(0 0 5px var(--cor-primaria));"></i>
+                {% endif %}
             </div>
-            <span class="text-[8px] font-black text-white uppercase text-center leading-tight">Primeiro Grito</span>
+            <span class="text-[8px] font-black texto-main uppercase text-center leading-tight">{{ conquista.titulo }}<br><span class="opacity-50">{{ conquista.ano }}</span></span>
         </div>
+        {% empty %}
+        <p class="col-span-3 text-center text-xs opacity-50 texto-main mt-5">Nenhuma conquista cadastrada.</p>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}
