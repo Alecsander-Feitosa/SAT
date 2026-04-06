@@ -125,3 +125,22 @@ class Evento(models.Model):
 
     def __str__(self):
         return self.nome
+    
+
+# accounts/models.py
+
+class PlanoSocio(models.Model):
+    ativo = models.BooleanField("Plano Ativo?", default=True)
+    nome = models.CharField("Nome do Plano", max_length=100)
+    preco = models.DecimalField("Preço Mensal", max_digits=7, decimal_places=2)
+    beneficios = models.TextField("Benefícios (um por linha)")
+    destaque = models.BooleanField("Plano Destaque?", default=False)
+    
+    # Se torcida for NULL, é um plano geral da SAT
+    torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.CASCADE, null=True, blank=True, related_name='planos_socio')
+
+    def get_beneficios_lista(self):
+        return self.beneficios.split('\n')
+
+    def __str__(self):
+        return f"{self.nome} - {self.torcida.nome if self.torcida else 'SAT'}"

@@ -3,6 +3,11 @@
 
 {% block content %}
 <style>
+    /* VARIÁVEL DINÂMICA DE COR */
+    :root {
+        --tema-cor: {% if torcida_pre %}{{ torcida_pre.cor_primaria|default:"#D37129" }}{% else %}#D37129{% endif %};
+    }
+
     /* Animações de Entrada */
     @keyframes fadeUp {
         0% { opacity: 0; transform: translateY(20px); }
@@ -22,7 +27,7 @@
         display: none !important; 
     }
     
-    /* Fundo Branco SAT Padrão & Remoção de paddings dos menus */
+    /* Fundo Branco SAT Padrão */
     body, main { 
         padding: 0 !important; 
         margin: 0 !important; 
@@ -30,10 +35,22 @@
         color: #1a1a1a !important;
         min-height: 100vh;
     }
-    /* Ocultar o rádio padrão de forma acessível para o navegador não travar */
-    .torcida-radio { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
     
-    /* Estilo do cartão inativo */
+    /* ======================================= */
+    /* ESTILIZAÇÃO DO CHECKBOX/RADIO DOS TIMES */
+    /* ======================================= */
+    .radio-dinamico:checked + div {
+        border-color: var(--tema-cor) !important;
+        background-color: rgba(0, 0, 0, 0.03) !important; /* Leve fundo escuro para destacar */
+        box-shadow: 0 0 0 1px var(--tema-cor) inset !important;
+    }
+    .radio-dinamico:checked + div span {
+        color: var(--tema-cor) !important;
+    }
+
+    /* ========================================== */
+    /* ESTILIZAÇÃO DO CARTÃO DE TORCIDAS          */
+    /* ========================================== */
     .torcida-card {
         background-color: #ffffff;
         border: 2px solid #e5e7eb;
@@ -44,24 +61,24 @@
         overflow: hidden;
         box-shadow: 0 2px 10px rgba(0,0,0,0.02);
     }
-    
-    /* Efeito Hover subtil */
     .torcida-card:hover {
-        border-color: rgba(255, 107, 0, 0.4);
+        border-color: rgba(0, 0, 0, 0.2);
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     }
     
-    /* QUANDO SELECIONADO */
+    /* QUANDO A TORCIDA É SELECIONADA */
     .torcida-radio:checked + .torcida-card {
-        border-color: #ff6b00;
+        border-color: var(--tema-cor);
         background: linear-gradient(145deg, #fffaf5, #ffffff);
-        box-shadow: 0 10px 25px rgba(255, 107, 0, 0.15), inset 0 0 0 1px #ff6b00;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08), inset 0 0 0 2px var(--tema-cor);
         transform: scale(1.03) translateY(-4px);
     }
-
-    .torcida-radio:checked + .torcida-card h3 { color: #ff6b00; }
-    .torcida-radio:checked + .torcida-card img { filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1)); }
+    .torcida-radio:checked + .torcida-card h3 { color: var(--tema-cor); }
+    .torcida-radio:checked + .torcida-card img, 
+    .torcida-radio:checked + .torcida-card .icon-wrapper { 
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15)); 
+        transform: scale(1.1);
+    }
 
     /* Inputs Claros Premium */
     .input-sat {
@@ -73,9 +90,9 @@
         appearance: none;
     }
     .input-sat:focus {
-        border-color: #ff6b00;
+        border-color: var(--tema-cor);
         background-color: #ffffff;
-        box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.1);
+        box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
         outline: none;
     }
     
@@ -86,8 +103,8 @@
 
 <div class="min-h-screen flex flex-col items-center px-4 py-6 relative overflow-hidden pb-32">
     
-    <div class="absolute top-[-5%] left-[-10%] w-64 h-64 bg-[#ff6b00] opacity-[0.08] rounded-full blur-[60px] z-0 pointer-events-none"></div>
-    <div class="absolute bottom-[20%] right-[-10%] w-64 h-64 bg-[#ff6b00] opacity-[0.05] rounded-full blur-[60px] z-0 pointer-events-none"></div>
+    <div class="absolute top-[-5%] left-[-10%] w-64 h-64 opacity-[0.1] rounded-full blur-[60px] z-0 pointer-events-none" style="background-color: var(--tema-cor);"></div>
+    <div class="absolute bottom-[20%] right-[-10%] w-64 h-64 opacity-[0.08] rounded-full blur-[60px] z-0 pointer-events-none" style="background-color: var(--tema-cor);"></div>
 
     <div class="w-full max-w-md relative z-10 flex-1 flex flex-col">
         
@@ -101,7 +118,7 @@
 
         <div class="mb-8 text-center fade-in-1">
             <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tighter mb-1" style="font-family: 'Montserrat', sans-serif;">Etapa 2</h2>
-            <p class="text-[10px] font-bold text-[#ff6b00] uppercase tracking-widest">Defina a sua identidade</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest" style="color: var(--tema-cor);">Defina a sua identidade</p>
         </div>
 
         <form method="post" action="{% url 'cadastro_etapa2' %}" class="flex-grow flex flex-col h-full relative" id="form-etapa2">
@@ -119,23 +136,22 @@
                 <div class="grid grid-cols-3 gap-3 max-h-60 overflow-y-auto p-2 rounded-xl border border-gray-200 hide-scrollbar bg-gray-50/50">
                     
                     {% for time in times_brasil %}
-                    <label class="cursor-pointer group">
-                        <input type="radio" name="time_coracao" value="{{ time.nome }}" class="peer absolute opacity-0 w-0 h-0" required>
-                        
-                        <div class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-transparent bg-white shadow-sm peer-checked:border-[#ff6b00] peer-checked:bg-[#ff6b00]/10 hover:border-gray-300 transition-all h-full">
+                    <label class="cursor-pointer group relative">
+                        <input type="radio" name="time_coracao" value="{{ time.nome }}" class="absolute opacity-0 w-0 h-0 radio-dinamico" required>
+                        <div class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-transparent bg-white shadow-sm hover:border-gray-300 transition-all h-full">
                             <img src="{{ time.escudo }}" alt="{{ time.nome }}" class="w-10 h-10 object-contain mb-2 group-hover:scale-110 transition-transform">
-                            <span class="text-[9px] font-bold text-center text-gray-600 peer-checked:text-[#ff6b00]">{{ time.nome }}</span>
+                            <span class="text-[9px] font-bold text-center text-gray-600 transition-colors">{{ time.nome }}</span>
                         </div>
                     </label>
                     {% endfor %}
                     
-                    <label class="cursor-pointer group">
-                        <input type="radio" name="time_coracao" value="Outro" class="peer absolute opacity-0 w-0 h-0" required>
-                        <div class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-transparent bg-white shadow-sm peer-checked:border-[#ff6b00] peer-checked:bg-[#ff6b00]/10 hover:border-gray-300 transition-all h-full">
+                    <label class="cursor-pointer group relative">
+                        <input type="radio" name="time_coracao" value="Outro" class="absolute opacity-0 w-0 h-0 radio-dinamico" required>
+                        <div class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-transparent bg-white shadow-sm hover:border-gray-300 transition-all h-full">
                             <div class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 mb-2 group-hover:scale-110 transition-transform">
                                 <i class="bi bi-three-dots text-xl text-gray-400"></i>
                             </div>
-                            <span class="text-[9px] font-bold text-center text-gray-600 peer-checked:text-[#ff6b00]">Outro</span>
+                            <span class="text-[9px] font-bold text-center text-gray-600 transition-colors">Outro</span>
                         </div>
                     </label>
 
@@ -153,9 +169,9 @@
             <div class="grid grid-cols-2 gap-4 mb-4 overflow-y-auto no-scrollbar pb-10 fade-in-3" id="torcidas-grid" style="max-height: 45vh;">
                 
                 <label class="block relative h-full torcida-item">
-                    <input type="radio" name="time_coracao" value="{{ time.nome }}" class="peer absolute opacity-0 w-0 h-0" required>
+                    <input type="radio" name="torcida_id" value="neutro" class="absolute opacity-0 w-0 h-0 torcida-radio" {% if not torcida_pre %}checked{% endif %} required>
                     <div class="torcida-card p-5 flex flex-col items-center justify-center text-center h-full">
-                        <div class="w-14 h-14 bg-gray-50 border border-gray-200 rounded-full flex items-center justify-center mb-4 transition-all">
+                        <div class="icon-wrapper w-14 h-14 bg-gray-50 border border-gray-200 rounded-full flex items-center justify-center mb-4 transition-all">
                             <i class="bi bi-person-fill text-2xl text-gray-400"></i>
                         </div>
                         <h3 class="text-[11px] font-black text-gray-700 uppercase tracking-wide transition-colors">Público Geral</h3>
@@ -164,13 +180,14 @@
 
                 {% for torcida in torcidas %}
                     <label class="block relative h-full torcida-item">
-                        <input type="radio" name="time_coracao" value="{{ time.nome }}" class="peer absolute opacity-0 w-0 h-0" required>
+                        <input type="radio" name="torcida_id" value="{{ torcida.id }}" class="absolute opacity-0 w-0 h-0 torcida-radio" {% if torcida_pre and torcida_pre.id == torcida.id %}checked{% endif %} required>
+                        
                         <div class="torcida-card p-5 flex flex-col items-center justify-center text-center h-full">
                             {% if torcida.logo %}
                                 <img src="{{ torcida.logo.url }}" alt="{{ torcida.nome }}" class="w-14 h-14 object-contain mb-4 transition-all">
                             {% else %}
-                                <div class="w-14 h-14 bg-orange-50 border border-[#ff6b00] text-[#ff6b00] rounded-full flex items-center justify-center mb-4 font-black text-xl">
-                                    {{ torcida.nome|slice:":2" }}
+                                <div class="icon-wrapper w-14 h-14 bg-gray-50 border border-gray-200 text-gray-400 rounded-full flex items-center justify-center mb-4 font-black text-xl transition-all">
+                                    <i class="bi bi-shield-fill text-xl"></i>
                                 </div>
                             {% endif %}
                             <h3 class="text-[11px] font-black text-gray-700 uppercase tracking-wide transition-colors">{{ torcida.nome }}</h3>
@@ -179,8 +196,8 @@
                 {% endfor %}
             </div>
 
-            <div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-white via-white to-transparent z-[150] flex justify-center fade-in-4" style="display: flex !important;">
-                <button type="submit" class="w-full max-w-md bg-[#ff6b00] text-white font-black uppercase tracking-widest py-4 rounded-2xl shadow-[0_8px_20px_rgba(255,107,0,0.3)] hover:shadow-[0_12px_25px_rgba(255,107,0,0.4)] hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-3" style="font-family: 'Montserrat', sans-serif;">
+            <div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-white via-white to-transparent z-[150] flex justify-center fade-in-4">
+                <button type="submit" class="w-full max-w-md text-white font-black uppercase tracking-widest py-4 rounded-2xl shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-3" style="background-color: var(--tema-cor); font-family: 'Montserrat', sans-serif;">
                     Finalizar Cadastro <i class="bi bi-check-circle-fill text-xl"></i>
                 </button>
             </div>
@@ -189,7 +206,7 @@
 </div>
 
 <script>
-    // Filtro de pesquisa
+    // Filtro de pesquisa das Torcidas
     document.getElementById('searchTorcida').addEventListener('input', function(e) {
         const term = e.target.value.toLowerCase();
         document.querySelectorAll('.torcida-item').forEach(item => {

@@ -37,6 +37,9 @@ from organizadas.models import Comentario
 from accounts.models import Perfil
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
+from .decorators import torcida_required
+from .models import Perfil, Presenca, Conquista, Evento, CheckIn, PlanoSocio
+from .forms import CadastroForm, PerfilCompletoForm
 
 
 # 1. Ecrã para escolher a torcida ANTES de logar
@@ -104,10 +107,6 @@ def cadastro(request):
         
     return render(request, 'cadastro.html', {'form': form, 'torcida': torcida})
 
-
-# accounts/views.py
-
-# accounts/views.py
 @login_required
 def cadastro_etapa2(request):
     perfil = request.user.perfil
@@ -116,7 +115,13 @@ def cadastro_etapa2(request):
     if perfil.torcida and perfil.time_coracao:
         return redirect('dashboard')
 
-    # A LISTA DE ESCUDOS QUE TINHA SUMIDO
+    # ========= NOVIDADE: BUSCA A TORCIDA PRÉ-SELECIONADA =========
+    torcida_pre = None
+    if torcida_id_sessao:
+        torcida_pre = Torcida.objects.filter(id=torcida_id_sessao).first()
+    # ==============================================================
+
+    # A LISTA DE ESCUDOS QUE TINHA SUMIDO (Pode manter a sua lista completa)
     times_brasil = [
         {"nome": "Flamengo", "escudo": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Flamengo_braz_logo.svg"},
         {"nome": "Corinthians", "escudo": "https://upload.wikimedia.org/wikipedia/pt/b/b4/Corinthians_simbolo.png"},
@@ -172,7 +177,7 @@ def cadastro_etapa2(request):
     context = {
         'torcidas': torcidas,
         'times_brasil': times_brasil,
-        'tem_torcida_pre_selecionada': bool(torcida_id_sessao)
+        'torcida_pre': torcida_pre # <--- PASSAMOS A VARIÁVEL AQUI
     }
     return render(request, 'cadastro_etapa2.html', context)
 
@@ -294,26 +299,6 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 
-@login_required
-def carteirinha(request):
-    perfil = get_object_or_404(Perfil, user=request.user)
-    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
-    
-    # Geração do QR Code Único do Sócio
-    qr_data = f"SAT-MEMBER-{request.user.id}-{perfil.cpf}"
-    img = qrcode.make(qr_data)
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
-    
-    context = {
-        'perfil': perfil,
-        'perfil_game': perfil_game,
-        'qr_code': qr_base64,
-        'torcida': perfil.torcida,
-    }
-    
-    return render(request, 'carteirinha.html', context)
 
 # accounts/views.py
 import requests
@@ -388,27 +373,41 @@ def noticias(request):
 
     return render(request, 'noticias.html', {'noticias': lista_final})
 
+# accounts/views.py
+
+@login_required
 @login_required
 def seja_socio(request):
     perfil = request.user.perfil
     
-    # ======= NOVA REGRA AQUI =======
-    # Se o usuário já tiver uma torcida E estiver aprovado, redireciona para a área da torcida
-    if perfil.torcida and perfil.aprovado:
-        # ATENÇÃO: Substitua 'hub_torcida' pelo nome real da url da sua área da torcida 
-        # (ex: 'hub', 'dashboard_torcida', etc, conforme configurado no seu urls.py)
-        return redirect('hub_torcida')
-    # ===============================
+    # 1. Puxa os planos com base no status do usuário (REMOVIDO O ativo=True daqui)
+    if perfil.torcida:
+        planos = PlanoSocio.objects.filter(torcida=perfil.torcida).order_by('preco')
+    else:
+        planos = PlanoSocio.objects.filter(torcida__isnull=True).order_by('preco')
 
-    torcidas = Torcida.objects.all()
-    
-    times = [
-        "Flamengo", "Corinthians", "São Paulo", "Palmeiras", "Vasco", 
-        "Cruzeiro", "Grêmio", "Internacional", "Atlético-MG", "Botafogo", 
-        "Fluminense", "Santos", "Bahia", "Vitória", "Sport", "Santa Cruz", 
-        "Náutico", "Ceará", "Fortaleza", "Outro"
+    # 2. Lista de times com os links dos escudos
+    times_brasil = [
+        {"nome": "Flamengo", "escudo": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Flamengo_braz_logo.svg"},
+        {"nome": "Corinthians", "escudo": "https://upload.wikimedia.org/wikipedia/pt/b/b4/Corinthians_simbolo.png"},
+        {"nome": "São Paulo", "escudo": "https://upload.wikimedia.org/wikipedia/commons/2/2b/S%C3%A3o_Paulo_Futebol_Clube.svg"},
+        {"nome": "Palmeiras", "escudo": "https://upload.wikimedia.org/wikipedia/commons/1/10/Palmeiras_logo.svg"},
+        {"nome": "Vasco", "escudo": "https://upload.wikimedia.org/wikipedia/pt/a/ac/CRVascodaGama.png"},
+        {"nome": "Grêmio", "escudo": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Gr%C3%AAmio_Logo.svg"},
+        {"nome": "Internacional", "escudo": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Escudo_do_Sport_Club_Internacional.svg"},
+        {"nome": "Cruzeiro", "escudo": "https://upload.wikimedia.org/wikipedia/commons/9/90/Cruzeiro_Esporte_Clube_%28logo%29.svg"},
+        {"nome": "Atlético-MG", "escudo": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Atletico_mineiro_galo.png"},
+        {"nome": "Botafogo", "escudo": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Escudo_Botafogo.svg"},
+        {"nome": "Fluminense", "escudo": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Escudo_Fluminense_FC_2024.svg"},
+        {"nome": "Santos", "escudo": "https://upload.wikimedia.org/wikipedia/commons/1/15/Santos_Logo.png"},
+        {"nome": "Bahia", "escudo": "https://upload.wikimedia.org/wikipedia/pt/9/90/ECBahia.png"},
+        {"nome": "Sport", "escudo": "https://upload.wikimedia.org/wikipedia/pt/3/30/Sport_Club_do_Recife.png"},
+        {"nome": "Fortaleza", "escudo": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Fortaleza_Esporte_Clube_logo.svg"},
+        {"nome": "Ceará", "escudo": "https://upload.wikimedia.org/wikipedia/commons/3/38/Cear%C3%A1_Sporting_Club_logo.svg"},
+        {"nome": "Outro", "escudo": "https://placehold.co/100x100/1a1a1a/FFF?text=OUTRO"},
     ]
-    
+
+    # 3. Lógica de salvar a escolha
     if request.method == 'POST':
         time_coracao = request.POST.get('time_coracao')
         torcida_id = request.POST.get('torcida_id')
@@ -417,24 +416,28 @@ def seja_socio(request):
             perfil.time_coracao = time_coracao
             
         if torcida_id:
-            nova_torcida = Torcida.objects.get(id=torcida_id)
-            
-            if perfil.torcida != nova_torcida:
-                perfil.torcida = nova_torcida
-                perfil.aprovado = False # Fica pendente de aprovação
-                messages.success(request, f'Solicitação enviada para a torcida {nova_torcida.nome}. Aguarde a aprovação da diretoria.')
-        
+            if torcida_id == "neutro":
+                perfil.torcida = None
+                perfil.aprovado = False
+            else:
+                nova_torcida = Torcida.objects.get(id=torcida_id)
+                if perfil.torcida != nova_torcida:
+                    perfil.torcida = nova_torcida
+                    perfil.aprovado = False
+                    
         perfil.save()
-        messages.success(request, 'Suas preferências foram atualizadas com sucesso!')
-        return redirect('seja_socio') 
-        
+        messages.success(request, 'Preferências salvas com sucesso!')
+        return redirect('seja_socio')
+
+    torcidas = Torcida.objects.all()
+    
     context = {
         'perfil': perfil,
         'torcidas': torcidas,
-        'times': sorted(times), 
+        'times_brasil': times_brasil,
+        'planos': planos,
     }
     return render(request, 'seja_socio.html', context)
-
 # accounts/views.py
 
 @login_required
@@ -525,6 +528,7 @@ def socio_view(request):
     # Explica os planos e benefícios de ser sócio
     return render(request, 'seja_socio.html')
 
+@torcida_required
 @login_required
 def carteirinha(request):
     # 1. Busca o perfil básico do usuário (onde está a torcida)

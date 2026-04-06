@@ -47,8 +47,9 @@
 </head>
 <body class="fundo-app">
     
-    {% if user.is_authenticated and "/moderacao/" not in request.path %}
+   {% if user.is_authenticated and "/moderacao/" not in request.path %}
     <div class="fixed top-0 left-0 w-full fundo-card pt-6 shadow-md z-[90] border-b border-suave transition-colors duration-500">
+        
         <div class="flex justify-between items-center px-4 mb-4 relative min-h-[40px]">
             <button onclick="toggleSearch()" class="flex items-center gap-2 texto-main hover:opacity-70 transition-opacity relative z-10">
                 <i class="bi bi-search text-xl font-bold"></i>
@@ -75,9 +76,11 @@
         
         <div class="flex justify-between items-center w-full px-4">
             <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'dashboard' %}border-tema texto-tema font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-sm transition-all whitespace-nowrap">Seu time</a>
+            
             <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'mural' %}border-tema texto-tema font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-sm transition-all whitespace-nowrap">SAT social</a>
-            {% if request.user.perfil.torcida %}
-                <a href="{% if user.perfil.aprovado %}{% url 'hub_organizadas' %}{% else %}{% url 'seja_socio' %}{% endif %}" class="flex items-center gap-2 text-sm font-bold text-gray-800">
+            
+            {% if request.user.perfil.torcida and request.user.perfil.aprovado %}
+                <a href="{% url 'hub_organizadas' %}" class="flex items-center gap-2 text-sm font-bold text-gray-800">
                     <i class="bi bi-shield-fill text-dinamico"></i>
                     <span>{{ request.user.perfil.torcida.nome|default:"Torcida" }}</span>
                 </a>
@@ -89,6 +92,7 @@
             {% endif %}
         </div>
     </div>
+  
 
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden transition-opacity" onclick="toggleSidebar()"></div>
     <div id="satSidebar" class="fixed inset-y-0 left-0 w-72 fundo-card z-[101] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out border-r border-suave overflow-y-auto no-scrollbar">
@@ -139,14 +143,14 @@
             <i class="bi bi-cart3 text-2xl font-bold"></i>
             <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Loja</span>
         </a>
-        <a href="{% if user.perfil.torcida and user.perfil.aprovado %}{% url 'hub_organizadas' %}{% else %}{% url 'hub_socio' %}{% endif %}" class="flex flex-col items-center relative -top-7 w-[24%] group">
+        <a href="{% url 'seja_socio' %}" class="flex flex-col items-center relative -top-7 w-[24%] group">
             <div class="w-16 h-16 fundo-card rounded-full p-1.5 shadow-[0_-4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center border border-suave">
                 <div class="w-full h-full fundo-tema rounded-full flex items-center justify-center texto-claro shadow-inner group-hover:scale-105 transition-transform duration-300">
-                    <i class="bi {% if user.perfil.torcida and user.perfil.aprovado %}bi-shield-check{% else %}bi-gem{% endif %} text-2xl"></i>
+                    <i class="bi bi-gem text-2xl"></i>
                 </div>
             </div>
             <span class="text-[9px] font-black texto-tema uppercase tracking-wider mt-1">
-                {% if user.perfil.torcida and user.perfil.aprovado %} Torcida {% else %} Beneficios {% endif %}
+                Benefícios
             </span>
         </a>
         <a href="https://www.triodeferrosorteio.com/campanha/Porscheou300knoPIX" class="flex flex-col items-center gap-1 w-[18%] pb-2 transition-opacity {% if request.resolver_match.url_name == 'bet_manutencao' %}texto-tema{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">

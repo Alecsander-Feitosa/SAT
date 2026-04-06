@@ -1,7 +1,8 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-
+import os
+import dj_database_url
 
 
 load_dotenv()
@@ -11,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-chave-dev-123')
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -94,10 +95,10 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sat_core.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
+        conn_max_age=600
+    )
 }
 
 # --- Configuração da API REST ---
@@ -124,7 +125,7 @@ USE_TZ = True
 
 # --- Arquivos Estáticos (CSS/JS) ---
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # --- Arquivos de Mídia (Uploads de Notícias/Produtos/Avatar) ---
 MEDIA_URL = '/media/'

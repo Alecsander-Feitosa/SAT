@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Perfil, Evento, CheckIn, Conquista, Cancao, Aliada, Presenca
+from .models import Perfil, Evento, CheckIn, Conquista, Cancao, Aliada, Presenca, PlanoSocio
 
 @admin.register(Perfil)
 class PerfilAdmin(admin.ModelAdmin):
@@ -57,3 +57,14 @@ class AliadaAdmin(admin.ModelAdmin):
 @admin.register(Presenca)
 class PresencaAdmin(admin.ModelAdmin):
     list_display = ('user', 'evento', 'data_confirmacao')
+
+@admin.register(PlanoSocio)
+class PlanoSocioAdmin(admin.ModelAdmin):
+    # Quais colunas vão aparecer na lista do painel
+    list_display = ('nome', 'preco', 'torcida', 'destaque')
+    
+    # Adiciona um filtro lateral para achar planos por torcida
+    list_filter = ('torcida', 'destaque')
+    
+    # Adiciona uma barra de pesquisa
+    search_fields = ('nome', 'descricao', 'beneficios')
