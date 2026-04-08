@@ -12,11 +12,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-chave-dev-123')
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
+    'Jazzmin'
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

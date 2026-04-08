@@ -3,77 +3,66 @@
 
 {% block content %}
 <style>
-    /* O Segredo Mágico: Oculta a bolinha do radio e estiliza o cartão vizinho quando selecionado */
-    .radio-escondido { display: none; }
+    /* O SEGREDO PARA FUNCIONAR O POST: Esconder sem usar "display: none" */
+    .radio-escondido { 
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
     
+    /* Estilo do card quando selecionado */
     .radio-escondido:checked + label .cartao-opcao {
-        border-color: var(--cor-primaria);
-        background-color: rgba(150, 150, 150, 0.05);
-        box-shadow: 0 0 0 2px var(--cor-primaria) inset;
-        transform: scale(1.03);
+        border-color: var(--cor-primaria) !important;
+        background-color: rgba(211, 113, 41, 0.08) !important;
+        box-shadow: 0 0 0 2px var(--cor-primaria) inset !important;
+        transform: scale(1.05);
     }
     
     .radio-escondido:checked + label .check-icon {
         opacity: 1 !important;
         transform: scale(1) !important;
     }
-    
-    /* Barra de Scroll Invisível para os Times */
-    .scroll-suave::-webkit-scrollbar { display: none; }
-    .scroll-suave { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .cartao-opcao {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 2px solid transparent;
+    }
+
+    .scroll-custom::-webkit-scrollbar { display: none; }
 </style>
 
 <div class="w-full min-h-screen fundo-app flex flex-col pb-32">
     
     <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex justify-between items-center">
         <div class="flex items-center gap-4">
-            <a href="{% url 'dashboard' %}" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
-            <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">
-                SEJA <span class="texto-tema">SÓCIO</span>
-            </h1>
+            <a href="{% url 'dashboard' %}" class="texto-main text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
+            <h1 class="text-xl font-black italic uppercase texto-main">SEJA <span class="texto-tema">SÓCIO</span></h1>
         </div>
         <i class="bi bi-gem text-xl texto-tema"></i>
     </div>
 
-    <div class="px-5 pt-6 animate-fade-up">
+    <div class="px-5 pt-6">
         
         <div class="mb-10">
-            <div class="flex items-center gap-2 mb-4">
-                <i class="bi bi-star-fill text-dinamico"></i>
-                <h2 class="text-sm font-black texto-main uppercase tracking-widest leading-none mt-1">
-                    Planos {% if perfil.torcida %}{{ perfil.torcida.nome }}{% else %}SAT Oficiais{% endif %}
-                </h2>
-            </div>
-            
-            <div class="flex overflow-x-auto gap-4 pb-4 scroll-suave -mx-5 px-5">
+            <h2 class="text-xs font-black texto-main uppercase tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-star-fill texto-tema"></i> Planos Disponíveis
+            </h2>
+            <div class="flex overflow-x-auto gap-4 pb-4 scroll-custom -mx-5 px-5">
                 {% for plano in planos %}
-                <div class="shrink-0 w-[280px] fundo-card rounded-[30px] p-6 border {% if plano.destaque %}border-tema shadow-[0_5px_20px_-10px_var(--cor-primaria)]{% else %}border-suave shadow-sm{% endif %} relative transition-transform">
-                    
-                    {% if plano.destaque %}
-                    <span class="absolute top-4 right-4 fundo-tema texto-claro text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">Popular</span>
-                    {% endif %}
-
-                    <h3 class="text-lg font-black texto-main uppercase tracking-tighter mb-1">{{ plano.nome }}</h3>
-                    <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-widest mb-4">{{ plano.descricao|default:"Plano Sócio Torcedor" }}</p>
-                    
-                    <div class="flex items-baseline gap-1 mb-6 border-b border-suave pb-4">
-                        <span class="text-sm font-bold texto-main opacity-60">R$</span>
-                        <span class="text-3xl font-black texto-tema tracking-tighter">{{ plano.preco }}</span>
-                        <span class="text-[9px] font-bold texto-main opacity-40 uppercase">/mês</span>
+                <div class="shrink-0 w-[260px] fundo-card rounded-[25px] p-6 border {% if plano.destaque %}border-tema shadow-lg{% else %}border-suave{% endif %}">
+                    <h3 class="text-lg font-black texto-main uppercase mb-1">{{ plano.nome }}</h3>
+                    <div class="flex items-baseline gap-1 mb-4">
+                        <span class="text-2xl font-black texto-tema">R$ {{ plano.preco }}</span>
+                        <span class="text-[9px] opacity-40 uppercase">/mês</span>
                     </div>
-
                     <ul class="space-y-2 mb-6">
-                        {% for beneficio in plano.get_beneficios_lista %}
-                        <li class="flex items-start gap-2">
-                            <i class="bi bi-check2 texto-tema text-sm"></i>
-                            <span class="text-[10px] font-bold texto-main leading-tight opacity-80">{{ beneficio }}</span>
+                        {% for b in plano.get_beneficios_lista %}
+                        <li class="flex items-center gap-2 text-[10px] font-bold opacity-80">
+                            <i class="bi bi-check2 texto-tema"></i> {{ b }}
                         </li>
                         {% endfor %}
                     </ul>
-
-                    <a href="#" class="block w-full py-3.5 rounded-2xl text-center font-black uppercase tracking-widest text-[10px] transition-colors {% if plano.destaque %}fundo-tema texto-claro{% else %}bg-black/5 texto-main hover:bg-black/10{% endif %}">
-                        Assinar Plano
-                    </a>
+                    <button class="w-full py-3 rounded-xl fundo-tema texto-claro font-black uppercase text-[10px]">Assinar</button>
                 </div>
                 {% empty %}
                 <div class="w-full text-center py-8 fundo-card border border-suave rounded-[30px] opacity-70">
@@ -81,158 +70,135 @@
                     <h4 class="text-[10px] font-black texto-main uppercase tracking-widest">Planos em Breve</h4>
                 </div>
                 {% endfor %}
-                <div class="shrink-0 w-2"></div>
             </div>
         </div>
 
         <hr class="border-suave mb-8">
 
-        {% if perfil.torcida and perfil.aprovado %}
-            
-            <form method="POST" action="{% url 'seja_socio' %}" class="mb-8">
-                {% csrf_token %}
-                
-                <div class="mb-6 border border-suave rounded-[20px] overflow-hidden fundo-card shadow-sm">
-                    <details class="group">
-                        <summary class="flex items-center justify-between p-4 cursor-pointer list-none outline-none">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center border border-suave">
-                                    <i class="bi bi-shield-shaded texto-tema text-lg"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-xs font-black texto-main uppercase tracking-widest leading-none">
-                                        {% if perfil.time_coracao %}Meu Time: {{ perfil.time_coracao }}{% else %}Alterar Time do Coração{% endif %}
-                                    </h3>
-                                    <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Toque para ver os clubes</p>
-                                </div>
+        {% if perfil.torcida and not perfil.aprovado %}
+        <div class="mb-8 p-5 border-2 border-dashed border-yellow-500 bg-yellow-500/10 rounded-[20px] text-center animate-pulse">
+            <i class="bi bi-clock-history text-3xl text-yellow-600 mb-2 block"></i>
+            <h3 class="text-xs font-black text-yellow-700 uppercase tracking-widest">Aguardando Aprovação</h3>
+            <p class="text-[10px] font-bold texto-main opacity-80 uppercase mt-1">
+                A sua entrada na <b>{{ perfil.torcida.nome }}</b> está sendo analisada pela diretoria.
+            </p>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'seja_socio' %}">
+            {% csrf_token %}
+
+            <div class="mb-8 border border-suave rounded-[20px] overflow-hidden fundo-card shadow-sm">
+                <details class="group" id="menu-times">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer list-none outline-none">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center border border-suave">
+                                <i class="bi bi-heart-fill texto-tema text-lg"></i>
                             </div>
-                            <i class="bi bi-chevron-down texto-main opacity-50 transition-transform duration-300 group-open:rotate-180"></i>
-                        </summary>
-                        
-                        <div class="p-4 border-t border-suave bg-black/5">
-                            <div class="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto scroll-suave p-1">
-                                {% for time in times_brasil %}
-                                <div>
-                                    <input type="radio" name="time_coracao" id="time_aprovado_{{ time.nome }}" value="{{ time.nome }}" class="radio-escondido" {% if perfil.time_coracao == time.nome %}checked{% endif %}>
-                                    <label for="time_aprovado_{{ time.nome }}" class="cursor-pointer block h-full">
-                                        <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-2 flex flex-col items-center justify-center gap-2 h-24 transition-all relative">
-                                            <i class="bi bi-check-circle-fill texto-tema absolute top-1.5 right-1.5 text-xs opacity-0 transform scale-50 transition-all check-icon"></i>
-                                            <img src="{{ time.escudo }}" alt="{{ time.nome }}" class="h-10 w-10 object-contain">
-                                            <span class="text-[8px] font-black texto-main opacity-80 uppercase text-center w-full truncate">{{ time.nome }}</span>
-                                        </div>
-                                    </label>
-                                </div>
-                                {% endfor %}
+                            <div>
+                                <h3 class="text-xs font-black texto-main uppercase tracking-widest leading-none" id="texto-time-atual">
+                                    {% if perfil.time_coracao %}Meu Time: <span class="texto-tema">{{ perfil.time_coracao }}</span>{% else %}Escolher Time do Coração{% endif %}
+                                </h3>
+                                <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Toque para expandir a lista</p>
                             </div>
                         </div>
-                    </details>
-                </div>
-                
-                <button type="submit" class="w-full py-4 bg-black texto-claro rounded-full font-black uppercase text-xs tracking-widest shadow-lg hover:shadow-xl transition-all">
-                    Atualizar Clube
-                </button>
-            </form>
-
-            <div class="mt-12 text-center p-6 border border-red-500/20 bg-red-500/5 rounded-[30px] mb-8">
-                <h3 class="text-xs font-black text-red-500 uppercase tracking-widest mb-2">Zona de Perigo</h3>
-                <p class="text-[9px] font-bold texto-main opacity-60 uppercase tracking-widest mb-4">
-                    Ao sair da {{ perfil.torcida.nome }}, você perderá acesso ao Hub, aos eventos e à sua carteirinha premium. Esta ação exige nova aprovação se quiser voltar.
-                </p>
-                <form method="POST" action="{% url 'seja_socio' %}" onsubmit="return confirm('Tem certeza absoluta que deseja sair da sua torcida?');">
-                    {% csrf_token %}
-                    <input type="hidden" name="torcida_id" value="neutro">
-                    <button type="submit" class="w-full py-3 border border-red-500 text-red-500 rounded-full font-black uppercase text-xs tracking-widest hover:bg-red-500 hover:text-white transition-colors">
-                        Sair da Torcida
-                    </button>
-                </form>
+                        <i class="bi bi-chevron-down texto-main opacity-50 transition-transform duration-300 group-open:rotate-180"></i>
+                    </summary>
+                    
+                    <div class="p-4 border-t border-suave bg-black/5">
+                        <div class="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto scroll-custom p-1">
+                            {% for time in times_brasil %}
+                            <div>
+                                <input type="radio" name="time_coracao" id="time_{{ time.nome|slugify }}" value="{{ time.nome }}" class="radio-escondido" {% if perfil.time_coracao == time.nome %}checked{% endif %}>
+                                <label for="time_{{ time.nome|slugify }}" class="cursor-pointer block h-full">
+                                    <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-2 flex flex-col items-center justify-center h-24 relative">
+                                        <i class="bi bi-check-circle-fill texto-tema absolute top-1 right-1 text-xs opacity-0 check-icon"></i>
+                                        <img src="{{ time.escudo }}" alt="{{ time.nome }}" class="h-10 w-10 object-contain mb-1">
+                                        <span class="text-[8px] font-black uppercase truncate w-full text-center">{{ time.nome }}</span>
+                                    </div>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </details>
             </div>
 
-        {% else %}
-            
-            <form method="POST" action="{% url 'seja_socio' %}">
-                {% csrf_token %}
-                
-                <div class="mb-8 border border-suave rounded-[20px] overflow-hidden fundo-card shadow-sm">
-                    <details class="group">
-                        <summary class="flex items-center justify-between p-4 cursor-pointer list-none outline-none">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center border border-suave">
-                                    <i class="bi bi-shield-shaded texto-tema text-lg"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-xs font-black texto-main uppercase tracking-widest leading-none">
-                                        {% if perfil.time_coracao %}1. Meu Time: {{ perfil.time_coracao }}{% else %}1. Escolher Time do Coração{% endif %}
-                                    </h3>
-                                    <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Toque para expandir a lista</p>
-                                </div>
+            {% if not perfil.torcida or not perfil.aprovado %}
+            <div class="mb-10">
+                <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <i class="bi bi-shield-fill texto-tema"></i> 2. Vincular Torcida
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <input type="radio" name="torcida_id" id="tor_neutra" value="neutro" class="radio-escondido" {% if not perfil.torcida %}checked{% endif %}>
+                        <label for="tor_neutra" class="cursor-pointer block h-full">
+                            <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center h-28 text-center relative">
+                                <i class="bi bi-check-circle-fill texto-tema absolute top-2 right-2 text-sm opacity-0 check-icon"></i>
+                                <i class="bi bi-person-circle text-3xl mb-2 opacity-30"></i>
+                                <span class="text-[9px] font-black uppercase">Público Geral</span>
                             </div>
-                            <i class="bi bi-chevron-down texto-main opacity-50 transition-transform duration-300 group-open:rotate-180"></i>
-                        </summary>
-                        
-                        <div class="p-4 border-t border-suave bg-black/5">
-                            <div class="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto scroll-suave p-1">
-                                {% for time in times_brasil %}
-                                <div>
-                                    <input type="radio" name="time_coracao" id="time_{{ time.nome }}" value="{{ time.nome }}" class="radio-escondido" {% if perfil.time_coracao == time.nome %}checked{% endif %}>
-                                    <label for="time_{{ time.nome }}" class="cursor-pointer block h-full">
-                                        <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-2 flex flex-col items-center justify-center gap-2 h-24 transition-all relative">
-                                            <i class="bi bi-check-circle-fill texto-tema absolute top-1.5 right-1.5 text-xs opacity-0 transform scale-50 transition-all check-icon"></i>
-                                            <img src="{{ time.escudo }}" alt="{{ time.nome }}" class="h-10 w-10 object-contain">
-                                            <span class="text-[8px] font-black texto-main opacity-80 uppercase text-center w-full truncate">{{ time.nome }}</span>
-                                        </div>
-                                    </label>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </details>
-                </div>
-
-                <div class="mb-8">
-                    <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-4">
-                        2. Sua Torcida Organizada
-                    </h3>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <input type="radio" name="torcida_id" id="torcida_neutra" value="neutro" class="radio-escondido" {% if not perfil.torcida %}checked{% endif %}>
-                            <label for="torcida_neutra" class="cursor-pointer block h-full">
-                                <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center gap-2 h-28 transition-all relative">
-                                    <i class="bi bi-check-circle-fill texto-tema absolute top-2 right-2 text-sm opacity-0 transform scale-50 transition-all check-icon"></i>
-                                    <i class="bi bi-person-fill text-3xl texto-main opacity-20"></i>
-                                    <span class="text-[9px] font-black texto-main opacity-80 uppercase text-center">Sou Público Geral</span>
-                                </div>
-                            </label>
-                        </div>
-
-                        {% for torcida in torcidas %}
-                        <div>
-                            <input type="radio" name="torcida_id" id="torcida_{{ torcida.id }}" value="{{ torcida.id }}" class="radio-escondido" {% if perfil.torcida.id == torcida.id %}checked{% endif %}>
-                            <label for="torcida_{{ torcida.id }}" class="cursor-pointer block h-full">
-                                <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center gap-2 h-28 transition-all relative">
-                                    <i class="bi bi-check-circle-fill texto-tema absolute top-2 right-2 text-sm opacity-0 transform scale-50 transition-all check-icon"></i>
-                                    {% if torcida.logo %}
-                                        <img src="{{ torcida.logo.url }}" alt="{{ torcida.nome }}" class="h-12 w-12 object-contain filter drop-shadow-md">
-                                    {% else %}
-                                        <i class="bi bi-shield-fill text-3xl texto-main opacity-20"></i>
-                                    {% endif %}
-                                    <span class="text-[8px] font-black texto-main opacity-80 uppercase text-center w-full truncate">{{ torcida.sigla|default:torcida.nome }}</span>
-                                </div>
-                            </label>
-                        </div>
-                        {% endfor %}
+                        </label>
                     </div>
-                </div>
 
-                <button type="submit" class="w-full py-4 bg-black texto-claro rounded-full font-black uppercase text-xs tracking-widest shadow-lg hover:shadow-xl transition-all">
-                    Salvar Meu Perfil
-                </button>
-                <p class="text-center text-[9px] font-bold texto-main opacity-40 uppercase tracking-widest mt-4">
-                    Ao salvar uma torcida, a diretoria será notificada.
-                </p>
+                    {% for t in torcidas %}
+                    <div>
+                        <input type="radio" name="torcida_id" id="tor_{{ t.id }}" value="{{ t.id }}" class="radio-escondido" {% if perfil.torcida.id == t.id %}checked{% endif %}>
+                        <label for="tor_{{ t.id }}" class="cursor-pointer block h-full">
+                            <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center h-28 text-center relative">
+                                <i class="bi bi-check-circle-fill texto-tema absolute top-2 right-2 text-sm opacity-0 check-icon"></i>
+                                {% if t.logo %}
+                                    <img src="{{ t.logo.url }}" class="h-10 w-10 object-contain mb-2 drop-shadow-md">
+                                {% else %}
+                                    <i class="bi bi-shield-shaded text-3xl mb-2 opacity-30"></i>
+                                {% endif %}
+                                <span class="text-[9px] font-black uppercase truncate w-full">{{ t.nome }}</span>
+                            </div>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="w-full py-4 fundo-tema texto-claro rounded-full font-black uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all mb-4">
+                Salvar Alterações
+            </button>
+        </form>
+
+        {% if perfil.torcida and perfil.aprovado %}
+        <div class="mt-12 p-6 border-2 border-red-500/20 bg-red-500/5 rounded-[25px] text-center">
+            <h4 class="text-[10px] font-black text-red-500 uppercase mb-2">Sair da Torcida</h4>
+            <p class="text-[9px] font-bold opacity-60 uppercase mb-4">Você perderá acesso ao Hub exclusivo e à carteirinha de sócio.</p>
+            <form method="POST" action="{% url 'seja_socio' %}" onsubmit="return confirm('Sair da torcida agora?');">
+                {% csrf_token %}
+                <input type="hidden" name="torcida_id" value="neutro">
+                <button type="submit" class="w-full py-3 border border-red-500 text-red-500 rounded-xl text-[9px] font-black uppercase active:scale-95 transition-transform">Desvincular Agora</button>
             </form>
+        </div>
         {% endif %}
 
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const radiosTime = document.querySelectorAll('input[name="time_coracao"]');
+        const textoTimeAtual = document.getElementById('texto-time-atual');
+        const menuTimes = document.getElementById('menu-times');
+
+        radiosTime.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    // Atualiza o texto imediatamente
+                    textoTimeAtual.innerHTML = `Meu Time: <span class="texto-tema">${this.value}</span>`;
+                    // Fecha o menu retrátil suavemente
+                    if (menuTimes) {
+                        menuTimes.removeAttribute('open');
+                    }
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

@@ -16,7 +16,10 @@ urlpatterns = [
     path('ranking/', views.ranking_torcida, name='ranking'),
     path('eventos/', views.lista_eventos, name='lista_eventos'),
     path('accounts/', include('allauth.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
 
+# --- A MÁGICA DO CSS ACONTECE AQUI ---
+# Adicionamos tanto o MEDIA (fotos) quanto o STATIC (design/css)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

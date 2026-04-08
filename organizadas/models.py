@@ -30,7 +30,6 @@ class Torcida(models.Model):
 
 class Caravana(models.Model):
     torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='caravanas')
-    partida = models.ForeignKey(Partida, on_delete=models.CASCADE, verbose_name="Jogo Alvo")
     titulo = models.CharField(max_length=200, help_text="Ex: Invasão do Maracanã")
     
     saida_local = models.CharField("Local de Saída", max_length=200)

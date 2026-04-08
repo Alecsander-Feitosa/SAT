@@ -42,6 +42,7 @@ from .models import Perfil, Presenca, Conquista, Evento, CheckIn, PlanoSocio
 from .forms import CadastroForm, PerfilCompletoForm
 
 
+
 # 1. Ecrã para escolher a torcida ANTES de logar
 def escolher_torcida_publico(request):
     if request.user.is_authenticated:
@@ -110,18 +111,20 @@ def cadastro(request):
 @login_required
 def cadastro_etapa2(request):
     perfil = request.user.perfil
+    
+    # Pega o ID da torcida que foi salva lá no início (escolher-torcida)
     torcida_id_sessao = request.session.get('torcida_pre_selecionada')
     
+    # BUSCA A TORCIDA NO BANCO PARA MANDAR PRO HTML (Isto corrigirá o texto em branco!)
+    torcida_selecionada = None
+    if torcida_id_sessao:
+        from organizadas.models import Torcida
+        torcida_selecionada = Torcida.objects.filter(id=torcida_id_sessao).first()
+
+    # Se já tem tudo, vai pro dashboard
     if perfil.torcida and perfil.time_coracao:
         return redirect('dashboard')
 
-    # ========= NOVIDADE: BUSCA A TORCIDA PRÉ-SELECIONADA =========
-    torcida_pre = None
-    if torcida_id_sessao:
-        torcida_pre = Torcida.objects.filter(id=torcida_id_sessao).first()
-    # ==============================================================
-
-    # A LISTA DE ESCUDOS QUE TINHA SUMIDO (Pode manter a sua lista completa)
     times_brasil = [
         {"nome": "Flamengo", "escudo": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Flamengo_braz_logo.svg"},
         {"nome": "Corinthians", "escudo": "https://upload.wikimedia.org/wikipedia/pt/b/b4/Corinthians_simbolo.png"},
@@ -144,42 +147,36 @@ def cadastro_etapa2(request):
     ]
 
     if request.method == 'POST':
-        torcida_id_form = request.POST.get('torcida_id')
         data_nasc = request.POST.get('data_nascimento')
         time_coracao = request.POST.get('time_coracao')
-        
-        torcida_final_id = torcida_id_form if torcida_id_form else torcida_id_sessao
         
         if data_nasc:
             perfil.data_nascimento = data_nasc
         if time_coracao:
             perfil.time_coracao = time_coracao
 
-        if torcida_final_id and torcida_final_id != "neutro":
-            try:
-                torcida = Torcida.objects.get(id=torcida_final_id)
-                perfil.torcida = torcida
-                perfil.aprovado = False 
-                perfil.save()
+        # Como a torcida já foi escolhida na tela anterior, apenas salvamos ela aqui
+        if torcida_selecionada:
+            perfil.torcida = torcida_selecionada
+            perfil.aprovado = False 
+            perfil.save()
+            
+            # Limpa a sessão
+            if 'torcida_pre_selecionada' in request.session:
+                del request.session['torcida_pre_selecionada']
                 
-                if 'torcida_pre_selecionada' in request.session:
-                    del request.session['torcida_pre_selecionada']
-                    
-                messages.success(request, f"Pedido enviado! Aguarde a aprovação da {torcida.nome}.")
-                return redirect('dashboard')
-            except Torcida.DoesNotExist:
-                messages.error(request, "Torcida não encontrada.")
+            messages.success(request, f"Pedido enviado! Aguarde a aprovação da {torcida_selecionada.nome}.")
+            return redirect('dashboard')
         else:
             perfil.save()
             return redirect('dashboard')
 
-    torcidas = Torcida.objects.all()
     context = {
-        'torcidas': torcidas,
+        'torcida': torcida_selecionada,  # MANDA PARA O HTML PARA PERSONALIZAR
         'times_brasil': times_brasil,
-        'torcida_pre': torcida_pre # <--- PASSAMOS A VARIÁVEL AQUI
     }
     return render(request, 'cadastro_etapa2.html', context)
+
 
 # accounts/views.py
 class CadastroForm(forms.ModelForm):
@@ -376,15 +373,44 @@ def noticias(request):
 # accounts/views.py
 
 @login_required
-@login_required
 def seja_socio(request):
-    perfil = request.user.perfil
+    # Força a atualização do objeto perfil para evitar cache de estado antigo
+    perfil = get_object_or_404(Perfil, user=request.user)
     
-    # 1. Puxa os planos com base no status do usuário (REMOVIDO O ativo=True daqui)
+    if request.method == 'POST':
+        time_coracao = request.POST.get('time_coracao')
+        torcida_id = request.POST.get('torcida_id')
+        
+        # 1. Atualiza o Time do Coração
+        if time_coracao:
+            perfil.time_coracao = time_coracao
+            
+        # 2. Atualiza ou Vincula Torcida
+        if torcida_id:
+            if torcida_id == "neutro":
+                perfil.torcida = None
+                perfil.aprovado = False
+            else:
+                try:
+                    nova_torcida = Torcida.objects.get(id=torcida_id)
+                    # Se ele trocar de torcida ou entrar numa nova, volta para pendente
+                    if perfil.torcida != nova_torcida:
+                        perfil.torcida = nova_torcida
+                        perfil.aprovado = False
+                except (Torcida.DoesNotExist, ValueError):
+                    pass
+                    
+        perfil.save()
+        messages.success(request, 'Perfil e preferências atualizados com sucesso!')
+        return redirect('seja_socio')
+
+    # Busca planos e torcidas para o contexto
     if perfil.torcida:
         planos = PlanoSocio.objects.filter(torcida=perfil.torcida).order_by('preco')
     else:
         planos = PlanoSocio.objects.filter(torcida__isnull=True).order_by('preco')
+        
+    torcidas = Torcida.objects.all()
 
     # 2. Lista de times com os links dos escudos
     times_brasil = [
@@ -407,30 +433,6 @@ def seja_socio(request):
         {"nome": "Outro", "escudo": "https://placehold.co/100x100/1a1a1a/FFF?text=OUTRO"},
     ]
 
-    # 3. Lógica de salvar a escolha
-    if request.method == 'POST':
-        time_coracao = request.POST.get('time_coracao')
-        torcida_id = request.POST.get('torcida_id')
-        
-        if time_coracao:
-            perfil.time_coracao = time_coracao
-            
-        if torcida_id:
-            if torcida_id == "neutro":
-                perfil.torcida = None
-                perfil.aprovado = False
-            else:
-                nova_torcida = Torcida.objects.get(id=torcida_id)
-                if perfil.torcida != nova_torcida:
-                    perfil.torcida = nova_torcida
-                    perfil.aprovado = False
-                    
-        perfil.save()
-        messages.success(request, 'Preferências salvas com sucesso!')
-        return redirect('seja_socio')
-
-    torcidas = Torcida.objects.all()
-    
     context = {
         'perfil': perfil,
         'torcidas': torcidas,
@@ -438,7 +440,7 @@ def seja_socio(request):
         'planos': planos,
     }
     return render(request, 'seja_socio.html', context)
-# accounts/views.py
+
 
 @login_required
 def torcidas(request):
@@ -1053,3 +1055,39 @@ def seguranca(request):
             return redirect('perfil')
             
     return render(request, 'seguranca.html')
+
+
+
+def cadastro_etapa2_view(request):
+    # 1. Recupera o ID da torcida da sessão
+    torcida_id = request.session.get('torcida_selecionada_id')
+    
+    # Se o usuário caiu aqui de paraquedas sem escolher a torcida, manda ele voltar
+    if not torcida_id:
+        return redirect('escolher_torcida_url_name')
+        
+    # 2. Busca o objeto da Torcida
+    torcida = Torcida.objects.get(id=torcida_id)
+    
+    if request.method == 'POST':
+        form = CadastroEtapa2Form(request.POST)
+        if form.is_valid():
+            # Salva o perfil, associando também a torcida ao usuário
+            perfil = form.save(commit=False)
+            perfil.torcida = torcida # Associa a torcida aqui!
+            perfil.save()
+            
+            # Limpa a sessão após o uso (opcional, mas recomendado)
+            if 'torcida_selecionada_id' in request.session:
+                del request.session['torcida_selecionada_id']
+                
+            return redirect('dashboard') # Redireciona para o fim do fluxo
+    else:
+        form = CadastroEtapa2Form()
+
+    # 3. Envia a torcida para o template para personalizar a tela
+    context = {
+        'form': form,
+        'torcida': torcida
+    }
+    return render(request, 'cadastro_etapa2.html', context)
