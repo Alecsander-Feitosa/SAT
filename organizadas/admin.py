@@ -35,38 +35,29 @@ class ModeradorBaseAdmin(admin.ModelAdmin):
         return self.readonly_fields
 
 
+from django.contrib import admin
+from .models import Torcida, Evento, Noticia, Post, Parceiro, Publicidade
+
 @admin.register(Torcida)
-class TorcidaAdmin(ModeradorBaseAdmin):
-    list_display = ('nome', 'sigla', 'fundacao', 'cor_primaria')
-    search_fields = ('nome', 'sigla', 'lema') 
-    # Apagámos o prepopulated_fields fixo daqui e passámos para a função abaixo
+class TorcidaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'sigla', 'fundacao')
+    
+    # 1. Filtra a lista: o moderador só vê a sua própria claque
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+            return qs.filter(id=request.user.perfil.torcida.id)
+        return qs.none() # Se não tiver claque associada, não vê nada
 
-    fieldsets = (
-        ('Informações Básicas', {
-            'fields': ('nome', 'sigla', 'slug', 'fundacao', 'mascote', 'lema', 'historia')
-        }),
-        ('Identidade Visual (Moderador pode alterar)', {
-            'fields': ('logo', 'imagem_fundo')
-        }),
-        ('Personalização de Cores do App', {
-            'fields': ('cor_primaria', 'cor_secundaria', 'cor_terciaria', 'cor_fundo')
-        }),
-    )
+    # 2. Impede que o moderador crie novas claques (só o dono do sistema pode)
+    def has_add_permission(self, request):
+        return request.user.is_superuser
 
-    def get_readonly_fields(self, request, obj=None):
-        if not request.user.is_superuser:
-            # Moderador não pode alterar o nome da torcida, fundação, etc.
-            return ('nome', 'sigla', 'slug', 'fundacao')
-        return super().get_readonly_fields(request, obj)
-
-    def get_prepopulated_fields(self, request, obj=None):
-        # A MAGIA ESTÁ AQUI: 
-        # Desliga o preenchimento automático do slug se for o moderador
-        if not request.user.is_superuser:
-            return {}
-        # Se for o Administrador (Dono), funciona normalmente
-        return {'slug': ('nome',)}
-
+    # 3. Impede que o moderador apague a própria claque por engano
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
 @admin.register(Caravana)
 class CaravanaAdmin(ModeradorBaseAdmin):

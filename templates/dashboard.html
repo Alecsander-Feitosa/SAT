@@ -138,24 +138,27 @@
 
     <div class="w-full animate-fade delay-300">
         <div class="grid grid-cols-4 gap-3">
-            <a href="{% url 'lista_eventos' %}" class="flex flex-col items-center gap-2 group">
+            <a href="{% url 'bet_manutencao' %}" class="flex flex-col items-center gap-2 group">
                 <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
-                    <i class="bi bi-calendar-event text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
+                    <i class="bi bi-dice-5 text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
                 </div>
-                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Eventos</span>
+                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Bet</span>
             </a>
+            
+            <a href="{% url 'beneficios' %}" class="flex flex-col items-center gap-2 group">
+                <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
+                    <i class="bi bi-star text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
+                </div>
+                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Benefícios</span>
+            </a>
+
             <a href="{% url 'loja' %}" class="flex flex-col items-center gap-2 group">
                 <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
                     <i class="bi bi-cart3 text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
                 </div>
                 <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Loja</span>
             </a>
-            <a href="{% url 'mural' %}" class="flex flex-col items-center gap-2 group">
-                <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
-                    <i class="bi bi-chat-square-text text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
-                </div>
-                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Mural</span>
-            </a>
+
             <a href="{% url 'noticias' %}" class="flex flex-col items-center gap-2 group">
                 <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
                     <i class="bi bi-newspaper text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>

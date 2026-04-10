@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView  # 1. ADICIONADO AQUI: Importação para rotas visuais rápidas
 from gamification import views
 
 urlpatterns = [
@@ -15,6 +16,12 @@ urlpatterns = [
     
     path('ranking/', views.ranking_torcida, name='ranking'),
     path('eventos/', views.lista_eventos, name='lista_eventos'),
+    
+    # 2. ADICIONADO AQUI: A rota para a área financeira
+    path('financeiro/', TemplateView.as_view(template_name='financeiro.html'), name='financeiro'),
+    
+    path('admin-financeiro/', TemplateView.as_view(template_name='admin_financeiro.html'), name='admin_financeiro'),
+
     path('accounts/', include('allauth.urls')),
 ]
 

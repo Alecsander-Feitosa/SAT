@@ -1,39 +1,67 @@
 from django.contrib import admin
 from .models import Perfil, Evento, CheckIn, Conquista, Cancao, Aliada, Presenca, PlanoSocio
 
+
+
 @admin.register(Perfil)
 class PerfilAdmin(admin.ModelAdmin):
-    list_display = ('user', 'cpf', 'vulgo', 'torcida', 'aprovado')
-    list_filter = ('aprovado',) # Tiramos o filtro de torcida, pois o moderador só vê a dele
-    search_fields = ('user__username', 'cpf', 'vulgo')
-    list_editable = ('aprovado',) # Permite aprovar com 1 clique na lista!
+    list_display = ('user', 'torcida', 'aprovado', 'time_coracao')
+    list_filter = ('aprovado',)
+    search_fields = ('user__username', 'user__first_name', 'cpf')
 
+    # 1. Oculta todos os perfis de outras claques da tabela
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        # Se for o dono do sistema (Superuser), vê toda a gente
         if request.user.is_superuser:
             return qs
-        
-        # Se for o Moderador, filtra APENAS pelos membros da torcida dele
         if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+            # Mostra apenas membros que pertençam à mesma claque do moderador
             return qs.filter(torcida=request.user.perfil.torcida)
-        
         return qs.none()
-    
-def get_readonly_fields(self, request, obj=None):
-        # O Moderador não deve conseguir alterar o CPF ou o User de outra pessoa, apenas aprovar e gerir o perfil.
+
+    # 2. Bloqueia os menus de seleção (Dropdowns) de chaves estrangeiras (Foreign Keys)
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if not request.user.is_superuser:
-            return ('user', 'cpf', 'data_nascimento', 'rg_cnh', 'torcida')
-        return super().get_readonly_fields(request, obj)
+            # Se o campo for "torcida", ele só pode escolher a própria claque
+            if db_field.name == "torcida":
+                if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+                    kwargs["queryset"] = db_field.related_model.objects.filter(
+                        id=request.user.perfil.torcida.id
+                    )
+                else:
+                    kwargs["queryset"] = db_field.related_model.objects.none()
+                    
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    # 3. Opcional: Impedir que o moderador edite os seus próprios privilégios
+    def has_change_permission(self, request, obj=None):
+        # Se for o próprio perfil do moderador, podes bloquear ou permitir. 
+        # Normalmente permitimos.
+        return super().has_change_permission(request, obj)
 
 
 
 @admin.register(Evento)
 class EventoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'data', 'local', 'torcida', 'ativo')
-    list_filter = ('ativo', 'torcida')
-    search_fields = ('nome', 'local')
-    list_editable = ('ativo',)
+    # O moderador só vê os eventos da sua claque
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+            return qs.filter(torcida=request.user.perfil.torcida)
+        return qs.none()
+
+    # Obriga o evento a ficar preso à claque do moderador
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if not request.user.is_superuser and db_field.name == "torcida":
+            if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+                kwargs["queryset"] = db_field.related_model.objects.filter(
+                    id=request.user.perfil.torcida.id
+                )
+            else:
+                kwargs["queryset"] = db_field.related_model.objects.none()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 @admin.register(CheckIn)
 class CheckInAdmin(admin.ModelAdmin):

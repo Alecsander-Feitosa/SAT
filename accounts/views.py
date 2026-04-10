@@ -726,36 +726,45 @@ def games_hub(request):
 def moderacao_torcida(request):
     perfil_moderador = request.user.perfil
     
-    # Segurança: Apenas quem tem torcida e é da equipe (is_staff) pode moderar
+    # Segurança: Apenas quem tem torcida e é da equipa (is_staff) pode moderar
     if not request.user.is_staff or not perfil_moderador.torcida:
-        messages.error(request, "Você não tem permissão para moderar.")
+        messages.error(request, "Não tem permissão para moderar.")
         return redirect('dashboard')
         
-    # Filtra apenas pendentes que pertencem à MESMA torcida do moderador
+    # FILTRO MÁGICO: Filtra apenas pendentes da MESMA claque do moderador
     pendentes = Perfil.objects.filter(
         torcida=perfil_moderador.torcida, 
         aprovado=False
-    ).exclude(user=request.user) # Não auto-aprovar
+    ).exclude(user=request.user)
     
-    return render(request, 'moderacao.html', {
+    # Dados para os contadores do Cartão de Moderador
+    context = {
         'pendentes': pendentes,
-        'torcida': perfil_moderador.torcida
-    })
+        'membros_pendentes': pendentes.count(),
+        'torcida': perfil_moderador.torcida,
+        'membros_ativos': Perfil.objects.filter(torcida=perfil_moderador.torcida, aprovado=True).count(),
+        'eventos': Evento.objects.filter(torcida=perfil_moderador.torcida),
+        'parceiros': Parceiro.objects.filter(torcida=perfil_moderador.torcida),
+        'publicidades': Publicidade.objects.filter(torcida=perfil_moderador.torcida, ativo=True),
+    }
+    
+    return render(request, 'moderacao.html', context)
 
 @login_required
 def aprovar_membro(request, perfil_id):
     if not request.user.is_staff:
         return redirect('dashboard')
+    
     perfil_moderador = request.user.perfil
     perfil_alvo = get_object_or_404(Perfil, id=perfil_id)
     
-    # Validação de segurança em nível de banco de dados
-    if request.user.is_staff and perfil_alvo.torcida == perfil_moderador.torcida:
+    # Validação de segurança: claque do alvo deve ser igual à do moderador
+    if perfil_alvo.torcida == perfil_moderador.torcida:
         perfil_alvo.aprovado = True
         perfil_alvo.save()
         messages.success(request, f"O torcedor {perfil_alvo.user.username} foi aprovado!")
     else:
-        messages.error(request, "Ação não permitida.")
+        messages.error(request, "Ação não permitida: Este utilizador pertence a outra claque.")
         
     return redirect('moderacao_torcida')
 

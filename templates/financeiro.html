@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Injetamos a cor primária da Torcida do utilizador como variável CSS */
+    :root {
+        --cor-primaria: {% if user.perfil.torcida and user.perfil.torcida.cor_primaria %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %};
+    }
+    
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .snap-x-mandatory { scroll-snap-type: x mandatory; }
+    .snap-center-item { scroll-snap-align: center; }
+    
+    .bg-dinamico { background-color: var(--cor-primaria) !important; }
+    .text-dinamico { color: var(--cor-primaria) !important; }
+    .border-dinamico { border-color: var(--cor-primaria) !important; }
+</style>
+
+<div class="w-full min-h-screen fundo-app px-5 pt-8 pb-32">
+    
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-black italic texto-main" style="font-family: 'Montserrat', sans-serif;">
+                {% if user.perfil.torcida %}
+                    {{ user.perfil.torcida.sigla|default:user.perfil.torcida.nome|truncatechars:10 }} <span class="text-dinamico">PAY</span>
+                {% else %}
+                    SAT <span class="text-dinamico">PAY</span>
+                {% endif %}
+            </h1>
+            <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Sua Central Financeira</p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            {% if user.perfil.torcida and user.perfil.torcida.logo %}
+            <div class="w-10 h-10 rounded-full border border-suave flex items-center justify-center shadow-sm overflow-hidden bg-white">
+                <img src="{{ user.perfil.torcida.logo.url }}" class="w-full h-full object-contain p-1">
+            </div>
+            {% endif %}
+            
+            <div class="w-10 h-10 fundo-card rounded-full border border-suave flex items-center justify-center shadow-sm relative">
+                <i class="bi bi-bell-fill texto-main opacity-60"></i>
+                <span class="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#1A1C1E]"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full relative rounded-3xl p-6 overflow-hidden shadow-2xl mb-8" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%);">
+        <div class="absolute -right-10 -top-10 w-40 h-40 bg-dinamico opacity-20 blur-[40px] rounded-full pointer-events-none"></div>
+        
+        <div class="relative z-10 flex justify-between items-start mb-6">
+            <div>
+                <p class="text-[9px] text-white/50 font-black uppercase tracking-widest mb-1">Status da Associação</p>
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_10px_rgba(234,179,8,0.5)]"></div>
+                    <h2 class="text-xl font-black text-white uppercase italic tracking-tight">PAGAMENTO PENDENTE</h2>
+                </div>
+            </div>
+            <i class="bi bi-shield-check text-3xl text-white/20"></i>
+        </div>
+
+        <div class="relative z-10 bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-[10px] text-white/50 font-medium mb-1">Plano Atual</p>
+                    <p class="text-sm font-bold text-white uppercase">Sócio Ouro</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] text-white/50 font-medium mb-1">Valor Mensal</p>
+                    <p class="text-sm font-black text-white">R$ 29,90</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full bg-red-500/10 border border-red-500/20 rounded-3xl p-5 mb-8 flex flex-col items-center text-center">
+        <i class="bi bi-exclamation-circle-fill text-red-500 text-3xl mb-2"></i>
+        <h3 class="text-red-500 font-bold text-sm uppercase mb-1">Mensalidade Atrasada</h3>
+        <p class="text-xs texto-main opacity-70 mb-4">Sua fatura de Março venceu dia 10. Evite o bloqueio da sua carteirinha.</p>
+        <button class="w-full bg-red-500 text-white font-black uppercase tracking-widest py-3.5 rounded-2xl text-xs shadow-lg shadow-red-500/30 transition-transform active:scale-95 flex justify-center items-center gap-2">
+            <i class="bi bi-qr-code-scan"></i> Pagar com PIX Agora
+        </button>
+    </div>
+
+    <div class="mb-8">
+        <div class="flex justify-between items-end mb-4">
+            <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest">Histórico de Mensalidades</h3>
+            <a href="#" class="text-[10px] font-black text-dinamico uppercase tracking-wider hover:underline">Ver tudo</a>
+        </div>
+
+        <div class="space-y-3">
+            <div class="w-full fundo-card border border-red-500/30 rounded-[20px] p-4 flex justify-between items-center shadow-sm">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold texto-main leading-none mb-1">Março / 2026</h4>
+                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider">Venceu em 10/03</p>
+                    </div>
+                </div>
+                <div class="text-right flex flex-col items-end">
+                    <span class="text-sm font-black texto-main mb-1">R$ 29,90</span>
+                    <span class="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase tracking-widest">Pendente</span>
+                </div>
+            </div>
+
+            <div class="w-full fundo-card border border-suave rounded-[20px] p-4 flex justify-between items-center shadow-sm opacity-70">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold texto-main leading-none mb-1">Fevereiro / 2026</h4>
+                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider">Pago via PIX</p>
+                    </div>
+                </div>
+                <div class="text-right flex flex-col items-end">
+                    <span class="text-sm font-black texto-main mb-1">R$ 29,90</span>
+                    <span class="bg-green-500/20 text-green-600 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Pago</span>
+                </div>
+            </div>
+
+            <div class="w-full fundo-card border border-suave rounded-[20px] p-4 flex justify-between items-center shadow-sm opacity-70">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold texto-main leading-none mb-1">Janeiro / 2026</h4>
+                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider">Pago via Cartão</p>
+                    </div>
+                </div>
+                <div class="text-right flex flex-col items-end">
+                    <span class="text-sm font-black texto-main mb-1">R$ 29,90</span>
+                    <span class="bg-green-500/20 text-green-600 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Pago</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest mb-4">Evolua seu Plano</h3>
+        
+        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
+            <div class="snap-center-item shrink-0 w-[85%] max-w-[300px] fundo-card border border-dinamico rounded-3xl p-6 shadow-lg relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-dinamico text-white text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-bl-xl shadow-md">Recomendado</div>
+                
+                <h4 class="text-xl font-black texto-main italic uppercase mb-1">Diamante VIP</h4>
+                <div class="flex items-end gap-1 mb-4">
+                    <span class="text-2xl font-black text-dinamico leading-none">R$ 49</span>
+                    <span class="text-sm font-bold text-dinamico leading-none">,90</span>
+                    <span class="text-[10px] texto-main opacity-50 font-bold uppercase ml-1 pb-1">/mês</span>
+                </div>
+
+                <ul class="space-y-2 mb-6">
+                    <li class="flex items-center gap-2 text-xs font-medium texto-main opacity-80">
+                        <i class="bi bi-check-circle-fill text-green-500"></i> Carteirinha Física Inclusa
+                    </li>
+                    <li class="flex items-center gap-2 text-xs font-medium texto-main opacity-80">
+                        <i class="bi bi-check-circle-fill text-green-500"></i> 20% desconto na Loja
+                    </li>
+                    <li class="flex items-center gap-2 text-xs font-medium texto-main opacity-80">
+                        <i class="bi bi-check-circle-fill text-green-500"></i> Acesso VIP aos Eventos
+                    </li>
+                </ul>
+
+                <button class="w-full bg-dinamico text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl shadow-md transition-transform active:scale-95">
+                    Fazer Upgrade
+                </button>
+            </div>
+
+            <div class="snap-center-item shrink-0 w-[85%] max-w-[300px] fundo-card border border-suave rounded-3xl p-6 shadow-sm">
+                <h4 class="text-xl font-black texto-main italic uppercase mb-1">Sócio Prata</h4>
+                <div class="flex items-end gap-1 mb-4">
+                    <span class="text-2xl font-black texto-main leading-none">R$ 19</span>
+                    <span class="text-sm font-bold texto-main leading-none">,90</span>
+                    <span class="text-[10px] texto-main opacity-50 font-bold uppercase ml-1 pb-1">/mês</span>
+                </div>
+
+                <ul class="space-y-2 mb-6">
+                    <li class="flex items-center gap-2 text-xs font-medium texto-main opacity-80">
+                        <i class="bi bi-check-circle-fill text-green-500"></i> Carteirinha Digital
+                    </li>
+                    <li class="flex items-center gap-2 text-xs font-medium texto-main opacity-80">
+                        <i class="bi bi-check-circle-fill text-green-500"></i> 5% desconto na Loja
+                    </li>
+                    <li class="flex items-center gap-2 text-xs font-medium texto-main opacity-80">
+                        <i class="bi bi-x-circle-fill text-red-400"></i> Sem acesso VIP
+                    </li>
+                </ul>
+
+                <button class="w-full bg-black/5 dark:bg-white/5 border border-suave texto-main text-xs font-black uppercase tracking-widest py-3 rounded-xl transition-transform active:scale-95">
+                    Ver detalhes
+                </button>
+            </div>
+            
+            <div class="shrink-0 w-2"></div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

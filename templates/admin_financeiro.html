@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --cor-primaria: {% if user.perfil.torcida and user.perfil.torcida.cor_primaria %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %};
+    }
+    .bg-dinamico { background-color: var(--cor-primaria) !important; }
+    .text-dinamico { color: var(--cor-primaria) !important; }
+    .border-dinamico { border-color: var(--cor-primaria) !important; }
+</style>
+
+<div class="w-full min-h-screen fundo-app px-5 pt-8 pb-32">
+    
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-3">
+            <a href="javascript:history.back()" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main shadow-sm border border-suave transition-transform hover:scale-105">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-black italic texto-main" style="font-family: 'Montserrat', sans-serif;">
+                    GESTÃO <span class="text-dinamico">FINANCEIRA</span>
+                </h1>
+                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Visão Geral do Clube</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-8">
+        <div class="fundo-card border border-suave rounded-3xl p-5 shadow-sm">
+            <div class="w-8 h-8 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center mb-3">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mb-1">Receita Mensal</p>
+            <h3 class="text-xl font-black texto-main">R$ 2.450<span class="text-sm">,00</span></h3>
+            <p class="text-[8px] text-green-500 font-bold mt-1">+15% este mês</p>
+        </div>
+
+        <div class="fundo-card border border-red-500/30 rounded-3xl p-5 shadow-sm">
+            <div class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-3">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mb-1">Inadimplentes</p>
+            <h3 class="text-xl font-black texto-main">12 <span class="text-xs font-medium opacity-50">sócios</span></h3>
+            <p class="text-[8px] text-red-500 font-bold mt-1">R$ 358,80 a receber</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-8">
+        <a href="#" class="bg-dinamico text-white rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-md active:scale-95 transition-transform">
+            <i class="bi bi-plus-circle text-2xl mb-2"></i>
+            <span class="text-[10px] font-black uppercase tracking-widest">Novo Plano</span>
+        </a>
+        <a href="#" class="fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm active:scale-95 transition-transform">
+            <i class="bi bi-file-earmark-spreadsheet texto-main text-2xl mb-2 opacity-70"></i>
+            <span class="text-[10px] font-black texto-main opacity-70 uppercase tracking-widest">Exportar Relatório</span>
+        </a>
+    </div>
+
+    <div class="mb-8">
+        <div class="flex justify-between items-end mb-4">
+            <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest">Atrasos (Ação Necessária)</h3>
+        </div>
+
+        <div class="space-y-3">
+            <div class="w-full fundo-card border border-red-500/20 rounded-[20px] p-4 flex justify-between items-center shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-black/5 overflow-hidden">
+                        <i class="bi bi-person-fill text-2xl texto-main opacity-20 relative top-1 left-2"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold texto-main leading-none mb-1">Matteo Silva</h4>
+                        <p class="text-[9px] text-red-500 font-bold uppercase tracking-wider">Atrasado: 15 dias</p>
+                    </div>
+                </div>
+                <a href="https://wa.me/5500000000000" target="_blank" class="w-8 h-8 rounded-full bg-green-500/20 text-green-600 flex items-center justify-center">
+                    <i class="bi bi-whatsapp"></i>
+                </a>
+            </div>
+            
+            <div class="w-full fundo-card border border-red-500/20 rounded-[20px] p-4 flex justify-between items-center shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-black/5 overflow-hidden">
+                        <i class="bi bi-person-fill text-2xl texto-main opacity-20 relative top-1 left-2"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold texto-main leading-none mb-1">João Ferreira</h4>
+                        <p class="text-[9px] text-red-500 font-bold uppercase tracking-wider">Atrasado: 5 dias</p>
+                    </div>
+                </div>
+                <a href="https://wa.me/5500000000000" target="_blank" class="w-8 h-8 rounded-full bg-green-500/20 text-green-600 flex items-center justify-center">
+                    <i class="bi bi-whatsapp"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest mb-4">Últimos Pagamentos (Hoje)</h3>
+        
+        <div class="space-y-3">
+            <div class="w-full fundo-card border border-suave rounded-[20px] p-4 flex justify-between items-center shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold texto-main leading-none mb-1">Carlos Eduardo</h4>
+                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider">Sócio Ouro • PIX</p>
+                    </div>
+                </div>
+                <span class="text-sm font-black text-green-500">+ R$ 29,90</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

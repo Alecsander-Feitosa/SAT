@@ -4,24 +4,31 @@
 {% block content %}
 <style>
     .hero-card { position: relative; height: 380px; border-radius: 30px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
-    .hero-overlay { position: absolute; bottom: 0; padding: 25px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%); width: 100%; }
-    .news-item { background: white; border-radius: 20px; padding: 12px; display: flex; gap: 15px; align-items: center; border: 1px solid rgba(0,0,0,0.05); }
+    .hero-overlay { position: absolute; bottom: 0; padding: 25px; background: linear-gradient(0deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%); width: 100%; }
+    /* Removido o background fixo para usar o fundo-card e border-suave do seu CSS global */
+    .news-item { border-radius: 20px; padding: 12px; display: flex; gap: 15px; align-items: center; }
     .img-box { width: 90px; height: 90px; border-radius: 15px; overflow: hidden; flex-shrink: 0; }
 </style>
 
-<div class="bg-[#F8F9FB] min-h-screen pb-32 px-6">
+<div class="fundo-app w-full min-h-screen pb-32 px-6">
     <div class="pt-8 pb-6">
-        <h1 class="text-3xl font-black italic text-[#1A1C1E]">SAT <span class="text-[#D37129]">NEWS</span></h1>
+        <h1 class="text-3xl font-black italic texto-main">SAT <span style="color: var(--cor-primaria, #D37129);">NEWS</span></h1>
     </div>
 
     {% if noticias %}
         {% with d=noticias|first %}
-        <a href="{{ d.url }}" target="_blank" class="no-underline block mb-8">
-            <div class="hero-card">
-                <img src="{{ d.image }}" class="w-full h-full object-cover">
+        <a href="{{ d.url }}" target="_blank" class="no-underline block mb-8 transition-transform hover:scale-[1.02]">
+            <div class="hero-card border border-suave fundo-card">
+                {% if d.image %}
+                    <img src="{{ d.image }}" class="w-full h-full object-cover">
+                {% else %}
+                    <div class="w-full h-full bg-gray-900 flex items-center justify-center">
+                        <i class="bi bi-image text-4xl text-white/30"></i>
+                    </div>
+                {% endif %}
                 <div class="hero-overlay">
-                    <span class="bg-[#D37129] text-[#1A1A1A] text-[9px] font-black px-3 py-1 rounded-full uppercase mb-2 inline-block">Destaque</span>
-                    <h2 class="text-[#1A1A1A] text-xl font-bold uppercase italic leading-tight">{{ d.title }}</h2>
+                    <span class="text-white text-[9px] font-black px-3 py-1 rounded-full uppercase mb-2 inline-block shadow-md" style="background-color: var(--cor-primaria, #D37129);">Destaque</span>
+                    <h2 class="text-white text-xl font-bold uppercase italic leading-tight drop-shadow-md">{{ d.title }}</h2>
                 </div>
             </div>
         </a>
@@ -29,16 +36,25 @@
 
         <div class="space-y-4">
             {% for n in noticias|slice:"1:" %}
-            <a href="{{ n.url }}" target="_blank" class="no-underline block news-item shadow-sm">
-                <div class="img-box">
-                    <img src="{{ n.image }}" class="w-full h-full object-cover">
+            <a href="{{ n.url }}" target="_blank" class="no-underline block news-item fundo-card border border-suave shadow-sm transition-transform hover:scale-[1.02]">
+                <div class="img-box bg-black/5 border border-suave flex items-center justify-center">
+                    {% if n.image %}
+                        <img src="{{ n.image }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <i class="bi bi-newspaper text-2xl texto-main opacity-20"></i>
+                    {% endif %}
                 </div>
                 <div class="flex-grow">
-                    <span class="text-[9px] font-black text-[#D37129] uppercase">{{ n.source }}</span>
-                    <h4 class="text-[#1A1C1E] text-sm font-bold leading-tight uppercase italic line-clamp-2 mt-1">{{ n.title }}</h4>
+                    <span class="text-[9px] font-black uppercase" style="color: var(--cor-primaria, #D37129);">{{ n.source|default:"Giro do Futebol" }}</span>
+                    <h4 class="texto-main text-sm font-bold leading-tight uppercase italic line-clamp-2 mt-1">{{ n.title }}</h4>
                 </div>
             </a>
             {% endfor %}
+        </div>
+    {% else %}
+        <div class="w-full flex flex-col items-center justify-center py-20 opacity-50">
+            <i class="bi bi-newspaper text-6xl texto-main mb-4"></i>
+            <p class="texto-main font-bold uppercase tracking-widest text-xs">Nenhuma notícia no momento</p>
         </div>
     {% endif %}
 </div>
