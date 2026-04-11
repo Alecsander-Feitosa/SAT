@@ -78,6 +78,7 @@ def viagens_view(request):
 
 
 # accounts/views.py
+# accounts/views.py
 
 def cadastro(request):
     # Identifica se o utilizador veio de uma torcida específica (Sessão)
@@ -92,13 +93,27 @@ def cadastro(request):
                 messages.error(request, "As senhas não coincidem.")
                 return render(request, 'cadastro.html', {'form': form, 'torcida': torcida})
 
+            # 1. Cria o utilizador e o perfil base
             user = form.save()
+            perfil = user.perfil
             
-            # ATUALIZAÇÃO: Já não vinculamos a torcida aqui, deixamos isso para a Etapa 2!
+            # 2. SOLICITAÇÃO AUTOMÁTICA DA TORCIDA AQUI
+            if torcida:
+                perfil.torcida = torcida
+                perfil.aprovado = False 
+                perfil.save()
+                
+                # Limpa a sessão pois já não precisamos
+                if 'torcida_pre_selecionada' in request.session:
+                    del request.session['torcida_pre_selecionada']
+                    
+                messages.success(request, f"Conta criada! Solicitação enviada para a aprovação da {torcida.nome}.")
+            
+            # 3. Faz o login automático
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             
-            # TODOS vão obrigatoriamente para a etapa 2 agora
-            return redirect('cadastro_etapa2') 
+            # 4. Vai direto para o Dashboard (Eliminamos a Etapa 2 para quem já vem da torcida!)
+            return redirect('dashboard') 
         else:
             # Se cair aqui, o e-mail já existe ou falta algo
             print("ERROS DO FORMULÁRIO:", form.errors)

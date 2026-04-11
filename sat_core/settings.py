@@ -22,7 +22,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
     
     # 1. ESTE APP NATIVO É OBRIGATÓRIO PARA O ALLAUTH
     'django.contrib.sites', 
@@ -124,13 +126,18 @@ TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
-# --- Arquivos Estáticos (CSS/JS) ---
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATIC_URL = '/static/'
+
+# Diz ao Django onde estão os teus ficheiros de desenvolvimento
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+# Diz ao Django para onde enviar os ficheiros quando fazes o deploy no Render
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Ativa a compressão e o cache do WhiteNoise (opcional mas muito recomendado)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # --- Arquivos de Mídia (Uploads de Notícias/Produtos/Avatar) ---
