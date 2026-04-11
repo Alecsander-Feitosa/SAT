@@ -22,9 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',
     'django.contrib.staticfiles',
-    'cloudinary',
     
     # 1. ESTE APP NATIVO É OBRIGATÓRIO PARA O ALLAUTH
     'django.contrib.sites', 
