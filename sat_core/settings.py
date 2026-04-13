@@ -15,6 +15,9 @@ DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = ['*']
 
+# --- NOVO: Obrigatório para o Render permitir logins e formulários via HTTPS ---
+CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
+
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',
@@ -45,7 +48,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'gamification',  # Check-in, Pontos e Ranking
     'content',       # Notícias e Avisos
-    'organizadas',# Torcidas
+    'organizadas',   # Torcidas
     'social',
     'loja',
 ]
