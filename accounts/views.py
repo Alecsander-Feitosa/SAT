@@ -40,7 +40,7 @@ from django.contrib import messages
 from .decorators import torcida_required
 from .models import Perfil, Presenca, Conquista, Evento, CheckIn, PlanoSocio
 from .forms import CadastroForm, PerfilCompletoForm
-
+from loja.models import Produto
 
 
 # 1. Ecrã para escolher a torcida ANTES de logar
@@ -291,7 +291,10 @@ def dashboard(request):
         parceiros = Parceiro.objects.filter(torcida__isnull=True)
         publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora, torcida__isnull=True)
 
+    produtos_destaque = Produto.objects.filter(destaque=True)[:4]
+
     context = {
+        'produtos_destaque': produtos_destaque,
         'proximos_eventos': eventos,
         'perfil': perfil,
         'perfil_game': perfil_game,

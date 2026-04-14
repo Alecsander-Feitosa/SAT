@@ -112,7 +112,7 @@
             <div class="mt-6 mb-auto relative z-10 flex items-center justify-between">
                 <div class="cartao-chip"></div>
                 <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
-                    <i class="bi bi-star-fill text-yellow-400 text-[10px]"></i>
+                    <i class="bi bi-gem text-yellow-400 text-[10px]"></i>
                     <span class="text-[10px] font-black uppercase text-white tracking-widest">
                         {% if perfil_game.nivel %}{{ perfil_game.nivel.nome }}{% else %}NÍVEL 1{% endif %}
                     </span>
@@ -147,7 +147,7 @@
             
             <a href="{% url 'seja_socio' %}" class="flex flex-col items-center gap-2 group">
                 <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
-                    <i class="bi bi-star text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
+                    <i class="bi bi-gem text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
                 </div>
                 <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Benefícios</span>
             </a>
@@ -172,7 +172,7 @@
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 bg-dinamico/10 border border-dinamico/20 rounded-full flex items-center justify-center shadow-sm p-1">
-                    <i class="bi bi-star-fill text-dinamico text-lg"></i>
+                    <i class="bi bi-gem text-dinamico text-lg"></i>
                 </div>
                 <h3 class="text-sm font-black texto-main uppercase tracking-widest mt-1" style="font-family: 'Montserrat', sans-serif;">
                     Oficial SAT
@@ -287,6 +287,46 @@
         </div>
     </div>
     
+    <div class="w-full animate-fade delay-400 mt-2">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-dinamico/10 border border-dinamico/20 rounded-full flex items-center justify-center shadow-sm p-1">
+                    <i class="bi bi-bag-check-fill text-dinamico text-lg"></i>
+                </div>
+                <h3 class="text-sm font-black texto-main uppercase tracking-widest mt-1" style="font-family: 'Montserrat', sans-serif;">
+                    Loja Oficial
+                </h3>
+            </div>
+            <a href="{% url 'loja' %}" class="text-[10px] font-black text-dinamico uppercase tracking-wider hover:underline">Ver tudo</a>
+        </div>
+
+        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
+            {% for produto in produtos_destaque %}
+            <a href="{% url 'detalhe_produto' produto.id %}" class="snap-center-item shrink-0 w-[45%] max-w-[160px] fundo-card border border-suave rounded-[20px] shadow-sm overflow-hidden flex flex-col group">
+                <div class="w-full h-32 relative overflow-hidden bg-gray-100">
+                    {% if produto.imagem %}
+                        <img src="{{ produto.imagem.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    {% else %}
+                        <i class="bi bi-image text-2xl text-gray-300 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+                    {% endif %}
+                    {% if produto.promocao %}
+                        <span class="absolute top-2 left-2 bg-red-500 text-white text-[7px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm">Oferta</span>
+                    {% endif %}
+                </div>
+                <div class="p-3 flex flex-col flex-1 justify-between">
+                    <h4 class="text-[10px] font-bold texto-main leading-tight mb-1 line-clamp-2">{{ produto.nome }}</h4>
+                    <p class="text-xs font-black texto-tema">R$ {{ produto.preco }}</p>
+                </div>
+            </a>
+            {% empty %}
+            <div class="w-full text-center py-6 fundo-card border border-suave rounded-[20px]">
+                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest">Novidades a chegar em breve.</p>
+            </div>
+            {% endfor %}
+            <div class="shrink-0 w-2"></div>
+        </div>
+    </div>
+
     <div class="w-full animate-fade delay-500 mt-4 mb-2">
         <a href="#" class="block w-full h-28 bg-gray-900 rounded-[20px] shadow-sm overflow-hidden relative group border border-suave">
             <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
@@ -361,7 +401,7 @@
                     {% if parceiro.logo %}
                         <img src="{{ parceiro.logo.url }}" class="absolute right-4 bottom-2 h-12 w-auto opacity-50 filter brightness-0 invert transform -rotate-12">
                     {% else %}
-                        <i class="bi bi-star-fill text-white/20 text-4xl absolute right-4 bottom-2 transform -rotate-12"></i>
+                        <i class="bi bi-gem text-white/20 text-4xl absolute right-4 bottom-2 transform -rotate-12"></i>
                     {% endif %}
                     <h4 class="text-white text-sm font-black uppercase tracking-tight leading-none mb-1 relative z-10">{{ parceiro.nome }}</h4>
                     <p class="text-white/90 text-[9px] font-medium leading-tight w-2/3 relative z-10">{{ parceiro.beneficio }}</p>
@@ -414,6 +454,11 @@
                     <i class="bi bi-heart-fill text-dinamico"></i>
                     <span class="text-xs font-bold">{{ post.curtidas.count }}</span>
                 </span>
+
+                <button onclick="compartilharPost('{{ post.autor.first_name|default:post.autor.username|escapejs }}', '{{ post.texto|truncatechars:30|escapejs }}')" class="flex items-center gap-1.5 texto-main opacity-60 hover:text-dinamico hover:opacity-100 transition-colors ml-auto cursor-pointer">
+                    <i class="bi bi-share-fill"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider"></span>
+                </button>
             </div>
         </div>
         {% empty %}

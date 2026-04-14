@@ -10,11 +10,11 @@
     
     <style>
         :root {
-            /* Adicionado "and user.perfil.aprovado" para bloquear as cores antes da aprovação */
-            --cor-primaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %};
-            --cor-secundaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_secundaria }}{% else %}#FFFFFF{% endif %};
-            --cor-terciaria: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_terciaria }}{% else %}#1A1A1A{% endif %};
-            --cor-fundo: {% if user.is_authenticated and user.perfil.torcida and user.perfil.aprovado %}{{ user.perfil.torcida.cor_fundo }}{% else %}#F8F9FA{% endif %};
+            /* Removido o "and user.perfil.aprovado". O app personaliza assim que a torcida é escolhida! */
+            --cor-primaria: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %};
+            --cor-secundaria: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_secundaria }}{% else %}#FFFFFF{% endif %};
+            --cor-terciaria: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_terciaria }}{% else %}#1A1A1A{% endif %};
+            --cor-fundo: {% if user.is_authenticated and user.perfil.torcida %}{{ user.perfil.torcida.cor_fundo }}{% else %}#F8F9FA{% endif %};
         }
         
         body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo) !important; color: var(--cor-terciaria); margin: 0; }
@@ -42,6 +42,7 @@
         .texto-emboss { text-shadow: 0px 1px 1px rgba(255,255,255,0.3), 0px -1px 1px rgba(0,0,0,0.8); letter-spacing: 2px; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style> { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
     <link re        l="stylesheet" href="{% static 'css/carteirinha.css' %}">
 </head>
@@ -86,7 +87,7 @@
                 </a>
             {% else %}
                 <a href="{% url 'seja_socio' %}" class="flex items-center gap-2 text-sm font-black text-dinamico bg-dinamico/10 px-4 py-1.5 rounded-full hover:bg-dinamico hover:text-white transition-colors">
-                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-gem"></i>
                     <span>Seja Sócio</span>
                 </a>
             {% endif %}
@@ -146,7 +147,7 @@
         <a href="{% url 'seja_socio' %}" class="flex flex-col items-center relative -top-5 w-[24%] group">
             <div class="w-12 h-12 fundo-card rounded-full p-1 shadow-[0_-4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center border border-suave">
                 <div class="w-full h-full fundo-tema rounded-full flex items-center justify-center texto-claro shadow-inner group-hover:scale-105 transition-transform duration-300">
-                    <i class="bi bi-gem text-xl"></i>
+                    <i class="bi bi-gem"></i>
                 </div>
             </div>
             <span class="text-[9px] font-black texto-tema uppercase tracking-wider mt-1">
@@ -180,6 +181,33 @@
                 searchBar.classList.add('hidden');
             }
         }
+
+       
+        function compartilharPost(autor, textoResumo) {
+            // Pega a URL atual da página
+            const urlAtual = window.location.href;
+            
+            // Monta os dados para a partilha nativa do telemóvel
+            const shareData = {
+                title: 'SAT - Post de ' + autor,
+                text: 'Olha este post do ' + autor + ' no SAT: "' + textoResumo + '"',
+                url: urlAtual
+            };
+
+            // Verifica se o navegador/telemóvel suporta a partilha nativa
+            if (navigator.share) {
+                navigator.share(shareData)
+                    .catch((error) => console.log('Erro ao partilhar:', error));
+            } else {
+                // Fallback para Computadores Antigos: Copia o link para a área de transferência
+                navigator.clipboard.writeText(shareData.text + " " + shareData.url).then(() => {
+                    alert('Conteúdo copiado para a área de transferência!');
+                }).catch(err => {
+                    console.error('Erro ao copiar: ', err);
+                });
+            }
+        }
+
     </script>
 </body>
 </html>
