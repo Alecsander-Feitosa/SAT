@@ -11,8 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-chave-dev-123')
 
-DEBUG = 'RENDER' not in os.environ
-
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # --- NOVO: Obrigatório para o Render permitir logins e formulários via HTTPS ---
