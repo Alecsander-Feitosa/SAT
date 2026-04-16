@@ -261,13 +261,22 @@ def dashboard(request):
     # 2. NOTÍCIAS DO TIME DO CORAÇÃO
     noticias_time_api = []
     if time_busca and time_busca != "Outro":
-        cache_key_time = f'news_time_{time_busca.replace(" ", "_")}_v1'
+        cache_key_time = f'news_time_{time_busca.replace(" ", "_")}_v2' # Mudei para _v2 para limpar o cache antigo
         noticias_time_api = cache.get(cache_key_time)
         
         if noticias_time_api is None:
             try:
                 url_time = 'https://newsdata.io/api/1/news'
-                params = {'apikey': api_key, 'country': 'br', 'language': 'pt', 'q': time_busca}
+                
+                # ATUALIZAÇÃO AQUI: Adicionado category='sports' e aspas na busca (q)
+                params = {
+                    'apikey': api_key, 
+                    'country': 'br', 
+                    'language': 'pt', 
+                    'category': 'sports', 
+                    'q': f'"{time_busca}"'
+                }
+                
                 response_time = requests.get(url_time, params=params, timeout=5)
                 if response_time.status_code == 200:
                     noticias_time_api = response_time.json().get('results', [])[:5]
@@ -350,8 +359,14 @@ def noticias(request):
     # Só pesquisa o time se ele não escolheu a opção "Outro"
     if time_busca and time_busca != "Outro":
         try:
-            # Sem restrição de categoria para encontrar mais facilmente
-            params_time = {'apikey': api_key, 'country': 'br', 'language': 'pt', 'q': time_busca}
+            # ATUALIZAÇÃO AQUI: Forçar categoria de desporto e texto exato
+            params_time = {
+                'apikey': api_key, 
+                'country': 'br', 
+                'language': 'pt', 
+                'category': 'sports', 
+                'q': f'"{time_busca}"'
+            }
             resp_time = requests.get(url_api, params=params_time, timeout=5)
             if resp_time.status_code == 200:
                 for art in resp_time.json().get('results', []):
@@ -1050,14 +1065,17 @@ def editar_perfil(request):
 
 @login_required
 def meus_pedidos(request):
-    # Tenta importar os pedidos da tua app 'loja'
     try:
         from loja.models import Pedido
-        pedidos = Pedido.objects.filter(cliente=request.user).order_by('-data_pedido')
-    except Exception:
-        pedidos = [] # Se a loja ainda não estiver configurada, mostra vazio
+        # CORREÇÃO 1: Mudar de 'cliente' para 'usuario'
+        # CORREÇÃO 2: Adicionar .prefetch_related('itens') para carregar a quantidade de itens rápido
+        pedidos = Pedido.objects.filter(usuario=request.user).prefetch_related('itens').order_by('-data_pedido')
+    except Exception as e:
+        print(f"Erro ao carregar pedidos: {e}")
+        pedidos = [] 
         
-    return render(request, 'loja/meus_pedidos.html', {'pedidos': pedidos})
+    # CORREÇÃO 3: O template está na raiz da pasta templates, então tiramos o 'loja/'
+    return render(request, 'meus_pedidos.html', {'pedidos': pedidos})
 
 @login_required
 def seguranca(request):

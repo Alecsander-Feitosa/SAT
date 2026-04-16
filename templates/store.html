@@ -36,6 +36,20 @@
         </div>
     </div>
 
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'dashboard' %}" class="texto-main text-2xl"><i class="bi bi-arrow-left"></i></a>
+            <h1 class="text-xl font-black italic uppercase texto-main">LOJA <span class="texto-tema">OFICIAL</span></h1>
+        </div>
+
+        {% if user.is_staff and user.perfil.torcida %}
+        <a href="{% url 'painel_loja' %}" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-tema border border-tema shadow-sm active:scale-90 transition-transform">
+            <i class="bi bi-gear-fill text-lg"></i>
+        </a>
+        {% endif %}
+    </div>
+
+
     <div class="pl-5 pr-5 pb-6 flex overflow-x-auto gap-3 no-scrollbar animate-fade-up delay-100">
         <a href="{% url 'loja' %}" class="px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {% if not categoria_atual %}fundo-tema texto-claro shadow-md scale-105{% else %}fundo-card texto-main opacity-60 border border-suave hover:opacity-100{% endif %}">
             Todos

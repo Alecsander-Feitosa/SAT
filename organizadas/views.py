@@ -223,8 +223,50 @@ def viagens(request):
 @login_required
 def cancoes(request):
     torcida = request.user.perfil.torcida
-    cancoes_lista = Cancao.objects.filter(torcida=torcida)
-    return render(request, 'torcida/cancoes.html', {'cancoes': cancoes_lista, 'torcida': torcida})
+    cancoes_lista = Cancao.objects.filter(torcida=torcida).order_by('-id')
+    
+    # Se o moderador enviar o formulário para adicionar uma música
+    if request.method == 'POST':
+        if not request.user.is_staff:
+            messages.error(request, "Apenas moderadores podem adicionar canções.")
+            return redirect('cancoes')
+
+        nome = request.POST.get('nome')
+        letra = request.POST.get('letra')
+        link_yt = request.POST.get('link_youtube')
+        video_file = request.FILES.get('arquivo_video')
+
+        Cancao.objects.create(
+            nome=nome,
+            letra=letra,
+            link_youtube=link_yt,
+            arquivo_video=video_file,
+            torcida=torcida
+        )
+        messages.success(request, 'Canção adicionada com sucesso!')
+        return redirect('cancoes')
+
+    context = {
+        'cancoes': cancoes_lista,
+        'torcida': torcida,
+        'is_moderador': request.user.is_staff # Ajuda a mostrar botões no template
+    }
+    return render(request, 'torcida/cancoes.html', context)
+
+# Adicione isso no final do seu accounts/views.py
+@login_required
+def excluir_cancao(request, cancao_id):
+    # Verifica se o usuário é moderador
+    if request.user.is_staff:
+        from .models import Cancao # Importando direto aqui para evitar erro de importação circular
+        # Pega a canção que pertence à torcida do moderador
+        cancao = get_object_or_404(Cancao, id=cancao_id, torcida=request.user.perfil.torcida)
+        cancao.delete()
+        messages.success(request, 'Canção removida com sucesso.')
+    else:
+        messages.error(request, 'Você não tem permissão para apagar canções.')
+        
+    return redirect('cancoes')
 
 @login_required
 def aliadas(request):

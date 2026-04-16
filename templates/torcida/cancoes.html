@@ -6,14 +6,81 @@
         <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">NOSSAS <span class="texto-tema">CANÇÕES</span></h1>
     </div>
 
-    <div class="space-y-4">
+    {% if is_moderador %}
+    <div class="mb-8">
+        <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-3 flex items-center gap-2">
+            <i class="bi bi-plus-circle-fill texto-tema"></i> Adicionar Canção
+        </h3>
+        <form method="POST" enctype="multipart/form-data" class="fundo-card p-5 rounded-[25px] border border-suave shadow-sm">
+            {% csrf_token %}
+            
+            <input type="text" name="nome" placeholder="Título da Canção" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema mb-3">
+            
+            <textarea name="letra" rows="3" placeholder="Letra da música (opcional)" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema mb-3"></textarea>
+            
+            <div class="mb-4 space-y-3">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 block mb-1">Link do YouTube (Opcional)</label>
+                    <input type="url" name="link_youtube" placeholder="Ex: https://youtube.com/watch?v=..." class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                </div>
+                
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 block mb-1">Upload de Vídeo MP4 (Opcional)</label>
+                    <input type="file" name="arquivo_video" accept="video/mp4" class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
+                </div>
+            </div>
+            
+            <button type="submit" class="w-full bg-dinamico texto-claro py-3 rounded-xl font-black uppercase text-xs tracking-widest shadow-md active:scale-95 transition-transform">
+                Publicar Canção
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="space-y-6">
         {% for cancao in cancoes %}
-        <div class="fundo-card p-5 rounded-3xl border border-suave shadow-sm">
-            <h4 class="texto-tema font-black uppercase italic text-sm mb-2">{{ cancao.titulo }}</h4>
-            <p class="texto-main opacity-80 text-xs leading-relaxed font-medium whitespace-pre-line">{{ cancao.letra }}</p>
+        <div class="fundo-card p-5 rounded-[25px] border border-suave shadow-sm">
+            <h4 class="texto-tema font-black uppercase italic text-lg mb-2">{{ cancao.nome }}</h4>
+            <p class="texto-main opacity-80 text-xs leading-relaxed font-medium whitespace-pre-line mb-4">{{ cancao.letra }}</p>
+
+            <div class="w-full rounded-2xl overflow-hidden bg-black/5 border border-suave">
+                
+                {% if cancao.youtube_id %}
+                    <div class="relative w-full" style="padding-top: 56.25%;">
+                        <iframe class="absolute top-0 left-0 w-full h-full" 
+                                src="https://www.youtube.com/embed/{{ cancao.youtube_id }}" 
+                                frameborder="0" allowfullscreen>
+                        </iframe>
+                    </div>
+                
+                {% elif cancao.arquivo_video %}
+                    <video controls class="w-full h-auto max-h-[300px] object-cover outline-none bg-black">
+                        <source src="{{ cancao.arquivo_video.url }}" type="video/mp4">
+                        O seu telemóvel não suporta este vídeo.
+                    </video>
+                
+                {% else %}
+                    <div class="py-6 flex flex-col items-center justify-center opacity-30">
+                        <i class="bi bi-mic-fill text-3xl mb-2"></i>
+                        <span class="text-[8px] font-black uppercase tracking-widest">Cante com a torcida</span>
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if is_moderador %}
+            <div class="mt-4 pt-3 border-t border-suave flex justify-end">
+                 <a href="{% url 'excluir_cancao' cancao.id %}" onclick="return confirm('Tem certeza que deseja apagar esta música?')" class="text-[9px] font-black text-red-500 uppercase flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
+                     <i class="bi bi-trash-fill"></i> Apagar
+                 </a>
+            </div>
+            {% endif %}
+            
         </div>
         {% empty %}
-        <p class="text-center text-xs opacity-50 texto-main">Nenhuma canção adicionada.</p>
+        <div class="p-10 text-center fundo-card rounded-[25px] border border-suave shadow-sm">
+            <i class="bi bi-music-note-list text-4xl texto-main opacity-20 mb-3 block"></i>
+            <p class="text-[10px] font-bold opacity-50 texto-main uppercase tracking-widest">Nenhuma canção no repertório.</p>
+        </div>
         {% endfor %}
     </div>
 </div>

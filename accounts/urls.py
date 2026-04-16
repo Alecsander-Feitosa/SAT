@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from organizadas import views as organizadas_views
 
 urlpatterns = [
     # A página inicial agora é o Pré-Login
@@ -61,5 +62,6 @@ urlpatterns = [
     path('perfil/seguranca/', views.seguranca, name='seguranca'),
     
     path('perfil/', views.perfil_view, name='perfil'),
+    path('cancoes/excluir/<int:cancao_id>/', organizadas_views.excluir_cancao, name='excluir_cancao'),
     
 ]

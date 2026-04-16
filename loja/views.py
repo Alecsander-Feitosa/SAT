@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Sum, Q
 from .models import Produto, ItemCarrinho, Pedido, ItemPedido, Variacao
+from django.contrib import messages
 # loja/views.py (substitua a função loja_view)
 
 @login_required
@@ -119,3 +120,67 @@ def checkout_exemplo_view(request):
         'itens': itens,
         'total_geral': total_geral
     })
+
+
+# ==========================================
+# PAINEL DO MODERADOR DA LOJA
+# ==========================================
+
+@login_required
+def painel_loja(request):
+    # REGRA DE OURO: Só staff com torcida entra
+    if not request.user.is_staff or not hasattr(request.user, 'perfil') or not request.user.perfil.torcida:
+        messages.error(request, "Acesso negado. Apenas moderadores autorizados.")
+        return redirect('loja')
+
+    # Mostra apenas os produtos da torcida deste moderador
+    produtos = Produto.objects.filter(torcida=request.user.perfil.torcida).order_by('-id')
+    return render(request, 'loja/painel.html', {'produtos': produtos})
+
+@login_required
+def form_produto(request, produto_id=None):
+    if not (request.user.is_staff and hasattr(request.user, 'perfil') and request.user.perfil.torcida):
+        return redirect('loja')
+        
+    # Se houver ID, é edição. Se não, é criação.
+    produto = get_object_or_404(Produto, id=produto_id, torcida=request.user.perfil.torcida) if produto_id else None
+    
+    if request.method == 'POST':
+        nome = request.POST.get('nome')
+        preco = request.POST.get('preco').replace(',', '.') # Garante formato decimal
+        categoria = request.POST.get('categoria')
+        estoque = request.POST.get('estoque')
+        descricao = request.POST.get('descricao')
+        destaque = request.POST.get('destaque') == 'on'
+        imagem = request.FILES.get('imagem')
+        
+        if produto:
+            produto.nome = nome
+            produto.preco = preco
+            produto.categoria = categoria
+            produto.estoque = estoque
+            produto.descricao = descricao
+            produto.destaque = destaque
+            if imagem:
+                produto.imagem = imagem
+            produto.save()
+            messages.success(request, 'Produto atualizado!')
+        else:
+            Produto.objects.create(
+                nome=nome, preco=preco, categoria=categoria,
+                estoque=estoque, descricao=descricao, destaque=destaque,
+                imagem=imagem, torcida=request.user.perfil.torcida
+            )
+            messages.success(request, 'Produto criado com sucesso!')
+        return redirect('painel_loja')
+        
+    return render(request, 'loja/form_produto.html', {'produto': produto})
+
+@login_required
+def excluir_produto(request, produto_id):
+    if request.user.is_staff:
+        # Garante que o moderador só apaga produtos da SUA torcida
+        produto = get_object_or_404(Produto, id=produto_id, torcida=request.user.perfil.torcida)
+        produto.delete()
+        messages.success(request, 'Produto removido com sucesso.')
+    return redirect('painel_loja')

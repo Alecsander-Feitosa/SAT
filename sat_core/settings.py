@@ -164,37 +164,28 @@ SOCIALACCOUNT_QUERY_EMAIL = True
 
 
 
-# --- CONFIGURAÇÕES DO PAINEL ADMIN (JAZZMIN) ---
+# ==========================================
+# CONFIGURAÇÕES DO PAINEL ADMIN (JAZZMIN)
+# ==========================================
 JAZZMIN_SETTINGS = {
-    "site_title": "Admin SAT",
-    "site_header": "SAT Elite",
-    "site_brand": "SAT Admin",
-    "site_icon": "fas fa-shield-alt", # Ícone da aba do navegador
-    "welcome_sign": "Bem-vindo ao painel administrativo do SAT Elite",
-    "copyright": "SAT Elite Ltd",
-    
-    # Modelos que aparecerão na barra de pesquisa global
-    "search_model": ["auth.User", "accounts.Perfil"],
-
-    # Ícones para o menu lateral (Usa FontAwesome)
+    "site_title": "SAT Admin",
+    "site_header": "Plataforma SAT",
+    "site_brand": "Gestão SAT",
+    "welcome_sign": "Bem-vindo ao Painel de Moderação",
+    "search_model": ["auth.User", "organizadas.Torcida"], # Permite pesquisar rápido
+    "show_sidebar": True,
+    "navigation_expanded": False, # Mantém o menu recolhido no telemóvel
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
         "auth.Group": "fas fa-users",
-        "accounts.Perfil": "fas fa-id-card",
-        "accounts.Evento": "fas fa-calendar-alt",
-        "organizadas.Torcida": "fas fa-flag",
-        "gamification.Conquista": "fas fa-trophy",
+        # Pode adicionar ícones para as suas apps depois
     },
-    
-    "show_ui_builder": True, # Isso adiciona um botão para você testar cores direto no painel!
 }
 
-# Cores padrão combinando com o bronze/laranja da SAT
 JAZZMIN_UI_TWEAKS = {
+    "theme": "darkly", # Um tema escuro e elegante
+    "dark_mode_theme": "darkly",
     "navbar": "navbar-dark",
-    "theme": "lumen",
-    "sidebar": "sidebar-dark-warning",
-    "sidebar_nav_child_indent": True,
-    "brand_colour": "navbar-warning",
+    "sidebar": "sidebar-dark-primary",
 }

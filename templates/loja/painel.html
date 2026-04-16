@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32 px-5 pt-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">
+                GESTÃO DA <span class="texto-tema">LOJA</span>
+            </h1>
+            <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Moderação {{ user.perfil.torcida.sigla }}</p>
+        </div>
+        <a href="{% url 'novo_produto' %}" class="fundo-tema texto-claro px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+            + Produto
+        </a>
+    </div>
+
+    <div class="flex flex-col gap-4">
+        {% for produto in produtos %}
+        <div class="fundo-card border border-suave rounded-[20px] p-3 flex items-center gap-4 shadow-sm relative overflow-hidden">
+            {% if produto.estoque <= 0 %}
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
+            {% else %}
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-500"></div>
+            {% endif %}
+
+            <div class="w-16 h-16 rounded-xl overflow-hidden bg-white flex-shrink-0 p-1 border border-suave">
+                {% if produto.imagem %}
+                    <img src="{{ produto.imagem.url }}" class="w-full h-full object-contain">
+                {% else %}
+                    <i class="bi bi-box-seam text-2xl texto-main opacity-20 flex justify-center mt-3"></i>
+                {% endif %}
+            </div>
+
+            <div class="flex-1">
+                <span class="text-[8px] font-black texto-main opacity-40 uppercase tracking-widest">{{ produto.categoria }}</span>
+                <h4 class="text-xs font-black texto-main leading-tight line-clamp-1 mb-1">{{ produto.nome }}</h4>
+                <div class="flex gap-3 items-center">
+                    <span class="text-xs font-black texto-tema">R$ {{ produto.preco }}</span>
+                    <span class="text-[9px] font-bold {% if produto.estoque > 0 %}text-green-500{% else %}text-red-500{% endif %} uppercase">Estoque: {{ produto.estoque }}</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <a href="{% url 'editar_produto' produto.id %}" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20 active:scale-90 transition-transform">
+                    <i class="bi bi-pencil-fill text-[10px]"></i>
+                </a>
+                <a href="{% url 'excluir_produto' produto.id %}" onclick="return confirm('Tem certeza que deseja excluir?')" class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 active:scale-90 transition-transform">
+                    <i class="bi bi-trash-fill text-[10px]"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="w-full text-center py-10 fundo-card border border-suave rounded-[20px]">
+            <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest">Nenhum produto cadastrado.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
