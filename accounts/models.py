@@ -10,25 +10,19 @@ from django.contrib.auth.models import User
 class Perfil(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     foto = models.ImageField(upload_to='perfil_fotos/', null=True, blank=True)
-    
-    # Mantemos o time do coração em destaque e opcional. 
-    # Ele será o grande motor do Nível 1 (Público Geral).
     time_coracao = models.CharField("Time do Coração", max_length=100, null=True, blank=True)
-    
-    # ATUALIZAÇÃO AQUI: Adicionado blank=True
-    # Agora a torcida é 100% opcional tanto no banco quanto nos formulários do sistema.
     torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.SET_NULL, null=True, blank=True)
     
     cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)
     whatsapp = models.CharField(max_length=20, blank=True)
     aprovado = models.BooleanField(default=False)
     
-    # --- DADOS PESSOAIS ADICIONADOS ---
+    # Dados Pessoais
     data_nascimento = models.DateField(null=True, blank=True)
     rg_cnh = models.CharField("RG ou CNH", max_length=20, blank=True)
     orgao_expedidor = models.CharField(max_length=20, blank=True)
     
-    # --- ENDEREÇO ---
+    # Endereço
     cep = models.CharField(max_length=9, blank=True)
     rua = models.CharField(max_length=255, blank=True)
     numero = models.CharField(max_length=10, blank=True)
@@ -37,36 +31,64 @@ class Perfil(models.Model):
     cidade = models.CharField(max_length=100, blank=True)
     uf = models.CharField(max_length=2, blank=True)
     
-    # --- DOCUMENTOS E VERIFICAÇÃO ---
-    foto_documento_frente = models.ImageField(upload_to='docs/', blank=True)
-    foto_documento_verso = models.ImageField(upload_to='docs/', blank=True)
-    verificacao_facial = models.ImageField(upload_to='selfies/', blank=True)
+    # Documentos
+    doc_frente = models.ImageField(upload_to='documentos/frente/', blank=True, null=True)
+    doc_verso = models.ImageField(upload_to='documentos/verso/', blank=True, null=True)
+    doc_selfie = models.ImageField(upload_to='documentos/selfie/', blank=True, null=True)
     
-    # --- INFORMAÇÕES DA TORCIDA ---
+    # Informações da Torcida
     vulgo = models.CharField(max_length=50, blank=True)
     pelotao = models.CharField(max_length=50, blank=True)
     rede_social = models.CharField(max_length=100, blank=True)
-
-
     seguidores = models.ManyToManyField(User, related_name='seguindo', blank=True)
+    
     def __str__(self):
         return f"Perfil de {self.user.username}"
-# FIM DA ATUALIZAÇÃO: Classe Perfil
 
+# --- NOVO: Histórico KYC (Veiculação/Aprovações) ---
+class HistoricoSocio(models.Model):
+    perfil = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='historico_kyc')
+    data_acao = models.DateTimeField(auto_now_add=True)
+    acao = models.CharField(max_length=100, help_text="Ex: Aprovado, Rejeitado, Documentos Enviados")
+    observacao = models.TextField(blank=True)
+    moderador = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
+# --- NOVO: Campos Personalizados ---
+class CampoPersonalizado(models.Model):
+    torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.CASCADE, related_name='campos_personalizados')
+    nome_campo = models.CharField(max_length=100, help_text="Ex: Qual o seu tamanho de camisa?")
+    obrigatorio = models.BooleanField(default=False)
+
+class RespostaCampo(models.Model):
+    perfil = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='respostas_customizadas')
+    campo = models.ForeignKey(CampoPersonalizado, on_delete=models.CASCADE)
+    resposta = models.CharField(max_length=255)
+
+# --- ATUALIZADO: Convites de Aliadas ---
 class Aliada(models.Model):
-    torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='aliadas')
-    nome_organizada = models.CharField(max_length=100)
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('aceito', 'Aceito'),
+        ('recusado', 'Recusado')
+    ]
+    torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='aliadas_enviadas')
+    torcida_convidada = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='convites_recebidos', null=True, blank=True)
+    nome_organizada = models.CharField(max_length=100) # Caso seja uma torcida fora do SAT
     clube = models.CharField(max_length=100)
     logo = models.ImageField(upload_to='torcidas/aliadas/', blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
 
     def __str__(self):
         return f"{self.nome_organizada} ({self.clube})"
 
+# --- ATUALIZADO: Canções ---
 class Cancao(models.Model):
     torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='cancoes')
     titulo = models.CharField(max_length=100)
+    descricao = models.TextField("Descrição/Contexto", blank=True)
     letra = models.TextField()
+    url_youtube = models.URLField("URL do YouTube", blank=True, null=True)
+    arquivo_audio = models.FileField(upload_to='cancoes/audio/', blank=True, null=True)
 
     def __str__(self):
         return self.titulo

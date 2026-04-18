@@ -26,9 +26,136 @@
                 <label for="id_foto" class="absolute bottom-1 right-1 w-9 h-9 fundo-tema rounded-full flex items-center justify-center texto-claro border-2 border-fundo-app shadow-lg cursor-pointer">
                     <i class="bi bi-camera-fill text-sm"></i>
                 </label>
-                <input type="file" id="id_foto" name="foto" accept="image/*" class="hidden" onchange="previewImage(this)">
+                <input type="file" id="id_foto" name="foto" accept="image/*" class="hidden" onchange="previewImage(this, 'previewFoto', 'placeholderFoto')">
             </div>
             <h3 class="text-xs font-black texto-main uppercase tracking-widest">Foto de Perfil</h3>
+        </div>
+
+        <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
+            <h4 class="text-[10px] font-black texto-tema uppercase tracking-[0.2em] mb-2">Dados Pessoais</h4>
+            
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Nome Completo *</label>
+                <input type="text" name="nome_completo" value="{{ user.get_full_name|default:user.first_name }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">E-mail *</label>
+                <input type="email" name="email" value="{{ user.email }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">CPF *</label>
+                    <input type="text" name="cpf" value="{{ user.perfil.cpf|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Data de Nascimento *</label>
+                    <input type="date" name="data_nascimento" value="{{ user.perfil.data_nascimento|date:'Y-m-d' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">RG ou CNH *</label>
+                    <input type="text" name="rg_cnh" value="{{ user.perfil.rg_cnh|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Órgão Expeditor *</label>
+                    <input type="text" name="orgao_expeditor" value="{{ user.perfil.orgao_expeditor|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Telefone *</label>
+                    <input type="text" name="telefone" value="{{ user.perfil.telefone|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">WhatsApp</label>
+                    <input type="text" name="whatsapp" value="{{ user.perfil.whatsapp|default:'' }}" class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Nome da Mãe *</label>
+                <input type="text" name="nome_mae" value="{{ user.perfil.nome_mae|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Nome do Pai</label>
+                <input type="text" name="nome_pai" value="{{ user.perfil.nome_pai|default:'' }}" class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+            </div>
+        </div>
+
+        <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
+            <h4 class="text-[10px] font-black texto-tema uppercase tracking-[0.2em] mb-2">Endereço</h4>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">CEP *</label>
+                    <input type="text" name="cep" value="{{ user.perfil.cep|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Rua / Logradouro</label>
+                <input type="text" name="rua" value="{{ user.perfil.rua|default:'' }}" class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Número *</label>
+                    <input type="text" name="numero" value="{{ user.perfil.numero|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Complemento *</label>
+                    <input type="text" name="complemento" value="{{ user.perfil.complemento|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-5">
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Bairro *</label>
+                    <input type="text" name="bairro" value="{{ user.perfil.bairro|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+                <div class="col-span-5">
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Cidade *</label>
+                    <input type="text" name="cidade" value="{{ user.perfil.cidade|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+                <div class="col-span-2">
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">UF *</label>
+                    <input type="text" name="uf" maxlength="2" value="{{ user.perfil.uf|default:'' }}" required class="w-full fundo-app border border-suave rounded-2xl px-2 py-3 text-sm font-bold texto-main text-center focus:border-tema outline-none uppercase">
+                </div>
+            </div>
+        </div>
+
+        {% if user.perfil.torcida %}
+        <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
+            <h4 class="text-[10px] font-black texto-tema uppercase tracking-[0.2em] mb-2">Documentos de Verificação</h4>
+            
+            <div class="space-y-3">
+                <div class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
+                    <input type="file" name="doc_frente" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqFrente')">
+                    <i class="bi bi-front texto-tema text-2xl mb-1 block"></i>
+                    <p class="text-[10px] font-black texto-main uppercase tracking-widest">RG/CNH - Foto Frente</p>
+                    <p id="nomeArqFrente" class="text-[8px] texto-main opacity-50 mt-1 truncate">Clique para enviar</p>
+                </div>
+
+                <div class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
+                    <input type="file" name="doc_verso" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqVerso')">
+                    <i class="bi bi-back texto-tema text-2xl mb-1 block"></i>
+                    <p class="text-[10px] font-black texto-main uppercase tracking-widest">RG/CNH - Foto Verso</p>
+                    <p id="nomeArqVerso" class="text-[8px] texto-main opacity-50 mt-1 truncate">Clique para enviar</p>
+                </div>
+
+                <div class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
+                    <input type="file" name="doc_selfie" accept="image/*" capture="user" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqSelfie')">
+                    <i class="bi bi-person-bounding-box texto-tema text-2xl mb-1 block"></i>
+                    <p class="text-[10px] font-black texto-main uppercase tracking-widest">Verificação Facial (Selfie)</p>
+                    <p id="nomeArqSelfie" class="text-[8px] texto-main opacity-50 mt-1 truncate">Tire uma selfie nítida</p>
+                </div>
+            </div>
         </div>
 
         <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
@@ -37,59 +164,61 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Vulgo / Apelido</label>
-                    <input type="text" name="vulgo" value="{{ user.perfil.vulgo|default:'' }}" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    <input type="text" name="vulgo" value="{{ user.perfil.vulgo|default:'' }}" class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
                 </div>
                 <div>
                     <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Pelotão / Bonde</label>
-                    <input type="text" name="pelotao" value="{{ user.perfil.pelotao|default:'' }}" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    <input type="text" name="pelotao" value="{{ user.perfil.pelotao|default:'' }}" class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
                 </div>
             </div>
 
             <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Instagram / Rede Social</label>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Rede Social *</label>
                 <div class="relative">
                     <span class="absolute left-4 top-3.5 texto-main opacity-30 text-sm">@</span>
-                    <input type="text" name="rede_social" value="{{ user.perfil.rede_social|default:'' }}" class="w-full fundo-app border border-suave rounded-2xl pl-9 pr-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    <input type="text" name="rede_social" value="{{ user.perfil.rede_social|default:'' }}" required class="w-full fundo-app border border-suave rounded-2xl pl-9 pr-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
                 </div>
             </div>
         </div>
+        {% endif %}
 
-        <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
-            <h4 class="text-[10px] font-black texto-tema uppercase tracking-[0.2em] mb-2">Dados Pessoais</h4>
-            
-            <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Nome Completo</label>
-                <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
-            </div>
-
-            <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Time do Coração</label>
-                <input type="text" name="time_coracao" value="{{ user.perfil.time_coracao|default:'' }}" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
-            </div>
-
-            <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">WhatsApp</label>
-                <input type="text" name="whatsapp" value="{{ user.perfil.whatsapp|default:'' }}" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
-            </div>
-        </div>
-
-        <button type="submit" class="w-full fundo-tema texto-claro font-black text-xs uppercase tracking-[0.2em] py-5 rounded-2xl shadow-lg active:scale-95 transition-all border-none">
+        <button type="submit" class="w-full fundo-tema texto-claro font-black text-xs uppercase tracking-[0.2em] py-5 rounded-2xl shadow-lg active:scale-95 transition-all border-none mt-4">
             Atualizar Perfil
         </button>
     </form>
 </div>
+{% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+            <div class="p-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-center shadow-sm 
+                {% if message.tags == 'success' %} bg-green-500/10 text-green-500 border border-green-500/20 
+                {% else %} bg-red-500/10 text-red-500 border border-red-500/20 {% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
 
 <script>
-    // Script para mostrar a imagem selecionada antes de enviar o formulário
-    function previewImage(input) {
+    // Preview de Imagem (Foto de Perfil)
+    function previewImage(input, previewId, placeholderId) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
             reader.onload = function(e) {
-                document.getElementById('previewFoto').src = e.target.result;
-                document.getElementById('previewFoto').classList.remove('hidden');
-                if(document.getElementById('placeholderFoto')) document.getElementById('placeholderFoto').classList.add('hidden');
+                document.getElementById(previewId).src = e.target.result;
+                document.getElementById(previewId).classList.remove('hidden');
+                if(document.getElementById(placeholderId)) document.getElementById(placeholderId).classList.add('hidden');
             }
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Atualizar nome do arquivo selecionado nos Documentos
+    function previewFileName(input, textElementId) {
+        if (input.files && input.files[0]) {
+            document.getElementById(textElementId).innerText = "Selecionado: " + input.files[0].name;
+            document.getElementById(textElementId).classList.remove("opacity-50");
+            document.getElementById(textElementId).classList.add("texto-tema");
         }
     }
 </script>

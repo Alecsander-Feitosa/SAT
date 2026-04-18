@@ -1,275 +1,323 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Torcida, Evento, Caravana, Post, Curtida, Parceiro, Publicidade, FotoGaleria, ConquistaTorcida, MembroDiretoria, Regra
-from django.utils import timezone
-from .forms import TorcidaForm
-from django.utils.text import slugify
-from social.models import Post
-from accounts.models import Perfil
-from accounts.models import Cancao, Aliada
+from django.utils.dateparse import parse_datetime
 
-# --- FUNÇÕES AUXILIARES DE SEGURANÇA ---
-def is_admin_geral(user):
-    return user.is_authenticated and user.is_superuser
+from organizadas.models import (
+    Torcida, Evento, Caravana, Post, Curtida, Parceiro, 
+    Publicidade, FotoGaleria, ConquistaTorcida, MembroDiretoria, CategoriaDiretoria, Regra
+)
+from accounts.models import Perfil, Cancao, Aliada, HistoricoSocio, CampoPersonalizado
+from loja.models import Produto, CategoriaProduto
 
-# --- VIEWS GERAIS ---
+# --- VIEWS PÚBLICAS E GERAIS ---
+
 def lista_torcidas(request):
     torcidas = Torcida.objects.all()
     return render(request, 'organizadas/lista.html', {'torcidas': torcidas})
 
-@login_required
-def curtir_post(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    curtida_existente = Curtida.objects.filter(post=post, usuario=request.user).first()
-    
-    if curtida_existente:
-        curtida_existente.delete()
-    else:
-        Curtida.objects.create(post=post, usuario=request.user)
-        
-    url_anterior = request.META.get('HTTP_REFERER', '/')
-    return redirect(url_anterior)
-
-
-def perfil_torcida(request, slug):
+def detalhes_torcida(request, slug):
     torcida = get_object_or_404(Torcida, slug=slug)
-    eventos = torcida.torcida_eventos.all()
-    caravanas = torcida.caravanas.order_by('saida_horario')
-    
-    return render(request, 'organizadas/perfil.html', {
-        'torcida': torcida,
-        'eventos': eventos,
-        'caravanas': caravanas
-    })
-
-# --- VIEWS DE PAINEL (ADMIN E HUB) ---
-@user_passes_test(is_admin_geral, login_url='/login/')
-def admin_dashboard(request):
-    context = {
-        'total_torcidas': Torcida.objects.count(),
-    }
-    return render(request, 'admin_master.html', context)
+    return render(request, 'organizadas/detalhes.html', {'torcida': torcida})
 
 @login_required
-def hub_view(request):
-    perfil = getattr(request.user, 'perfil', None)
-    
-    if not perfil or not getattr(perfil, 'torcida', None) or not getattr(perfil, 'aprovado', False):
-        messages.warning(request, "Acesso restrito. Escolha uma torcida ou aguarde a aprovação da diretoria.")
-        return redirect('seja_socio') 
-        
-    torcida = perfil.torcida
-    
-    try:
-        eventos = torcida.torcida_eventos.all()[:3]
-        caravanas = torcida.caravanas.order_by('saida_horario')[:3]
-    except AttributeError:
-        eventos = []
-        caravanas = []
-    
+def hub_view(request, slug):
+    torcida = get_object_or_404(Torcida, slug=slug)
     context = {
-        'perfil': perfil,
         'torcida': torcida,
-        'eventos': eventos,
-        'caravanas': caravanas,
+        'eventos': Evento.objects.filter(torcida=torcida).order_by('data'),
+        'caravanas': Caravana.objects.filter(torcida=torcida),
+        'parceiros': Parceiro.objects.filter(torcida=torcida),
+        'publicidades': Publicidade.objects.filter(torcida=torcida),
     }
     return render(request, 'hub.html', context)
 
-
-# --- VIEWS DE AÇÕES (EVENTOS E CARAVANAS) ---
-@login_required
-def confirmar_presenca(request, evento_id):
-    evento = get_object_or_404(Evento, id=evento_id)
-    messages.success(request, "Presença registada (funcionalidade em construção).")
-    return redirect('perfil_torcida', slug=evento.torcida.slug)
+# --- REDE SOCIAL E CONTEÚDO ---
 
 @login_required
-def reservar_caravana(request, caravana_id):
-    caravana = get_object_or_404(Caravana, id=caravana_id)
-    
-    if caravana.vagas_restantes() <= 0:
-        messages.error(request, "Caravana lotada!")
-    elif request.user in caravana.passageiros.all():
-        messages.info(request, "Você já está nessa caravana.")
-    else:
-        caravana.passageiros.add(request.user)
-        messages.success(request, "Lugar reservado na caravana!")
-        
-    return redirect('perfil_torcida', slug=caravana.torcida.slug)
+def curtir_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    curtida, created = Curtida.objects.get_or_create(post=post, usuario=request.user)
+    if not created:
+        curtida.delete()
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
 
-def lista_eventos(request):
-    eventos = Evento.objects.filter(data__gte=timezone.now()).order_by('data')
-    return render(request, 'eventos.html', {'eventos': eventos})
-
-@user_passes_test(is_admin_geral, login_url='/login/')
-def nova_torcida(request):
-    if request.method == 'POST':
-        form = TorcidaForm(request.POST, request.FILES)
-        if form.is_valid():
-            torcida = form.save(commit=False)
-            torcida.slug = slugify(torcida.nome) 
-            torcida.save()
-            messages.success(request, f'Torcida {torcida.nome} registada com sucesso!')
-            return redirect('admin_dashboard')
-    else:
-        form = TorcidaForm()
-
-    return render(request, 'admin_nova_torcida.html', {'form': form})
-
-@user_passes_test(is_admin_geral, login_url='/login/')
-def gerir_utilizadores(request):
-    torcida_id = request.GET.get('torcida')
-    perfis = Perfil.objects.select_related('user', 'torcida').all().order_by('-user__date_joined')
-    
-    if torcida_id:
-        perfis = perfis.filter(torcida_id=torcida_id)
-        
-    return render(request, 'admin_utilizadores.html', {'perfis': perfis})
-
-@user_passes_test(is_admin_geral, login_url='/login/')
-def gerenciar_torcidas(request):
-    torcidas = Torcida.objects.all().order_by('nome')
-    return render(request, 'admin_torcidas.html', {'torcidas': torcidas})
-
-@user_passes_test(is_admin_geral, login_url='/login/')
-def editar_torcida(request, id):
-    torcida = get_object_or_404(Torcida, id=id)
-    
-    if request.method == 'POST':
-        form = TorcidaForm(request.POST, request.FILES, instance=torcida)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Torcida atualizada com sucesso!')
-            return redirect('gerenciar_torcidas')
-    else:
-        form = TorcidaForm(instance=torcida)
-
-    return render(request, 'admin_nova_torcida.html', {'form': form, 'edit_mode': True, 'torcida': torcida})
-
-@user_passes_test(is_admin_geral, login_url='/login/')
-def alternar_status_utilizador(request, perfil_id):
-    perfil = get_object_or_404(Perfil, id=perfil_id)
-    perfil.aprovado = not perfil.aprovado
-    perfil.save()
-    
-    status = "aprovado" if perfil.aprovado else "suspenso"
-    messages.success(request, f'O utilizador {perfil.user.username} foi {status} com sucesso!')
-    
-    return redirect('gerir_utilizadores')
 
 @login_required
-def painel_moderador(request):
-    if not request.user.is_staff or request.user.is_superuser:
-        messages.error(request, "Acesso negado. Apenas moderadores podem aceder.")
-        return redirect('dashboard')
-
-    try:
-        minha_torcida = request.user.perfil.torcida
-    except AttributeError:
-        minha_torcida = None
-
-    if not minha_torcida:
-        messages.error(request, "Não tem nenhuma torcida vinculada.")
-        return redirect('dashboard')
-
-    membros_ativos = Perfil.objects.filter(torcida=minha_torcida, aprovado=True).count()
-    membros_pendentes = Perfil.objects.filter(torcida=minha_torcida, aprovado=False).count()
-
-    context = {
-        'torcida': minha_torcida,
-        'parceiros': Parceiro.objects.filter(torcida=minha_torcida),
-        'publicidades': Publicidade.objects.filter(torcida=minha_torcida),
-        'eventos': Evento.objects.filter(torcida=minha_torcida).order_by('-data')[:5],
-        'membros_ativos': membros_ativos,
-        'membros_pendentes': membros_pendentes,
-    }
-
-    return render(request, 'moderacao.html', context)
-
-
-# --- VIEWS DAS PÁGINAS DO HUB DA TORCIDA ---
-
-@login_required
-def galeria_fotos(request):
-    torcida = request.user.perfil.torcida
+def galeria_fotos(request, slug):
+    torcida = get_object_or_404(Torcida, slug=slug)
     fotos = FotoGaleria.objects.filter(torcida=torcida).order_by('-data_publicacao')
-    return render(request, 'torcida/galeria.html', {'fotos': fotos, 'torcida': torcida})
+    return render(request, 'torcida/galeria.html', {'torcida': torcida, 'fotos': fotos})
 
 @login_required
-def diretoria(request):
-    torcida = request.user.perfil.torcida
-    membros = MembroDiretoria.objects.filter(torcida=torcida) 
-    return render(request, 'torcida/diretoria.html', {'membros': membros, 'torcida': torcida})
-
-@login_required
-def mural_conquistas(request):
-    torcida = request.user.perfil.torcida
-    conquistas = ConquistaTorcida.objects.filter(torcida=torcida).order_by('-ano')
-    return render(request, 'torcida/mural_conquistas.html', {'conquistas': conquistas, 'torcida': torcida})
-
-@login_required
-def regras(request):
-    torcida = request.user.perfil.torcida
-    regras_lista = Regra.objects.filter(torcida=torcida) 
-    return render(request, 'torcida/regras.html', {'regras': regras_lista, 'torcida': torcida})
-
-@login_required
-def viagens(request):
-    torcida = request.user.perfil.torcida
-    caravanas = Caravana.objects.filter(torcida=torcida).order_by('saida_horario')
-    return render(request, 'torcida/viagens.html', {'caravanas': caravanas, 'torcida': torcida})
-
-@login_required
-def cancoes(request):
-    torcida = request.user.perfil.torcida
-    cancoes_lista = Cancao.objects.filter(torcida=torcida).order_by('-id')
+def cancoes(request, slug):
+    torcida = get_object_or_404(Torcida, slug=slug)
+    cancoes_lista = Cancao.objects.filter(torcida=torcida)
     
-    # Se o moderador enviar o formulário para adicionar uma música
-    if request.method == 'POST':
-        if not request.user.is_staff:
-            messages.error(request, "Apenas moderadores podem adicionar canções.")
-            return redirect('cancoes')
-
-        nome = request.POST.get('nome')
-        letra = request.POST.get('letra')
-        link_yt = request.POST.get('link_youtube')
-        video_file = request.FILES.get('arquivo_video')
-
+    if request.method == 'POST' and request.user.is_staff:
+        # Atualizado para os novos nomes do banco de dados (titulo e url_youtube)
         Cancao.objects.create(
-            nome=nome,
-            letra=letra,
-            link_youtube=link_yt,
-            arquivo_video=video_file,
+            titulo=request.POST.get('nome', 'Sem título'),
+            letra=request.POST.get('letra'),
+            url_youtube=request.POST.get('link_youtube'),
             torcida=torcida
         )
-        messages.success(request, 'Canção adicionada com sucesso!')
-        return redirect('cancoes')
+        messages.success(request, 'Canção adicionada!')
+        return redirect('cancoes', slug=slug)
 
-    context = {
-        'cancoes': cancoes_lista,
-        'torcida': torcida,
-        'is_moderador': request.user.is_staff # Ajuda a mostrar botões no template
-    }
-    return render(request, 'torcida/cancoes.html', context)
+    return render(request, 'torcida/cancoes.html', {'cancoes': cancoes_lista, 'torcida': torcida})
 
-# Adicione isso no final do seu accounts/views.py
 @login_required
 def excluir_cancao(request, cancao_id):
-    # Verifica se o usuário é moderador
-    if request.user.is_staff:
-        from .models import Cancao # Importando direto aqui para evitar erro de importação circular
-        # Pega a canção que pertence à torcida do moderador
-        cancao = get_object_or_404(Cancao, id=cancao_id, torcida=request.user.perfil.torcida)
+    cancao = get_object_or_404(Cancao, id=cancao_id)
+    if request.user.is_staff and request.user.perfil.torcida == cancao.torcida:
         cancao.delete()
-        messages.success(request, 'Canção removida com sucesso.')
-    else:
-        messages.error(request, 'Você não tem permissão para apagar canções.')
-        
-    return redirect('cancoes')
+        messages.success(request, 'Canção removida.')
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
 
+
+
+# --- PAINEL DE MODERAÇÃO CENTRALIZADO SAT ---
 @login_required
-def aliadas(request):
-    torcida = request.user.perfil.torcida
-    aliadas_lista = Aliada.objects.filter(torcida=torcida)
-    return render(request, 'torcida/aliadas.html', {'aliadas': aliadas_lista, 'torcida': torcida})
+def painel_moderador(request):
+    # Trava de segurança: Apenas Staff entra
+    if not request.user.is_staff:
+        messages.error(request, "Acesso restrito a moderadores.")
+        return redirect('dashboard')
+
+    minha_torcida = request.user.perfil.torcida
+    if not minha_torcida:
+        messages.error(request, "Não estás vinculado a nenhuma torcida para moderar.")
+        return redirect('dashboard')
+
+    # ==========================================
+    # PROCESSAMENTO DE FORMULÁRIOS (POST)
+    # ==========================================
+    if request.method == "POST":
+        acao = request.POST.get('acao')
+
+        # 1. SÓCIOS E KYC
+        if acao == 'aprovar_socio':
+            p = get_object_or_404(Perfil, id=request.POST.get('perfil_id'), torcida=minha_torcida)
+            p.aprovado = True
+            p.save()
+            HistoricoSocio.objects.create(perfil=p, acao="Aprovado", moderador=request.user, observacao="Aprovado via Painel SAT")
+            messages.success(request, f"Sócio {p.user.username} aprovado!")
+            
+        elif acao == 'rejeitar_socio':
+            p = get_object_or_404(Perfil, id=request.POST.get('perfil_id'), torcida=minha_torcida)
+            HistoricoSocio.objects.create(perfil=p, acao="Rejeitado", moderador=request.user, observacao=request.POST.get('motivo', 'Rejeitado via Painel'))
+            p.delete() 
+            messages.warning(request, "Solicitação de sócio rejeitada.")
+            
+        elif acao == 'remover_socio':
+            p = get_object_or_404(Perfil, id=request.POST.get('perfil_id'), torcida=minha_torcida)
+            p.delete()
+            messages.success(request, "Sócio removido permanentemente da base.")
+
+        elif acao == 'novo_campo_custom':
+            CampoPersonalizado.objects.create(
+                torcida=minha_torcida,
+                nome_campo=request.POST.get('nome_campo'),
+                obrigatorio=request.POST.get('obrigatorio') == 'on'
+            )
+            messages.success(request, "Campo personalizado adicionado ao formulário de sócios!")
+
+        # 2. EVENTOS E CARAVANAS
+        elif acao == 'novo_evento':
+            Evento.objects.create(
+                torcida=minha_torcida,
+                categoria=request.POST.get('categoria', 'evento_social'),
+                titulo=request.POST.get('titulo'),
+                data=parse_datetime(request.POST.get('data')),
+                data_fim=parse_datetime(request.POST.get('data_fim')) if request.POST.get('data_fim') else None,
+                local=request.POST.get('local'),
+                max_participantes=request.POST.get('max_participantes') or None,
+                informativo=request.POST.get('informativo', ''),
+                imagem_capa=request.FILES.get('imagem_capa')
+            )
+            messages.success(request, "Novo evento publicado!")
+            
+        elif acao == 'deletar_evento':
+            get_object_or_404(Evento, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
+            messages.success(request, "Evento apagado.")
+
+        elif acao == 'nova_caravana':
+            Caravana.objects.create(
+                torcida=minha_torcida,
+                titulo=request.POST.get('titulo'),
+                saida_local=request.POST.get('saida_local'),
+                saida_horario=parse_datetime(request.POST.get('saida_horario')),
+                vagas_totais=request.POST.get('vagas_totais'),
+                valor=request.POST.get('valor')
+            )
+            messages.success(request, "Caravana criada com sucesso!")
+
+        elif acao == 'deletar_caravana':
+            get_object_or_404(Caravana, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
+            messages.success(request, "Caravana removida.")
+
+        # 3. DIRETORIA E REGRAS
+        elif acao == 'nova_categoria_diretoria':
+            CategoriaDiretoria.objects.create(torcida=minha_torcida, nome=request.POST.get('nome'), ordem=request.POST.get('ordem', 0))
+            messages.success(request, "Categoria da diretoria criada.")
+
+        elif acao == 'novo_membro':
+            cat_id = request.POST.get('categoria_id')
+            categoria = CategoriaDiretoria.objects.get(id=cat_id) if cat_id else None
+            MembroDiretoria.objects.create(
+                torcida=minha_torcida,
+                categoria=categoria,
+                nome=request.POST.get('nome'),
+                cargo=request.POST.get('cargo'),
+                ano_ingresso=request.POST.get('ano_ingresso') or None,
+                ordem=request.POST.get('ordem', 0),
+                foto=request.FILES.get('foto')
+            )
+            messages.success(request, "Membro adicionado à diretoria!")
+            
+        elif acao == 'deletar_membro':
+            get_object_or_404(MembroDiretoria, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
+            messages.success(request, "Membro removido da diretoria.")
+
+        elif acao == 'nova_regra':
+            Regra.objects.create(
+                torcida=minha_torcida,
+                categoria=request.POST.get('categoria', 'Geral'),
+                ordem=request.POST.get('ordem', 1),
+                titulo=request.POST.get('titulo'),
+                descricao=request.POST.get('descricao')
+            )
+            messages.success(request, "Nova regra de estatuto criada.")
+        
+        elif acao == 'deletar_regra':
+            get_object_or_404(Regra, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
+            messages.success(request, "Regra removida.")
+
+        # 4. MARCA, IDENTIDADE E GALERIA
+        elif acao == 'salvar_identidade':
+            minha_torcida.nome = request.POST.get('nome', minha_torcida.nome)
+            minha_torcida.sigla = request.POST.get('sigla', minha_torcida.sigla)
+            minha_torcida.lema = request.POST.get('lema', minha_torcida.lema)
+            minha_torcida.historia = request.POST.get('historia', minha_torcida.historia)
+            minha_torcida.cor_primaria = request.POST.get('cor_primaria', minha_torcida.cor_primaria)
+            minha_torcida.cor_fundo = request.POST.get('cor_fundo', minha_torcida.cor_fundo)
+            
+            # Atualiza ano de fundação se for enviado e válido
+            nova_fundacao = request.POST.get('fundacao')
+            if nova_fundacao:
+                minha_torcida.fundacao = nova_fundacao
+                
+            if 'logo' in request.FILES:
+                minha_torcida.logo = request.FILES['logo']
+            if 'imagem_fundo' in request.FILES:
+                minha_torcida.imagem_fundo = request.FILES['imagem_fundo']
+                
+            minha_torcida.save()
+            messages.success(request, "Identidade do App atualizada com sucesso!")
+
+        elif acao == 'nova_foto_galeria':
+            FotoGaleria.objects.create(
+                torcida=minha_torcida,
+                titulo=request.POST.get('titulo'),
+                legenda=request.POST.get('legenda', ''),
+                imagem=request.FILES.get('imagem')
+            )
+            messages.success(request, "Foto adicionada à galeria!")
+
+        # 5. CONQUISTAS E CANÇÕES
+        elif acao == 'nova_conquista':
+            ConquistaTorcida.objects.create(
+                torcida=minha_torcida,
+                titulo=request.POST.get('titulo'),
+                descricao=request.POST.get('descricao', ''),
+                icone=request.POST.get('icone', 'bi-trophy'),
+                imagem=request.FILES.get('imagem')
+            )
+            messages.success(request, "Conquista registada no mural!")
+
+        elif acao == 'nova_cancao':
+            Cancao.objects.create(
+                torcida=minha_torcida,
+                titulo=request.POST.get('titulo'),
+                descricao=request.POST.get('descricao', ''),
+                letra=request.POST.get('letra', ''),
+                url_youtube=request.POST.get('url_youtube', '')
+            )
+            messages.success(request, "Canção adicionada ao repertório!")
+
+        # 6. ALIADAS
+        elif acao == 'nova_aliada':
+            Aliada.objects.create(
+                torcida=minha_torcida,
+                nome_organizada=request.POST.get('nome_organizada'),
+                clube=request.POST.get('clube'),
+                logo=request.FILES.get('logo'),
+                status='aceito' # Presume-se aceito se foi a própria diretoria a adicionar manualmente
+            )
+            messages.success(request, "Torcida Aliada adicionada!")
+
+        # 7. LOJA E PRODUTOS
+        elif acao == 'nova_categoria_loja':
+            CategoriaProduto.objects.create(torcida=minha_torcida, nome=request.POST.get('nome'))
+            messages.success(request, "Categoria de loja criada!")
+
+        elif acao == 'novo_produto':
+            cat_id = request.POST.get('categoria_id')
+            categoria = CategoriaProduto.objects.get(id=cat_id) if cat_id else None
+            
+            preco_promo = request.POST.get('preco_promocional')
+            
+            Produto.objects.create(
+                torcida=minha_torcida,
+                nome=request.POST.get('nome'),
+                descricao=request.POST.get('descricao', ''),
+                categoria=categoria,
+                preco=request.POST.get('preco'),
+                preco_promocional=preco_promo if preco_promo else None,
+                estoque=request.POST.get('estoque', 0),
+                destaque=request.POST.get('destaque') == 'on',
+                imagem=request.FILES.get('imagem')
+            )
+            messages.success(request, "Produto adicionado à loja oficial!")
+
+        elif acao == 'deletar_produto':
+            get_object_or_404(Produto, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
+            messages.success(request, "Produto removido da loja.")
+
+        # Redireciona sempre para limpar o POST e evitar submissão duplicada ao atualizar a página
+        return redirect('painel_moderador')
+
+
+    # ==========================================
+    # RENDERIZAÇÃO DA PÁGINA (GET)
+    # ==========================================
+    context = {
+        'torcida': minha_torcida,
+        # Sócios e KYC
+        'membros_ativos': Perfil.objects.filter(torcida=minha_torcida, aprovado=True).select_related('user'),
+        'membros_pendentes': Perfil.objects.filter(torcida=minha_torcida, aprovado=False).select_related('user'),
+        'campos_custom': CampoPersonalizado.objects.filter(torcida=minha_torcida),
+        
+        # Eventos
+        'eventos': Evento.objects.filter(torcida=minha_torcida).order_by('-data'),
+        'caravanas': Caravana.objects.filter(torcida=minha_torcida).order_by('-saida_horario'),
+        
+        # Institucional e Marca
+        'regras': Regra.objects.filter(torcida=minha_torcida).order_by('categoria', 'ordem'),
+        'parceiros': Parceiro.objects.filter(torcida=minha_torcida),
+        'diretoria': MembroDiretoria.objects.filter(torcida=minha_torcida).order_by('categoria__ordem', 'ordem'),
+        'categorias_diretoria': CategoriaDiretoria.objects.filter(torcida=minha_torcida).order_by('ordem'),
+        
+        # Cultura e Identidade
+        'galeria': FotoGaleria.objects.filter(torcida=minha_torcida).order_by('-data_publicacao'),
+        'conquistas': ConquistaTorcida.objects.filter(torcida=minha_torcida).order_by('-id'),
+        'cancoes': Cancao.objects.filter(torcida=minha_torcida),
+        'aliadas': Aliada.objects.filter(torcida=minha_torcida),
+        
+        # Loja
+        'produtos': Produto.objects.filter(torcida=minha_torcida).order_by('-id'),
+        'categorias_loja': CategoriaProduto.objects.filter(torcida=minha_torcida),
+    }
+    
+    return render(request, 'moderacao.html', context)

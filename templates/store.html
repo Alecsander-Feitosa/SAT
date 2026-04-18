@@ -13,50 +13,74 @@
     
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Animação do Toast (Alerta Flutuante AJAX) */
+    @keyframes slideDownToast {
+        0% { transform: translate(-50%, -100%); opacity: 0; }
+        10% { transform: translate(-50%, 20px); opacity: 1; }
+        90% { transform: translate(-50%, 20px); opacity: 1; }
+        100% { transform: translate(-50%, -100%); opacity: 0; }
+    }
+    .toast-anim { animation: slideDownToast 3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    
+    /* Abas Dinâmicas */
+    .tab-active { border-bottom: 2px solid var(--cor-tema, #D37129); color: var(--cor-tema, #D37129); font-weight: 900; }
+    .tab-inactive { color: rgba(156, 163, 175, 0.7); font-weight: 700; }
 </style>
+
+<div id="toast-carrinho" class="fixed top-0 left-1/2 -translate-x-1/2 z-[300] hidden items-center gap-3 bg-green-500 text-white px-5 py-3 rounded-full shadow-lg font-black uppercase text-[10px] tracking-widest whitespace-nowrap">
+    <i class="bi bi-check-circle-fill text-sm"></i>
+    <span id="toast-msg">Item adicionado!</span>
+</div>
 
 <div class="w-full min-h-screen fundo-app flex flex-col pb-32">
 
-    <div class="px-5 pt-8 pb-6 flex justify-between items-center animate-fade-up">
-        <div class="flex items-center gap-4">
-            <a href="javascript:history.back()" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main border border-suave hover:scale-105 transition-transform shadow-sm">
-                <i class="bi bi-arrow-left text-lg"></i>
-            </a>
-            <div>
-                <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">
-                    {% if user.perfil.torcida %}
-                        {{ user.perfil.torcida.sigla|default:user.perfil.torcida.nome }}
-                    {% else %}
-                        SAT
-                    {% endif %} 
-                    <span class="texto-tema">STORE</span>
-                </h1>
-                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Coleção Oficial</p>
+    <div class="fundo-card border-b border-suave shadow-sm z-30 relative">
+        <div class="px-5 pt-8 pb-4 flex justify-between items-center animate-fade-up">
+            <div class="flex items-center gap-4">
+                <a href="{% url 'dashboard' %}" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main border border-suave hover:scale-105 transition-transform shadow-sm">
+                    <i class="bi bi-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">
+                        {% if user.perfil.torcida and aba_atual == 'torcida' %}
+                            {{ user.perfil.torcida.sigla|default:user.perfil.torcida.nome }}
+                        {% else %}
+                            SAT
+                        {% endif %} 
+                        <span class="texto-tema">STORE</span>
+                    </h1>
+                    <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Coleção Oficial</p>
+                </div>
             </div>
+
+            {% if user.is_staff and user.perfil.torcida %}
+            <a href="{% url 'painel_loja' %}" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-tema border border-tema shadow-sm active:scale-90 transition-transform">
+                <i class="bi bi-gear-fill text-lg"></i>
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="flex px-5 w-full mt-2 animate-fade-up">
+            {% if user.perfil.torcida %}
+            <a href="?aba=torcida" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'torcida' %}tab-active{% else %}tab-inactive hover:texto-tema{% endif %}">
+                {{ user.perfil.torcida.sigla|default:"Minha Torcida" }}
+            </a>
+            {% endif %}
+            
+            <a href="?aba=global" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'global' %}tab-active{% else %}tab-inactive hover:texto-tema{% endif %}">
+                SAT Global
+            </a>
         </div>
     </div>
 
-    <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-4">
-            <a href="{% url 'dashboard' %}" class="texto-main text-2xl"><i class="bi bi-arrow-left"></i></a>
-            <h1 class="text-xl font-black italic uppercase texto-main">LOJA <span class="texto-tema">OFICIAL</span></h1>
-        </div>
-
-        {% if user.is_staff and user.perfil.torcida %}
-        <a href="{% url 'painel_loja' %}" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-tema border border-tema shadow-sm active:scale-90 transition-transform">
-            <i class="bi bi-gear-fill text-lg"></i>
-        </a>
-        {% endif %}
-    </div>
-
-
-    <div class="pl-5 pr-5 pb-6 flex overflow-x-auto gap-3 no-scrollbar animate-fade-up delay-100">
-        <a href="{% url 'loja' %}" class="px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {% if not categoria_atual %}fundo-tema texto-claro shadow-md scale-105{% else %}fundo-card texto-main opacity-60 border border-suave hover:opacity-100{% endif %}">
+    <div class="pl-5 pr-5 py-6 flex overflow-x-auto gap-3 no-scrollbar animate-fade-up delay-100">
+        <a href="?aba={{ aba_atual }}" class="px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {% if not categoria_atual %}fundo-tema texto-claro shadow-md scale-105{% else %}fundo-card texto-main opacity-60 border border-suave hover:opacity-100{% endif %}">
             Todos
         </a>
         
         {% for cat in categorias %}
-        <a href="?categoria={{ cat }}" class="px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {% if categoria_atual == cat %}fundo-tema texto-claro shadow-md scale-105{% else %}fundo-card texto-main opacity-60 border border-suave hover:opacity-100{% endif %}">
+        <a href="?aba={{ aba_atual }}&categoria={{ cat }}" class="px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {% if categoria_atual == cat %}fundo-tema texto-claro shadow-md scale-105{% else %}fundo-card texto-main opacity-60 border border-suave hover:opacity-100{% endif %}">
             {{ cat }}
         </a>
         {% endfor %}
@@ -65,10 +89,12 @@
     <div class="px-5 flex flex-col gap-8 animate-fade-up delay-200">
         
         <div class="w-full h-44 rounded-[28px] overflow-hidden relative group shadow-lg border border-suave">
-            <img src="{% static 'img/hero-stadium.jpg' %}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-gray-900 to-black"></div>
+            {% if user.perfil.torcida.logo and aba_atual == 'torcida' %}
+                <img src="{{ user.perfil.torcida.logo.url }}" class="absolute -right-10 top-0 h-full object-cover opacity-20 filter grayscale">
+            {% endif %}
             
-            <div class="absolute inset-0 p-6 flex flex-col justify-end">
+            <div class="absolute inset-0 p-6 flex flex-col justify-end relative z-10">
                 <span class="fundo-tema texto-claro text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full w-max mb-2 shadow-sm border border-white/20">Novo Manto</span>
                 <h3 class="text-white text-xl font-black uppercase tracking-tight leading-tight mb-1">Linha Arquibancada</h3>
                 <p class="text-white/70 text-[10px] font-bold uppercase tracking-wider">Garanta já com desconto de sócio.</p>
@@ -113,9 +139,9 @@
                             </span>
                             
                             {% if produto.estoque > 0 %}
-                                <form action="{% url 'adicionar_ao_carrinho' produto.id %}" method="POST" class="m-0 p-0">
+                                <form action="{% url 'adicionar_ao_carrinho' produto.id %}" method="POST" class="m-0 p-0" onsubmit="return addCarrinhoAjax(event, this)">
                                     {% csrf_token %}
-                                    <button type="submit" class="w-8 h-8 fundo-tema texto-claro rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform border-none cursor-pointer">
+                                    <button type="submit" class="w-8 h-8 fundo-tema texto-claro rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform border-none cursor-pointer outline-none">
                                         <i class="bi bi-bag-plus-fill text-xs"></i>
                                     </button>
                                 </form>
@@ -130,7 +156,7 @@
                 {% empty %}
                 <div class="col-span-2 flex flex-col items-center justify-center py-16 fundo-card rounded-[32px] border border-suave shadow-sm">
                     <i class="bi bi-basket text-4xl texto-main opacity-20 mb-3"></i>
-                    <p class="text-[11px] font-black texto-main opacity-50 uppercase tracking-widest">Nenhum artigo disponível.</p>
+                    <p class="text-[11px] font-black texto-main opacity-50 uppercase tracking-widest">Nenhum artigo disponível nesta aba.</p>
                 </div>
                 {% endfor %}
             </div>
@@ -141,10 +167,59 @@
 <a href="{% url 'ver_carrinho' %}" class="fixed bottom-24 right-5 w-14 h-14 fundo-card border-2 border-tema rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all z-50 group">
     <i class="bi bi-cart3 text-xl texto-tema group-hover:scale-110 transition-transform"></i>
     
-    {% if total_itens_carrinho > 0 %}
-    <span class="absolute -top-2 -right-2 fundo-tema texto-claro text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-fundo-app shadow-md animate-bounce">
+    <span id="badge-carrinho" class="absolute -top-2 -right-2 fundo-tema texto-claro text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-fundo-app shadow-md {% if total_itens_carrinho == 0 %}hidden{% else %}animate-bounce{% endif %}">
         {{ total_itens_carrinho }}
     </span>
-    {% endif %}
 </a>
+
+<script>
+    window.addCarrinhoAjax = function(event, formElement) {
+        event.preventDefault(); 
+        
+        var url = formElement.action;
+        var formData = new FormData(formElement);
+        var csrfToken = formElement.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.sucesso) {
+                var badge = document.getElementById('badge-carrinho');
+                badge.innerText = data.total_itens;
+                badge.classList.remove('hidden');
+                
+                badge.classList.remove('animate-bounce');
+                void badge.offsetWidth;
+                badge.classList.add('animate-bounce');
+
+                var toast = document.getElementById('toast-carrinho');
+                var toastMsg = document.getElementById('toast-msg');
+                toastMsg.innerText = data.mensagem || "Item adicionado!";
+                
+                toast.classList.remove('hidden');
+                toast.classList.remove('toast-anim');
+                void toast.offsetWidth;
+                toast.classList.add('flex', 'toast-anim');
+                
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                    toast.classList.remove('flex', 'toast-anim');
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            console.error("Erro ao adicionar ao carrinho:", error);
+            alert("Não foi possível adicionar o item ao carrinho.");
+        });
+        
+        return false;
+    };
+</script>
 {% endblock %}

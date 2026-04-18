@@ -39,10 +39,22 @@ class PerfilCompletoForm(forms.ModelForm):
         model = Perfil
         fields = [
             'foto',
-            'data_nascimento', 'rg_cnh', 'orgao_expedidor', 
-            'cep', 'rua', 'numero', 'complemento', 'bairro', 'cidade', 'uf',
-            'foto_documento_frente', 'foto_documento_verso', 'verificacao_facial',
-            'vulgo', 'pelotao', 'rede_social'
+            'data_nascimento', 'rg_cnh', 
+            'orgao_expedidor', 
+
+            'cep', 
+            'rua', 
+            'numero', 
+            'complemento', 
+            'bairro',
+            'cidade', 
+            'uf',
+            'doc_frente', 
+            'doc_verso', 
+            'doc_selfie',
+            'vulgo', 
+            'pelotao',
+            'rede_social'
         ]
         widgets = {
             field: forms.TextInput(attrs={'class': 'form-control sat-input'}) 

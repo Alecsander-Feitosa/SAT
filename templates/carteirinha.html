@@ -89,17 +89,26 @@
 
             <div class="mt-6 mb-auto relative z-10 flex items-center justify-between">
                 <div class="cartao-chip"></div>
-                <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
-                    <i class="bi bi-star-fill text-yellow-400 text-[10px]"></i>
-                    <span class="text-[10px] font-black uppercase text-white tracking-widest">
-                        {% if perfil_game.nivel %}{{ perfil_game.nivel.nome }}{% else %}NÍVEL 1{% endif %}
-                    </span>
+                <div class="flex items-center gap-2">
+                    <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
+                        <i class="bi bi-gem text-white/70 text-[10px]"></i>
+                        <span class="text-[10px] font-black uppercase text-white tracking-widest">
+                            {{ user.perfil.plano|default:"GRATUITO" }}
+                        </span>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
+                        <i class="bi bi-star-fill text-yellow-400 text-[10px]"></i>
+                        <span class="text-[10px] font-black uppercase text-white tracking-widest">
+                            {% if perfil_game.nivel %}{{ perfil_game.nivel.nome }}{% else %}NÍVEL 1{% endif %}
+                        </span>
+                    </div>
                 </div>
             </div>
 
             <div class="relative z-10 flex justify-between items-end mt-6">
                 <div class="flex-1">
-                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Membro Titular</p>
+                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Nome na Carteirinha</p>
                     <p class="text-sm font-black uppercase texto-emboss text-white truncate w-48">
                         {{ user.get_full_name|default:user.username }}
                     </p>

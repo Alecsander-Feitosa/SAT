@@ -1041,27 +1041,78 @@ def adicionar_comentario(request, post_id):
 
 @login_required
 def editar_perfil(request):
-    perfil = request.user.perfil
+    usuario = request.user
+    perfil = usuario.perfil # Presumindo que você tenha um OneToOneField do User para o Perfil
+
     if request.method == 'POST':
-        # Dados do User
-        request.user.first_name = request.POST.get('first_name', request.user.first_name)
-        request.user.save()
-        
-        # Dados do Perfil
-        perfil.vulgo = request.POST.get('vulgo', perfil.vulgo)
-        perfil.pelotao = request.POST.get('pelotao', perfil.pelotao)
-        perfil.rede_social = request.POST.get('rede_social', perfil.rede_social)
-        perfil.time_coracao = request.POST.get('time_coracao', perfil.time_coracao)
-        perfil.whatsapp = request.POST.get('whatsapp', perfil.whatsapp)
-        
-        if 'foto' in request.FILES:
-            perfil.foto = request.FILES['foto']
+        try:
+            # 1. ATUALIZANDO DADOS DO USER (Nativo do Django)
+            nome_completo = request.POST.get('nome_completo', '')
+            # Divide o nome completo em First Name e Last Name (padrão do Django)
+            if nome_completo:
+                partes_nome = nome_completo.split(' ', 1)
+                usuario.first_name = partes_nome[0]
+                usuario.last_name = partes_nome[1] if len(partes_nome) > 1 else ''
             
-        perfil.save()
-        messages.success(request, 'Perfil atualizado com sucesso!')
-        return redirect('perfil')
-        
-    return render(request, 'editar_perfil.html', {'perfil': perfil})
+            usuario.email = request.POST.get('email', usuario.email)
+            usuario.save()
+
+            # 2. ATUALIZANDO DADOS TEXTUAIS DO PERFIL
+            perfil.cpf = request.POST.get('cpf', perfil.cpf)
+            
+            # Tratamento da data de nascimento para evitar strings vazias
+            data_nascimento = request.POST.get('data_nascimento')
+            if data_nascimento:
+                perfil.data_nascimento = data_nascimento
+
+            perfil.rg_cnh = request.POST.get('rg_cnh', perfil.rg_cnh)
+            perfil.orgao_expeditor = request.POST.get('orgao_expeditor', perfil.orgao_expeditor)
+            perfil.telefone = request.POST.get('telefone', perfil.telefone)
+            perfil.whatsapp = request.POST.get('whatsapp', perfil.whatsapp)
+            perfil.nome_mae = request.POST.get('nome_mae', perfil.nome_mae)
+            perfil.nome_pai = request.POST.get('nome_pai', perfil.nome_pai)
+            
+            perfil.cep = request.POST.get('cep', perfil.cep)
+            perfil.rua = request.POST.get('rua', perfil.rua)
+            perfil.numero = request.POST.get('numero', perfil.numero)
+            perfil.complemento = request.POST.get('complemento', perfil.complemento)
+            perfil.bairro = request.POST.get('bairro', perfil.bairro)
+            perfil.cidade = request.POST.get('cidade', perfil.cidade)
+            perfil.uf = request.POST.get('uf', perfil.uf)
+
+            # Dados da Torcida (Só salva se vierem no POST)
+            perfil.vulgo = request.POST.get('vulgo', perfil.vulgo)
+            perfil.pelotao = request.POST.get('pelotao', perfil.pelotao)
+            perfil.rede_social = request.POST.get('rede_social', perfil.rede_social)
+
+            # 3. TRATANDO OS UPLOADS DE IMAGEM (request.FILES)
+            # O 'if' garante que a imagem só seja substituída se o usuário enviou uma nova
+            if 'foto' in request.FILES:
+                perfil.foto = request.FILES['foto']
+            
+            if 'doc_frente' in request.FILES:
+                perfil.doc_frente = request.FILES['doc_frente']
+                
+            if 'doc_verso' in request.FILES:
+                perfil.doc_verso = request.FILES['doc_verso']
+                
+            if 'doc_selfie' in request.FILES:
+                perfil.doc_selfie = request.FILES['doc_selfie']
+
+            # 4. SALVANDO TUDO
+            perfil.save()
+            
+            # Mensagem de sucesso na tela
+            messages.success(request, 'Seu perfil e documentos foram atualizados com sucesso!')
+            return redirect('perfil') # Redireciona de volta para a página de visualização
+
+        except Exception as e:
+            # Em caso de erro (ex: formato de data inválido, etc)
+            messages.error(request, f'Ocorreu um erro ao atualizar o perfil: {str(e)}')
+            return redirect('editar_perfil')
+
+    # Se for GET, apenas renderiza a página
+    return render(request, 'editar_perfil.html')
 
 @login_required
 def meus_pedidos(request):

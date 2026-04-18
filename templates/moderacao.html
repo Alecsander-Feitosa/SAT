@@ -3,362 +3,444 @@
 
 {% block content %}
 <style>
-    /* 1. CONFIGURAÇÃO DE CORES SAT PREMIUM */
-    :root {
-        --cor-primaria: {{ torcida.cor_primaria|default:"#D37129" }};
-        /* Forçamos o fundo escuro premium para combinar com a carteirinha */
-        --sat-black-deep: #050505;
-        --sat-black-card: #1a1a1a;
-    }
-
-    /* Ajuste para o body não ficar totalmente preto e sem vida */
-    body { 
-        background-color: var(--sat-black-deep) !important; 
-        color: #ffffff !important;
-    }
+    :root { --cor-primaria: {{ torcida.cor_primaria|default:"#D37129" }}; }
 
     @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
-        to { opacity: 1; transform: translateY(0); filter: blur(0); }
-    }
-    .animate-fade-up { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-    /* CABEÇALHO AJUSTADO */
-    .glass-header-mod {
-        background: rgba(26, 26, 26, 0.9);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-    }
-
-    /* CARTÃO MASTER DO MODERADOR */
-    .cartao-admin {
-        background: linear-gradient(135deg, var(--sat-black-card) 0%, var(--sat-black-deep) 100%);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .cartao-glow {
-        position: absolute;
-        top: -30%;
-        right: -10%;
-        width: 150%;
-        height: 150%;
-        background: radial-gradient(circle at top right, var(--cor-primaria) 0%, transparent 60%);
-        opacity: 0.2;
-        pointer-events: none;
-    }
-
-    .cartao-watermark {
-        position: absolute;
-        right: -10%;
-        bottom: -20%;
-        width: 80%;
-        height: 80%;
-        opacity: 0.08; 
-        filter: grayscale(100%) brightness(200%);
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: bottom right;
-        pointer-events: none;
-        z-index: 1;
-    }
-
-    /* CHIP DOURADO SAT */
-    .cartao-chip {
-        width: 42px;
-        height: 30px;
-        background: linear-gradient(135deg, #ffd700 0%, #daa520 100%);
-        border-radius: 6px;
-        position: relative;
-        box-shadow: inset 0 0 4px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2);
-        overflow: hidden;
-    }
-    .cartao-chip::before, .cartao-chip::after { content: ''; position: absolute; background: rgba(0,0,0,0.2); }
-    .cartao-chip::before { width: 100%; height: 1px; top: 50%; left: 0; }
-    .cartao-chip::after { width: 1px; height: 100%; top: 0; left: 50%; }
-
-    /* BOTÕES DO HUB */
-    .modern-hub-grid { 
-        display: grid; 
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 16px; 
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     
-    .modern-hub-item { 
-        background: var(--sat-black-card); 
-        border-radius: 28px; 
-        padding: 24px 16px; 
-        border: 1px solid rgba(255,255,255,0.05); 
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        text-decoration: none; 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        position: relative;
-    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .tab-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .tab-active { background-color: var(--cor-primaria); color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transform: scale(1.02); }
+    .tab-inactive { background-color: rgba(150,150,150,0.08); color: inherit; opacity: 0.6; border: 1px solid rgba(150,150,150,0.1); }
     
-    .modern-hub-item:active { transform: scale(0.95); }
-    
-    .icon-wrapper {
-        width: 60px; height: 60px;
-        border-radius: 20px;
-        display: flex; align-items: center; justify-content: center;
-        margin-bottom: 14px;
-        background-color: rgba(255, 255, 255, 0.03);
-        color: var(--cor-primaria);
-    }
-
-    .icon-wrapper i { 
-        font-size: 28px; 
-        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-    }
-
-    .modern-hub-item span { 
-        font-size: 11px; 
-        font-weight: 800; 
-        color: rgba(255,255,255,0.9); 
-        text-transform: uppercase; 
-        letter-spacing: 1px;
-        text-align: center;
-    }
-
-    .section-label {
-        font-size: 10px;
-        font-weight: 900;
-        color: rgba(255,255,255,0.3);
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        margin-bottom: 15px;
-        padding-left: 5px;
-    }
-
-    .badge-notification {
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background: #ef4444;
-        color: white;
-        font-size: 11px;
-        font-weight: 900;
-        min-width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
-        border: 2px solid white;
-        animation: pulse-red 2s infinite;
-        z-index: 20;
-    }
-
-    @keyframes pulse-red {
-        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
+    .secao-conteudo { display: none; }
+    .secao-ativa { display: block; animation: slideUpFade 0.4s ease forwards; }
+    .modal-backdrop { background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); }
 </style>
 
-<div class="w-full min-h-screen flex flex-col pb-32" style="background-color: var(--sat-black-deep);">
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
 
-    <div class="glass-header-mod px-5 py-5 flex justify-between items-center mb-6">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background-color: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
-                <i class="bi bi-shield-lock-fill text-xl" style="color: var(--cor-primaria);"></i>
-            </div>
-            <div>
-                <h1 class="text-lg font-black italic uppercase tracking-tighter text-white leading-none">
-                    PAINEL <span style="color: var(--cor-primaria);">MODERADOR</span>
-                </h1>
-                <p class="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-1">Gestão de Torcida SAT</p>
-            </div>
-        </div>
-        
-        <div class="flex gap-2">
-            <a href="{% url 'dashboard' %}" class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 text-white hover:scale-105 transition-transform" title="Voltar ao App">
-                <i class="bi bi-house-door-fill text-lg font-bold"></i>
+    <div class="px-5 pt-10 pb-6 flex justify-between items-center z-30 relative">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'dashboard' %}" class="w-10 h-10 fundo-card rounded-2xl flex items-center justify-center texto-main border border-suave shadow-sm hover:opacity-80 transition-opacity">
+                <i class="bi bi-arrow-left text-lg"></i>
             </a>
+            <div>
+                <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">
+                    MODERAÇÃO <span style="color: var(--cor-primaria)">SAT</span>
+                </h1>
+                <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1 flex items-center gap-1">
+                    <i class="bi bi-shield-check"></i> {{ torcida.nome }}
+                </p>
+            </div>
         </div>
     </div>
 
-    <div class="px-5 w-full max-w-sm mx-auto flex flex-col gap-8">
-        
-        <div class="w-full cartao-admin rounded-3xl p-6 text-white flex flex-col relative z-10 animate-fade-up">
-            <div class="cartao-glow"></div>
-            
-            {% if torcida.logo %}
-                <div class="cartao-watermark" style="background-image: url('{{ torcida.logo.url }}');"></div>
-            {% endif %}
-            
-            <div class="flex items-center gap-4 relative z-10 mb-6">
-                <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 p-2 overflow-hidden shrink-0">
-                    {% if torcida.logo %}
-                        <img src="{{ torcida.logo.url }}" class="w-full h-full object-contain">
-                    {% else %}
-                        <i class="bi bi-shield-fill text-white/90 text-3xl"></i>
-                    {% endif %}
-                </div>
-                
-                <div>
-                    <h2 class="font-black text-xl tracking-tighter uppercase leading-none mb-1" style="font-family: 'Montserrat', sans-serif;">
-                        {{ torcida.nome }}
-                    </h2>
-                    <p class="text-[9px] text-white/70 font-bold uppercase tracking-[0.2em] flex items-center gap-1">
-                        <i class="bi bi-person-badge-fill text-yellow-400"></i> LÍDER: {{ request.user.username }}
-                    </p>
-                </div>
-            </div>
+    <div class="px-5 pb-6 flex overflow-x-auto gap-3 no-scrollbar py-2">
+        <button onclick="mudarAba('visao-geral')" id="btn-visao-geral" class="tab-btn tab-active px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+            <i class="bi bi-grid-1x2-fill"></i> Início
+        </button>
+        <button onclick="mudarAba('socios')" id="btn-socios" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2 relative">
+            <i class="bi bi-person-lines-fill"></i> Sócios / KYC
+            {% if membros_pendentes.count > 0 %}<span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>{% endif %}
+        </button>
+        <button onclick="mudarAba('eventos')" id="btn-eventos" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+            <i class="bi bi-calendar-event"></i> Eventos
+        </button>
+        <button onclick="mudarAba('loja')" id="btn-loja" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+            <i class="bi bi-cart-fill"></i> Loja
+        </button>
+        <button onclick="mudarAba('cultura')" id="btn-cultura" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+            <i class="bi bi-music-note-beamed"></i> Cultura
+        </button>
+        <button onclick="mudarAba('institucional')" id="btn-institucional" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+            <i class="bi bi-building"></i> Torcida
+        </button>
+        <button onclick="mudarAba('identidade')" id="btn-identidade" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+            <i class="bi bi-palette-fill"></i> Marca
+        </button>
+    </div>
 
-            <div class="mb-6 relative z-10">
-                <div class="cartao-chip"></div>
-            </div>
+    <div class="px-5 flex flex-col gap-6">
 
-            <div class="grid grid-cols-4 gap-2 relative z-10 border-t border-white/10 pt-5 mt-auto">
-                <div class="text-center">
-                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Membros</p>
-                    <p class="text-lg font-black text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">{{ membros_ativos }}</p>
+        <div id="visao-geral" class="secao-conteudo secao-ativa">
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="fundo-card p-5 rounded-[24px] border border-suave flex flex-col items-center">
+                    <h3 class="text-3xl font-black texto-main leading-none mb-1">{{ membros_ativos.count }}</h3>
+                    <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest">Sócios Ativos</p>
                 </div>
-                <div class="text-center border-l border-white/10">
-                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Eventos</p>
-                    <p class="text-lg font-black text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">{{ eventos|length }}</p>
-                </div>
-                <div class="text-center border-l border-white/10">
-                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Parceiros</p>
-                    <p class="text-lg font-black text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">{{ parceiros|length }}</p>
-                </div>
-                <div class="text-center border-l border-white/10">
-                    <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Anúncios</p>
-                    <p class="text-lg font-black text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">{{ publicidades|length }}</p>
+                <div class="fundo-card p-5 rounded-[24px] border border-suave flex flex-col items-center">
+                    <h3 class="text-3xl font-black texto-main leading-none mb-1">{{ produtos.count }}</h3>
+                    <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest">Produtos Loja</p>
                 </div>
             </div>
         </div>
 
-        <div class="animate-fade-up" style="animation-delay: 150ms;">
-            
-            <p class="section-label">Gestão da Comunidade</p>
-            <div class="modern-hub-grid mb-8">
-                <a href="/admin/accounts/perfil/?aprovado__exact=0" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #0dcaf0; background-color: rgba(13, 202, 240, 0.05); border: 1px solid rgba(13, 202, 240, 0.1);">
-                        <i class="bi bi-person-plus-fill group-hover:scale-110 transition-transform"></i>
+        <div id="socios" class="secao-conteudo">
+            <h3 class="text-[11px] font-black texto-main opacity-50 uppercase tracking-widest mb-4">Aprovações Pendentes ({{ membros_pendentes.count }})</h3>
+            <div class="space-y-4 mb-8">
+                {% for p in membros_pendentes %}
+                <div class="fundo-card border border-suave rounded-[24px] p-5 shadow-sm">
+                    <div class="flex gap-3 items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center font-bold">{{ p.user.username|slice:":1" }}</div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-black texto-main uppercase">{{ p.user.get_full_name|default:p.user.username }}</h4>
+                            <p class="text-[9px] font-bold opacity-50 uppercase tracking-widest">Data: {{ p.user.date_joined|date:"d/m/Y" }}</p>
+                        </div>
                     </div>
-                    <span>Aprovar Sócios</span>
-                    {% if membros_pendentes > 0 %}
-                        <div class="badge-notification">{{ membros_pendentes }}</div>
-                    {% endif %}
-                </a>
-                <a href="/admin/accounts/perfil/?aprovado__exact=1" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #198754; background-color: rgba(25, 135, 84, 0.05); border: 1px solid rgba(25, 135, 84, 0.1);">
-                        <i class="bi bi-person-check-fill group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Membros Ativos</span>
-                </a>
+                    <form method="POST" class="flex gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="perfil_id" value="{{ p.id }}">
+                        <button type="submit" name="acao" value="rejeitar_socio" class="flex-1 py-3 bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors rounded-xl text-[10px] font-black uppercase">Rejeitar</button>
+                        <button type="submit" name="acao" value="aprovar_socio" class="flex-1 py-3 bg-green-600 hover:bg-green-700 transition-colors text-white rounded-xl text-[10px] font-black uppercase">Aprovar</button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="text-center text-[10px] font-bold opacity-40 uppercase py-4">Nenhum pedido pendente.</p>
+                {% endfor %}
             </div>
 
-            <p class="section-label">Institucional & História</p>
-            <div class="modern-hub-grid mb-8">
-                <a href="/admin/organizadas/regra/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #ffc107; background-color: rgba(255, 193, 7, 0.05); border: 1px solid rgba(255, 193, 7, 0.1);">
-                        <i class="bi bi-journal-bookmark-fill group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Regras/Estatuto</span>
-                </a>
-                <a href="/admin/organizadas/membrodiretoria/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #17a2b8; background-color: rgba(23, 162, 184, 0.05); border: 1px solid rgba(23, 162, 184, 0.1);">
-                        <i class="bi bi-people-fill group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Diretoria</span>
-                </a>
-                <a href="/admin/organizadas/conquistatorcida/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #ffda6a; background-color: rgba(255, 218, 106, 0.05); border: 1px solid rgba(255, 218, 106, 0.1);">
-                        <i class="bi bi-trophy-fill group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Conquistas</span>
-                </a>
-                <a href="/admin/organizadas/fotogaleria/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #20c997; background-color: rgba(32, 201, 151, 0.05); border: 1px solid rgba(32, 201, 151, 0.1);">
-                        <i class="bi bi-images group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Galeria (Fotos)</span>
-                </a>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-[11px] font-black texto-main opacity-50 uppercase tracking-widest">Sócios Ativos</h3>
+                <button onclick="abrirModal('modalCampoCustom')" class="text-[9px] font-black bg-black/5 hover:bg-black/10 transition-colors px-3 py-1.5 rounded-full uppercase border border-suave">+ Criar Campo</button>
             </div>
-
-            <p class="section-label">Design & Ações</p>
-            <div class="modern-hub-grid mb-8">
-                <a href="/admin/organizadas/torcida/{{ torcida.id }}/change/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: var(--cor-primaria); background-color: rgba(255,255,255,0.03);">
-                        <i class="bi bi-palette-fill group-hover:scale-110 transition-transform"></i>
+            <div class="space-y-3">
+                {% for socio in membros_ativos %}
+                <div class="fundo-card p-4 rounded-2xl border border-suave flex justify-between items-center">
+                    <div class="flex-1">
+                        <h4 class="text-xs font-black uppercase">{{ socio.user.username }} <span class="opacity-40 text-[9px]">{% if socio.vulgo %}"{{ socio.vulgo }}"{% endif %}</span></h4>
+                        <p class="text-[9px] opacity-60 uppercase font-bold">{{ socio.pelotao|default:"Sem Pelotão" }} | {{ socio.whatsapp|default:"Sem Contato" }}</p>
                     </div>
-                    <span>Cores & Logo</span>
-                </a>
-                <a href="/admin/organizadas/evento/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #e83e8c; background-color: rgba(232, 62, 140, 0.05); border: 1px solid rgba(232, 62, 140, 0.1);">
-                        <i class="bi bi-calendar-event-fill group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Criar Eventos</span>
-                </a>
-                <a href="/admin/organizadas/parceiro/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #fd7e14; background-color: rgba(253, 126, 20, 0.05); border: 1px solid rgba(253, 126, 20, 0.1);">
-                        <i class="bi bi-shop group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Parceiros</span>
-                </a>
-                <a href="/admin/organizadas/publicidade/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #6f42c1; background-color: rgba(111, 66, 193, 0.05); border: 1px solid rgba(111, 66, 193, 0.1);">
-                        <i class="bi bi-megaphone-fill group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Anúncios</span>
-                </a>
+                    <form method="POST" onsubmit="return confirm('Expulsar este sócio da torcida?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="perfil_id" value="{{ socio.id }}">
+                        <button type="submit" name="acao" value="remover_socio" class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors flex items-center justify-center"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="text-center text-[10px] font-bold opacity-40 uppercase py-4">Nenhum sócio aprovado.</p>
+                {% endfor %}
             </div>
-
-            <p class="section-label">Cultura & Viagens</p>
-            <div class="modern-hub-grid">
-                <a href="{% url 'admin_financeiro' %}" class="w-full fundo-card border border-suave rounded-[20px] p-5 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02] group mb-3">
-    
-                    <div class="w-12 h-12 rounded-full bg-dinamico/10 flex items-center justify-center text-dinamico group-hover:bg-dinamico group-hover:text-white transition-colors duration-300">
-                        <i class="bi bi-wallet2 text-xl"></i>
-                    </div>
-                    <div class="text-left flex-1">
-                        <h3 class="font-black texto-main uppercase tracking-tight leading-none mb-1">Gestão Financeira</h3>
-                        <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-wider">Acessar planos e pagamentos</p>
-                    </div>
-                    <i class="bi bi-chevron-right texto-main opacity-30 text-lg group-hover:opacity-100 transition-opacity"></i>
-                </a>
-                <a href="/admin/accounts/cancao/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #dc3545; background-color: rgba(220, 53, 69, 0.05); border: 1px solid rgba(220, 53, 69, 0.1);">
-                        <i class="bi bi-music-note-list group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Canções</span>
-                </a>
-                <a href="/admin/organizadas/caravana/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #0d6efd; background-color: rgba(13, 110, 253, 0.05); border: 1px solid rgba(13, 110, 253, 0.1);">
-                        <i class="bi bi-bus-front-fill group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Caravanas</span>
-                </a>
-                <a href="/admin/accounts/aliada/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #0d6efd; background-color: rgba(13, 110, 253, 0.05); border: 1px solid rgba(13, 110, 253, 0.1);">
-                        <i class="bi bi-shield-fill-check group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Torcidas Aliadas</span>
-                </a>
-                <a href="/admin/organizadas/post/" class="modern-hub-item group">
-                    <div class="icon-wrapper" style="color: #e83e8c; background-color: rgba(232, 62, 140, 0.05); border: 1px solid rgba(232, 62, 140, 0.1);">
-                        <i class="bi bi-image-fill group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span>Mural/Feed</span>
-                </a>
-            </div>
-            
-
         </div>
+
+        <div id="eventos" class="secao-conteudo">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Painel de Eventos</h3>
+                <button onclick="abrirModal('modalEvento')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Novo Evento</button>
+            </div>
+            <div class="space-y-3">
+                {% for ev in eventos %}
+                <div class="fundo-card p-4 rounded-2xl border border-suave flex justify-between items-center">
+                    <div>
+                        <span class="text-[9px] font-black bg-orange-500/10 text-orange-600 px-2.5 py-1 rounded-md uppercase">{{ ev.get_categoria_display }}</span>
+                        <h4 class="text-sm font-black uppercase mt-2">{{ ev.titulo }}</h4>
+                    </div>
+                    <form method="POST" onsubmit="return confirm('Apagar este evento?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="item_id" value="{{ ev.id }}">
+                        <button type="submit" name="acao" value="deletar_evento" class="w-9 h-9 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-colors text-red-600 flex items-center justify-center"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="text-center text-[10px] font-bold opacity-40 uppercase py-4">Nenhum evento agendado.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="loja" class="secao-conteudo">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Loja</h3>
+                <div class="flex gap-2">
+                    <button onclick="abrirModal('modalCategoriaLoja')" class="text-[9px] bg-black/5 hover:bg-black/10 transition-colors px-3 py-1.5 rounded-full font-black uppercase border border-suave">+ Categoria</button>
+                    <button onclick="abrirModal('modalProduto')" class="text-[9px] bg-green-600 hover:bg-green-700 transition-colors text-white px-3 py-1.5 rounded-full font-black uppercase">+ Produto</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                {% for prod in produtos %}
+                <div class="fundo-card p-3 rounded-2xl border border-suave relative group">
+                    <form method="POST" class="absolute top-2 right-2 z-10" onsubmit="return confirm('Remover produto da loja?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="item_id" value="{{ prod.id }}">
+                        <button type="submit" name="acao" value="deletar_produto" class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"><i class="bi bi-x text-xs"></i></button>
+                    </form>
+                    <div class="aspect-square bg-black/5 rounded-xl overflow-hidden mb-2 flex items-center justify-center">
+                        {% if prod.imagem %}
+                        <img src="{{ prod.imagem.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <i class="bi bi-box-seam text-2xl opacity-20"></i>
+                        {% endif %}
+                    </div>
+                    <h4 class="text-[10px] font-black uppercase truncate">{{ prod.nome }}</h4>
+                    <p class="text-[11px] font-black" style="color: var(--cor-primaria)">R$ {{ prod.preco_atual }}</p>
+                </div>
+                {% empty %}
+                <div class="col-span-2 text-center py-6 opacity-40">
+                    <i class="bi bi-shop text-3xl mb-2 block"></i>
+                    <p class="text-[10px] font-bold uppercase tracking-widest">Loja Vazia</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="cultura" class="secao-conteudo">
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-[11px] font-black uppercase tracking-widest opacity-50">Galeria de Fotos</h3>
+                    <button onclick="abrirModal('modalFotoGaleria')" class="text-[9px] font-black bg-black/5 hover:bg-black/10 transition-colors px-3 py-1.5 rounded-full border border-suave">+ Foto</button>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    {% for foto in galeria %}
+                    <div class="aspect-square rounded-lg overflow-hidden border border-suave relative group">
+                        <img src="{{ foto.imagem.url }}" class="w-full h-full object-cover">
+                    </div>
+                    {% empty %}
+                    <p class="col-span-3 text-[10px] font-bold opacity-40 uppercase py-2">Sem fotos na galeria.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-[11px] font-black uppercase tracking-widest opacity-50">Canções / Gritos</h3>
+                    <button onclick="abrirModal('modalCancao')" class="text-[9px] font-black bg-black/5 hover:bg-black/10 transition-colors px-3 py-1.5 rounded-full border border-suave">+ Canção</button>
+                </div>
+                <div class="space-y-2">
+                    {% for c in cancoes %}
+                    <div class="fundo-card p-3 rounded-xl border border-suave flex justify-between items-center">
+                        <h4 class="text-xs font-bold uppercase truncate">{{ c.titulo }}</h4>
+                        <form method="POST" onsubmit="return confirm('Remover canção?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_id" value="{{ c.id }}">
+                            <button type="submit" name="acao" value="deletar_cancao" class="text-red-500 opacity-50 hover:opacity-100"><i class="bi bi-trash text-xs"></i></button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <p class="text-[10px] font-bold opacity-40 uppercase py-2">Nenhuma canção registada.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div id="institucional" class="secao-conteudo">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-[11px] font-black uppercase tracking-widest opacity-50">Aliadas</h3>
+                <button onclick="abrirModal('modalAliada')" class="text-[9px] font-black bg-black/5 hover:bg-black/10 transition-colors px-3 py-1.5 rounded-full border border-suave">+ Adicionar Aliada</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                {% for aliada in aliadas %}
+                <div class="fundo-card p-3 rounded-xl border border-suave flex flex-col items-center">
+                    <h4 class="text-[10px] font-black uppercase text-center">{{ aliada.nome_organizada }}</h4>
+                </div>
+                {% empty %}
+                <p class="col-span-2 text-[10px] font-bold opacity-40 uppercase py-2">Nenhuma torcida aliada.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="identidade" class="secao-conteudo">
+            <div class="fundo-card p-6 rounded-[24px] border border-suave shadow-sm relative overflow-hidden">
+                <h3 class="text-sm font-black uppercase tracking-widest mb-5 flex items-center gap-2">
+                    <i class="bi bi-brush"></i> Identidade da Torcida
+                </h3>
+                <form method="POST" enctype="multipart/form-data" class="space-y-5">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">Nome Oficial</label>
+                            <input type="text" name="nome" value="{{ torcida.nome }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">Sigla</label>
+                            <input type="text" name="sigla" value="{{ torcida.sigla }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">Ano de Fundação</label>
+                        <input type="date" name="fundacao" value="{{ torcida.fundacao|date:'Y-m-d' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">Lema / Slogan</label>
+                        <input type="text" name="lema" value="{{ torcida.lema }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                    </div>
+                    <button type="submit" name="acao" value="salvar_identidade" class="w-full py-4 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">
+                        Salvar Informações
+                    </button>
+                </form>
+            </div>
+        </div>
+
     </div>
 </div>
+
+<div id="modalProduto" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Adicionar Produto</h3>
+            <button type="button" onclick="fecharModal('modalProduto')" class="w-8 h-8 rounded-full flex items-center justify-center texto-main bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="text" name="nome" required placeholder="Nome do Produto" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <div class="grid grid-cols-2 gap-3">
+                <input type="number" step="0.01" name="preco" required placeholder="Preço (R$)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+                <input type="number" step="0.01" name="preco_promocional" placeholder="Promocional (R$)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <select name="categoria_id" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+                    <option value="">Sem Categoria</option>
+                    {% for cat in categorias_loja %}
+                    <option value="{{ cat.id }}">{{ cat.nome }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="estoque" placeholder="Estoque" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            </div>
+            <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
+            <button type="submit" name="acao" value="novo_produto" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Publicar Produto</button>
+        </form>
+    </div>
+</div>
+
+<div id="modalEvento" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Novo Evento</h3>
+            <button type="button" onclick="fecharModal('modalEvento')" class="w-8 h-8 rounded-full flex items-center justify-center texto-main bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <select name="categoria" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                <option value="jogo_oficial">Jogo Oficial</option>
+                <option value="caravana">Caravana</option>
+                <option value="evento_social" selected>Evento Social</option>
+                <option value="reuniao">Reunião</option>
+                <option value="acao_beneficente">Ação Beneficente</option>
+            </select>
+            <input type="text" name="titulo" required placeholder="Título do Evento" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+            <div class="grid grid-cols-2 gap-3">
+                <input type="datetime-local" name="data" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-[10px] font-bold outline-none">
+                <input type="text" name="local" required placeholder="Local" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+            </div>
+            <input type="file" name="imagem_capa" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
+            <button type="submit" name="acao" value="novo_evento" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Publicar Evento</button>
+        </form>
+    </div>
+</div>
+
+<div id="modalCampoCustom" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Novo Campo KYC</h3>
+            <button type="button" onclick="fecharModal('modalCampoCustom')" class="w-8 h-8 rounded-full flex items-center justify-center texto-main bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="text" name="nome_campo" required placeholder="Ex: Qual o seu tamanho de camisa?" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <div class="flex items-center gap-3 p-3 bg-black/5 rounded-xl border border-suave">
+                <input type="checkbox" name="obrigatorio" id="checkObrigatorio" class="w-4 h-4 text-orange-500 rounded focus:ring-orange-500">
+                <label for="checkObrigatorio" class="text-[11px] font-black uppercase opacity-70 cursor-pointer">Campo Obrigatório no Registo?</label>
+            </div>
+            <button type="submit" name="acao" value="novo_campo_custom" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Adicionar Campo</button>
+        </form>
+    </div>
+</div>
+
+<div id="modalCategoriaLoja" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Nova Categoria de Loja</h3>
+            <button type="button" onclick="fecharModal('modalCategoriaLoja')" class="w-8 h-8 rounded-full flex items-center justify-center texto-main bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="text" name="nome" required placeholder="Nome (Ex: T-Shirts, Acessórios)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <button type="submit" name="acao" value="nova_categoria_loja" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Criar Categoria</button>
+        </form>
+    </div>
+</div>
+
+<div id="modalFotoGaleria" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Adicionar Foto à Galeria</h3>
+            <button type="button" onclick="fecharModal('modalFotoGaleria')" class="w-8 h-8 rounded-full flex items-center justify-center texto-main bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="text" name="titulo" required placeholder="Título da Foto" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <input type="text" name="legenda" placeholder="Legenda (Opcional)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <input type="file" name="imagem" accept="image/*" required class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
+            <button type="submit" name="acao" value="nova_foto_galeria" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Publicar Foto</button>
+        </form>
+    </div>
+</div>
+
+<div id="modalCancao" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Adicionar Canção</h3>
+            <button type="button" onclick="fecharModal('modalCancao')" class="w-8 h-8 rounded-full flex items-center justify-center texto-main bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="text" name="titulo" required placeholder="Nome da Canção" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <textarea name="letra" required rows="4" placeholder="Letra da música..." class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none"></textarea>
+            <input type="url" name="url_youtube" placeholder="Link do YouTube (Opcional)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <button type="submit" name="acao" value="nova_cancao" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Guardar Canção</button>
+        </form>
+    </div>
+</div>
+
+<div id="modalAliada" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Adicionar Aliada</h3>
+            <button type="button" onclick="fecharModal('modalAliada')" class="w-8 h-8 rounded-full flex items-center justify-center texto-main bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="text" name="nome_organizada" required placeholder="Nome da Torcida Aliada" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <input type="text" name="clube" required placeholder="Clube que Apoiam" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <input type="file" name="logo" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
+            <button type="submit" name="acao" value="nova_aliada" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Confirmar Aliança</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function mudarAba(idSecao) {
+        document.querySelectorAll('.secao-conteudo').forEach(el => el.classList.remove('secao-ativa'));
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('tab-active');
+            btn.classList.add('tab-inactive');
+        });
+        document.getElementById(idSecao).classList.add('secao-ativa');
+        document.getElementById('btn-' + idSecao).classList.remove('tab-inactive');
+        document.getElementById('btn-' + idSecao).classList.add('tab-active');
+    }
+
+    function abrirModal(modalId) {
+        var modal = document.getElementById(modalId);
+        var content = modal.querySelector('div');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            content.classList.remove('translate-y-full');
+        }, 10);
+    }
+
+    function fecharModal(modalId) {
+        var modal = document.getElementById(modalId);
+        var content = modal.querySelector('div');
+        content.classList.add('translate-y-full');
+        modal.classList.add('opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+</script>
 {% endblock %}

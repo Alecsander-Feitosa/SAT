@@ -67,66 +67,64 @@
             </div>
         </div>
 
-        {% if request.user.perfil.torcida and not request.user.perfil.aprovado %}
-            <div class="w-full max-w-sm mx-auto fundo-card rounded-3xl p-8 flex flex-col items-center justify-center text-center shadow-sm border border-suave opacity-80 mt-4">
-                <i class="bi bi-hourglass-split text-4xl texto-tema mb-3"></i>
-                <h3 class="texto-main font-black uppercase tracking-widest text-[11px] mb-1">Aprovação Pendente</h3>
-                <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-widest">Sua carteirinha será liberada em breve.</p>
-            </div>
-        {% else %}
-            <a href="{% url 'carteirinha' %}" class="block w-full max-w-sm mx-auto cartao-socio rounded-3xl p-6 text-white flex flex-col relative z-10 shadow-2xl transition-transform active:scale-[0.98]" style="--cor-primaria: {% if user.perfil.torcida and user.perfil.torcida.cor_primaria %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %}; background: linear-gradient(135deg, var(--cor-primaria) 0%, rgba(15,15,15,0.95) 100%); border: 1px solid rgba(255,255,255,0.1);">
-                <div class="cartao-glow"></div>
-                {% if user.perfil.torcida and user.perfil.torcida.logo %}
-                    <div class="cartao-watermark" style="background-image: url('{{ user.perfil.torcida.logo.url }}'); opacity: 0.08;"></div>
-                {% endif %}
-                
-                <div class="flex justify-between items-start relative z-10">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 p-1.5 overflow-hidden">
-                            {% if user.perfil.torcida and user.perfil.torcida.logo %}
-                                <img src="{{ user.perfil.torcida.logo.url }}" class="w-full h-full object-contain filter brightness-0 invert">
-                            {% else %}
-                                <i class="bi bi-shield-fill text-white/90 text-2xl"></i>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <h2 class="font-black text-lg tracking-tighter uppercase leading-none">
-                                {% if user.perfil.torcida %}{{ user.perfil.torcida.sigla|default:"SAT" }}{% else %}SAT{% endif %} MEMBER
-                            </h2>
-                            <p class="text-[8px] text-white/70 font-bold uppercase tracking-[0.2em] mt-0.5">
-                                Sócio Oficial Autorizado
-                            </p>
-                        </div>
-                    </div>
-                    <i class="bi bi-contactless text-2xl text-white/60"></i>
-                </div>
-
-                <div class="mt-6 mb-auto relative z-10 flex items-center justify-between">
-                    <div class="cartao-chip"></div>
-                    <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
-                        <i class="bi bi-star-fill text-yellow-400 text-[10px]"></i>
-                        <span class="text-[10px] font-black uppercase text-white tracking-widest">
-                            {% if perfil_game.nivel %}{{ perfil_game.nivel.nome }}{% else %}NÍVEL 1{% endif %}
-                        </span>
-                    </div>
-                </div>
-
-                <div class="relative z-10 flex justify-between items-end mt-6">
-                    <div class="flex-1">
-                        <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Nº Identificação</p>
-                        <p class="text-sm font-black uppercase texto-emboss text-white truncate w-48 font-mono tracking-widest">
-                             {% if user.perfil.cpf %}{{ user.perfil.cpf|slice:"0:3" }}.***.***-{{ user.perfil.cpf|slice:"-2:" }}{% else %}***.***.***-**{% endif %}
-                        </p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Membro Desde</p>
-                        <p class="text-xs font-black uppercase text-white texto-emboss font-mono">
-                            {{ user.date_joined|date:"m/Y" }}
-                        </p>
-                    </div>
-                </div>
-            </a>
+        <div class="w-full max-w-sm cartao-socio rounded-3xl p-6 text-white flex flex-col relative z-10 shadow-2xl transition-all duration-300 active:scale-[0.98]"
+     style="--cor-primaria: {% if user.perfil.torcida and user.perfil.torcida.cor_primaria %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %}; background: linear-gradient(135deg, var(--cor-primaria) 0%, rgba(15,15,15,0.95) 100%);">
+    
+    <div class="cartao-glow"></div>
+        {% if user.perfil.torcida and user.perfil.torcida.logo %}
+            <div class="cartao-watermark" style="background-image: url('{{ user.perfil.torcida.logo.url }}');"></div>
         {% endif %}
+        
+        <div class="flex justify-between items-start relative z-10">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 p-1.5 overflow-hidden">
+                    {% if user.perfil.torcida and user.perfil.torcida.logo %}
+                        <img src="{{ user.perfil.torcida.logo.url }}" class="w-full h-full object-contain">
+                    {% else %}
+                        <i class="bi bi-shield-fill text-white/90 text-2xl"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <h2 class="font-black text-lg tracking-tighter uppercase leading-none">
+                        {% if user.perfil.torcida %}{{ user.perfil.torcida.nome }}{% else %}SAT MEMBER{% endif %}
+                    </h2>
+                    <p class="text-[8px] text-white/70 font-bold uppercase tracking-[0.2em] mt-0.5">Sócio Oficial Autorizado</p>
+                </div>
+            </div>
+            <button onclick="toggleCensura(event)" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors border border-white/10">
+                <i id="icone-censura" class="bi bi-eye-fill text-sm"></i>
+            </button>
+        </div>
+
+        <div class="mt-6 mb-auto relative z-10 flex items-center justify-between">
+            <div class="cartao-chip"></div>
+            <div class="flex items-center gap-2">
+                <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
+                    <i class="bi bi-gem text-white/70 text-[10px]"></i>
+                    <span class="text-[10px] font-black uppercase text-white tracking-widest">{{ user.perfil.plano|default:"GRATUITO" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative z-10 flex justify-between items-end mt-6">
+            <div class="flex-1">
+                <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Membro Titular</p>
+                <p class="text-sm font-black uppercase texto-emboss text-white truncate w-48 mb-2">
+                    {{ user.get_full_name|default:user.username }}
+                </p>
+                
+                <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Nº Matrícula</p>
+                <p id="matricula-texto" class="text-xs font-mono font-black tracking-[0.2em] text-white/90">
+                    <span class="dado-visivel hidden">{{ user.id|stringformat:"05d" }}-{{ user.perfil.cpf|slice:"0:3"|default:"000" }}</span>
+                    <span class="dado-censurado">•••••-•••</span>
+                </p>
+            </div>
+            <div class="text-right">
+                <p class="text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Desde</p>
+                <p class="text-xs font-black uppercase text-white texto-emboss">{{ user.date_joined|date:"Y" }}</p>
+            </div>
+        </div>
+    </div>
     </div>
 
     <div class="px-5 pt-8 space-y-6 animate-fade-up delay-100">
@@ -199,4 +197,29 @@
 
     </div>
 </div>
+<script>
+function toggleCensura(event) {
+    // Impede que o clique no botão dispare links ou outras ações do card
+    event.preventDefault();
+    event.stopPropagation();
+
+    const icone = document.getElementById('icone-censura');
+    const visivel = document.querySelector('.dado-visivel');
+    const censurado = document.querySelector('.dado-censurado');
+
+    if (visivel.classList.contains('hidden')) {
+        // Mostrar dados
+        visivel.classList.remove('hidden');
+        censurado.classList.add('hidden');
+        icone.classList.remove('bi-eye-fill');
+        icone.classList.add('bi-eye-slash-fill');
+    } else {
+        // Censurar dados
+        visivel.classList.add('hidden');
+        censurado.classList.remove('hidden');
+        icone.classList.remove('bi-eye-slash-fill');
+        icone.classList.add('bi-eye-fill');
+    }
+}
+</script>
 {% endblock %}

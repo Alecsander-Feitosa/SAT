@@ -7,39 +7,68 @@ from .models import Post, Comentario
 
 @login_required
 def mural_social(request):
-    # Puxa os posts ordenados do mais recente para o mais antigo
-    posts = Post.objects.all().order_by('-data_criacao')
+    # LÓGICA DAS ABAS (Filtro do Feed)
+    aba = request.GET.get('aba', 'global')
     
+    if aba == 'torcida' and hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+        # Mostra apenas posts direcionados à torcida do usuário
+        posts = Post.objects.filter(torcida=request.user.perfil.torcida).order_by('-data_criacao')
+    else:
+        # Mostra os posts globais (onde torcida é vazia) OU todos. 
+        # Aqui deixaremos exibir todos no global para a timeline ficar movimentada.
+        posts = Post.objects.all().order_by('-data_criacao')
+    
+    # LÓGICA DE CRIAR NOVO POST
     if request.method == 'POST':
         texto = request.POST.get('texto', '')
         imagem = request.FILES.get('imagem')
         
+        # NOVA LÓGICA: Captura a visibilidade escolhida
+        visibilidade = request.POST.get('visibilidade', 'global')
+        
         if texto or imagem:
-            # 1. SOLUÇÃO DO TÍTULO: Cria um título automático usando as 50 primeiras letras do texto
             titulo_gerado = texto[:50] + "..." if texto else "Publicação com Imagem"
             
             try:
                 novo_post = Post(
                     autor_s=request.user, 
-                    titulo=titulo_gerado, # Preenche o campo obrigatório do banco de dados!
+                    titulo=titulo_gerado,
                     texto=texto, 
                     imagem=imagem
                 )
                 
-                # Associa a torcida se existir
-                if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+                # Salva vinculado à torcida APENAS se ele selecionou a aba da torcida
+                if visibilidade == 'torcida' and hasattr(request.user, 'perfil') and request.user.perfil.torcida:
                     novo_post.torcida = request.user.perfil.torcida
+                else:
+                    # Se for global, a torcida fica vazia (null)
+                    novo_post.torcida = None
                     
                 novo_post.save()
                 messages.success(request, 'Publicação criada com sucesso!')
             except Exception as e:
-                # Se falhar, não crasha a tela inteira, apenas avisa
                 messages.error(request, f'Erro ao salvar: {str(e)}')
                 
-            return redirect('mural')
+            return redirect(f"/social/mural/?aba={visibilidade}") # Redireciona para a aba que ele postou
             
-    context = {'posts': posts}
+    context = {
+        'posts': posts,
+        'aba_atual': aba 
+    }
     return render(request, 'mural.html', context)
+
+@login_required
+def excluir_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    
+    # Validação de Segurança: Apenas o dono do post ou um Admin (staff) pode apagar
+    if request.user == post.autor_s or request.user.is_staff:
+        post.delete()
+        messages.success(request, 'Publicação excluída com sucesso.')
+    else:
+        messages.error(request, 'Você não tem permissão para excluir esta publicação.')
+        
+    return redirect(request.META.get('HTTP_REFERER', 'mural'))
 
 @login_required
 def curtir_post(request, post_id):
@@ -47,7 +76,6 @@ def curtir_post(request, post_id):
     is_ajax = request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
     
     try:
-        # Lógica de curtir / descurtir
         if request.user in post.curtidas.all():
             post.curtidas.remove(request.user)
             liked = False
@@ -84,12 +112,11 @@ def adicionar_comentario(request, post_id):
                 
                 if is_ajax:
                     foto_url = ""
-                    # 2. SOLUÇÃO DA FOTO: Tenta pegar a url da foto. Se ela não existir, captura o erro e envia vazio.
                     try:
                         if hasattr(request.user, 'perfil') and request.user.perfil.foto:
                             foto_url = request.user.perfil.foto.url
                     except ValueError:
-                        foto_url = "" # Contorna o erro de quando a foto está em branco
+                        foto_url = "" 
                         
                     return JsonResponse({
                         'sucesso': True,

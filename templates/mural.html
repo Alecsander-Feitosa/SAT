@@ -22,7 +22,7 @@
     
     .post-image {
         border-radius: 16px;
-        max-height: 400px;
+        max-height: 450px;
         width: 100%;
         object-fit: cover;
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
@@ -35,81 +35,96 @@
     
     .action-btn { transition: all 0.2s ease; cursor: pointer; }
     .action-btn:active { transform: scale(0.9); }
+    
+    /* Abas Dinâmicas */
+    .tab-active { border-bottom: 2px solid var(--cor-tema, #D37129); color: var(--cor-tema, #D37129); font-weight: 900; }
+    .tab-inactive { color: rgba(156, 163, 175, 0.7); font-weight: 700; }
 </style>
 
 <div class="w-full min-h-screen fundo-app flex flex-col pb-32">
 
-    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">
-                SAT <span class="texto-tema">SOCIAL</span>
-            </h1>
-            <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1">
-                <i class="bi bi-globe-americas"></i> Comunidade Oficial
-            </p>
-        </div>
+    <div class="relative z-30 fundo-card border-b border-suave shadow-sm">
         
-        <div class="flex gap-2 relative">
-            <form action="{% url 'dashboard' %}" method="GET" id="barraPesquisa" class="hidden absolute right-12 top-0 h-9 fundo-app border border-suave rounded-full flex items-center px-3 shadow-sm z-50">
-                <input type="text" name="q" placeholder="Buscar perfil..." class="bg-transparent border-none outline-none text-xs w-32 texto-main focus:ring-0">
-                <button type="button" onclick="togglePesquisa()" class="text-gray-400 hover:text-red-500 ml-2">
-                    <i class="bi bi-x-lg text-[10px]"></i>
+        {% if messages %}
+            <div class="px-5 pt-2 space-y-1">
+                {% for message in messages %}
+                    <div class="p-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-center shadow-sm 
+                        {% if message.tags == 'success' %} bg-green-500/10 text-green-500 border border-green-500/20 
+                        {% else %} bg-red-500/10 text-red-500 border border-red-500/20 {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="px-5 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">
+                    {% if user.perfil.torcida %}{{ user.perfil.torcida.sigla }}{% else %}SAT{% endif %} <span class="texto-tema">SOCIAL</span>
+                </h1>
+                <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                    <i class="bi bi-globe-americas"></i> Comunidade Oficial
+                </p>
+            </div>
+            
+            <div class="flex gap-2 relative">
+                <form action="{% url 'dashboard' %}" method="GET" id="barraPesquisa" class="hidden absolute right-12 top-0 h-9 fundo-app border border-suave rounded-full flex items-center px-3 shadow-sm z-50">
+                    <input type="text" name="q" placeholder="Buscar perfil..." class="bg-transparent border-none outline-none text-xs w-32 texto-main focus:ring-0">
+                    <button type="button" onclick="togglePesquisa()" class="text-gray-400 hover:text-red-500 ml-2">
+                        <i class="bi bi-x-lg text-[10px]"></i>
+                    </button>
+                </form>
+
+                <button type="button" onclick="togglePesquisa()" class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-tema transition-colors border border-suave">
+                    <i class="bi bi-search text-sm"></i>
                 </button>
-            </form>
 
-            <button type="button" onclick="togglePesquisa()" class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-tema transition-colors border border-suave">
-                <i class="bi bi-search text-sm"></i>
-            </button>
+                <button type="button" onclick="toggleNotificacoes()" class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-tema transition-colors border border-suave relative">
+                    <i class="bi bi-bell text-sm"></i>
+                </button>
 
-            <button type="button" onclick="toggleNotificacoes()" class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-tema transition-colors border border-suave relative">
-                <i class="bi bi-bell text-sm"></i>
-                <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-            </button>
-
-            <div id="painelNotificacoes" class="hidden absolute top-12 right-0 w-64 fundo-card border border-suave rounded-2xl shadow-xl z-50 overflow-hidden">
-                <div class="p-3 border-b border-suave fundo-app">
-                    <h4 class="text-[10px] font-black texto-main uppercase tracking-widest">Notificações</h4>
-                </div>
-                
-                <div class="max-h-64 overflow-y-auto no-scrollbar">
-                    <a href="#" class="p-3 border-b border-suave hover:bg-black/5 transition-colors flex gap-3 items-center no-underline">
-                        <div class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center flex-shrink-0">
-                            <i class="bi bi-person-plus-fill"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs texto-main leading-tight"><span class="font-bold">Matheus</span> começou a seguir-te.</p>
-                            <p class="text-[8px] texto-main opacity-50 font-bold uppercase mt-1">Agora mesmo</p>
-                        </div>
-                    </a>
-                    <a href="#" class="p-3 border-b border-suave hover:bg-black/5 transition-colors flex gap-3 items-center no-underline">
-                        <div class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center flex-shrink-0">
-                            <i class="bi bi-heart-fill"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs texto-main leading-tight"><span class="font-bold">Lucas</span> curtiu a tua foto.</p>
-                            <p class="text-[8px] texto-main opacity-50 font-bold uppercase mt-1">Há 5 min</p>
-                        </div>
-                    </a>
-                    <a href="#" class="p-3 hover:bg-black/5 transition-colors flex gap-3 items-center no-underline">
-                        <div class="w-8 h-8 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center flex-shrink-0">
-                            <i class="bi bi-chat-fill"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs texto-main leading-tight"><span class="font-bold">Diretoria</span> comentou no teu post.</p>
-                            <p class="text-[8px] texto-main opacity-50 font-bold uppercase mt-1">Há 1 hora</p>
-                        </div>
-                    </a>
-                </div>
-                
-                <div class="p-2 text-center fundo-app border-t border-suave">
-                    <button class="text-[9px] font-black texto-tema uppercase tracking-widest border-none bg-transparent cursor-pointer">Marcar todas como lidas</button>
+                <div id="painelNotificacoes" class="hidden absolute top-12 right-0 w-64 fundo-card border border-suave rounded-2xl shadow-xl z-50 overflow-hidden">
+                    <div class="p-3 border-b border-suave fundo-app">
+                        <h4 class="text-[10px] font-black texto-main uppercase tracking-widest">Notificações</h4>
+                    </div>
+                    <div class="max-h-64 overflow-y-auto no-scrollbar">
+                        <p class="text-[10px] text-center py-4 texto-main opacity-50 uppercase tracking-widest font-bold">Sem novas notificações</p>
+                    </div>
                 </div>
             </div>
+        </div>
+        
+        <div class="flex px-5 w-full border-t border-suave">
+            <a href="?aba=global" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'global' or not aba_atual %}tab-active{% else %}tab-inactive hover:texto-tema{% endif %}">
+                Global
+            </a>
+            
+            {% if user.perfil.torcida %}
+            <a href="?aba=torcida" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'torcida' %}tab-active{% else %}tab-inactive hover:texto-tema{% endif %}">
+                {{ user.perfil.torcida.sigla|default:"Minha Torcida" }}
+            </a>
+            {% endif %}
         </div>
     </div>
 
     <div class="px-4 pt-4 flex flex-col gap-5">
         
+        <div class="social-card fundo-card border border-suave p-4 flex gap-3 items-center cursor-pointer hover:bg-black/5 transition-colors" onclick="abrirModalPost()">
+            <div class="w-10 h-10 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 flex items-center justify-center">
+                {% if user.perfil.foto %}
+                    <img src="{{ user.perfil.foto.url }}" class="w-full h-full object-cover">
+                {% else %}
+                    <i class="bi bi-person-fill texto-main opacity-30 text-2xl mt-1"></i>
+                {% endif %}
+            </div>
+            <div class="flex-1 bg-black/5 dark:bg-white/5 rounded-full px-4 py-2.5">
+                <p class="text-xs texto-main opacity-50 font-bold">O que você está pensando, {{ user.first_name|default:"Sócio" }}?</p>
+            </div>
+            <div class="w-9 h-9 fundo-app text-tema rounded-full flex items-center justify-center shadow-sm">
+                <i class="bi bi-image"></i>
+            </div>
+        </div>
+
         {% for post in posts %}
         <div class="social-card fundo-card border border-suave p-4 animate-fade-up" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
             
@@ -125,13 +140,34 @@
                     <div>
                         <h3 class="text-sm font-black texto-main leading-tight flex items-center gap-1">
                             {{ post.autor_s.get_full_name|default:post.autor_s.username }}
-                            {% if post.autor_s.perfil.torcida %}
-                                <i class="bi bi-patch-check-fill texto-tema text-[11px]"></i>
+                            {% if post.autor_s.perfil.aprovado %}
+                                <i class="bi bi-patch-check-fill texto-tema text-[11px]" title="Sócio Oficial"></i>
                             {% endif %}
                         </h3>
-                        <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-wider mt-0.5">
-                            {{ post.data_criacao|timesince }} atrás
+                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider mt-0.5">
+                            {% if post.torcida %}{{ post.torcida.sigla }} • {% endif %}{{ post.data_criacao|timesince }} atrás
                         </p>
+                    </div>
+                </div>
+                
+                <div class="relative group/menu">
+                    <button class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 texto-main opacity-40 transition-colors focus:outline-none border-none bg-transparent cursor-pointer">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    
+                    <div class="absolute right-0 top-full mt-1 w-32 fundo-card border border-suave rounded-xl shadow-lg opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-10 overflow-hidden">
+                        {% if request.user == post.autor_s or request.user.is_staff %}
+                        <form action="{% url 'social_excluir_post' post.id %}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta publicação?');" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full text-left px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-500/10 flex items-center gap-2 transition-colors border-none bg-transparent cursor-pointer">
+                                <i class="bi bi-trash3"></i> Excluir
+                            </button>
+                        </form>
+                        {% else %}
+                        <button class="w-full text-left px-4 py-2.5 text-xs font-bold texto-main opacity-70 hover:bg-black/5 flex items-center gap-2 transition-colors border-none bg-transparent cursor-pointer">
+                            <i class="bi bi-flag"></i> Reportar
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -143,40 +179,39 @@
             {% endif %}
 
             {% if post.imagem %}
-            <div class="mb-3">
+            <div class="mb-3 relative group">
                 <img src="{{ post.imagem.url }}" class="post-image border border-suave" loading="lazy">
             </div>
             {% endif %}
 
-            <div class="w-full h-[1px] bg-gray-200 opacity-20 my-3"></div>
+            <div class="w-full h-[1px] bg-gray-200 dark:bg-gray-800 opacity-50 my-3"></div>
 
-            <div class="flex justify-between items-center px-2">
-                
+            <div class="flex justify-between items-center px-1">
                 <form action="{% url 'social_curtir_post' post.id %}" method="POST" class="m-0" onsubmit="return curtirPostAjax(event, this, {{ post.id }})">
                     {% csrf_token %}
-                    <button type="submit" class="action-btn flex items-center gap-2 group outline-none bg-transparent border-none p-0 cursor-pointer">
+                    <button type="submit" class="action-btn flex items-center gap-1.5 group outline-none bg-transparent border-none p-0 cursor-pointer">
                         <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-red-500/10 transition-colors">
                             <i id="icone-coracao-{{ post.id }}" class="bi {% if request.user in post.curtidas.all %}bi-heart-fill text-red-500{% else %}bi-heart texto-main opacity-40{% endif %} text-lg group-hover:text-red-500 transition-colors"></i>
                         </div>
-                        <span id="contador-curtidas-{{ post.id }}" class="text-xs font-bold texto-main opacity-60 group-hover:text-red-500">{{ post.curtidas.count|default:"0" }}</span>
+                        <span id="contador-curtidas-{{ post.id }}" class="text-[11px] font-black uppercase tracking-widest texto-main opacity-60 group-hover:text-red-500">{{ post.curtidas.count|default:"0" }}</span>
                     </button>
                 </form>
 
-                <button type="button" onclick="toggleComentarios({{ post.id }})" class="action-btn flex items-center gap-2 group outline-none bg-transparent border-none p-0 cursor-pointer">
+                <button type="button" onclick="toggleComentarios({{ post.id }})" class="action-btn flex items-center gap-1.5 group outline-none bg-transparent border-none p-0 cursor-pointer">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-blue-500/10 transition-colors">
                         <i class="bi bi-chat texto-main opacity-40 text-lg group-hover:text-blue-500"></i>
                     </div>
-                    <span id="contador-comentarios-{{ post.id }}" class="text-xs font-bold texto-main opacity-60 group-hover:text-blue-500">{{ post.comentarios.count|default:"0" }}</span>
+                    <span id="contador-comentarios-{{ post.id }}" class="text-[11px] font-black uppercase tracking-widest texto-main opacity-60 group-hover:text-blue-500">{{ post.comentarios.count|default:"0" }}</span>
                 </button>
 
-                <button type="button" class="action-btn flex items-center gap-2 group outline-none bg-transparent border-none p-0 cursor-pointer">
+                <button type="button" onclick="compartilharPost('{{ request.build_absolute_uri }}', '{{ post.titulo }}')" class="action-btn flex items-center gap-1.5 group outline-none bg-transparent border-none p-0 cursor-pointer">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-green-500/10 transition-colors">
                         <i class="bi bi-share texto-main opacity-40 text-lg group-hover:text-green-500"></i>
                     </div>
                 </button>
             </div>
 
-            <div id="secao-comentarios-{{ post.id }}" class="hidden mt-4 pt-4 border-t border-suave transition-all">
+            <div id="secao-comentarios-{{ post.id }}" class="hidden mt-3 pt-3 border-t border-suave transition-all">
                 
                 <div id="lista-comentarios-{{ post.id }}" class="space-y-3 mb-4 max-h-48 overflow-y-auto no-scrollbar">
                     {% for comentario in post.comentarios.all %}
@@ -188,81 +223,115 @@
                             <i class="bi bi-person-fill texto-main opacity-30 text-xs"></i>
                             {% endif %}
                         </div>
-                        <div class="fundo-app border border-suave rounded-2xl rounded-tl-none px-3 py-2 text-xs flex-1">
-                            <span class="font-black texto-main block mb-0.5">{{ comentario.autor.get_full_name|default:comentario.autor.username }}</span>
-                            <span class="texto-main opacity-80 leading-relaxed">{{ comentario.texto }}</span>
+                        <div class="fundo-app border border-suave rounded-2xl rounded-tl-none px-3 py-2 flex-1 relative group">
+                            <span class="text-[10px] font-black texto-main block mb-0.5">{{ comentario.autor.get_full_name|default:comentario.autor.username }}</span>
+                            <span class="text-xs texto-main opacity-80 leading-relaxed font-medium">{{ comentario.texto }}</span>
                         </div>
                     </div>
                     {% empty %}
-                    <p class="no-comments-msg text-[10px] text-center texto-main opacity-40 font-bold uppercase tracking-widest">Sem comentários. Seja o primeiro!</p>
+                    <p class="no-comments-msg text-[9px] text-center texto-main opacity-40 font-bold uppercase tracking-widest py-2">Sem comentários. Seja o primeiro!</p>
                     {% endfor %}
                 </div>
                 
                 <form action="{% url 'social_comentar_post' post.id %}" method="POST" class="flex gap-2 items-center" onsubmit="return comentarPostAjax(event, this, {{ post.id }})">
                     {% csrf_token %}
-                    <input type="text" name="comentario" placeholder="Escreva um comentário..." class="flex-1 fundo-app border border-suave rounded-full px-4 py-2 text-xs texto-main focus:outline-none focus:border-tema" required autocomplete="off">
-                    <button type="submit" class="w-9 h-9 fundo-tema texto-claro rounded-full flex items-center justify-center flex-shrink-0 shadow-md active:scale-95 transition-transform border-none outline-none cursor-pointer">
-                        <i class="bi bi-send-fill text-xs ml-0.5"></i>
+                    <div class="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 border border-suave">
+                        {% if user.perfil.foto %}<img src="{{ user.perfil.foto.url }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full bg-black/5 flex items-center justify-center"><i class="bi bi-person-fill texto-main opacity-30 text-[10px]"></i></div>{% endif %}
+                    </div>
+                    <input type="text" name="comentario" placeholder="Adicione um comentário..." class="flex-1 fundo-app border border-suave rounded-full px-4 py-2 text-xs font-medium texto-main focus:outline-none focus:border-tema transition-colors" required autocomplete="off">
+                    <button type="submit" class="w-8 h-8 fundo-tema texto-claro rounded-full flex items-center justify-center flex-shrink-0 shadow-md active:scale-95 transition-transform border-none outline-none cursor-pointer">
+                        <i class="bi bi-send-fill text-[10px] ml-0.5"></i>
                     </button>
                 </form>
             </div>
 
         </div>
         {% empty %}
-        <div class="flex flex-col items-center justify-center py-20 text-center animate-fade-up">
-            <div class="w-20 h-20 fundo-card rounded-full flex items-center justify-center mb-4 border border-suave shadow-sm">
-                <i class="bi bi-camera text-3xl texto-main opacity-20"></i>
+        <div class="flex flex-col items-center justify-center py-20 text-center animate-fade-up bg-black/5 dark:bg-white/5 rounded-3xl mt-4">
+            <div class="w-16 h-16 fundo-card rounded-full flex items-center justify-center mb-4 border-2 border-dashed border-suave">
+                <i class="bi bi-chat-square-text text-2xl texto-main opacity-30"></i>
             </div>
-            <h3 class="text-sm font-black texto-main uppercase tracking-widest mb-1">Nenhuma Publicação</h3>
-            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-wider w-2/3">Seja o primeiro a partilhar algo!</p>
+            <h3 class="text-sm font-black texto-main uppercase tracking-widest mb-1">
+                {% if aba_atual == 'torcida' %}Sua Torcida está calada{% else %}Nenhuma Publicação{% endif %}
+            </h3>
+            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-wider w-2/3 mb-4">A comunidade está silenciosa hoje.</p>
+            <button onclick="abrirModalPost()" class="fundo-tema texto-claro text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-full shadow-lg active:scale-95 transition-all border-none cursor-pointer">Começar a Postar</button>
         </div>
         {% endfor %}
         
     </div>
 </div>
 
-<button type="button" onclick="abrirModalPost()" class="fixed bottom-24 right-5 w-14 h-14 fundo-tema texto-claro rounded-full flex items-center justify-center shadow-lg shadow-black/20 hover:scale-105 active:scale-95 transition-all z-50 border-none outline-none cursor-pointer">
+<button type="button" onclick="abrirModalPost()" class="fixed bottom-24 right-5 w-14 h-14 fundo-tema texto-claro rounded-full flex items-center justify-center shadow-lg shadow-black/20 hover:scale-105 active:scale-95 transition-all z-50 border-none outline-none cursor-pointer sm:hidden">
     <i class="bi bi-plus-lg text-2xl"></i>
 </button>
 
 <div id="modalNovoPost" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
     <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300 flex flex-col relative" id="modalPostContent">
         
-        <div class="flex justify-between items-center mb-4 pb-3 border-b border-suave">
-            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Nova Publicação</h3>
-            <button type="button" onclick="fecharModalPost()" class="w-8 h-8 fundo-app rounded-full flex items-center justify-center texto-main opacity-60 hover:opacity-100 transition-colors border-none outline-none cursor-pointer">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <div>
+                <h3 class="font-black texto-main text-sm uppercase tracking-widest">Criar Publicação</h3>
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Expresse suas ideias</p>
+            </div>
+            <button type="button" onclick="fecharModalPost()" class="w-8 h-8 fundo-app rounded-full flex items-center justify-center texto-main opacity-60 hover:opacity-100 hover:bg-black/5 transition-colors border-none outline-none cursor-pointer">
                 <i class="bi bi-x-lg text-sm"></i>
             </button>
         </div>
 
-        <form action="{% url 'mural' %}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
+        <form action="{% url 'mural' %}" method="POST" enctype="multipart/form-data" class="flex flex-col">
             {% csrf_token %}
-            <div class="flex gap-3">
-                <div class="w-10 h-10 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 flex items-center justify-center">
+            
+            <div class="flex gap-4">
+                <div class="w-12 h-12 rounded-full overflow-hidden fundo-app border-2 border-suave flex-shrink-0 flex items-center justify-center shadow-sm">
                     {% if user.perfil.foto %}
                         <img src="{{ user.perfil.foto.url }}" class="w-full h-full object-cover">
                     {% else %}
                         <i class="bi bi-person-fill texto-main opacity-30 text-2xl mt-1"></i>
                     {% endif %}
                 </div>
-                <textarea name="texto" rows="4" placeholder="O que está a pensar?" class="w-full bg-transparent border-none focus:ring-0 text-sm font-medium texto-main placeholder-gray-400 resize-none outline-none mt-2" required></textarea>
+                
+                <div class="flex-1 pt-1">
+                    <span class="text-[11px] font-black texto-main uppercase tracking-widest block mb-1">{{ user.get_full_name|default:user.username }}</span>
+                    
+                    {% if user.perfil.torcida %}
+                    <div class="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl w-fit mb-3 border border-suave shadow-inner">
+                        <label class="cursor-pointer relative m-0">
+                            <input type="radio" name="visibilidade" value="global" class="peer hidden" checked>
+                            <div class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 peer-checked:bg-white dark:peer-checked:bg-gray-800 peer-checked:text-tema peer-checked:shadow-sm transition-all flex items-center gap-1.5">
+                                <i class="bi bi-globe-americas"></i> Global
+                            </div>
+                        </label>
+                        <label class="cursor-pointer relative m-0">
+                            <input type="radio" name="visibilidade" value="torcida" class="peer hidden">
+                            <div class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 peer-checked:bg-white dark:peer-checked:bg-gray-800 peer-checked:text-tema peer-checked:shadow-sm transition-all flex items-center gap-1.5">
+                                <i class="bi bi-shield-fill"></i> {{ user.perfil.torcida.sigla|default:"Torcida" }}
+                            </div>
+                        </label>
+                    </div>
+                    {% else %}
+                        <input type="hidden" name="visibilidade" value="global">
+                    {% endif %}
+
+                    <textarea name="texto" rows="3" placeholder="O que está acontecendo nas arquibancadas?" class="w-full bg-transparent border-none focus:ring-0 text-sm font-medium texto-main placeholder-gray-400 resize-none outline-none p-0 mt-1" required></textarea>
+                </div>
             </div>
 
-            <div id="imagePreviewContainer" class="hidden relative w-full mb-2">
+            <div id="imagePreviewContainer" class="hidden relative w-full mb-2 mt-4">
                 <img id="imagePreview" src="" class="w-full h-48 object-cover rounded-2xl shadow-sm border border-suave">
                 <button type="button" onclick="removerImagem()" class="absolute top-2 right-2 w-8 h-8 bg-black/50 backdrop-blur text-white rounded-full flex items-center justify-center hover:bg-black/70 transition-colors border-none outline-none cursor-pointer">
-                    <i class="bi bi-x-lg"></i>
+                    <i class="bi bi-x-lg text-xs"></i>
                 </button>
             </div>
 
-            <div class="flex items-center justify-between pt-3 border-t border-suave mt-2">
-                <label for="imagemPost" class="w-10 h-10 fundo-app texto-tema rounded-full flex items-center justify-center cursor-pointer border border-suave transition-colors">
-                    <i class="bi bi-image text-lg"></i>
+            <div class="flex items-center justify-between pt-4 border-t border-suave mt-4">
+                <label for="imagemPost" class="w-10 h-10 fundo-app texto-tema rounded-full flex items-center justify-center cursor-pointer border border-suave hover:bg-tema hover:text-white transition-all shadow-sm group">
+                    <i class="bi bi-image text-lg group-hover:scale-110 transition-transform"></i>
                 </label>
                 <input type="file" id="imagemPost" name="imagem" accept="image/*" class="hidden" onchange="mostrarPreview(this)">
                 
-                <button type="submit" class="fundo-tema texto-claro font-black text-xs uppercase tracking-widest px-6 py-3 rounded-full shadow-md active:scale-95 transition-transform border-none outline-none cursor-pointer">
-                    Publicar
+                <button type="submit" class="fundo-tema texto-claro font-black text-[11px] uppercase tracking-widest px-8 py-3.5 rounded-full shadow-lg shadow-tema/30 active:scale-95 transition-all border-none outline-none cursor-pointer flex items-center gap-2">
+                    <i class="bi bi-send-fill text-xs"></i> Publicar
                 </button>
             </div>
         </form>
@@ -270,127 +339,73 @@
 </div>
 
 <script>
-    // 1. FUNÇÃO DE CURTIR BLINDADA
     window.curtirPostAjax = function(event, formElement, postId) {
-        event.preventDefault(); // Impede o recarregamento!
-        
-        var url = formElement.action; // O form agora tem a URL correta 'social_curtir_post'
+        event.preventDefault();
+        var url = formElement.action; 
         var formData = new FormData(formElement);
         var csrfToken = formElement.querySelector('[name=csrfmiddlewaretoken]').value;
 
-        fetch(url, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': csrfToken
-            }
-        })
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(data) {
+        fetch(url, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken } })
+        .then(response => response.json())
+        .then(data => {
             var icone = document.getElementById('icone-coracao-' + postId);
             var contador = document.getElementById('contador-curtidas-' + postId);
-            
             if(contador) contador.innerText = data.likes_count;
-            
             if(icone) {
-                if(data.liked) {
-                    icone.className = "bi bi-heart-fill text-red-500 text-lg group-hover:text-red-500 transition-colors";
-                } else {
-                    icone.className = "bi bi-heart texto-main opacity-40 text-lg group-hover:text-red-500 transition-colors";
-                }
+                icone.className = data.liked ? "bi bi-heart-fill text-red-500 text-lg group-hover:text-red-500 transition-colors" : "bi bi-heart texto-main opacity-40 text-lg group-hover:text-red-500 transition-colors";
             }
-        })
-        .catch(function(error) {
-            console.error("Erro no Like:", error);
-        });
-        
+        }).catch(console.error);
         return false;
     };
 
-    // 2. FUNÇÃO DE COMENTAR BLINDADA
     window.comentarPostAjax = function(event, formElement, postId) {
         event.preventDefault();
-        
-        var url = formElement.action; // URL correta 'social_comentar_post'
+        var url = formElement.action;
         var formData = new FormData(formElement);
         var csrfToken = formElement.querySelector('[name=csrfmiddlewaretoken]').value;
 
-        fetch(url, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': csrfToken
-            }
-        })
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(data) {
+        fetch(url, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken } })
+        .then(response => response.json())
+        .then(data => {
             if(data.sucesso) {
-                var inputElement = formElement.querySelector('input[name="comentario"]');
-                if(inputElement) inputElement.value = '';
-
+                var input = formElement.querySelector('input[name="comentario"]');
+                if(input) input.value = '';
                 var countSpan = document.getElementById('contador-comentarios-' + postId);
                 if(countSpan) countSpan.innerText = data.total_comentarios;
-
                 var lista = document.getElementById('lista-comentarios-' + postId);
                 var msgVazia = lista.querySelector('.no-comments-msg');
                 if(msgVazia) msgVazia.remove();
 
-                var novoHtml = '<div class="flex gap-2 items-start animate-fade-up">' +
-                                   '<div class="w-6 h-6 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 mt-0.5 flex items-center justify-center">' +
-                                       (data.foto_autor ? '<img src="' + data.foto_autor + '" class="w-full h-full object-cover">' : '<i class="bi bi-person-fill texto-main opacity-30 text-xs"></i>') +
-                                   '</div>' +
-                                   '<div class="fundo-app border border-suave rounded-2xl rounded-tl-none px-3 py-2 text-xs flex-1">' +
-                                       '<span class="font-black texto-main block mb-0.5">' + data.nome_autor + '</span>' +
-                                       '<span class="texto-main opacity-80 leading-relaxed">' + data.texto + '</span>' +
-                                   '</div>' +
-                               '</div>';
+                var img = data.foto_autor ? `<img src="${data.foto_autor}" class="w-full h-full object-cover">` : `<i class="bi bi-person-fill texto-main opacity-30 text-xs"></i>`;
+                var novoHtml = `
+                <div class="flex gap-2 items-start animate-fade-up">
+                    <div class="w-6 h-6 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 mt-0.5 flex items-center justify-center">${img}</div>
+                    <div class="fundo-app border border-suave rounded-2xl rounded-tl-none px-3 py-2 flex-1">
+                        <span class="text-[10px] font-black texto-main block mb-0.5">${data.nome_autor}</span>
+                        <span class="text-xs texto-main opacity-80 leading-relaxed font-medium">${data.texto}</span>
+                    </div>
+                </div>`;
                 lista.insertAdjacentHTML('beforeend', novoHtml);
                 lista.scrollTop = lista.scrollHeight;
             }
-        })
-        .catch(function(error) {
-            console.error("Erro no Comentário:", error);
-        });
-        
+        }).catch(console.error);
         return false;
     };
 
-    // 3. ABRIR E FECHAR COMENTÁRIOS
     window.toggleComentarios = function(postId) {
         var div = document.getElementById('secao-comentarios-' + postId);
-        if (div) {
-            if (div.classList.contains('hidden')) {
-                div.classList.remove('hidden');
-                div.classList.add('block');
-            } else {
-                div.classList.add('hidden');
-                div.classList.remove('block');
-            }
-        }
+        if (div) { div.classList.toggle('hidden'); div.classList.toggle('block'); }
     };
 
-    // 4. LÓGICA DO MODAL (NOVO POST)
     window.abrirModalPost = function() {
         var modal = document.getElementById('modalNovoPost');
         var content = document.getElementById('modalPostContent');
         if(!modal) return;
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex'); 
-        setTimeout(function() {
+        modal.classList.remove('hidden'); modal.classList.add('flex'); 
+        setTimeout(() => {
             modal.classList.remove('opacity-0');
-            if(window.innerWidth < 640) {
-                content.classList.remove('translate-y-full');
-            } else {
-                content.classList.remove('scale-95');
-                content.classList.add('scale-100');
-            }
+            if(window.innerWidth < 640) content.classList.remove('translate-y-full');
+            else { content.classList.remove('scale-95'); content.classList.add('scale-100'); }
         }, 10);
     };
 
@@ -398,18 +413,10 @@
         var modal = document.getElementById('modalNovoPost');
         var content = document.getElementById('modalPostContent');
         if(!modal) return;
-
-        if(window.innerWidth < 640) {
-            content.classList.add('translate-y-full');
-        } else {
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-        }
+        if(window.innerWidth < 640) content.classList.add('translate-y-full');
+        else { content.classList.remove('scale-100'); content.classList.add('scale-95'); }
         modal.classList.add('opacity-0');
-        setTimeout(function() { 
-            modal.classList.add('hidden'); 
-            modal.classList.remove('flex');
-        }, 300);
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
     };
 
     window.mostrarPreview = function(input) {
@@ -429,44 +436,30 @@
         document.getElementById('imagePreview').src = "";
     };
 
-    document.addEventListener('DOMContentLoaded', function() {
-        var modal = document.getElementById('modalNovoPost');
-        if(modal) {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) window.fecharModalPost();
-            });
+    window.compartilharPost = function(url, titulo) {
+        if (navigator.share) {
+            navigator.share({ title: 'SAT Social - ' + titulo, text: 'Dá uma olhada nesta publicação no SAT Social!', url: url }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(url);
+            alert("Link copiado para a área de transferência!");
         }
-    });
+    };
 
-    // 5. ABRIR E FECHAR BARRA DE PESQUISA
     window.togglePesquisa = function() {
         var form = document.getElementById('barraPesquisa');
-        var painelNotif = document.getElementById('painelNotificacoes');
-        
-        // Fecha as notificações se estiverem abertas
-        if(!painelNotif.classList.contains('hidden')) {
-            painelNotif.classList.add('hidden');
-        }
-
+        document.getElementById('painelNotificacoes').classList.add('hidden');
         form.classList.toggle('hidden');
-        if(!form.classList.contains('hidden')) {
-            form.querySelector('input').focus();
-        }
+        if(!form.classList.contains('hidden')) form.querySelector('input').focus();
     };
 
-    // 6. ABRIR E FECHAR NOTIFICAÇÕES
     window.toggleNotificacoes = function() {
-        var dropdown = document.getElementById('painelNotificacoes');
-        var barraPesquisa = document.getElementById('barraPesquisa');
-        
-        // Fecha a pesquisa se estiver aberta
-        if(!barraPesquisa.classList.contains('hidden')) {
-            barraPesquisa.classList.add('hidden');
-        }
-
-        dropdown.classList.toggle('hidden');
+        document.getElementById('barraPesquisa').classList.add('hidden');
+        document.getElementById('painelNotificacoes').classList.toggle('hidden');
     };
 
-
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('modalNovoPost');
+        if(modal) modal.addEventListener('click', function(e) { if (e.target === this) window.fecharModalPost(); });
+    });
 </script>
 {% endblock %}

@@ -13,12 +13,8 @@ class Torcida(models.Model):
     mascote = models.CharField("Mascote", max_length=100, blank=True)
     lema = models.CharField("Lema da Torcida", max_length=200, blank=True)
     historia = models.TextField("Histórico", blank=True)
-    
-    # --- IDENTIDADE VISUAL ---
     logo = models.ImageField("Logótipo / Escudo", upload_to='logos_torcida/', blank=True)
     imagem_fundo = models.ImageField("Imagem de Fundo (Login/App)", upload_to='fundos_torcida/', blank=True, null=True)
-    
-    # --- PERSONALIZAÇÃO DE CORES (Baseado nas tuas Telas ADM) ---
     cor_primaria = models.CharField("Cor Primária", max_length=7, default="#D37129")
     cor_secundaria = models.CharField("Cor Secundária", max_length=7, default="#FFFFFF")
     cor_terciaria = models.CharField("Cor Terciária", max_length=7, default="#000000")
@@ -45,20 +41,42 @@ class Caravana(models.Model):
     def __str__(self):
         return f"Caravana: {self.titulo}"
      
+# --- ATUALIZADO: Eventos (Com Categorias e Limites) ---
 class Evento(models.Model):
-    # Use o nome do modelo sem aspas se ele estiver no mesmo arquivo acima
+    CATEGORIAS = [
+        ('jogo_oficial', 'Jogo Oficial'),
+        ('caravana', 'Caravana'),
+        ('evento_social', 'Evento Social'),
+        ('reuniao', 'Reunião'),
+        ('acao_beneficente', 'Ação Beneficente')
+    ]
     torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='torcida_eventos', null=True, blank=True)
+    categoria = models.CharField(max_length=30, choices=CATEGORIAS, default='evento_social')
     titulo = models.CharField(max_length=100)
-    data = models.DateTimeField() # Padronizando para 'data' como a view espera
+    descricao = models.TextField(blank=True, null=True)
     local = models.CharField(max_length=255)
+    
+    data = models.DateTimeField("Data/Hora Início")
+    data_fim = models.DateTimeField("Data/Hora Fim", null=True, blank=True)
+    max_participantes = models.PositiveIntegerField("Máx. Participantes", null=True, blank=True, help_text="Deixe em branco para ilimitado")
+    
     imagem_capa = models.ImageField(upload_to='eventos/', null=True, blank=True)
     informativo = models.TextField(blank=True)
     ativo = models.BooleanField(default=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    raio_checkin = models.IntegerField(default=500)
+    xp_recompensa = models.IntegerField(default=50)
 
     def __str__(self):
         return self.titulo
 
-# Em organizadas/models.py
+# --- NOVO: Imagens Extras para Eventos ---
+class ImagemEvento(models.Model):
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='galeria_imagens')
+    imagem = models.ImageField(upload_to='eventos/galeria/')
+
+
 
 class Noticia(models.Model):
     # 1. Campos do Modelo
@@ -159,58 +177,49 @@ class Comentario(models.Model):
     
 # Adicione no final de organizadas/models.py
 
+# --- ATUALIZADO: Galeria ---
 class FotoGaleria(models.Model):
     torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='fotos_galeria')
+    titulo = models.CharField("Título", max_length=100, default="Foto")
     imagem = models.ImageField("Foto", upload_to='galeria_torcida/')
-    legenda = models.CharField("Legenda", max_length=200, blank=True)
+    legenda = models.TextField("Descrição", blank=True)
     data_publicacao = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        verbose_name = "Foto da Galeria"
-        verbose_name_plural = "Fotos da Galeria"
-
-    def __str__(self):
-        return f"Foto de {self.torcida.nome} - {self.data_publicacao.strftime('%d/%m/%Y')}"
-
+# --- ATUALIZADO: Conquistas ---
 class ConquistaTorcida(models.Model):
+    ICONES = [
+        ('bi-trophy', 'Troféu'), ('bi-medal', 'Medalha'), ('bi-award', 'Prémio'),
+        ('bi-star', 'Estrela'), ('bi-lightning', 'Raio'), ('bi-fire', 'Chama'),
+        ('bi-bullseye', 'Alvo')
+    ]
     torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='conquistas')
-    titulo = models.CharField("Título da Conquista", max_length=150, help_text="Ex: Maior Bandeirão, Campeão do Carnaval")
-    ano = models.IntegerField("Ano")
+    titulo = models.CharField("Título", max_length=150)
     descricao = models.TextField("Descrição", blank=True)
+    icone = models.CharField("Ícone", max_length=50, choices=ICONES, default='bi-trophy')
+    data_conquista = models.DateField("Data da Conquista", null=True, blank=True)
     imagem = models.ImageField("Foto da Conquista", upload_to='conquistas_torcida/', blank=True, null=True)
 
-    class Meta:
-        verbose_name = "Conquista"
-        verbose_name_plural = "Conquistas"
+# --- ATUALIZADO: Diretoria e Categorias ---
+class CategoriaDiretoria(models.Model):
+    torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='categorias_diretoria')
+    nome = models.CharField(max_length=100, help_text="Ex: Presidência, Bateria, Comunicação")
+    ordem = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"{self.titulo} ({self.ano}) - {self.torcida.sigla}"
-
+        return self.nome
+    
 class MembroDiretoria(models.Model):
     torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='diretoria')
+    categoria = models.ForeignKey(CategoriaDiretoria, on_delete=models.SET_NULL, null=True, blank=True)
     nome = models.CharField("Nome", max_length=100)
-    cargo = models.CharField("Cargo", max_length=100, help_text="Ex: Presidente, Diretor de Bateria, Puxador")
+    cargo = models.CharField("Cargo/Descrição", max_length=150)
+    ano_ingresso = models.IntegerField("Ano de Ingresso", null=True, blank=True)
     foto = models.ImageField("Foto de Perfil", upload_to='diretoria_torcida/', blank=True, null=True)
-    ordem = models.IntegerField("Ordem de Exibição", default=0, help_text="0 aparece primeiro (Ex: Presidente)")
-
-    class Meta:
-        ordering = ['ordem', 'nome']
-        verbose_name = "Membro da Diretoria"
-        verbose_name_plural = "Membros da Diretoria"
-
-    def __str__(self):
-        return f"{self.nome} - {self.cargo}"
+    ordem = models.IntegerField("Ordem de Exibição", default=0)
 
 class Regra(models.Model):
     torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='regras')
+    categoria = models.CharField("Categoria", max_length=100, blank=True, help_text="Ex: Viagens, Sede, Comportamento")
     titulo = models.CharField("Título da Regra", max_length=150)
     descricao = models.TextField("Descrição da Regra")
-    ordem = models.IntegerField("Ordem (Nº da Regra)", default=1)
-
-    class Meta:
-        ordering = ['ordem']
-        verbose_name = "Regra/Estatuto"
-        verbose_name_plural = "Regras/Estatutos"
-
-    def __str__(self):
-        return f"Regra {self.ordem}: {self.titulo} ({self.torcida.sigla})"
+    ordem = models.IntegerField("Número/Ordem", default=1)
