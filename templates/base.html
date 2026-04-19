@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-pt">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -23,7 +23,10 @@
         .fundo-card { background-color: var(--cor-secundaria) !important; }
         .fundo-tema { background-color: var(--cor-primaria) !important; }
         
-        .texto-main { color: var(--cor-terciaria) !important; }
+        .texto-main { color: var(--cor-terciaria) !important; text-shadow: 
+            0px 1px 2px rgba(0, 0, 0, 0.6), 
+            0px -1px 1px rgba(255, 255, 255, 0.2);
+        }
         .texto-tema { color: var(--cor-primaria) !important; }
         .texto-claro { color: var(--cor-secundaria) !important; }
         
@@ -39,8 +42,6 @@
         .cartao-chip::before { width: 100%; height: 1px; top: 50%; left: 0; }
         .cartao-chip::after { width: 1px; height: 100%; top: 0; left: 50%; }
         .texto-emboss { text-shadow: 0px 1px 1px rgba(255,255,255,0.3), 0px -1px 1px rgba(0,0,0,0.8); letter-spacing: 2px; }
-        
-        /* Scrollbars Escondidas */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -75,19 +76,19 @@
         </div>
         
         <div class="flex justify-between items-center w-full px-4">
-            <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'dashboard' %}border-tema texto-tema font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-sm transition-all whitespace-nowrap">Home</a>
+            <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'dashboard' %}border-tema texto-tema font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-sm transition-all whitespace-nowrap">Seu time</a>
             
-            <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'mural' %}border-tema texto-tema font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-sm transition-all whitespace-nowrap">Social</a>
+            <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'mural' %}border-tema texto-tema font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-sm transition-all whitespace-nowrap">SAT social</a>
             
             {% if request.user.perfil.torcida and request.user.perfil.aprovado %}
-                <a href="{% url 'hub_organizadas' user.perfil.torcida.slug %}"class="flex items-center gap-2 text-sm font-bold text-gray-800">
-                    <i class="bi bi-shield-fill text-dinamico"></i>
+                <a href="{% url 'hub' %}" class="flex items-center gap-2 text-sm font-bold text-gray-800">
+                    <i class="bi bi-shield-fill texto-tema"></i>
                     <span>{{ request.user.perfil.torcida.nome|default:"Torcida" }}</span>
                 </a>
             {% else %}
-                <a href="{% url 'seja_socio' %}" class="flex items-center gap-2 text-sm font-black text-dinamico bg-dinamico/10 px-4 py-1.5 rounded-full hover:bg-dinamico hover:text-white transition-colors">
+                <a href="{% url 'seja_socio' %}" class="flex items-center gap-2 text-sm font-black texto-tema bg-black/5 px-4 py-1.5 rounded-full hover:bg-black/10 transition-colors">
                     <i class="bi bi-gem"></i>
-                    <span>Sê Sócio</span>
+                    <span>Seja Sócio</span>
                 </a>
             {% endif %}
         </div>
@@ -95,15 +96,15 @@
   
 
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden transition-opacity" onclick="toggleSidebar()"></div>
-    <div id="satSidebar" class="fixed inset-y-0 left-0 w-72 fundo-card z-[101] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out border-r border-suave overflow-y-auto hide-scrollbar">
+    <div id="satSidebar" class="fixed inset-y-0 left-0 w-72 fundo-card z-[101] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out border-r border-suave overflow-y-auto no-scrollbar">
         <div class="p-8 fundo-tema texto-claro">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-inner">
+                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
                     <i class="bi bi-person-fill text-2xl"></i>
                 </div>
                 <div>
-                    <h4 class="font-black uppercase italic leading-none truncate w-32">{{ user.username }}</h4>
-                    <p class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">Membro SAT</p>
+                    <h4 class="font-black uppercase italic leading-none">{{ user.username }}</h4>
+                    <p class="text-[10px] font-bold opacity-80 uppercase tracking-widest">Membro SAT</p>
                 </div>
             </div>
         </div>
@@ -115,21 +116,20 @@
             <a href="{% url 'loja' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
                 <i class="bi bi-cart3 texto-tema text-lg"></i><span class="text-sm font-bold texto-main">Loja Oficial</span>
             </a>
-            
             <hr class="border-suave my-4">
             
             {% if request.user.is_staff and not request.user.is_superuser %}
                 <p class="px-4 text-[9px] font-black texto-main opacity-40 uppercase tracking-widest my-4">Administração</p>
                 <a href="{% url 'painel_moderador' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 no-underline group transition-all border border-orange-500/20">
                     <i class="bi bi-shield-lock-fill text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="text-sm font-black uppercase tracking-widest">Moderação SAT</span>
+                    <span class="text-sm font-black uppercase tracking-widest">Painel do Moderador</span>
                 </a>
                 <hr class="border-suave my-4">
             {% endif %}
-            
-            <a href="{% url 'logout' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-red-50 no-underline text-red-500 transition-colors">
+
+            <a href="{% url 'logout' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-red-50 no-underline text-red-500">
                 <i class="bi bi-door-open-fill text-lg"></i>
-                <span class="text-sm font-bold">Sair da Conta</span>
+                <span class="text-sm font-bold">Sair</span>
             </a>
         </div>
     </div>
@@ -187,6 +187,7 @@
             }
         }
 
+       
         function compartilharPost(autor, textoResumo) {
             const urlAtual = window.location.href;
             const shareData = {

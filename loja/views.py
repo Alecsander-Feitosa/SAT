@@ -9,8 +9,9 @@ from django.contrib import messages
 
 @login_required
 def loja_view(request):
+    perfil = getattr(request.user, 'perfil', None)
+    torcida_usuario = perfil.torcida if perfil else None
     total_itens = 0
-    torcida_usuario = None
     
     # 1. Verifica se o usuário tem torcida
     if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
@@ -36,13 +37,18 @@ def loja_view(request):
     # 4. Aplicar o filtro de categoria
     categoria_atual = request.GET.get('categoria')
     if categoria_atual:
-        produtos = produtos.filter(categoria=categoria_atual)
+        # CORREÇÃO AQUI: Como agora é um ForeignKey, filtramos pelo nome da categoria relacionada
+        if categoria_atual.isdigit():
+            produtos = produtos.filter(categoria_id=categoria_atual)
+        else:
+            produtos = produtos.filter(categoria__nome=categoria_atual)
         
     # 5. Calcular os itens do carrinho para o ícone flutuante
     total_itens = ItemCarrinho.objects.filter(usuario=request.user).aggregate(Sum('quantidade'))['quantidade__sum'] or 0
 
     # 6. Puxar categorias da 'base_produtos' para os botões
-    categorias = base_produtos.exclude(categoria__isnull=True).exclude(categoria__exact='').values_list('categoria', flat=True).distinct()
+    # CORREÇÃO AQUI: Removido o .exclude(categoria__exact='') e adicionado 'categoria__nome'
+    categorias = base_produtos.exclude(categoria__isnull=True).values_list('categoria__nome', flat=True).distinct()
 
     context = {
         'produtos': produtos,
@@ -50,7 +56,7 @@ def loja_view(request):
         'torcida': torcida_usuario,
         'categorias': categorias,
         'categoria_atual': categoria_atual,
-        'aba_atual': aba, # Para o HTML saber qual aba marcar
+        'aba_atual': aba, # Apenas para marcação de abas 
     }
     return render(request, 'store.html', context)
 
@@ -163,16 +169,34 @@ def form_produto(request, produto_id=None):
     if request.method == 'POST':
         nome = request.POST.get('nome')
         preco = request.POST.get('preco').replace(',', '.') 
-        categoria = request.POST.get('categoria')
+        categoria_input = request.POST.get('categoria') # O formulário envia 'Camisetas'
         estoque = request.POST.get('estoque')
         descricao = request.POST.get('descricao')
         destaque = request.POST.get('destaque') == 'on'
         imagem = request.FILES.get('imagem')
         
+        # --- CORREÇÃO DA CATEGORIA ---
+        # Importamos o modelo e convertemos o input no Objeto CategoriaProduto
+        from .models import CategoriaProduto
+        categoria_obj = None
+        
+        if categoria_input:
+            if str(categoria_input).isdigit():
+                # Se o formulário enviar um número (ID)
+                categoria_obj = CategoriaProduto.objects.filter(id=categoria_input).first()
+            else:
+                # Se o formulário enviar texto (ex: 'Camisetas')
+                # Procura essa categoria. Se não existir, cria-a automaticamente!
+                categoria_obj, _ = CategoriaProduto.objects.get_or_create(
+                    nome=categoria_input,
+                    torcida=request.user.perfil.torcida
+                )
+        # -----------------------------
+        
         if produto:
             produto.nome = nome
             produto.preco = preco
-            produto.categoria = categoria
+            produto.categoria = categoria_obj # Atribuímos o OBJETO, e não o texto
             produto.estoque = estoque
             produto.descricao = descricao
             produto.destaque = destaque
@@ -182,12 +206,19 @@ def form_produto(request, produto_id=None):
             messages.success(request, 'Produto atualizado!')
         else:
             Produto.objects.create(
-                nome=nome, preco=preco, categoria=categoria,
-                estoque=estoque, descricao=descricao, destaque=destaque,
-                imagem=imagem, torcida=request.user.perfil.torcida
+                nome=nome, 
+                preco=preco, 
+                categoria=categoria_obj, # Atribuímos o OBJETO, e não o texto
+                estoque=estoque, 
+                descricao=descricao, 
+                destaque=destaque,
+                imagem=imagem, 
+                torcida=request.user.perfil.torcida
             )
             messages.success(request, 'Produto criado com sucesso!')
-        return redirect('loja/painel_loja')
+            
+        # Corrigido também o redirecionamento (o nome da rota correto no urls.py é 'painel_loja')
+        return redirect('painel_loja') 
         
     return render(request, 'loja/form_produto.html', {'produto': produto})
 

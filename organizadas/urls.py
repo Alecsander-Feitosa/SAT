@@ -13,12 +13,18 @@ urlpatterns = [
     path('cancao/<int:cancao_id>/excluir/', views.excluir_cancao, name='excluir_cancao'),
 
     # --- ROTAS DA TORCIDA (HUB) ---
-    # Coloquei o <slug:slug> nas rotas do HUB para que o Django saiba de qual torcida são as fotos/canções
-    path('hub/<slug:slug>/', views.hub_view, name='hub_organizadas'), 
     path('hub/<slug:slug>/galeria/', views.galeria_fotos, name='galeria_fotos'),
     path('hub/<slug:slug>/cancoes/', views.cancoes, name='cancoes'),
 
     # --- A ROTA DO SLUG VAI PARA O FIM (A Armadilha desarmada) ---
-    # Atualizado o nome da view de perfil_torcida para detalhes_torcida (que é o nome correto na sua views.py)
-    path('<slug:slug>/', views.detalhes_torcida, name='perfil_torcida'),
+    
+    # CORREÇÃO AQUI: Renomeado de name='hub' para name='hub_organizadas' para não dar conflito
+    path('hub/<slug:slug>/', views.hub_view, name='hub_organizadas'),
+    
+    path('hub/<slug:slug>/diretoria/', views.diretoria, name='diretoria'),
+    path('hub/<slug:slug>/conquistas/', views.mural_conquistas, name='mural_conquistas'),
+    path('hub/<slug:slug>/eventos/', views.lista_eventos, name='lista_eventos'),
+    path('hub/<slug:slug>/regras/', views.regras, name='regras'),
+    path('hub/<slug:slug>/aliadas/', views.aliadas, name='aliadas'),
+    path('hub/<slug:slug>/viagens/', views.viagens, name='viagens'),
 ]

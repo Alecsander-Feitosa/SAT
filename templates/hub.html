@@ -3,28 +3,21 @@
 
 {% block content %}
 <style>
-    .torcida-bg { background-color: var(--cor-fundo, #0c0d0e); min-height: 100vh; color: white; }
+    .torcida-bg { background-color: #0c0d0e; min-height: 100vh; color: white; padding-bottom: 100px; }
     .hub-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
     
     .hub-item { 
-        background: var(--cor-secundaria, #161b22); 
-        border-radius: 24px; 
-        padding: 25px 15px; 
-        border: 1px solid rgba(255, 255, 255, 0.05); 
-        text-align: center;
-        text-decoration: none; 
-        transition: 0.3s; 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center;
+        background: #161b22; border-radius: 24px; padding: 25px 15px; 
+        border: 1px solid rgba(255, 255, 255, 0.05); text-align: center;
+        text-decoration: none; transition: 0.3s; display: flex; flex-direction: column; align-items: center;
     }
-    .hub-item:active { transform: scale(0.95); filter: brightness(1.2); }
-    .hub-item i { font-size: 28px; color: var(--cor-primaria); margin-bottom: 10px; }
-    .hub-item span { font-size: 10px; font-weight: 900; color: var(--cor-terciaria, #f8f9fa); text-transform: uppercase; letter-spacing: 1px; }
+    .hub-item:active { transform: scale(0.95); background: #1c2128; }
+    .hub-item i { font-size: 28px; color: #D37129; margin-bottom: 10px; }
+    .hub-item span { font-size: 10px; font-weight: 900; color: #f8f9fa; text-transform: uppercase; letter-spacing: 1px; }
 
-    /* Cartão de Sócio Estilo Banco Premium */
+    /* Cartão de Sócio Estilo Premium */
     .bank-card {
-        background: linear-gradient(135deg, #1a1c1e 0%, #050505 100%);
+        background: linear-gradient(135deg, #1a1c1e 0%, #0c0d0e 100%);
         border: 1px solid rgba(255,255,255,0.1);
         border-radius: 24px;
         aspect-ratio: 1.58/1;
@@ -36,47 +29,36 @@
         width: 40px; height: 30px;
         background: linear-gradient(135deg, #ffd700, #b8860b);
         border-radius: 6px;
-        box-shadow: inset 0 0 4px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2);
     }
-    .card-chip::before, .card-chip::after { content: ''; position: absolute; background: rgba(0,0,0,0.2); }
-    .card-chip::before { width: 100%; height: 1px; top: 50%; left: 0; }
-    .card-chip::after { width: 1px; height: 100%; top: 0; left: 50%; }
 </style>
 
-<div class="torcida-bg pb-40">
+<div class="torcida-bg">
     <div class="px-5 pt-10 mb-6">
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter" style="color: var(--cor-terciaria, #ffffff);">
-            COMUNIDADE <span style="color: var(--cor-primaria);">{% if torcida.sigla %}{{ torcida.sigla }}{% else %}SAT{% endif %}</span>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter">
+            {{ torcida.nome }} <span class="text-[#D37129]">HUB</span>
         </h1>
     </div>
 
     <div class="px-5 mb-10">
-        <div class="bank-card p-6 w-full max-w-sm mx-auto">
-            <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-30" style="background-color: var(--cor-primaria);"></div>
-            {% if torcida.logo %}
-                <div class="absolute right-[-10%] bottom-[-20%] w-[80%] h-[80%] opacity-10 pointer-events-none" style="background-image: url('{{ torcida.logo.url }}'); background-size: contain; background-repeat: no-repeat; background-position: bottom right; filter: grayscale(100%) brightness(200%);"></div>
-            {% endif %}
+        <div class="bank-card p-6">
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#D37129]/10 rounded-full blur-3xl"></div>
             <div class="relative z-10 h-full flex flex-col justify-between">
                 <div class="flex justify-between items-start">
-                    {% if torcida.logo %}
-                        <img src="{{ torcida.logo.url }}" class="h-8 w-auto object-contain drop-shadow-md">
-                    {% else %}
-                        <img src="{% static 'img/logo_sat.png' %}" class="h-6 w-auto brightness-200">
-                    {% endif %}
-                    <div class="card-chip"></div>
+                    <img src="{% if torcida.logo %}{{ torcida.logo.url }}{% else %}{% static 'img/logo_sat.png' %}{% endif %}" class="h-8 w-auto brightness-200">
+                    <div class="card-chip shadow-inner"></div>
                 </div>
                 <div>
-                    <p class="text-[16px] font-mono tracking-[4px] text-white/90">SAT • {{ user.id|add:"1000" }} • {% now "Y" %}</p>
+                    <p class="text-[16px] font-mono tracking-[4px] text-white/90">SAT • {{ user.id|add:"1000" }}</p>
                     <p class="text-[10px] font-black uppercase italic mt-1 text-white">{{ user.get_full_name|default:user.username }}</p>
                 </div>
                 <div class="flex justify-between items-end">
                     <div>
-                        <p class="text-[7px] uppercase opacity-50 font-bold text-white">Membro desde</p>
-                        <p class="text-[9px] font-bold text-white">{{ user.date_joined|date:"M Y" }}</p>
+                        <p class="text-[7px] uppercase opacity-50 font-bold">Membro desde</p>
+                        <p class="text-[9px] font-bold">{{ user.date_joined|date:"M Y" }}</p>
                     </div>
                     <div class="text-right">
-                        <span class="px-3 py-1 text-[8px] font-black rounded-full text-white shadow-md" style="background-color: var(--cor-primaria);">
-                            SÓCIO {% if perfil_game.nivel %}{{ perfil_game.nivel.nome|upper }}{% else %}NÍVEL 1{% endif %}
+                        <span class="px-3 py-1 bg-[#D37129] text-[8px] font-black rounded-full">
+                            {% if perfil_game.nivel %}SÓCIO {{ perfil_game.nivel.nome|upper }}{% else %}SÓCIO ATIVO{% endif %}
                         </span>
                     </div>
                 </div>
@@ -85,44 +67,44 @@
     </div>
 
     <div class="hub-grid">
-        <a href="{% url 'galeria_fotos' %}" class="hub-item">
+        <a href="{% url 'galeria_fotos' torcida.slug %}" class="hub-item">
             <i class="bi bi-images"></i>
             <span>Galeria</span>
         </a>
 
-        <a href="{% url 'diretoria' %}" class="hub-item">
+        <a href="{% url 'diretoria' torcida.slug %}" class="hub-item">
             <i class="bi bi-microsoft"></i>
             <span>Diretoria</span>
         </a>
 
-        <a href="{% url 'mural_conquistas' %}" class="hub-item">
+        <a href="{% url 'mural_conquistas' torcida.slug %}" class="hub-item">
             <i class="bi bi-trophy"></i>
             <span>Conquistas</span>
         </a>
 
-        <a href="{% url 'cancoes' %}" class="hub-item">
+        <a href="{% url 'cancoes' torcida.slug %}" class="hub-item">
             <i class="bi bi-music-note-beamed"></i>
             <span>Canções</span>
         </a>
 
-        <a href="{% url 'lista_eventos' %}" class="hub-item">
+        <a href="{% url 'lista_eventos' torcida.slug %}" class="hub-item">
             <i class="bi bi-calendar-check"></i>
             <span>Eventos</span>
         </a>
 
-        <a href="{% url 'regras' %}" class="hub-item">
+        <a href="{% url 'regras' torcida.slug %}" class="hub-item">
             <i class="bi bi-file-earmark-text"></i>
             <span>Regras</span>
         </a>
 
-        <a href="{% url 'aliadas' %}" class="hub-item">
+        <a href="{% url 'aliadas' torcida.slug %}" class="hub-item">
             <i class="bi bi-shield-check"></i>
             <span>Aliadas</span>
         </a>
 
-        <a href="{% url 'viagens' %}" class="hub-item">
+        <a href="{% url 'viagens' torcida.slug %}" class="hub-item">
             <i class="bi bi-bus-front"></i>
-            <span>Viagens/caravanas</span>
+            <span>Viagens</span>
         </a>
     </div>
 </div>

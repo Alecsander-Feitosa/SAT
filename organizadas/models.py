@@ -6,9 +6,9 @@ from django.utils import timezone
 
 
 class Torcida(models.Model):
-    nome = models.CharField("Nome da Torcida", max_length=150, unique=True)
+    nome = models.CharField(max_length=200)
     sigla = models.CharField("Sigla (Ex: TJF, MV)", max_length=10, blank=True, null=True)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, max_length=200, blank=True)
     fundacao = models.DateField("Data de Fundação")
     mascote = models.CharField("Mascote", max_length=100, blank=True)
     lema = models.CharField("Lema da Torcida", max_length=200, blank=True)
@@ -20,6 +20,15 @@ class Torcida(models.Model):
     cor_terciaria = models.CharField("Cor Terciária", max_length=7, default="#000000")
     cor_fundo = models.CharField("Cor de Fundo do App", max_length=7, default="#121212")
     
+    def save(self, *args, **kwargs):
+        # Se o slug estiver vazio, ele cria um automaticamente baseado no nome
+        if not self.slug:
+            self.slug = slugify(self.nome)
+        super().save(*args, **kwargs)
+
+
+
+
     def __str__(self):
         return f"{self.nome} ({self.sigla})" if self.sigla else self.nome
 

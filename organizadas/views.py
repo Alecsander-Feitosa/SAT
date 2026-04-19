@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.dateparse import parse_datetime
+from accounts.models import Aliada
+from .models import Torcida, Evento, MembroDiretoria, Regra, FotoGaleria
 
 from organizadas.models import (
     Torcida, Evento, Caravana, Post, Curtida, Parceiro, 
@@ -22,15 +24,80 @@ def detalhes_torcida(request, slug):
 
 @login_required
 def hub_view(request, slug):
+    # Busca a torcida específica pelo slug
     torcida = get_object_or_404(Torcida, slug=slug)
+    
+    # Tenta obter o perfil de gamificação para exibir o nível no cartão do sócio
+    # Certifique-se de importar o PerfilGamificacao no topo do arquivo
+    from gamification.models import PerfilGamificacao
+    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
+    
     context = {
         'torcida': torcida,
-        'eventos': Evento.objects.filter(torcida=torcida).order_by('data'),
+        'perfil_game': perfil_game,
+        'eventos': Evento.objects.filter(torcida=torcida, ativo=True).order_by('data'),
         'caravanas': Caravana.objects.filter(torcida=torcida),
         'parceiros': Parceiro.objects.filter(torcida=torcida),
         'publicidades': Publicidade.objects.filter(torcida=torcida),
+        
+        # Dados institucionais
+        'diretoria': MembroDiretoria.objects.filter(torcida=torcida).order_by('categoria__ordem', 'ordem'),
+        'regras': Regra.objects.filter(torcida=torcida).order_by('categoria', 'ordem'),
+        'aliadas': Aliada.objects.filter(torcida=torcida),
+        'conquistas': ConquistaTorcida.objects.filter(torcida=torcida),
+        
+        # Conteúdo multimédia
+        'galeria': FotoGaleria.objects.filter(torcida=torcida).order_by('-data_publicacao')[:6],
+        'cancoes': Cancao.objects.filter(torcida=torcida),
     }
-    return render(request, 'hub.html', context)
+    
+    return render(request, 'torcida/hub.html', context)
+
+# ==========================================
+# VIEWS DAS FUNCIONALIDADES DO HUB DA TORCIDA
+# ==========================================
+
+@login_required
+def diretoria(request, slug):
+    torcida = get_object_or_404(Torcida, slug=slug)
+    membros = MembroDiretoria.objects.filter(torcida=torcida).order_by('categoria__ordem', 'ordem')
+    return render(request, 'torcida/diretoria.html', {'torcida': torcida, 'membros': membros})
+
+@login_required
+def mural_conquistas(request, slug):
+    torcida = get_object_or_404(Torcida, slug=slug)
+    conquistas = ConquistaTorcida.objects.filter(torcida=torcida)
+    return render(request, 'torcida/mural_conquistas.html', {'torcida': torcida, 'conquistas': conquistas})
+
+@login_required
+def lista_eventos(request, slug):
+    torcida = get_object_or_404(Torcida, slug=slug)
+    eventos = Evento.objects.filter(torcida=torcida).order_by('-data')
+    # O template de eventos estava na raiz da pasta templates segundo a estrutura
+    return render(request, 'eventos.html', {'torcida': torcida, 'eventos': eventos})
+
+@login_required
+def regras(request, slug):
+    torcida = get_object_or_404(Torcida, slug=slug)
+    regras = Regra.objects.filter(torcida=torcida).order_by('categoria', 'ordem')
+    return render(request, 'torcida/regras.html', {'torcida': torcida, 'regras': regras})
+
+@login_required
+def aliadas(request, slug):
+    torcida = get_object_or_404(Torcida, slug=slug)
+    # A model Aliada é importada de accounts.models (conforme o topo do seu views.py)
+    aliadas_lista = Aliada.objects.filter(torcida=torcida)
+    return render(request, 'torcida/aliadas.html', {'torcida': torcida, 'aliadas': aliadas_lista})
+
+@login_required
+def viagens(request, slug):
+    torcida = get_object_or_404(Torcida, slug=slug)
+    caravanas = Caravana.objects.filter(torcida=torcida).order_by('-saida_horario')
+    return render(request, 'torcida/viagens.html', {'torcida': torcida, 'caravanas': caravanas})
+
+
+
+
 
 # --- REDE SOCIAL E CONTEÚDO ---
 
@@ -114,6 +181,28 @@ def painel_moderador(request):
             p = get_object_or_404(Perfil, id=request.POST.get('perfil_id'), torcida=minha_torcida)
             p.delete()
             messages.success(request, "Sócio removido permanentemente da base.")
+
+        # --- NOVO: AÇÃO PARA EDITAR SÓCIO ---
+        elif acao == 'editar_socio':
+            p = get_object_or_404(Perfil, id=request.POST.get('perfil_id'), torcida=minha_torcida)
+            
+            # Atualiza os campos do Perfil
+            p.vulgo = request.POST.get('vulgo', p.vulgo)
+            p.pelotao = request.POST.get('pelotao', p.pelotao)
+            p.rede_social = request.POST.get('rede_social', p.rede_social)
+            p.whatsapp = request.POST.get('whatsapp', p.whatsapp)
+            p.save()
+            
+            # Atualiza os dados base do User (Django)
+            u = p.user
+            if 'first_name' in request.POST:
+                u.first_name = request.POST.get('first_name')
+            if 'email' in request.POST:
+                u.email = request.POST.get('email')
+                u.username = request.POST.get('email') # Mantém o username igual ao email
+            u.save()
+            
+            messages.success(request, f"Dados do sócio {u.first_name} atualizados com sucesso!")
 
         elif acao == 'novo_campo_custom':
             CampoPersonalizado.objects.create(
@@ -200,10 +289,13 @@ def painel_moderador(request):
             minha_torcida.sigla = request.POST.get('sigla', minha_torcida.sigla)
             minha_torcida.lema = request.POST.get('lema', minha_torcida.lema)
             minha_torcida.historia = request.POST.get('historia', minha_torcida.historia)
+            
+            # ATUALIZAÇÃO DAS 4 CORES (Obrigatório estarem todas aqui!)
             minha_torcida.cor_primaria = request.POST.get('cor_primaria', minha_torcida.cor_primaria)
+            minha_torcida.cor_secundaria = request.POST.get('cor_secundaria', minha_torcida.cor_secundaria)
+            minha_torcida.cor_terciaria = request.POST.get('cor_terciaria', minha_torcida.cor_terciaria)
             minha_torcida.cor_fundo = request.POST.get('cor_fundo', minha_torcida.cor_fundo)
             
-            # Atualiza ano de fundação se for enviado e válido
             nova_fundacao = request.POST.get('fundacao')
             if nova_fundacao:
                 minha_torcida.fundacao = nova_fundacao
@@ -213,7 +305,7 @@ def painel_moderador(request):
             if 'imagem_fundo' in request.FILES:
                 minha_torcida.imagem_fundo = request.FILES['imagem_fundo']
                 
-            minha_torcida.save()
+            minha_torcida.save() # Grava tudo na base de dados
             messages.success(request, "Identidade do App atualizada com sucesso!")
 
         elif acao == 'nova_foto_galeria':
@@ -253,9 +345,9 @@ def painel_moderador(request):
                 nome_organizada=request.POST.get('nome_organizada'),
                 clube=request.POST.get('clube'),
                 logo=request.FILES.get('logo'),
-                status='aceito' # Presume-se aceito se foi a própria diretoria a adicionar manualmente
+                status='aceito'
             )
-            messages.success(request, "Torcida Aliada adicionada!")
+            messages.success(request, "Torcida Aliada adicionada com sucesso!")
 
         # 7. LOJA E PRODUTOS
         elif acao == 'nova_categoria_loja':

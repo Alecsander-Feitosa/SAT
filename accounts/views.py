@@ -731,20 +731,6 @@ def ranking_torcida(request):
     }
     return render(request, 'ranking.html', context)
 
-class Noticia(models.Model):
-    titulo = models.CharField("Título", max_length=200)
-    subtitulo = models.CharField("Subtítulo", max_length=255, blank=True)
-    conteudo = models.TextField("Conteúdo")
-    imagem = models.ImageField("Imagem de Capa", upload_to='noticias/')
-    data_publicacao = models.DateTimeField(auto_now_add=True)
-    autor = models.CharField("Autor", max_length=100, default="Imprensa SAT")
-
-    class Meta:
-        verbose_name = "Notícia"
-        verbose_name_plural = "Notícias" 
-
-    def __str__(self):
-        return self.titulo
 
 @login_required
 def games_hub(request):
