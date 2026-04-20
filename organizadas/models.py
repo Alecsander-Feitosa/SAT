@@ -27,8 +27,6 @@ class Torcida(models.Model):
         super().save(*args, **kwargs)
 
 
-
-
     def __str__(self):
         return f"{self.nome} ({self.sigla})" if self.sigla else self.nome
 

@@ -4,14 +4,14 @@ from django.contrib import messages
 from django.utils.dateparse import parse_datetime
 from accounts.models import Aliada
 from .models import Torcida, Evento, MembroDiretoria, Regra, FotoGaleria
-
+from accounts.models import Fatura, Assinatura, PlanoSocio 
 from organizadas.models import (
     Torcida, Evento, Caravana, Post, Curtida, Parceiro, 
     Publicidade, FotoGaleria, ConquistaTorcida, MembroDiretoria, CategoriaDiretoria, Regra
 )
 from accounts.models import Perfil, Cancao, Aliada, HistoricoSocio, CampoPersonalizado
 from loja.models import Produto, CategoriaProduto
-
+from django.http import HttpResponse
 # --- VIEWS PÚBLICAS E GERAIS ---
 
 def lista_torcidas(request):
@@ -94,9 +94,6 @@ def viagens(request, slug):
     torcida = get_object_or_404(Torcida, slug=slug)
     caravanas = Caravana.objects.filter(torcida=torcida).order_by('-saida_horario')
     return render(request, 'torcida/viagens.html', {'torcida': torcida, 'caravanas': caravanas})
-
-
-
 
 
 # --- REDE SOCIAL E CONTEÚDO ---
@@ -413,3 +410,86 @@ def painel_moderador(request):
     }
     
     return render(request, 'moderacao.html', context)
+
+from django.utils import timezone # Adicionamos o import do timezone aqui por segurança
+
+# SAT/organizadas/views.py
+from django.db.models import Sum
+from accounts.models import Fatura, Assinatura # Certifique-se de importar os novos modelos
+
+@login_required
+def admin_financeiro(request):
+    perfil_moderador = request.user.perfil
+    torcida_mod = perfil_moderador.torcida
+    hoje = timezone.now()
+
+    # --- LÓGICA DE CRIAÇÃO DE NOVO PLANO ---
+    if request.method == 'POST' and request.POST.get('acao') == 'novo_plano':
+        PlanoSocio.objects.create(
+            torcida=torcida_mod,
+            nome=request.POST.get('nome'),
+            preco=request.POST.get('preco'),
+            beneficios=request.POST.get('beneficios'),
+            destaque=request.POST.get('destaque') == 'on',
+            ativo=True
+        )
+        messages.success(request, "Novo plano criado com sucesso!")
+        return redirect('admin_financeiro')
+
+    # --- BUSCA DE DADOS ---
+    faturas_query = Fatura.objects.filter(assinatura__plano__torcida=torcida_mod)
+    
+    # Planos da torcida
+    planos = PlanoSocio.objects.filter(torcida=torcida_mod).order_by('-ativo', 'preco')
+
+    receita_mensal = faturas_query.filter(
+        status='pago', 
+        data_pagamento__month=hoje.month
+    ).aggregate(total=Sum('valor'))['total'] or 0.00
+
+    faturas_atrasadas = faturas_query.filter(
+        status='pendente', 
+        data_vencimento__lt=hoje.date()
+    )
+
+    context = {
+        'torcida': torcida_mod,
+        'planos': planos,
+        'receita_mensal': receita_mensal,
+        'qtd_inadimplentes': faturas_atrasadas.values('assinatura__perfil').distinct().count(),
+        'valor_receber': faturas_atrasadas.aggregate(total=Sum('valor'))['total'] or 0.00,
+        'faturas_atrasadas': faturas_atrasadas,
+        'ultimos_pagamentos': faturas_query.filter(status='pago').order_by('-data_pagamento')[:5],
+        'hoje': hoje.date(),
+    }
+    
+    return render(request, 'admin_financeiro.html', context)
+
+@login_required
+def exportar_financeiro_csv(request):
+    perfil_moderador = request.user.perfil
+    torcida_mod = perfil_moderador.torcida
+    
+    # Prepara o ficheiro CSV
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="relatorio_financeiro_{torcida_mod.sigla}.csv"'
+    
+    writer = csv.writer(response)
+    # Cabeçalho do Excel
+    writer.writerow(['Sócio', 'Plano', 'Valor', 'Vencimento', 'Data Pagamento', 'Status', 'Método'])
+    
+    # Busca todas as faturas da torcida
+    faturas = Fatura.objects.filter(assinatura__plano__torcida=torcida_mod).select_related('assinatura__perfil__user', 'assinatura__plano')
+    
+    for f in faturas:
+        writer.writerow([
+            f.perfil.user.get_full_name() or f.perfil.user.username,
+            f.assinatura.plano.nome,
+            f.valor,
+            f.data_vencimento,
+            f.data_pagamento if f.data_pagamento else 'Pendente',
+            f.status,
+            f.metodo_pagamento
+        ])
+    
+    return response

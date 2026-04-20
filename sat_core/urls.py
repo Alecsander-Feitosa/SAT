@@ -4,6 +4,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView  # 1. ADICIONADO AQUI: Importação para rotas visuais rápidas
 from gamification import views
+from accounts import views as accounts_views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -21,7 +23,7 @@ urlpatterns = [
     path('financeiro/', TemplateView.as_view(template_name='financeiro.html'), name='financeiro'),
     
     path('admin-financeiro/', TemplateView.as_view(template_name='admin_financeiro.html'), name='admin_financeiro'),
-
+    path('admin-painel/utilizador/<int:perfil_id>/editar/', accounts_views.admin_editar_utilizador, name='admin_editar_utilizador'),    
     path('accounts/', include('allauth.urls')),
 ]
 

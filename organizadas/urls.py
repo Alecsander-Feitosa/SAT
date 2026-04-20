@@ -27,4 +27,6 @@ urlpatterns = [
     path('hub/<slug:slug>/regras/', views.regras, name='regras'),
     path('hub/<slug:slug>/aliadas/', views.aliadas, name='aliadas'),
     path('hub/<slug:slug>/viagens/', views.viagens, name='viagens'),
+    path('financeiro/', views.admin_financeiro, name='admin_financeiro'),
+    path('financeiro/exportar/', views.exportar_financeiro_csv, name='exportar_financeiro_csv'),
 ]

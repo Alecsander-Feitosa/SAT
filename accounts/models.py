@@ -4,6 +4,7 @@ from django.utils import timezone
 from organizadas.models import Torcida
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import timedelta
 
 
 # INICIO DA ATUALIZAÇÃO: Classe Perfil (Arquivo: accounts/models.py)
@@ -166,3 +167,31 @@ class PlanoSocio(models.Model):
 
     def __str__(self):
         return f"{self.nome} - {self.torcida.nome if self.torcida else 'SAT'}"
+
+# SAT/accounts/models.py
+
+class Assinatura(models.Model):
+    perfil = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='assinaturas')
+    plano = models.ForeignKey(PlanoSocio, on_delete=models.RESTRICT)
+    data_inicio = models.DateField(auto_now_add=True)
+    ativa = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.perfil.user.username} - {self.plano.nome}"
+
+class Fatura(models.Model):
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('pago', 'Pago'),
+        ('atrasado', 'Atrasado'),
+        ('cancelado', 'Cancelado'),
+    ]
+    assinatura = models.ForeignKey(Assinatura, on_delete=models.CASCADE, related_name='faturas')
+    valor = models.DecimalField(max_digits=7, decimal_places=2)
+    data_vencimento = models.DateField()
+    data_pagamento = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    metodo_pagamento = models.CharField(max_length=50, blank=True, help_text="Ex: PIX, Cartão")
+
+    def __str__(self):
+        return f"Fatura {self.id} - {self.status}"

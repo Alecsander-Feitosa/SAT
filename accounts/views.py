@@ -261,25 +261,42 @@ def dashboard(request):
     # 2. NOTÍCIAS DO TIME DO CORAÇÃO
     noticias_time_api = []
     if time_busca and time_busca != "Outro":
-        cache_key_time = f'news_time_{time_busca.replace(" ", "_")}_v2' # Mudei para _v2 para limpar o cache antigo
+        # Mudei a chave de cache para _v3 para forçar a atualização imediata
+        cache_key_time = f'news_time_{time_busca.replace(" ", "_")}_v3' 
         noticias_time_api = cache.get(cache_key_time)
         
         if noticias_time_api is None:
             try:
                 url_time = 'https://newsdata.io/api/1/news'
                 
-                # ATUALIZAÇÃO AQUI: Adicionado category='sports' e aspas na busca (q)
                 params = {
                     'apikey': api_key, 
                     'country': 'br', 
                     'language': 'pt', 
                     'category': 'sports', 
-                    'q': f'"{time_busca}"'
+                    # Retiramos as aspas para a API não falhar com acentos
+                    'q': time_busca 
                 }
                 
                 response_time = requests.get(url_time, params=params, timeout=5)
                 if response_time.status_code == 200:
-                    noticias_time_api = response_time.json().get('results', [])[:5]
+                    resultados_brutos = response_time.json().get('results', [])
+                    
+                    # FILTRO RIGOROSO NO PYTHON: Só passa se o time estiver no título ou descrição
+                    time_busca_lower = time_busca.lower()
+                    noticias_time_api = []
+                    
+                    for art in resultados_brutos:
+                        titulo = (art.get('title') or '').lower()
+                        descricao = (art.get('description') or '').lower()
+                        
+                        if time_busca_lower in titulo or time_busca_lower in descricao:
+                            noticias_time_api.append(art)
+                            
+                        # Limita a 5 notícias rigorosamente validadas
+                        if len(noticias_time_api) == 5:
+                            break
+                            
                     cache.set(cache_key_time, noticias_time_api, 900)
             except Exception:
                 noticias_time_api = []
@@ -359,27 +376,33 @@ def noticias(request):
     # Só pesquisa o time se ele não escolheu a opção "Outro"
     if time_busca and time_busca != "Outro":
         try:
-            # ATUALIZAÇÃO AQUI: Forçar categoria de desporto e texto exato
             params_time = {
                 'apikey': api_key, 
                 'country': 'br', 
                 'language': 'pt', 
                 'category': 'sports', 
-                'q': f'"{time_busca}"'
+                'q': time_busca # Sem as aspas
             }
             resp_time = requests.get(url_api, params=params_time, timeout=5)
             if resp_time.status_code == 200:
+                time_busca_lower = time_busca.lower()
+                
                 for art in resp_time.json().get('results', []):
-                    link = art.get('link') or '#'
-                    if link not in urls_vistas:
-                        urls_vistas.add(link)
-                        lista_final.append({
-                            'url': link,
-                            'title': art.get('title') or f'Notícia do {time_busca.title()}',
-                            'description': art.get('description') or '',
-                            'image': art.get('image_url') or f'https://placehold.co/600x400/D37129/white?text={time_busca.upper()}',
-                            'source': art.get('source_id') or time_busca.upper()
-                        })
+                    # FILTRO RIGOROSO AQUI
+                    titulo = (art.get('title') or '').lower()
+                    descricao = (art.get('description') or '').lower()
+                    
+                    if time_busca_lower in titulo or time_busca_lower in descricao:
+                        link = art.get('link') or '#'
+                        if link not in urls_vistas:
+                            urls_vistas.add(link)
+                            lista_final.append({
+                                'url': link,
+                                'title': art.get('title') or f'Notícia do {time_busca.title()}',
+                                'description': art.get('description') or '',
+                                'image': art.get('image_url') or f'https://placehold.co/600x400/D37129/white?text={time_busca.upper()}',
+                                'source': art.get('source_id') or time_busca.upper()
+                            })
         except Exception as e:
             print(f"Erro ao buscar time: {e}")
 
@@ -741,30 +764,106 @@ def games_hub(request):
     })
 
 
+# accounts/views.py
+
 @login_required
 def moderacao_torcida(request):
     perfil_moderador = request.user.perfil
     
-    # Segurança: Apenas quem tem torcida e é da equipa (is_staff) pode moderar
+    # Segurança: Apenas staff com torcida vinculada pode moderar
     if not request.user.is_staff or not perfil_moderador.torcida:
-        messages.error(request, "Não tem permissão para moderar.")
+        messages.error(request, "Não tem permissão para aceder à área de moderação.")
         return redirect('dashboard')
         
-    # FILTRO MÁGICO: Filtra apenas pendentes da MESMA claque do moderador
-    pendentes = Perfil.objects.filter(
-        torcida=perfil_moderador.torcida, 
-        aprovado=False
-    ).exclude(user=request.user)
+    torcida_mod = perfil_moderador.torcida
+
+    # --- PROCESSAMENTO DE AÇÕES (POST) ---
+    if request.method == 'POST':
+        acao = request.POST.get('acao')
+        perfil_id = request.POST.get('perfil_id')
+        
+        # Para ações que envolvem um sócio específico
+        if perfil_id:
+            perfil_alvo = get_object_or_404(Perfil, id=perfil_id, torcida=torcida_mod)
+            user_alvo = perfil_alvo.user
+
+            if acao == 'aprovar_socio':
+                perfil_alvo.aprovado = True
+                perfil_alvo.save()
+                messages.success(request, f"O torcedor {user_alvo.first_name or user_alvo.username} foi aprovado!")
+
+            elif acao == 'rejeitar_socio':
+                # Rejeitar remove o pedido (e o user) para que ele possa tentar novamente se desejar
+                user_alvo.delete()
+                messages.warning(request, "Solicitação de entrada rejeitada e removida.")
+
+            elif acao == 'editar_socio':
+                # 1. Atualiza Dados do User (Django Nativo)
+                user_alvo.first_name = request.POST.get('first_name', user_alvo.first_name)
+                user_alvo.email = request.POST.get('email', user_alvo.email)
+                user_alvo.save()
+
+                # 2. Atualiza Dados Pessoais do Perfil
+                perfil_alvo.cpf = request.POST.get('cpf', perfil_alvo.cpf)
+                perfil_alvo.rg_cnh = request.POST.get('rg_cnh', perfil_alvo.rg_cnh)
+                perfil_alvo.orgao_expedidor = request.POST.get('orgao_expedidor', perfil_alvo.orgao_expedidor)
+                perfil_alvo.whatsapp = request.POST.get('whatsapp', perfil_alvo.whatsapp)
+                
+                data_nasc = request.POST.get('data_nascimento')
+                if data_nasc:
+                    perfil_alvo.data_nascimento = data_nasc
+
+                # 3. Atualiza Endereço
+                perfil_alvo.cep = request.POST.get('cep', perfil_alvo.cep)
+                perfil_alvo.rua = request.POST.get('rua', perfil_alvo.rua)
+                perfil_alvo.numero = request.POST.get('numero', perfil_alvo.numero)
+                perfil_alvo.complemento = request.POST.get('complemento', perfil_alvo.complemento)
+                perfil_alvo.bairro = request.POST.get('bairro', perfil_alvo.bairro)
+                perfil_alvo.cidade = request.POST.get('cidade', perfil_alvo.cidade)
+                perfil_alvo.uf = request.POST.get('uf', perfil_alvo.uf)
+
+                # 4. Atualiza Identidade na Torcida
+                perfil_alvo.vulgo = request.POST.get('vulgo', perfil_alvo.vulgo)
+                perfil_alvo.pelotao = request.POST.get('pelotao', perfil_alvo.pelotao)
+                perfil_alvo.rede_social = request.POST.get('rede_social', perfil_alvo.rede_social)
+                
+                perfil_alvo.save()
+                messages.success(request, f"Perfil de {user_alvo.first_name} atualizado com sucesso!")
+
+            elif acao == 'remover_socio':
+                user_alvo.delete()
+                messages.error(request, "Sócio removido permanentemente da base de dados.")
+
+        return redirect('moderacao_torcida')
+
+    # --- BUSCA DE DADOS PARA O DASHBOARD DE MODERAÇÃO ---
+    # Membros
+    membros_pendentes = Perfil.objects.filter(torcida=torcida_mod, aprovado=False).exclude(user=request.user)
+    membros_ativos = Perfil.objects.filter(torcida=torcida_mod, aprovado=True)
     
-    # Dados para os contadores do Cartão de Moderador
+    # Importações locais de modelos de outros apps se necessário
+    from organizadas.models import Parceiro, Publicidade, Cancao, Regra, CategoriaDiretoria, CampoPersonalizado, FotoGaleria, ConquistaTorcida
+    from loja.models import Produto, CategoriaLoja
+
     context = {
-        'pendentes': pendentes,
-        'membros_pendentes': pendentes.count(),
-        'torcida': perfil_moderador.torcida,
-        'membros_ativos': Perfil.objects.filter(torcida=perfil_moderador.torcida, aprovado=True).count(),
-        'eventos': Evento.objects.filter(torcida=perfil_moderador.torcida),
-        'parceiros': Parceiro.objects.filter(torcida=perfil_moderador.torcida),
-        'publicidades': Publicidade.objects.filter(torcida=perfil_moderador.torcida, ativo=True),
+        'torcida': torcida_mod,
+        'membros_pendentes': membros_pendentes,
+        'membros_ativos': membros_ativos,
+        
+        # Dados para as outras abas do template
+        'eventos': Evento.objects.filter(torcida=torcida_mod).order_by('-data'), 
+        'parceiros': Parceiro.objects.filter(torcida=torcida_mod),
+        'publicidades': Publicidade.objects.filter(torcida=torcida_mod),
+        'campos_kyc': CampoPersonalizado.objects.filter(torcida=torcida_mod),
+        'cancoes': Cancao.objects.filter(torcida=torcida_mod),
+        'galeria': FotoGaleria.objects.filter(torcida=torcida_mod),
+        'regras': Regra.objects.filter(torcida=torcida_mod),
+        'conquistas': ConquistaTorcida.objects.filter(torcida=torcida_mod),
+        'categorias_diretoria': CategoriaDiretoria.objects.filter(torcida=torcida_mod),
+        
+        # Loja (Filtrar produtos que pertencem à torcida ou são gerais)
+        'produtos': Produto.objects.filter(torcida=torcida_mod),
+        'categorias_loja': CategoriaLoja.objects.filter(torcida=torcida_mod),
     }
     
     return render(request, 'moderacao.html', context)
@@ -1173,3 +1272,40 @@ def cadastro_etapa2_view(request):
         'torcida': torcida
     }
     return render(request, 'cadastro_etapa2.html', context)
+
+# SAT/accounts/views.py
+
+@login_required
+def admin_editar_utilizador(request, perfil_id):
+    # Trava de segurança: Apenas superusuários (Admin Master) podem acessar
+    if not request.user.is_superuser:
+        messages.error(request, "Acesso negado. Área restrita à administração geral.")
+        return redirect('dashboard')
+        
+    # Busca o perfil alvo
+    perfil = get_object_or_404(Perfil, id=perfil_id)
+    
+    if request.method == 'POST':
+        # Aqui você captura os dados do formulário do painel admin
+        # Exemplo básico:
+        user_alvo = perfil.user
+        user_alvo.first_name = request.POST.get('first_name', user_alvo.first_name)
+        user_alvo.email = request.POST.get('email', user_alvo.email)
+        user_alvo.save()
+        
+        perfil.cpf = request.POST.get('cpf', perfil.cpf)
+        perfil.whatsapp = request.POST.get('whatsapp', perfil.whatsapp)
+        # (adicione os outros campos que deseja editar via painel master)
+        perfil.save()
+        
+        messages.success(request, f"O utilizador {user_alvo.first_name} foi editado com sucesso pelo painel Admin!")
+        
+        # Redireciona de volta para a lista de utilizadores do admin
+        # (Ajuste o nome 'admin_utilizadores' para o nome correto da sua url de listagem)
+        return redirect('admin_utilizadores') 
+
+    # Se for GET, renderiza a página com o formulário de edição
+    context = {
+        'perfil_edit': perfil,
+    }
+    return render(request, 'admin_utilizadores.html', context)

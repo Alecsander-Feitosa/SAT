@@ -78,6 +78,19 @@
                     <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest">Produtos Loja</p>
                 </div>
             </div>
+            
+            <a href="{% url 'admin_financeiro' %}" class="fundo-card border border-suave rounded-[24px] p-5 shadow-sm hover:scale-[1.02] transition-transform flex flex-col justify-between block w-full mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
+                        <i class="bi bi-currency-dollar text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mb-1">Gestão</p>
+                        <h3 class="text-xl font-black texto-main leading-none">FINANCEIRO</h3>
+                        <p class="text-[9px] text-green-500 font-bold mt-1">Ver mensalidades e faturas</p>
+                    </div>
+                </div>
+            </a>
         </div>
 
         <div id="socios" class="secao-conteudo">
@@ -846,58 +859,127 @@
 <div id="modalSocio{{ socio.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
     <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
         <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
-            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Gerir Sócio</h3>
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Ficha Completa do Sócio</h3>
             <button type="button" onclick="fecharModal('modalSocio{{ socio.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center texto-main bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg"></i></button>
         </div>
         
-        <form method="POST" action="{% url 'painel_moderador' %}" class="space-y-4">
+        <form method="POST" action="{% url 'moderacao_torcida' %}" class="space-y-4">
             {% csrf_token %}
             <input type="hidden" name="acao" value="editar_socio">
             <input type="hidden" name="perfil_id" value="{{ socio.id }}">
             
-            <div>
-                <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">Nome Completo (Usuário)</label>
-                <input type="text" name="first_name" value="{{ socio.user.first_name }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
-            </div>
-            
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">Email de Acesso</label>
-                    <input type="email" name="email" value="{{ socio.user.email }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">WhatsApp</label>
-                    <input type="text" name="whatsapp" value="{{ socio.whatsapp }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+            <div class="mb-4">
+                <label class="text-[10px] font-black opacity-60 uppercase mb-2 block">Documentos (Apenas Leitura)</label>
+                <div class="grid grid-cols-3 gap-2">
+                    {% if socio.doc_frente %}
+                        <a href="{{ socio.doc_frente.url }}" target="_blank" class="block border border-suave rounded-lg overflow-hidden relative group">
+                            <img src="{{ socio.doc_frente.url }}" class="w-full h-14 object-cover">
+                            <div class="absolute inset-0 bg-black/70 hidden group-hover:flex items-center justify-center text-white text-[8px] font-bold uppercase">Ver RG Frente</div>
+                        </a>
+                    {% else %}
+                        <div class="h-14 bg-black/5 border border-suave rounded-lg flex items-center justify-center text-[8px] uppercase font-bold opacity-30">Sem Frente</div>
+                    {% endif %}
+                    
+                    {% if socio.doc_verso %}
+                        <a href="{{ socio.doc_verso.url }}" target="_blank" class="block border border-suave rounded-lg overflow-hidden relative group">
+                            <img src="{{ socio.doc_verso.url }}" class="w-full h-14 object-cover">
+                            <div class="absolute inset-0 bg-black/70 hidden group-hover:flex items-center justify-center text-white text-[8px] font-bold uppercase">Ver RG Verso</div>
+                        </a>
+                    {% else %}
+                         <div class="h-14 bg-black/5 border border-suave rounded-lg flex items-center justify-center text-[8px] uppercase font-bold opacity-30">Sem Verso</div>
+                    {% endif %}
+                    
+                    {% if socio.doc_selfie %}
+                        <a href="{{ socio.doc_selfie.url }}" target="_blank" class="block border border-suave rounded-lg overflow-hidden relative group">
+                            <img src="{{ socio.doc_selfie.url }}" class="w-full h-14 object-cover">
+                            <div class="absolute inset-0 bg-black/70 hidden group-hover:flex items-center justify-center text-white text-[8px] font-bold uppercase">Ver Selfie</div>
+                        </a>
+                    {% else %}
+                         <div class="h-14 bg-black/5 border border-suave rounded-lg flex items-center justify-center text-[8px] uppercase font-bold opacity-30">Sem Selfie</div>
+                    {% endif %}
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-3">
                 <div>
-                    <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">Vulgo / Apelido</label>
-                    <input type="text" name="vulgo" value="{{ socio.vulgo }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                    <label class="text-[9px] font-black opacity-50 uppercase block">Nome Completo</label>
+                    <input type="text" name="first_name" value="{{ socio.user.first_name }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
                 </div>
-                <div>
-                    <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">Pelotão / Região</label>
-                    <input type="text" name="pelotao" value="{{ socio.pelotao }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[9px] font-black opacity-50 uppercase block">E-mail</label>
+                        <input type="email" name="email" value="{{ socio.user.email }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black opacity-50 uppercase block">Data Nascimento</label>
+                        <input type="date" name="data_nascimento" value="{{ socio.data_nascimento|date:'Y-m-d' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[9px] font-black opacity-50 uppercase block">CPF</label>
+                        <input type="text" name="cpf" value="{{ socio.cpf|default:'' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black opacity-50 uppercase block">WhatsApp</label>
+                        <input type="text" name="whatsapp" value="{{ socio.whatsapp }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[9px] font-black opacity-50 uppercase block">RG / CNH</label>
+                        <input type="text" name="rg_cnh" value="{{ socio.rg_cnh }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black opacity-50 uppercase block">Órgão Expedidor</label>
+                        <input type="text" name="orgao_expedidor" value="{{ socio.orgao_expedidor }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
+                    </div>
                 </div>
             </div>
 
+            <div class="p-3 bg-black/5 rounded-2xl border border-suave space-y-2">
+                <p class="text-[9px] font-black opacity-60 uppercase mb-1">Endereço de Morada</p>
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="text" name="cep" value="{{ socio.cep }}" placeholder="CEP" class="col-span-1 bg-white/10 border border-suave rounded-lg px-3 py-2 text-[10px] font-bold outline-none">
+                    <input type="text" name="rua" value="{{ socio.rua }}" placeholder="Rua" class="col-span-2 bg-white/10 border border-suave rounded-lg px-3 py-2 text-[10px] font-bold outline-none">
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="text" name="numero" value="{{ socio.numero }}" placeholder="Num." class="bg-white/10 border border-suave rounded-lg px-3 py-2 text-[10px] font-bold outline-none">
+                    <input type="text" name="complemento" value="{{ socio.complemento }}" placeholder="Comp." class="col-span-2 bg-white/10 border border-suave rounded-lg px-3 py-2 text-[10px] font-bold outline-none">
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="text" name="bairro" value="{{ socio.bairro }}" placeholder="Bairro" class="bg-white/10 border border-suave rounded-lg px-3 py-2 text-[10px] font-bold outline-none">
+                    <input type="text" name="cidade" value="{{ socio.cidade }}" placeholder="Cidade" class="bg-white/10 border border-suave rounded-lg px-3 py-2 text-[10px] font-bold outline-none">
+                    <input type="text" name="uf" value="{{ socio.uf }}" placeholder="UF" class="bg-white/10 border border-suave rounded-lg px-3 py-2 text-[10px] font-bold outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase block">Vulgo</label>
+                    <input type="text" name="vulgo" value="{{ socio.vulgo }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase block">Pelotão / Bonde</label>
+                    <input type="text" name="pelotao" value="{{ socio.pelotao }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
+                </div>
+            </div>
             <div>
-                <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">Rede Social (@)</label>
-                <input type="text" name="rede_social" value="{{ socio.rede_social }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                <label class="text-[9px] font-black opacity-50 uppercase block">Rede Social (@)</label>
+                <input type="text" name="rede_social" value="{{ socio.rede_social }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
             </div>
 
             <button type="submit" class="w-full py-3.5 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity shadow-lg" style="background-color: var(--cor-primaria)">
-                Salvar Alterações
+                Salvar Alterações Completas
             </button>
         </form>
         
-        <form method="POST" action="{% url 'painel_moderador' %}" class="mt-3" onsubmit="return confirm('ATENÇÃO: Você tem certeza que deseja EXCLUIR o sócio {{ socio.user.first_name }}? Essa ação não pode ser desfeita.');">
+        <form method="POST" action="{% url 'moderacao_torcida' %}" class="mt-3" onsubmit="return confirm('ATENÇÃO: Você tem certeza que deseja EXCLUIR o sócio {{ socio.user.first_name }}? Esta ação não pode ser desfeita.');">
             {% csrf_token %}
             <input type="hidden" name="acao" value="remover_socio">
             <input type="hidden" name="perfil_id" value="{{ socio.id }}">
             <button type="submit" class="w-full py-3 bg-red-500/10 text-red-600 rounded-xl font-black uppercase text-[11px] tracking-widest hover:bg-red-500/20 transition-colors border border-red-500/20">
-                <i class="bi bi-trash me-1"></i> Excluir Sócio
+                <i class="bi bi-trash me-1"></i> Banir Sócio
             </button>
         </form>
     </div>

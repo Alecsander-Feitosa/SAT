@@ -82,7 +82,7 @@
             
             {% if request.user.perfil.torcida and request.user.perfil.aprovado %}
                 <a href="{% url 'hub' %}" class="flex items-center gap-2 text-sm font-bold text-gray-800">
-                    <i class="bi bi-shield-fill texto-tema"></i>
+                    <i class="texto-tema"></i>
                     <span>{{ request.user.perfil.torcida.nome|default:"Torcida" }}</span>
                 </a>
             {% else %}
