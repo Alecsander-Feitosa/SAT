@@ -12,7 +12,6 @@ from .models import PerfilGamificacao, CheckIn, BadgeUsuario, Nivel, Partida
 from django.shortcuts import render, redirect, get_object_or_404
 
 
-
 @login_required
 def dashboard(request):
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
@@ -37,32 +36,36 @@ def dashboard(request):
 
 @login_required
 def confirmar_presenca(request, evento_id):
-    from organizadas.models import Evento
-    from gamification.models import CheckIn
-    from django.contrib import messages
     
     evento = get_object_or_404(Evento, id=evento_id)
     
     if request.method == "POST":
-        foto_enviada = request.FILES.get('foto')
-        
-        # Verifica se já não tem checkin para evitar que ganhem XP duplicado
+        # 1. Verifica se já não tem check-in para evitar duplicados
         if CheckIn.objects.filter(user=request.user, evento=evento).exists():
-            messages.info(request, "Você já confirmou presença neste evento!")
+            messages.info(request, "Você já tem presença garantida neste evento!")
+            return redirect('detalhe_evento', evento_id=evento.id)
+            
+        # 2. Verifica se ainda há vagas (Se houver limite configurado)
+        if evento.vagas_esgotadas():
+            messages.error(request, "Infelizmente, as vagas para este evento esgotaram!")
+            return redirect('detalhe_evento', evento_id=evento.id)
+
+        # 3. Lógica Grátis vs Pago
+        if evento.valor == 0:
+            # É GRÁTIS: Confirma automaticamente sem pedir foto
+            CheckIn.objects.create(
+                user=request.user, 
+                evento=evento,
+                validado=True # Presença automaticamente validada
+            )
+            messages.success(request, "Presença confirmada com sucesso! Vaga garantida.")
+            return redirect('detalhe_evento', evento_id=evento.id)
+            
         else:
-            if foto_enviada:
-                # MÁGICA 2: Salva a foto e dá como validado!
-                CheckIn.objects.create(
-                    user=request.user, 
-                    evento=evento, 
-                    foto=foto_enviada,
-                    validado=True 
-                )
-                messages.success(request, "Presença confirmada! +50 XP conquistados!")
-            else:
-                messages.error(request, "Você precisa enviar uma foto para confirmar presença.")
+            # É PAGO: Redireciona para o checkout / check-in de pagamento que será criado
+            # Passamos o ID do evento para a tela de pagamento saber o que cobrar
+            return redirect('checkout_evento', evento_id=evento.id)
                 
-    # MÁGICA 3: Em vez de mostrar código na tela, redireciona de volta para o evento
     return redirect('detalhe_evento', evento_id=evento.id)
 
 @login_required

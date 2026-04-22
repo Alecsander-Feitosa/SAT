@@ -793,9 +793,11 @@ def moderacao_torcida(request):
                 messages.success(request, f"O torcedor {user_alvo.first_name or user_alvo.username} foi aprovado!")
 
             elif acao == 'rejeitar_socio':
-                # Rejeitar remove o pedido (e o user) para que ele possa tentar novamente se desejar
-                user_alvo.delete()
-                messages.warning(request, "Solicitação de entrada rejeitada e removida.")
+                # Em vez de apagar a conta inteira, apenas remove o pedido da torcida
+                perfil_alvo.torcida = None
+                perfil_alvo.aprovado = False
+                perfil_alvo.save()
+                messages.warning(request, "Solicitação rejeitada. O utilizador voltou a ser membro neutro da SAT.")
 
             elif acao == 'editar_socio':
                 # 1. Atualiza Dados do User (Django Nativo)
@@ -804,7 +806,7 @@ def moderacao_torcida(request):
                 user_alvo.save()
 
                 # 2. Atualiza Dados Pessoais do Perfil
-                perfil_alvo.cpf = request.POST.get('cpf', perfil_alvo.cpf)
+                perfil_alvo.cpf = request.POST.get('cpf') or None
                 perfil_alvo.rg_cnh = request.POST.get('rg_cnh', perfil_alvo.rg_cnh)
                 perfil_alvo.orgao_expedidor = request.POST.get('orgao_expedidor', perfil_alvo.orgao_expedidor)
                 perfil_alvo.whatsapp = request.POST.get('whatsapp', perfil_alvo.whatsapp)
@@ -831,8 +833,16 @@ def moderacao_torcida(request):
                 messages.success(request, f"Perfil de {user_alvo.first_name} atualizado com sucesso!")
 
             elif acao == 'remover_socio':
-                user_alvo.delete()
-                messages.error(request, "Sócio removido permanentemente da base de dados.")
+                # Nova Lógica de Banimento: Remove da torcida, mas mantém o Perfil SAT
+                perfil_alvo.torcida = None
+                perfil_alvo.aprovado = False
+                
+                # Opcional: Você também pode limpar dados específicos da torcida aqui, se quiser
+                perfil_alvo.vulgo = ""
+                perfil_alvo.pelotao = ""
+                
+                perfil_alvo.save()
+                messages.error(request, f"O sócio {user_alvo.first_name} foi banido da torcida e agora é apenas membro SAT.")
 
         return redirect('moderacao_torcida')
 
@@ -1127,13 +1137,12 @@ def adicionar_comentario(request, post_id):
 @login_required
 def editar_perfil(request):
     usuario = request.user
-    perfil = usuario.perfil # Presumindo que você tenha um OneToOneField do User para o Perfil
+    perfil = usuario.perfil 
 
     if request.method == 'POST':
         try:
             # 1. ATUALIZANDO DADOS DO USER (Nativo do Django)
             nome_completo = request.POST.get('nome_completo', '')
-            # Divide o nome completo em First Name e Last Name (padrão do Django)
             if nome_completo:
                 partes_nome = nome_completo.split(' ', 1)
                 usuario.first_name = partes_nome[0]
@@ -1143,19 +1152,19 @@ def editar_perfil(request):
             usuario.save()
 
             # 2. ATUALIZANDO DADOS TEXTUAIS DO PERFIL
-            perfil.cpf = request.POST.get('cpf', perfil.cpf)
+            perfil.cpf = request.POST.get('cpf') or None
             
-            # Tratamento da data de nascimento para evitar strings vazias
             data_nascimento = request.POST.get('data_nascimento')
             if data_nascimento:
                 perfil.data_nascimento = data_nascimento
 
             perfil.rg_cnh = request.POST.get('rg_cnh', perfil.rg_cnh)
-            perfil.orgao_expeditor = request.POST.get('orgao_expeditor', perfil.orgao_expeditor)
-            perfil.telefone = request.POST.get('telefone', perfil.telefone)
+            
+            # CORREÇÃO: orgao_expedidor com "d" e o get pegando a chave correta
+            perfil.orgao_expedidor = request.POST.get('orgao_expedidor', perfil.orgao_expedidor) 
+            
+            # CORREÇÃO: Removidos perfil.telefone, nome_mae e nome_pai pois não existem no models.py
             perfil.whatsapp = request.POST.get('whatsapp', perfil.whatsapp)
-            perfil.nome_mae = request.POST.get('nome_mae', perfil.nome_mae)
-            perfil.nome_pai = request.POST.get('nome_pai', perfil.nome_pai)
             
             perfil.cep = request.POST.get('cep', perfil.cep)
             perfil.rua = request.POST.get('rua', perfil.rua)
@@ -1165,13 +1174,12 @@ def editar_perfil(request):
             perfil.cidade = request.POST.get('cidade', perfil.cidade)
             perfil.uf = request.POST.get('uf', perfil.uf)
 
-            # Dados da Torcida (Só salva se vierem no POST)
+            # Dados da Torcida 
             perfil.vulgo = request.POST.get('vulgo', perfil.vulgo)
             perfil.pelotao = request.POST.get('pelotao', perfil.pelotao)
             perfil.rede_social = request.POST.get('rede_social', perfil.rede_social)
 
             # 3. TRATANDO OS UPLOADS DE IMAGEM (request.FILES)
-            # O 'if' garante que a imagem só seja substituída se o usuário enviou uma nova
             if 'foto' in request.FILES:
                 perfil.foto = request.FILES['foto']
             
@@ -1187,16 +1195,13 @@ def editar_perfil(request):
             # 4. SALVANDO TUDO
             perfil.save()
             
-            # Mensagem de sucesso na tela
             messages.success(request, 'Seu perfil e documentos foram atualizados com sucesso!')
-            return redirect('perfil') # Redireciona de volta para a página de visualização
+            return redirect('perfil') 
 
         except Exception as e:
-            # Em caso de erro (ex: formato de data inválido, etc)
             messages.error(request, f'Ocorreu um erro ao atualizar o perfil: {str(e)}')
             return redirect('editar_perfil')
 
-    # Se for GET, apenas renderiza a página
     return render(request, 'editar_perfil.html')
 
 @login_required
@@ -1273,8 +1278,6 @@ def cadastro_etapa2_view(request):
     }
     return render(request, 'cadastro_etapa2.html', context)
 
-# SAT/accounts/views.py
-
 @login_required
 def admin_editar_utilizador(request, perfil_id):
     # Trava de segurança: Apenas superusuários (Admin Master) podem acessar
@@ -1286,25 +1289,40 @@ def admin_editar_utilizador(request, perfil_id):
     perfil = get_object_or_404(Perfil, id=perfil_id)
     
     if request.method == 'POST':
-        # Aqui você captura os dados do formulário do painel admin
-        # Exemplo básico:
         user_alvo = perfil.user
         user_alvo.first_name = request.POST.get('first_name', user_alvo.first_name)
         user_alvo.email = request.POST.get('email', user_alvo.email)
         user_alvo.save()
         
-        perfil.cpf = request.POST.get('cpf', perfil.cpf)
+        # O "or None" evita o erro de UNIQUE constraint caso o campo venha vazio
+        perfil.cpf = request.POST.get('cpf') or None 
         perfil.whatsapp = request.POST.get('whatsapp', perfil.whatsapp)
-        # (adicione os outros campos que deseja editar via painel master)
+        perfil.rg_cnh = request.POST.get('rg_cnh', perfil.rg_cnh)
+        perfil.orgao_expedidor = request.POST.get('orgao_expedidor', perfil.orgao_expedidor)
+        
+        data_nasc = request.POST.get('data_nascimento')
+        if data_nasc:
+            perfil.data_nascimento = data_nasc
+
+        # Endereço
+        perfil.cep = request.POST.get('cep', perfil.cep)
+        perfil.rua = request.POST.get('rua', perfil.rua)
+        perfil.numero = request.POST.get('numero', perfil.numero)
+        perfil.complemento = request.POST.get('complemento', perfil.complemento)
+        perfil.bairro = request.POST.get('bairro', perfil.bairro)
+        perfil.cidade = request.POST.get('cidade', perfil.cidade)
+        perfil.uf = request.POST.get('uf', perfil.uf)
+
+        # Identidade na Torcida
+        perfil.vulgo = request.POST.get('vulgo', perfil.vulgo)
+        perfil.pelotao = request.POST.get('pelotao', perfil.pelotao)
+        perfil.rede_social = request.POST.get('rede_social', perfil.rede_social)
+        
         perfil.save()
         
         messages.success(request, f"O utilizador {user_alvo.first_name} foi editado com sucesso pelo painel Admin!")
-        
-        # Redireciona de volta para a lista de utilizadores do admin
-        # (Ajuste o nome 'admin_utilizadores' para o nome correto da sua url de listagem)
         return redirect('admin_utilizadores') 
 
-    # Se for GET, renderiza a página com o formulário de edição
     context = {
         'perfil_edit': perfil,
     }

@@ -184,6 +184,49 @@
             </div>
             {% endif %}
 
+            {% if post.evento_relacionado %}
+            <div class="mb-3 fundo-app border border-suave rounded-2xl overflow-hidden shadow-sm hover:border-tema transition-colors">
+                <a href="{% url 'detalhe_evento' post.evento_relacionado.id %}" class="block no-underline">
+                    {% if post.evento_relacionado.imagem_capa %}
+                        <img src="{{ post.evento_relacionado.imagem_capa.url }}" class="w-full h-32 object-cover">
+                    {% endif %}
+                    <div class="p-4">
+                        <h5 class="text-sm font-black italic uppercase texto-main mb-1">📅 Evento: {{ post.evento_relacionado.titulo }}</h5>
+                        <p class="text-[11px] font-bold uppercase tracking-widest texto-main opacity-50 mb-2">📍 {{ post.evento_relacionado.local }}</p>
+                        <p class="text-xs texto-main opacity-80 leading-relaxed">{{ post.evento_relacionado.informativo|truncatechars:100 }}</p>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+
+            {% if post.foto_relacionada %}
+            <div class="mb-3 fundo-app border border-suave rounded-2xl overflow-hidden shadow-sm">
+                <img src="{{ post.foto_relacionada.imagem.url }}" class="w-full object-cover">
+                <div class="p-3 bg-black/5 dark:bg-white/5">
+                    <h6 class="text-[11px] font-black uppercase tracking-widest texto-main">📸 {{ post.foto_relacionada.titulo }}</h6>
+                    {% if post.foto_relacionada.legenda %}
+                        <p class="text-xs texto-main opacity-60 mt-1">{{ post.foto_relacionada.legenda }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if post.caravana_relacionada %}
+            <div class="mb-3 p-4 fundo-app border border-tema/50 rounded-2xl shadow-sm border-l-4 border-l-tema">
+                <h5 class="text-sm font-black italic uppercase texto-main mb-2">🚌 Caravana: {{ post.caravana_relacionada.titulo }}</h5>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div>
+                        <span class="text-[9px] font-bold uppercase tracking-widest texto-main opacity-50 block">Saída</span>
+                        <span class="text-xs texto-main">{{ post.caravana_relacionada.saida_local }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] font-bold uppercase tracking-widest texto-main opacity-50 block">Valor</span>
+                        <span class="text-xs font-black text-green-500">R$ {{ post.caravana_relacionada.valor }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="w-full h-[1px] bg-gray-200 dark:bg-gray-800 opacity-50 my-3"></div>
 
             <div class="flex justify-between items-center px-1">

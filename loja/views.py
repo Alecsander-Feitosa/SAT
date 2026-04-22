@@ -6,6 +6,10 @@ from django.db.models import Sum, Q
 from django.http import JsonResponse
 from .models import Produto, ItemCarrinho, Pedido, ItemPedido, Variacao
 from django.contrib import messages
+from django.http import HttpResponse
+from organizadas.models import Evento
+
+
 
 @login_required
 def loja_view(request):
@@ -229,3 +233,10 @@ def excluir_produto(request, produto_id):
         produto.delete()
         messages.success(request, 'Produto removido com sucesso.')
     return redirect('loja/painel_loja')
+
+def checkout_evento(request, evento_id):
+    evento = get_object_or_404(Evento, id=evento_id)
+    
+    # Por enquanto, apenas retorna uma mensagem simples na tela.
+    # Depois poderás criar o HTML real de pagamento aqui!
+    return HttpResponse(f"<h1>Área de Pagamento</h1><p>A comprar ingresso para: <b>{evento.titulo}</b> por R$ {evento.valor}</p>")

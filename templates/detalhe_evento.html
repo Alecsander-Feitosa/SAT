@@ -12,13 +12,23 @@
     .hero-banner { height: 350px; position: relative; }
     .hero-banner img { width: 100%; height: 100%; object-fit: cover; }
     
+    /* Degradê para transição suave entre a imagem e o cartão */
+    .hero-gradient {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 150px;
+        background: linear-gradient(to top, var(--cor-fundo-card) 0%, transparent 100%);
+    }
+    
     .detail-card { 
         background: var(--cor-fundo-card); 
         border-radius: 40px 40px 0 0; 
-        margin-top: -40px; 
+        margin-top: -60px; 
         position: relative; 
         padding: 40px 24px;
-        border-top: 1px solid rgba(255,255,255,0.1);
+        z-index: 10;
     }
 
     /* Classes auxiliares para pintar os ícones e botões com a cor da Torcida */
@@ -34,80 +44,123 @@
         {% else %}
             <img src="https://placehold.co/600x400/1A1C1E/white?text=SAT+EVENTOS">
         {% endif %}
+        <div class="hero-gradient"></div>
         
-        <a href="javascript:history.back()" class="absolute top-6 left-6 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white">
+        <a href="javascript:history.back()" class="absolute top-6 left-6 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-transform active:scale-95 z-20">
             <i class="bi bi-chevron-left"></i>
         </a>
+
+        <div class="absolute top-6 right-6 bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 z-20">
+            {% if evento.valor == 0 or not evento.valor %}
+                <span class="text-green-400 font-black text-[10px] uppercase tracking-widest"><i class="bi bi-ticket-detailed-fill mr-1"></i> Grátis</span>
+            {% else %}
+                <span class="texto-tema font-black text-[10px] uppercase tracking-widest"><i class="bi bi-ticket-detailed-fill mr-1"></i> R$ {{ evento.valor }}</span>
+            {% endif %}
+        </div>
     </div>
 
     <div class="detail-card">
         <div class="flex justify-between items-start mb-6">
             <div>
-                <span class="texto-tema font-black text-[10px] uppercase tracking-widest">Informações Gerais</span>
-                <h1 class="text-3xl font-black italic uppercase leading-tight">{{ evento.titulo }}</h1>
+                <span class="texto-tema font-black text-[10px] uppercase tracking-widest">{{ evento.get_categoria_display|default:"Evento Oficial" }}</span>
+                <h1 class="text-3xl font-black italic uppercase leading-tight mt-1">{{ evento.titulo }}</h1>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-8">
-            <div class="bg-white/5 p-4 rounded-2xl">
-                <i class="bi bi-calendar-check texto-tema block mb-2 text-xl"></i>
-                <span class="text-[10px] text-gray-400 uppercase font-bold">Data</span>
-                <p class="text-sm font-bold">{{ evento.data|date:"d/m/Y" }}</p>
+            <div class="bg-white/5 border border-white/5 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                <i class="bi bi-calendar-event texto-tema text-2xl mb-2"></i>
+                <span class="text-[9px] text-gray-400 uppercase font-bold tracking-widest">Data</span>
+                <p class="text-sm font-black mt-1">{{ evento.data|date:"d M, Y" }}</p>
             </div>
-            <div class="bg-white/5 p-4 rounded-2xl">
-                <i class="bi bi-clock texto-tema block mb-2 text-xl"></i>
-                <span class="text-[10px] text-gray-400 uppercase font-bold">Horário</span>
-                <p class="text-sm font-bold">{{ evento.data|date:"H:i" }}</p>
+            <div class="bg-white/5 border border-white/5 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                <i class="bi bi-clock-history texto-tema text-2xl mb-2"></i>
+                <span class="text-[9px] text-gray-400 uppercase font-bold tracking-widest">Horário</span>
+                <p class="text-sm font-black mt-1">{{ evento.data|date:"H:i" }}</p>
             </div>
         </div>
 
-        <div class="mb-8">
-            <h3 class="text-xs font-black uppercase text-gray-400 mb-2 tracking-widest">Localização</h3>
-            <div class="flex items-center gap-2 text-gray-300">
-                <i class="bi bi-geo-alt-fill texto-tema"></i>
-                <p class="text-sm font-medium italic">{{ evento.local }}</p>
+        <div class="mb-8 bg-white/5 rounded-2xl p-4 border border-white/5">
+            <h3 class="text-[10px] font-black uppercase text-gray-400 mb-3 tracking-widest">Localização</h3>
+            <div class="flex items-start gap-3 text-gray-300">
+                <div class="w-8 h-8 rounded-full bg-tema/20 flex items-center justify-center shrink-0">
+                    <i class="bi bi-geo-alt-fill texto-tema"></i>
+                </div>
+                <p class="text-sm font-medium italic pt-1">{{ evento.local }}</p>
             </div>
         </div>
 
         <div class="mb-10">
-            <h3 class="text-xs font-black uppercase text-gray-400 mb-2 tracking-widest">Sobre o Evento</h3>
-            <p class="text-gray-400 text-sm leading-relaxed italic">
-                {{ evento.informativo|default:"Nenhuma descrição adicional foi fornecida para este evento." }}
+            <h3 class="text-[10px] font-black uppercase text-gray-400 mb-3 tracking-widest">Sobre o Evento</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">
+                {{ evento.informativo|default:"Detalhes exclusivos em breve para este evento. Mantém-te atento às atualizações da diretoria." }}
             </p>
         </div>
 
         {% if not confirmado %}
-            <form action="{% url 'confirmar_presenca' evento.id %}" method="POST" enctype="multipart/form-data" class="mt-6 mb-10">
-                {% csrf_token %}
-                <div class="bg-white p-6 rounded-[32px] border border-gray-100 shadow-2xl">
-                    <div class="flex items-center gap-2 mb-4">
-                        <i class="bi bi-camera-fill texto-tema text-lg"></i>
-                        <p class="text-[#1A1A1A] text-[10px] font-black uppercase tracking-widest">Validação de Presença</p>
+            {% if evento.vagas_esgotadas %}
+                <div class="bg-red-500/10 border border-red-500/20 p-6 rounded-[32px] text-center mb-10 backdrop-blur-sm">
+                    <i class="bi bi-x-octagon-fill text-3xl text-red-500 mb-2 block"></i>
+                    <p class="text-red-500 text-[12px] font-black uppercase tracking-widest leading-none">Vagas Esgotadas</p>
+                    <p class="text-red-400/70 text-[9px] font-bold uppercase mt-2 tracking-wide">Infelizmente, este evento atingiu a lotação máxima.</p>
+                </div>
+            {% else %}
+                <form action="{% url 'confirmar_presenca' evento.id %}" method="POST" class="mt-6 mb-10">
+                    {% csrf_token %}
+                    <div class="bg-gradient-to-b from-white/10 to-white/5 p-6 rounded-[32px] border border-white/10 shadow-2xl relative overflow-hidden backdrop-blur-md">
+                        
+                        <div class="relative z-10 text-center">
+                            {% if evento.valor == 0 or not evento.valor %}
+                                <p class="text-gray-300 text-[10px] font-black uppercase tracking-widest mb-1">Entrada Livre</p>
+                                <h3 class="text-xl font-black italic uppercase text-white mb-5">Garantir Lugar</h3>
+                                
+                                <button type="submit" class="w-full bg-tema text-white py-4 rounded-2xl font-black uppercase text-[11px] shadow-tema hover:scale-[1.02] active:scale-95 transition-all tracking-widest flex items-center justify-center gap-2">
+                                    <i class="bi bi-check2-circle text-lg"></i> Confirmar Vaga
+                                </button>
+                            {% else %}
+                                <p class="text-gray-300 text-[10px] font-black uppercase tracking-widest mb-1">Acesso Premium</p>
+                                <h3 class="text-2xl font-black italic uppercase text-white mb-5">R$ {{ evento.valor }}</h3>
+                                
+                                <button type="submit" class="w-full bg-tema text-white py-4 rounded-2xl font-black uppercase text-[11px] shadow-tema hover:scale-[1.02] active:scale-95 transition-all tracking-widest flex items-center justify-center gap-2">
+                                    <i class="bi bi-credit-card-fill text-lg"></i> Comprar Ingresso
+                                </button>
+                            {% endif %}
+                            
+                            <div class="mt-5 pt-4 border-t border-white/10 flex justify-center items-center gap-2">
+                                <i class="bi bi-lightning-charge-fill text-yellow-500"></i>
+                                <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Ganha +{{ evento.xp_recompensa|default:50 }} XP neste evento</span>
+                            </div>
+                        </div>
                     </div>
+                </form>
+            {% endif %}
+        {% else %}
+            <div class="bg-green-500/10 border border-green-500/20 p-6 rounded-[32px] text-center mb-10 backdrop-blur-sm">
+                <div class="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+                    <i class="bi bi-check-lg text-2xl text-white font-black"></i>
+                </div>
+                <p class="text-green-400 text-[12px] font-black uppercase tracking-widest leading-none">Presença Confirmada</p>
+                <p class="text-green-500/60 text-[9px] font-bold uppercase mt-2 tracking-wide">A tua vaga está garantida e o XP contabilizado.</p>
+            </div>
+        {% endif %}
+        <div class="mt-8 bg-white/5 border border-white/5 p-5 rounded-2xl">
+            <h3 class="text-[10px] font-black uppercase text-gray-400 mb-3 tracking-widest"><i class="bi bi-share"></i> Partilhar na SAT Social</h3>
+            <form action="{% url 'social_compartilhar' tipo_item='evento' item_id=evento.id %}" method="POST" class="flex flex-col gap-3">
+                {% csrf_token %}
+                <textarea name="texto" rows="2" placeholder="Vais a este evento? Diz algo à malta..." class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-tema transition-colors"></textarea>
+                
+                <div class="flex gap-2">
+                    <select name="visibilidade" class="flex-1 bg-black/20 border border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-300 focus:outline-none appearance-none">
+                        <option value="global">Mural Global (Todos)</option>
+                        <option value="torcida">Apenas minha Torcida</option>
+                    </select>
                     
-                    <label class="w-full h-40 border-2 border-dashed border-gray-300 rounded-[24px] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-all group">
-                        <i class="bi bi-cloud-arrow-up text-3xl text-gray-400 group-hover:text-gray-600 transition-colors"></i>
-                        <span class="text-[9px] text-gray-500 font-black uppercase mt-3 tracking-tighter text-center px-4">
-                            Clique para tirar a foto <br> ou fazer upload da galeria
-                        </span>
-                        <input type="file" name="foto" class="hidden" accept="image/*" required>
-                    </label>
-
-                    <button type="submit" class="w-full bg-tema text-white py-4 rounded-2xl font-black uppercase text-[10px] mt-4 shadow-tema active:scale-95 transition-all tracking-widest">
-                        Confirmar Presença +50 XP
+                    <button type="submit" class="bg-tema text-white px-5 py-2 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-tema hover:scale-[1.02] active:scale-95 transition-transform flex items-center gap-2">
+                        <i class="bi bi-send-fill"></i> Publicar
                     </button>
                 </div>
             </form>
-        {% else %}
-            <div class="bg-green-600/10 border border-green-600/20 p-6 rounded-[32px] text-center mb-10">
-                <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-green-600/20">
-                    <i class="bi bi-patch-check-fill text-xl text-white"></i>
-                </div>
-                <p class="text-green-500 text-[10px] font-black uppercase tracking-widest leading-none">Presença Confirmada!</p>
-                <p class="text-green-500/50 text-[8px] font-bold uppercase mt-1">Você já garantiu seus pontos neste evento.</p>
-            </div>
-        {% endif %}
-
+        </div>
     </div>
 </div>
-{% endblock %},
+{% endblock %}

@@ -16,3 +16,16 @@ class TorcidaForm(forms.ModelForm):
             'cor_terciaria': forms.TextInput(attrs={'type': 'color', 'class': 'form-control form-control-color'}),
             'cor_fundo': forms.TextInput(attrs={'type': 'color', 'class': 'form-control form-control-color'}),
         }
+    
+class CaravanaForm(forms.ModelForm):
+    class Meta:
+        model = Caravana
+        fields = ['titulo', 'destino', 'data_viagem', 'valor', 'vagas_totais', 'descricao', 'imagem_capa']
+        widgets = {
+            'data_viagem': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'titulo': forms.TextInput(attrs={'class': 'form-control'}),
+            'destino': forms.TextInput(attrs={'class': 'form-control'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control'}),
+            'vagas_totais': forms.NumberInput(attrs={'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }

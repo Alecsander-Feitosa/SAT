@@ -142,3 +142,42 @@ def seguir_usuario(request, usuario_id):
             usuario_alvo.perfil.seguidores.add(request.user)
             
     return redirect(request.META.get('HTTP_REFERER', 'mural'))
+
+@login_required
+def compartilhar_item(request, tipo_item, item_id):
+    # Importação local para evitar importações circulares
+    from organizadas.models import Evento, Caravana, ConquistaTorcida, FotoGaleria
+    
+    if request.method == 'POST':
+        texto_usuario = request.POST.get('texto', '')
+        visibilidade = request.POST.get('visibilidade', 'global')
+        
+        # Cria a base da publicação
+        novo_post = Post(
+            autor_s=request.user,
+            texto=texto_usuario,
+            titulo=f"Compartilhou um(a) {tipo_item.capitalize()}"
+        )
+        
+        # Define se é global ou apenas para a torcida
+        if visibilidade == 'torcida' and hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+            novo_post.torcida = request.user.perfil.torcida
+            
+        # Anexa o item correspondente baseado no tipo
+        if tipo_item == 'evento':
+            novo_post.evento_relacionado = get_object_or_404(Evento, id=item_id)
+        elif tipo_item == 'caravana':
+            novo_post.caravana_relacionada = get_object_or_404(Caravana, id=item_id)
+        elif tipo_item == 'conquista':
+            novo_post.conquista_relacionada = get_object_or_404(ConquistaTorcida, id=item_id)
+        elif tipo_item == 'foto':
+            novo_post.foto_relacionada = get_object_or_404(FotoGaleria, id=item_id)
+        else:
+            messages.error(request, "Tipo de item inválido.")
+            return redirect(request.META.get('HTTP_REFERER', 'mural'))
+
+        novo_post.save()
+        messages.success(request, f'{tipo_item.capitalize()} compartilhado(a) no mural com sucesso!')
+        return redirect('mural') # Redireciona para o mural
+        
+    return redirect(request.META.get('HTTP_REFERER', 'mural'))

@@ -12,8 +12,7 @@ class Perfil(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     foto = models.ImageField(upload_to='perfil_fotos/', null=True, blank=True)
     time_coracao = models.CharField("Time do Coração", max_length=100, null=True, blank=True)
-    torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.SET_NULL, null=True, blank=True)
-    
+    torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.SET_NULL, null=True, blank=True)    
     cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)
     whatsapp = models.CharField(max_length=20, blank=True)
     aprovado = models.BooleanField(default=False)
@@ -145,7 +144,7 @@ class Evento(models.Model):
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     raio_checkin = models.IntegerField(default=500, help_text="Raio em metros para permitir check-in")
-
+   
     def __str__(self):
         return self.nome
     

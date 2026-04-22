@@ -4,7 +4,6 @@ from gamification.models import Partida
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-
 class Torcida(models.Model):
     nome = models.CharField(max_length=200)
     sigla = models.CharField("Sigla (Ex: TJF, MV)", max_length=10, blank=True, null=True)
@@ -59,6 +58,7 @@ class Evento(models.Model):
     ]
     torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='torcida_eventos', null=True, blank=True)
     categoria = models.CharField(max_length=30, choices=CATEGORIAS, default='evento_social')
+    valor = models.DecimalField("Valor da Entrada", max_digits=8, decimal_places=2, default=0.00, help_text="Deixe 0.00 se for grátis")
     titulo = models.CharField(max_length=100)
     descricao = models.TextField(blank=True, null=True)
     local = models.CharField(max_length=255)
@@ -75,10 +75,28 @@ class Evento(models.Model):
     raio_checkin = models.IntegerField(default=500)
     xp_recompensa = models.IntegerField(default=50)
 
+    def vagas_esgotadas(self):
+        if not self.max_participantes:
+            return False 
+            
+        # IMPORTAÇÃO LOCAL: Coloque a importação AQUI DENTRO da função
+        from accounts.models import CheckIn
+        ocupadas = CheckIn.objects.filter(evento=self).count()
+        return ocupadas >= self.max_participantes
+
+    def status_vagas(self):
+        # IMPORTAÇÃO LOCAL: Coloque a importação AQUI DENTRO da função
+        from accounts.models import CheckIn
+        confirmados = CheckIn.objects.filter(evento=self).count()
+        
+        if not self.max_participantes:
+            return f"{confirmados} confirmados (Ilimitado)"
+        
+        return f"{confirmados} de {self.max_participantes} vagas"
+    
     def __str__(self):
         return self.titulo
 
-# --- NOVO: Imagens Extras para Eventos ---
 class ImagemEvento(models.Model):
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='galeria_imagens')
     imagem = models.ImageField(upload_to='eventos/galeria/')

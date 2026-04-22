@@ -123,7 +123,7 @@
                             </div>
                         </div>
                         <div class="flex gap-2 w-full sm:w-auto">
-                            <form method="POST" action="{% url 'painel_moderador' %}" class="flex-1 sm:flex-none" onsubmit="return confirm('Tem a certeza que quer REJEITAR e eliminar o registo de {{ pendente.user.first_name }}?');">
+                            <form method="POST" action="{% url 'moderacao_torcida' %}" class="flex-1 sm:flex-none" onsubmit="return confirm('Tem a certeza que quer REJEITAR e eliminar o registo de {{ pendente.user.first_name }}?');">
                                 {% csrf_token %}
                                 <input type="hidden" name="acao" value="rejeitar_socio">
                                 <input type="hidden" name="perfil_id" value="{{ pendente.id }}">
@@ -131,7 +131,7 @@
                                     <i class="bi bi-x-lg"></i> Rejeitar
                                 </button>
                             </form>
-                            <form method="POST" action="{% url 'painel_moderador' %}" class="flex-1 sm:flex-none" onsubmit="return confirm('Aprovar a entrada de {{ pendente.user.first_name }} na torcida?');">
+                            <form method="POST" action="{% url 'moderacao_torcida' %}" class="flex-1 sm:flex-none" onsubmit="return confirm('Aprovar a entrada de {{ pendente.user.first_name }} na torcida?');">
                                 {% csrf_token %}
                                 <input type="hidden" name="acao" value="aprovar_socio">
                                 <input type="hidden" name="perfil_id" value="{{ pendente.id }}">
@@ -247,6 +247,26 @@
                         </div>
                     </div>
                     
+                    <div class="mt-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-black uppercase opacity-60">Ocupação:</span>
+                            <span class="text-[10px] font-black text-orange-500">{{ ev.status_vagas }}</span>
+                        </div>
+                        
+                        <div class="w-full h-1.5 bg-black/10 rounded-full overflow-hidden border border-suave">
+                            {% with confirmados=ev.checkins_accounts.count %}
+                                {% if ev.max_participantes %}
+                                    {% widthratio confirmados ev.max_participantes 100 as porcentagem %}
+                                    <div class="h-full transition-all duration-500" 
+                                        style="width: {{ porcentagem }}%; background-color: var(--cor-primaria)">
+                                    </div>
+                                {% else %}
+                                    <div class="h-full bg-green-500" style="width: 100%"></div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+
                     <div class="p-5 flex-1 flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-start mb-2">
@@ -282,6 +302,56 @@
                     <p class="text-[10px] font-bold uppercase tracking-widest">Nenhum evento agendado.</p>
                 </div>
                 {% endfor %}
+                 <div class="mt-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Caravanas e Viagens</h3>
+                            <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Gestão de viagens da torcida</p>
+                        </div>
+                        <button onclick="abrirModal('modalCaravana')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Caravana</button>
+                    </div>
+
+                    <div class="space-y-4">
+                        {% for caravana in caravanas %}
+                        <div class="fundo-card p-5 rounded-[24px] border border-suave flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div class="flex-1 w-full">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="text-sm font-black uppercase texto-main leading-tight">{{ caravana.titulo }}</h4>
+                                    <form method="POST" onsubmit="return confirm('Apagar esta caravana definitivamente?');" class="shrink-0 ml-3 sm:hidden">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="item_id" value="{{ caravana.id }}">
+                                        <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 text-red-600 flex items-center justify-center"><i class="bi bi-trash text-xs"></i></button>
+                                    </form>
+                                </div>
+                                <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                    <div class="flex items-center gap-1.5 text-[9px] font-bold opacity-70 uppercase">
+                                        <i class="bi bi-geo-alt" style="color: var(--cor-primaria)"></i> Saída: {{ caravana.saida_local }}
+                                    </div>
+                                    <div class="flex items-center gap-1.5 text-[9px] font-bold opacity-70 uppercase">
+                                        <i class="bi bi-clock" style="color: var(--cor-primaria)"></i> {{ caravana.saida_horario|date:"d/m/Y H:i" }}
+                                    </div>
+                                    <div class="flex items-center gap-1.5 text-[9px] font-bold opacity-70 uppercase">
+                                        <i class="bi bi-people" style="color: var(--cor-primaria)"></i> Vagas: {{ caravana.vagas_totais }}
+                                    </div>
+                                    <div class="flex items-center gap-1.5 text-[9px] font-bold text-green-600 uppercase">
+                                        <i class="bi bi-currency-dollar"></i> R$ {{ caravana.valor }}
+                                    </div>
+                                </div>
+                            </div>
+                            <form method="POST" onsubmit="return confirm('Apagar esta caravana definitivamente?');" class="shrink-0 hidden sm:block">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ caravana.id }}">
+                                <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-colors text-red-600 flex items-center justify-center"><i class="bi bi-trash text-xs"></i></button>
+                            </form>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-10 opacity-40 border border-dashed border-suave rounded-[24px] bg-black/5">
+                            <i class="bi bi-bus-front text-3xl mb-2 block"></i>
+                            <p class="text-[10px] font-bold uppercase tracking-widest">Nenhuma caravana agendada.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>   
             </div>
         </div>
 
@@ -709,6 +779,42 @@
             </div>
 
             <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 shadow-lg" style="background-color: var(--cor-primaria)">Publicar Evento</button>
+        </form>
+    </div>
+</div>
+
+<div id="modalCaravana" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-lg fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Nova Caravana</h3>
+            <button type="button" onclick="fecharModal('modalCaravana')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i class="bi bi-x-lg"></i></button>
+        </div>
+        
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="nova_caravana">
+
+            <input type="text" name="titulo" required placeholder="Destino / Nome da Caravana (Ex: Invasão ao Maracanã)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            
+            <input type="text" name="saida_local" required placeholder="Local de Saída da Caravana" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Data/Hora de Saída</label>
+                <input type="datetime-local" name="saida_horario" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-[10px] font-bold outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Total de Vagas</label>
+                    <input type="number" name="vagas_totais" required placeholder="Ex: 50" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Valor (R$)</label>
+                    <input type="number" step="0.01" name="valor" required placeholder="Ex: 150.00" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 shadow-lg" style="background-color: var(--cor-primaria)">Publicar Caravana</button>
         </form>
     </div>
 </div>
