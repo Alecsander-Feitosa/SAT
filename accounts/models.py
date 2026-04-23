@@ -19,6 +19,8 @@ class Perfil(models.Model):
     
     # Dados Pessoais
     data_nascimento = models.DateField(null=True, blank=True)
+    nome_mae = models.CharField("Nome da Mãe", max_length=150, blank=True) # <- ADICIONAR ESTA LINHA
+    nome_pai = models.CharField("Nome do Pai", max_length=150, blank=True) # <- ADICIONAR ESTA LINHA
     rg_cnh = models.CharField("RG ou CNH", max_length=20, blank=True)
     orgao_expedidor = models.CharField(max_length=20, blank=True)
     

@@ -23,10 +23,10 @@
         <div class="flex items-center gap-4">
             <a href="{% url 'dashboard' %}" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
             <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">
-                MEU <span class="texto-tema">PERFIL</span>
+                MEU <span class="texto-main">PERFIL</span>
             </h1>
         </div>
-        <button class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-tema transition-colors border border-suave">
+        <button class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-main transition-colors border border-suave">
             <i class="bi bi-gear-fill text-sm"></i>
         </button>
     </div>
@@ -54,7 +54,7 @@
 
         <div class="grid grid-cols-3 gap-3 mb-6">
             <div class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center justify-center shadow-sm">
-                <span class="text-lg font-black texto-tema leading-none mb-1">{% if perfil_game.nivel %}{{ perfil_game.nivel.nome|slice:"-1" }}{% else %}1{% endif %}</span>
+                <span class="text-lg font-black texto-main leading-none mb-1">{% if perfil_game.nivel %}{{ perfil_game.nivel.nome|slice:"-1" }}{% else %}1{% endif %}</span>
                 <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Nível</span>
             </div>
             <div class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center justify-center shadow-sm">
@@ -135,7 +135,7 @@
                 
                 <a href="{% url 'editar_perfil' %}" class="menu-item flex items-center justify-between p-4 border-b border-suave no-underline hover:bg-black/5 transition-colors">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 fundo-app rounded-xl flex items-center justify-center texto-tema border border-suave">
+                        <div class="w-9 h-9 fundo-app rounded-xl flex items-center justify-center texto-main border border-suave">
                             <i class="bi bi-person-lines-fill text-lg"></i>
                         </div>
                         <span class="text-xs font-bold texto-main uppercase">Editar Perfil</span>
@@ -145,7 +145,7 @@
                 
                 <a href="{% url 'meus_pedidos' %}" class="menu-item flex items-center justify-between p-4 border-b border-suave no-underline hover:bg-black/5 transition-colors">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 fundo-app rounded-xl flex items-center justify-center texto-tema border border-suave">
+                        <div class="w-9 h-9 fundo-app rounded-xl flex items-center justify-center texto-main border border-suave">
                             <i class="bi bi-box-seam-fill text-lg"></i>
                         </div>
                         <span class="text-xs font-bold texto-main uppercase">Meus Pedidos</span>
@@ -155,7 +155,7 @@
 
                 <a href="{% url 'seguranca' %}" class="menu-item flex items-center justify-between p-4 no-underline hover:bg-black/5 transition-colors">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 fundo-app rounded-xl flex items-center justify-center texto-tema border border-suave">
+                        <div class="w-9 h-9 fundo-app rounded-xl flex items-center justify-center texto-main border border-suave">
                             <i class="bi bi-shield-lock-fill text-lg"></i>
                         </div>
                         <span class="text-xs font-bold texto-main uppercase">Segurança & Senha</span>

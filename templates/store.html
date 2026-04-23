@@ -48,14 +48,14 @@
                         {% else %}
                             SAT
                         {% endif %} 
-                        <span class="texto-tema">STORE</span>
+                        <span class="texto-main">STORE</span>
                     </h1>
                     <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Coleção Oficial</p>
                 </div>
             </div>
 
             {% if user.is_staff and user.perfil.torcida %}
-            <a href="{% url 'painel_loja' %}" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-tema border border-tema shadow-sm active:scale-90 transition-transform">
+            <a href="{% url 'painel_loja' %}" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main border border-tema shadow-sm active:scale-90 transition-transform">
                 <i class="bi bi-gear-fill text-lg"></i>
             </a>
             {% endif %}
@@ -63,12 +63,12 @@
 
         <div class="flex px-5 w-full mt-2 animate-fade-up">
             {% if user.perfil.torcida %}
-            <a href="?aba=torcida" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'torcida' %}tab-active{% else %}tab-inactive hover:texto-tema{% endif %}">
+            <a href="?aba=torcida" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'torcida' %}tab-active{% else %}tab-inactive hover:texto-main{% endif %}">
                 {{ user.perfil.torcida.sigla|default:"Minha Torcida" }}
             </a>
             {% endif %}
             
-            <a href="?aba=global" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'global' %}tab-active{% else %}tab-inactive hover:texto-tema{% endif %}">
+            <a href="?aba=global" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'global' %}tab-active{% else %}tab-inactive hover:texto-main{% endif %}">
                 SAT Global
             </a>
         </div>
@@ -134,7 +134,7 @@
                         </a>
                         
                         <div class="mt-auto flex justify-between items-center">
-                            <span class="text-sm font-black {% if produto.estoque <= 0 %}texto-main opacity-40{% else %}texto-tema{% endif %}">
+                            <span class="text-sm font-black {% if produto.estoque <= 0 %}texto-main opacity-40{% else %}texto-main{% endif %}">
                                 R$ {{ produto.preco }}
                             </span>
                             
@@ -165,7 +165,7 @@
 </div>
 
 <a href="{% url 'ver_carrinho' %}" class="fixed bottom-24 right-5 w-14 h-14 fundo-card border-2 border-tema rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all z-50 group">
-    <i class="bi bi-cart3 text-xl texto-tema group-hover:scale-110 transition-transform"></i>
+    <i class="bi bi-cart3 text-xl texto-main group-hover:scale-110 transition-transform"></i>
     
     <span id="badge-carrinho" class="absolute -top-2 -right-2 fundo-tema texto-claro text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-fundo-app shadow-md {% if total_itens_carrinho == 0 %}hidden{% else %}animate-bounce{% endif %}">
         {{ total_itens_carrinho }}

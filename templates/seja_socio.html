@@ -36,29 +36,29 @@
     <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex justify-between items-center">
         <div class="flex items-center gap-4">
             <a href="{% url 'dashboard' %}" class="texto-main text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
-            <h1 class="text-xl font-black italic uppercase texto-main">SEJA <span class="texto-tema">SÓCIO</span></h1>
+            <h1 class="text-xl font-black italic uppercase texto-main">SEJA <span class="texto-main">SÓCIO</span></h1>
         </div>
-        <i class="bi bi-gem text-xl texto-tema"></i>
+        <i class="bi bi-gem text-xl texto-main"></i>
     </div>
 
     <div class="px-5 pt-6">
         
         <div class="mb-10">
             <h2 class="text-xs font-black texto-main uppercase tracking-widest mb-4 flex items-center gap-2">
-                <i class="bi bi-gem texto-tema"></i> Planos Disponíveis
+                <i class="bi bi-gem texto-main"></i> Planos Disponíveis
             </h2>
             <div class="flex overflow-x-auto gap-4 pb-4 scroll-custom -mx-5 px-5">
                 {% for plano in planos %}
                 <div class="shrink-0 w-[260px] fundo-card rounded-[25px] p-6 border {% if plano.destaque %}border-tema shadow-lg{% else %}border-suave{% endif %}">
                     <h3 class="text-lg font-black texto-main uppercase mb-1">{{ plano.nome }}</h3>
                     <div class="flex items-baseline gap-1 mb-4">
-                        <span class="text-2xl font-black texto-tema">R$ {{ plano.preco }}</span>
+                        <span class="text-2xl font-black texto-main">R$ {{ plano.preco }}</span>
                         <span class="text-[9px] opacity-40 uppercase">/mês</span>
                     </div>
                     <ul class="space-y-2 mb-6">
                         {% for b in plano.get_beneficios_lista %}
                         <li class="flex items-center gap-2 text-[10px] font-bold opacity-80">
-                            <i class="bi bi-check2 texto-tema"></i> {{ b }}
+                            <i class="bi bi-check2 texto-main"></i> {{ b }}
                         </li>
                         {% endfor %}
                     </ul>
@@ -93,11 +93,11 @@
                     <summary class="flex items-center justify-between p-4 cursor-pointer list-none outline-none">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center border border-suave">
-                                <i class="bi bi-heart-fill texto-tema text-lg"></i>
+                                <i class="bi bi-heart-fill texto-main text-lg"></i>
                             </div>
                             <div>
                                 <h3 class="text-xs font-black texto-main uppercase tracking-widest leading-none" id="texto-time-atual">
-                                    {% if perfil.time_coracao %}Meu Time: <span class="texto-tema">{{ perfil.time_coracao }}</span>{% else %}Escolher Time do Coração{% endif %}
+                                    {% if perfil.time_coracao %}Meu Time: <span class="texto-main">{{ perfil.time_coracao }}</span>{% else %}Escolher Time do Coração{% endif %}
                                 </h3>
                                 <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Toque para expandir a lista</p>
                             </div>
@@ -112,7 +112,7 @@
                                 <input type="radio" name="time_coracao" id="time_{{ time.nome|slugify }}" value="{{ time.nome }}" class="radio-escondido" {% if perfil.time_coracao == time.nome %}checked{% endif %}>
                                 <label for="time_{{ time.nome|slugify }}" class="cursor-pointer block h-full">
                                     <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-2 flex flex-col items-center justify-center h-24 relative">
-                                        <i class="bi bi-check-circle-fill texto-tema absolute top-1 right-1 text-xs opacity-0 check-icon"></i>
+                                        <i class="bi bi-check-circle-fill texto-main absolute top-1 right-1 text-xs opacity-0 check-icon"></i>
                                         <img src="{{ time.escudo }}" alt="{{ time.nome }}" class="h-10 w-10 object-contain mb-1">
                                         <span class="text-[8px] font-black uppercase truncate w-full text-center">{{ time.nome }}</span>
                                     </div>
@@ -127,14 +127,14 @@
             {% if not perfil.torcida or not perfil.aprovado %}
             <div class="mb-10">
                 <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <i class="bi bi-shield-fill texto-tema"></i> 2. Vincular Torcida
+                    <i class="bi bi-shield-fill texto-main"></i> 2. Vincular Torcida
                 </h3>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <input type="radio" name="torcida_id" id="tor_neutra" value="neutro" class="radio-escondido" {% if not perfil.torcida %}checked{% endif %}>
                         <label for="tor_neutra" class="cursor-pointer block h-full">
                             <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center h-28 text-center relative">
-                                <i class="bi bi-check-circle-fill texto-tema absolute top-2 right-2 text-sm opacity-0 check-icon"></i>
+                                <i class="bi bi-check-circle-fill texto-main absolute top-2 right-2 text-sm opacity-0 check-icon"></i>
                                 <i class="bi bi-person-circle text-3xl mb-2 opacity-30"></i>
                                 <span class="text-[9px] font-black uppercase">Público Geral</span>
                             </div>
@@ -146,7 +146,7 @@
                         <input type="radio" name="torcida_id" id="tor_{{ t.id }}" value="{{ t.id }}" class="radio-escondido" {% if perfil.torcida.id == t.id %}checked{% endif %}>
                         <label for="tor_{{ t.id }}" class="cursor-pointer block h-full">
                             <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center h-28 text-center relative">
-                                <i class="bi bi-check-circle-fill texto-tema absolute top-2 right-2 text-sm opacity-0 check-icon"></i>
+                                <i class="bi bi-check-circle-fill texto-main absolute top-2 right-2 text-sm opacity-0 check-icon"></i>
                                 {% if t.logo %}
                                     <img src="{{ t.logo.url }}" class="h-10 w-10 object-contain mb-2 drop-shadow-md">
                                 {% else %}
@@ -191,7 +191,7 @@
             radio.addEventListener('change', function() {
                 if (this.checked) {
                     // Atualiza o texto imediatamente
-                    textoTimeAtual.innerHTML = `Meu Time: <span class="texto-tema">${this.value}</span>`;
+                    textoTimeAtual.innerHTML = `Meu Time: <span class="texto-main">${this.value}</span>`;
                     // Fecha o menu retrátil suavemente
                     if (menuTimes) {
                         menuTimes.removeAttribute('open');

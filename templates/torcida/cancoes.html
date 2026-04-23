@@ -14,19 +14,19 @@
         <form method="POST" enctype="multipart/form-data" class="fundo-card p-5 rounded-[25px] border border-suave shadow-sm">
             {% csrf_token %}
             
-            <input type="text" name="nome" placeholder="Título da Canção" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema mb-3">
+            <input type="text" name="titulo" placeholder="Título da Canção" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema mb-3">
             
             <textarea name="letra" rows="3" placeholder="Letra da música (opcional)" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema mb-3"></textarea>
             
             <div class="mb-4 space-y-3">
                 <div>
                     <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 block mb-1">Link do YouTube (Opcional)</label>
-                    <input type="url" name="link_youtube" placeholder="Ex: https://youtube.com/watch?v=..." class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                    <input type="url" name="url_youtube" placeholder="Ex: https://youtube.com/watch?v=..." class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-sm focus:outline-none focus:border-tema">
                 </div>
                 
                 <div>
-                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 block mb-1">Upload de Vídeo MP4 (Opcional)</label>
-                    <input type="file" name="arquivo_video" accept="video/mp4" class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 block mb-1">Upload de Áudio (Opcional)</label>
+                    <input type="file" name="arquivo_audio" accept="audio/*" class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
                 </div>
             </div>
             
@@ -40,24 +40,23 @@
     <div class="space-y-6">
         {% for cancao in cancoes %}
         <div class="fundo-card p-5 rounded-[25px] border border-suave shadow-sm">
-            <h4 class="texto-tema font-black uppercase italic text-lg mb-2">{{ cancao.nome }}</h4>
+            <h4 class="texto-tema font-black uppercase italic text-lg mb-2">{{ cancao.titulo }}</h4>
             <p class="texto-main opacity-80 text-xs leading-relaxed font-medium whitespace-pre-line mb-4">{{ cancao.letra }}</p>
 
-            <div class="w-full rounded-2xl overflow-hidden bg-black/5 border border-suave">
+            <div class="w-full rounded-2xl overflow-hidden bg-black/5 border border-suave flex flex-col gap-2">
                 
-                {% if cancao.youtube_id %}
-                    <div class="relative w-full" style="padding-top: 56.25%;">
-                        <iframe class="absolute top-0 left-0 w-full h-full" 
-                                src="https://www.youtube.com/embed/{{ cancao.youtube_id }}" 
-                                frameborder="0" allowfullscreen>
-                        </iframe>
+                {% if cancao.url_youtube %}
+                    <a href="{{ cancao.url_youtube }}" target="_blank" class="w-full py-3 px-4 flex items-center justify-center gap-2 bg-red-600/10 texto-main font-bold text-xs uppercase tracking-wider hover:bg-red-600/20 transition-colors">
+                        <i class="bi bi-youtube text-red-600 text-lg"></i> Ouvir no YouTube
+                    </a>
+                
+                {% elif cancao.arquivo_audio %}
+                    <div class="p-3">
+                        <audio controls class="w-full outline-none">
+                            <source src="{{ cancao.arquivo_audio.url }}" type="audio/mpeg">
+                            O seu navegador não suporta áudio.
+                        </audio>
                     </div>
-                
-                {% elif cancao.arquivo_video %}
-                    <video controls class="w-full h-auto max-h-[300px] object-cover outline-none bg-black">
-                        <source src="{{ cancao.arquivo_video.url }}" type="video/mp4">
-                        O seu telemóvel não suporta este vídeo.
-                    </video>
                 
                 {% else %}
                     <div class="py-6 flex flex-col items-center justify-center opacity-30">

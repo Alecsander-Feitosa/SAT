@@ -71,24 +71,27 @@
         <div id="searchBar" class="hidden px-4 pb-4 w-full transition-all duration-300">
             <form action="#" method="GET" class="relative">
                 <input type="text" name="q" placeholder="Pesquisar..." class="w-full fundo-app border border-suave text-sm rounded-xl py-3 pl-4 pr-10 texto-main font-medium focus:outline-none shadow-inner transition-all">
-                <button type="submit" class="absolute right-3 top-3 texto-tema opacity-50 hover:opacity-100 transition-opacity"><i class="bi bi-search text-lg font-bold"></i></button>
+                <button type="submit" class="absolute right-3 top-3 texto-main opacity-50 hover:opacity-100 transition-opacity"><i class="bi bi-search text-lg font-bold"></i></button>
             </form>
         </div>
         
-        <div class="flex justify-between items-center w-full px-4">
-            <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'dashboard' %}border-tema texto-tema font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-sm transition-all whitespace-nowrap">Seu time</a>
+        <div class="flex justify-between items-center w-full px-2 mt-2 gap-2">
+            <a href="{% url 'dashboard' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'dashboard' %}border-tema texto-main font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-xs sm:text-sm transition-all whitespace-nowrap">
+                Seu time
+            </a>
             
-            <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'mural' %}border-tema texto-tema font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-sm transition-all whitespace-nowrap">SAT social</a>
+            <a href="{% url 'mural' %}" class="flex-1 text-center pb-2 border-b-[3px] {% if request.resolver_match.url_name == 'mural' %}border-tema texto-main font-bold{% else %}border-transparent texto-main opacity-50 hover:opacity-100 font-medium{% endif %} text-xs sm:text-sm transition-all whitespace-nowrap">
+                SAT social
+            </a>
             
             {% if request.user.perfil.torcida and request.user.perfil.aprovado %}
-                <a href="{% url 'hub' %}" class="flex items-center gap-2 text-sm font-bold texto-main">
-                    <i class="texto-tema"></i>
+                <a href="{% url 'hub' %}" class="flex-1 text-center pb-2 border-b-[3px] border-tema texto-main font-bold text-xs sm:text-sm transition-all whitespace-nowrap overflow-hidden text-ellipsis">
                     <span>{{ request.user.perfil.torcida.nome|default:"Torcida" }}</span>
                 </a>
             {% else %}
-                <a href="{% url 'seja_socio' %}" class="flex items-center gap-2 text-sm font-black texto-tema bg-black/5 px-4 py-1.5 rounded-full hover:bg-black/10 transition-colors">
+                <a href="{% url 'seja_socio' %}" class="flex items-center justify-center gap-1 text-xs sm:text-sm font-bold texto-main bg-black/5 px-3 py-1.5 rounded-full hover:bg-black/10 transition-colors whitespace-nowrap">
                     <i class="bi bi-gem"></i>
-                    <span>Seja Sócio</span>
+                    <span>Sócio</span>
                 </a>
             {% endif %}
         </div>
@@ -97,24 +100,28 @@
 
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden transition-opacity" onclick="toggleSidebar()"></div>
     <div id="satSidebar" class="fixed inset-y-0 left-0 w-72 fundo-card z-[101] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out border-r border-suave overflow-y-auto no-scrollbar">
-        <div class="p-8 fundo-tema texto-claro">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                    <i class="bi bi-person-fill text-2xl"></i>
-                </div>
-                <div>
-                    <h4 class="font-black uppercase italic leading-none">{{ user.username }}</h4>
-                    <p class="text-[10px] font-bold opacity-80 uppercase tracking-widest">Membro SAT</p>
-                </div>
+        <div class="flex flex-col items-center py-6">
+            <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-tema mb-2">
+                {% if user.perfil.foto %}
+                    <img src="{{ user.perfil.foto.url }}" class="w-full h-full object-cover">
+                {% else %}
+                    <div class="w-full h-full bg-black/10 flex items-center justify-center">
+                        <i class="bi bi-person-fill text-2xl texto-main opacity-20"></i>
+                    </div>
+                {% endif %}
             </div>
+            
+            <p class="text-[10px] font-black texto-main uppercase tracking-widest">
+                Membro {% if user.perfil.torcida %}{{ user.perfil.torcida.nome }}{% else %}SAT{% endif %}
+            </p>
         </div>
         <div class="p-4 space-y-2">
             <p class="px-4 text-[9px] font-black texto-main opacity-40 uppercase tracking-widest my-4">Menu Principal</p>
             <a href="{% url 'dashboard' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
-                <i class="bi bi-grid-1x2-fill texto-tema text-lg"></i><span class="text-sm font-bold texto-main">Dashboard</span>
+                <i class="bi bi-grid-1x2-fill texto-main text-lg"></i><span class="text-sm font-bold texto-main">Dashboard</span>
             </a>
             <a href="{% url 'loja' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
-                <i class="bi bi-cart3 texto-tema text-lg"></i><span class="text-sm font-bold texto-main">Loja Oficial</span>
+                <i class="bi bi-cart3 texto-main text-lg"></i><span class="text-sm font-bold texto-main">Loja Oficial</span>
             </a>
             <hr class="border-suave my-4">
             
@@ -141,11 +148,11 @@
 
    {% if user.is_authenticated and "/moderacao/" not in request.path %}
     <nav class="fixed bottom-0 left-0 w-full fundo-card shadow-[0_-15px_30px_rgba(0,0,0,0.08)] rounded-t-[30px] z-[100] px-2 pt-1.5 pb-4 flex justify-between items-end border-t border-suave">
-        <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity {% if request.resolver_match.url_name == 'dashboard' %}texto-tema{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
+        <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity {% if request.resolver_match.url_name == 'dashboard' %}texto-main{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
             <i class="bi bi-house-door-fill text-xl drop-shadow-sm"></i>
             <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Início</span>
         </a>
-        <a href="{% url 'loja' %}" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity {% if 'loja' in request.resolver_match.url_name or 'carrinho' in request.resolver_match.url_name %}texto-tema{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
+        <a href="{% url 'loja' %}" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity {% if 'loja' in request.resolver_match.url_name or 'carrinho' in request.resolver_match.url_name %}texto-main{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
             <i class="bi bi-cart3 text-xl font-bold"></i>
             <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Loja</span>
         </a>
@@ -155,15 +162,15 @@
                     <i class="bi bi-gem"></i>
                 </div>
             </div>
-            <span class="text-[9px] font-black texto-tema uppercase tracking-wider mt-1">
+            <span class="text-[9px] font-black texto-main uppercase tracking-wider mt-1">
                 Benefícios
             </span>
         </a>
-        <a href="https://www.betano.bet.br/" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity {% if request.resolver_match.url_name == 'bet_manutencao' %}texto-tema{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
+        <a href="https://www.betano.bet.br/" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity {% if request.resolver_match.url_name == 'bet_manutencao' %}texto-main{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
             <i class="bi bi-dice-5 text-xl font-bold"></i>
             <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">BET</span>
         </a>
-        <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity {% if request.resolver_match.url_name == 'perfil' %}texto-tema{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
+        <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity {% if request.resolver_match.url_name == 'perfil' %}texto-main{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
             <i class="bi bi-person-fill text-xl drop-shadow-sm"></i>
             <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Perfil</span>
         </a>

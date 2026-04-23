@@ -54,7 +54,7 @@
             {% if evento.valor == 0 or not evento.valor %}
                 <span class="text-green-400 font-black text-[10px] uppercase tracking-widest"><i class="bi bi-ticket-detailed-fill mr-1"></i> Grátis</span>
             {% else %}
-                <span class="texto-tema font-black text-[10px] uppercase tracking-widest"><i class="bi bi-ticket-detailed-fill mr-1"></i> R$ {{ evento.valor }}</span>
+                <span class="texto-main font-black text-[10px] uppercase tracking-widest"><i class="bi bi-ticket-detailed-fill mr-1"></i> R$ {{ evento.valor }}</span>
             {% endif %}
         </div>
     </div>
@@ -62,21 +62,26 @@
     <div class="detail-card">
         <div class="flex justify-between items-start mb-6">
             <div>
-                <span class="texto-tema font-black text-[10px] uppercase tracking-widest">{{ evento.get_categoria_display|default:"Evento Oficial" }}</span>
+                <span class="texto-main font-black text-[10px] uppercase tracking-widest">{{ evento.get_categoria_display|default:"Evento Oficial" }}</span>
                 <h1 class="text-3xl font-black italic uppercase leading-tight mt-1">{{ evento.titulo }}</h1>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-8">
+        <div class="grid grid-cols-3 gap-4 mb-8">
             <div class="bg-white/5 border border-white/5 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
-                <i class="bi bi-calendar-event texto-tema text-2xl mb-2"></i>
+                <i class="bi bi-calendar-event texto-main text-2xl mb-2"></i>
                 <span class="text-[9px] text-gray-400 uppercase font-bold tracking-widest">Data</span>
                 <p class="text-sm font-black mt-1">{{ evento.data|date:"d M, Y" }}</p>
             </div>
             <div class="bg-white/5 border border-white/5 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
-                <i class="bi bi-clock-history texto-tema text-2xl mb-2"></i>
+                <i class="bi bi-clock-history texto-main text-2xl mb-2"></i>
                 <span class="text-[9px] text-gray-400 uppercase font-bold tracking-widest">Horário</span>
                 <p class="text-sm font-black mt-1">{{ evento.data|date:"H:i" }}</p>
+            </div>
+            <div class="bg-white/5 border border-white/5 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                <i class="bi bi-people-fill texto-main text-2xl mb-2"></i>
+                <span class="text-[9px] text-gray-400 uppercase font-bold tracking-widest">Ocupação</span>
+                <p class="text-sm font-black mt-1">{{ evento.status_vagas }}</p>
             </div>
         </div>
 
@@ -84,7 +89,7 @@
             <h3 class="text-[10px] font-black uppercase text-gray-400 mb-3 tracking-widest">Localização</h3>
             <div class="flex items-start gap-3 text-gray-300">
                 <div class="w-8 h-8 rounded-full bg-tema/20 flex items-center justify-center shrink-0">
-                    <i class="bi bi-geo-alt-fill texto-tema"></i>
+                    <i class="bi bi-geo-alt-fill texto-main"></i>
                 </div>
                 <p class="text-sm font-medium italic pt-1">{{ evento.local }}</p>
             </div>

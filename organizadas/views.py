@@ -227,6 +227,28 @@ def painel_moderador(request):
         elif acao == 'deletar_evento':
             get_object_or_404(Evento, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
             messages.success(request, "Evento apagado.")
+        
+        elif acao == 'editar_evento':
+            ev = get_object_or_404(Evento, id=request.POST.get('item_id'), torcida=minha_torcida)
+            ev.categoria = request.POST.get('categoria', ev.categoria)
+            ev.titulo = request.POST.get('titulo', ev.titulo)
+            ev.local = request.POST.get('local', ev.local)
+            
+            nova_data = request.POST.get('data')
+            if nova_data: ev.data = parse_datetime(nova_data)
+                
+            nova_data_fim = request.POST.get('data_fim')
+            if nova_data_fim: ev.data_fim = parse_datetime(nova_data_fim)
+                
+            max_p = request.POST.get('max_participantes')
+            ev.max_participantes = max_p if max_p else None
+            ev.informativo = request.POST.get('informativo', ev.informativo)
+            
+            if 'imagem_capa' in request.FILES:
+                ev.imagem_capa = request.FILES['imagem_capa']
+                
+            ev.save()
+            messages.success(request, f"Evento '{ev.titulo}' atualizado!")
 
         elif acao == 'nova_caravana':
             Caravana.objects.create(
@@ -242,6 +264,20 @@ def painel_moderador(request):
         elif acao == 'deletar_caravana':
             get_object_or_404(Caravana, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
             messages.success(request, "Caravana removida.")
+        
+        elif acao == 'editar_caravana':
+            caravana = get_object_or_404(Caravana, id=request.POST.get('item_id'), torcida=minha_torcida)
+            caravana.titulo = request.POST.get('titulo', caravana.titulo)
+            caravana.saida_local = request.POST.get('saida_local', caravana.saida_local)
+            
+            nova_saida = request.POST.get('saida_horario')
+            if nova_saida: caravana.saida_horario = parse_datetime(nova_saida)
+            
+            caravana.vagas_totais = request.POST.get('vagas_totais', caravana.vagas_totais)
+            caravana.valor = request.POST.get('valor', caravana.valor)
+            caravana.save()
+            messages.success(request, "Caravana atualizada!")
+
 
         # 3. DIRETORIA E REGRAS
         elif acao == 'nova_categoria_diretoria':

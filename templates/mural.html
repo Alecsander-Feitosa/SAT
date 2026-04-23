@@ -60,7 +60,7 @@
         <div class="px-5 py-4 flex justify-between items-center">
             <div>
                 <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">
-                    {% if user.perfil.torcida %}{{ user.perfil.torcida.sigla }}{% else %}SAT{% endif %} <span class="texto-tema">SOCIAL</span>
+                    {% if user.perfil.torcida %}{{ user.perfil.torcida.sigla }}{% else %}SAT{% endif %} <span class="texto-main">SOCIAL</span>
                 </h1>
                 <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1">
                     <i class="bi bi-globe-americas"></i> Comunidade Oficial
@@ -75,11 +75,11 @@
                     </button>
                 </form>
 
-                <button type="button" onclick="togglePesquisa()" class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-tema transition-colors border border-suave">
+                <button type="button" onclick="togglePesquisa()" class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-main transition-colors border border-suave">
                     <i class="bi bi-search text-sm"></i>
                 </button>
 
-                <button type="button" onclick="toggleNotificacoes()" class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-tema transition-colors border border-suave relative">
+                <button type="button" onclick="toggleNotificacoes()" class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main hover:texto-main transition-colors border border-suave relative">
                     <i class="bi bi-bell text-sm"></i>
                 </button>
 
@@ -95,12 +95,12 @@
         </div>
         
         <div class="flex px-5 w-full border-t border-suave">
-            <a href="?aba=global" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'global' or not aba_atual %}tab-active{% else %}tab-inactive hover:texto-tema{% endif %}">
+            <a href="?aba=global" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'global' or not aba_atual %}tab-active{% else %}tab-inactive hover:texto-main{% endif %}">
                 Global
             </a>
             
             {% if user.perfil.torcida %}
-            <a href="?aba=torcida" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'torcida' %}tab-active{% else %}tab-inactive hover:texto-tema{% endif %}">
+            <a href="?aba=torcida" class="flex-1 text-center py-3 text-[10px] uppercase tracking-widest no-underline transition-colors {% if aba_atual == 'torcida' %}tab-active{% else %}tab-inactive hover:texto-main{% endif %}">
                 {{ user.perfil.torcida.sigla|default:"Minha Torcida" }}
             </a>
             {% endif %}
@@ -141,7 +141,7 @@
                         <h3 class="text-sm font-black texto-main leading-tight flex items-center gap-1">
                             {{ post.autor_s.get_full_name|default:post.autor_s.username }}
                             {% if post.autor_s.perfil.aprovado %}
-                                <i class="bi bi-patch-check-fill texto-tema text-[11px]" title="Sócio Oficial"></i>
+                                <i class="bi bi-patch-check-fill texto-main text-[11px]" title="Sócio Oficial"></i>
                             {% endif %}
                         </h3>
                         <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider mt-0.5">
@@ -368,7 +368,7 @@
             </div>
 
             <div class="flex items-center justify-between pt-4 border-t border-suave mt-4">
-                <label for="imagemPost" class="w-10 h-10 fundo-app texto-tema rounded-full flex items-center justify-center cursor-pointer border border-suave hover:bg-tema hover:text-white transition-all shadow-sm group">
+                <label for="imagemPost" class="w-10 h-10 fundo-app texto-main rounded-full flex items-center justify-center cursor-pointer border border-suave hover:bg-tema hover:text-white transition-all shadow-sm group">
                     <i class="bi bi-image text-lg group-hover:scale-110 transition-transform"></i>
                 </label>
                 <input type="file" id="imagemPost" name="imagem" accept="image/*" class="hidden" onchange="mostrarPreview(this)">

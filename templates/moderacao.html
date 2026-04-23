@@ -10,6 +10,10 @@
         to { opacity: 1; transform: translateY(0); }
     }
     
+    .texto-main { color: var(--cor-terciaria) !important; text-shadow: 
+        0px 1px 2px rgba(0, 0, 0, 0.6), 
+        0px -1px 1px rgba(255, 255, 255, 0.2);
+    }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -253,29 +257,43 @@
                             <span class="text-[10px] font-black text-orange-500">{{ ev.status_vagas }}</span>
                         </div>
                         
-                        <div class="w-full h-1.5 bg-black/10 rounded-full overflow-hidden border border-suave">
-                            {% with confirmados=ev.checkins_accounts.count %}
-                                {% if ev.max_participantes %}
-                                    {% widthratio confirmados ev.max_participantes 100 as porcentagem %}
-                                    <div class="h-full transition-all duration-500" 
-                                        style="width: {{ porcentagem }}%; background-color: var(--cor-primaria)">
-                                    </div>
-                                {% else %}
-                                    <div class="h-full bg-green-500" style="width: 100%"></div>
-                                {% endif %}
-                            {% endwith %}
-                        </div>
+                       <div class="w-full h-1.5 bg-black/10 rounded-full overflow-hidden border border-suave">
+                            {% with c_checkin=ev.checkins_accounts.count c_pres=ev.presencas.count %}
+                                {% with confirmados=c_checkin|add:c_pres %}
+                                
+                                    {% if ev.max_participantes %}
+                                        {% widthratio confirmados ev.max_participantes 100 as porcentagem %}
+                                        <div class="h-full transition-all duration-500" 
+                                            style="width: {{ porcentagem }}%; background-color: var(--cor-primaria)">
+                                        </div>
+                                    {% else %}
+                                        <div class="h-full bg-green-500" style="width: 100%"></div>
+                                    {% endif %}
+                                    
+                                {% endwith %}
+                            {% endwith %} </div>
                     </div>
 
                     <div class="p-5 flex-1 flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-start mb-2">
                                 <h4 class="text-sm font-black uppercase texto-main leading-tight">{{ ev.titulo }}</h4>
-                                <form method="POST" onsubmit="return confirm('Apagar este evento definitivamente?');" class="shrink-0 ml-3">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="item_id" value="{{ ev.id }}">
-                                    <button type="submit" name="acao" value="deletar_evento" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-colors text-red-600 flex items-center justify-center"><i class="bi bi-trash text-xs"></i></button>
-                                </form>
+                                
+                                <div class="flex items-center gap-2 shrink-0 ml-3">
+                                    <button type="button" onclick="abrirModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center">
+                                        <i class="bi bi-people-fill text-xs"></i>
+                                    </button>
+                                    <button type="button" onclick="abrirModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 transition-colors text-blue-500 flex items-center justify-center" title="Ver Lista de Confirmados">
+                                        <i class="bi bi-people-fill text-xs"></i>
+                                    </button>
+                                    <form method="POST" onsubmit="return confirm('Apagar este evento definitivamente?');" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="item_id" value="{{ ev.id }}">
+                                        <button type="submit" name="acao" value="deletar_evento" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-colors text-red-600 flex items-center justify-center">
+                                            <i class="bi bi-trash text-xs"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                             <p class="text-[10px] opacity-60 line-clamp-2 mb-3">{{ ev.informativo|default:"Sem descrição." }}</p>
                         </div>
@@ -317,12 +335,18 @@
                             <div class="flex-1 w-full">
                                 <div class="flex justify-between items-start mb-2">
                                     <h4 class="text-sm font-black uppercase texto-main leading-tight">{{ caravana.titulo }}</h4>
-                                    <form method="POST" onsubmit="return confirm('Apagar esta caravana definitivamente?');" class="shrink-0 ml-3 sm:hidden">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="item_id" value="{{ caravana.id }}">
-                                        <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 text-red-600 flex items-center justify-center"><i class="bi bi-trash text-xs"></i></button>
-                                    </form>
-                                </div>
+                                    
+                                    <div class="flex items-center gap-2 shrink-0 ml-3 sm:hidden">
+                                        <button type="button" onclick="abrirModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
+                                            <i class="bi bi-pencil-fill text-xs"></i>
+                                        </button>
+                                        <form method="POST" onsubmit="return confirm('Apagar esta caravana definitivamente?');" class="m-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="item_id" value="{{ caravana.id }}">
+                                            <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 text-red-600 flex items-center justify-center"><i class="bi bi-trash text-xs"></i></button>
+                                        </form>
+                                    </div>
+                                    </div>
                                 <div class="flex flex-wrap gap-x-4 gap-y-2">
                                     <div class="flex items-center gap-1.5 text-[9px] font-bold opacity-70 uppercase">
                                         <i class="bi bi-geo-alt" style="color: var(--cor-primaria)"></i> Saída: {{ caravana.saida_local }}
@@ -338,12 +362,18 @@
                                     </div>
                                 </div>
                             </div>
-                            <form method="POST" onsubmit="return confirm('Apagar esta caravana definitivamente?');" class="shrink-0 hidden sm:block">
-                                {% csrf_token %}
-                                <input type="hidden" name="item_id" value="{{ caravana.id }}">
-                                <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-colors text-red-600 flex items-center justify-center"><i class="bi bi-trash text-xs"></i></button>
-                            </form>
-                        </div>
+                            
+                            <div class="flex items-center gap-2 shrink-0 hidden sm:flex">
+                                <button type="button" onclick="abrirModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-orange-500 flex items-center justify-center">
+                                    <i class="bi bi-pencil-fill text-xs"></i>
+                                </button>
+                                <form method="POST" onsubmit="return confirm('Apagar esta caravana definitivamente?');" class="m-0">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="item_id" value="{{ caravana.id }}">
+                                    <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-colors text-red-600 flex items-center justify-center"><i class="bi bi-trash text-xs"></i></button>
+                                </form>
+                            </div>
+                            </div>
                         {% empty %}
                         <div class="text-center py-10 opacity-40 border border-dashed border-suave rounded-[24px] bg-black/5">
                             <i class="bi bi-bus-front text-3xl mb-2 block"></i>
@@ -1185,6 +1215,169 @@
         </form>
     </div>
 </div>
+
+{% for ev in eventos %}
+<div id="modalListaEvento{{ ev.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Confirmados: {{ ev.titulo }}</h3>
+            <button type="button" onclick="fecharModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg texto-main"></i></button>
+        </div>
+        
+        <div class="space-y-3">
+            {% for checkin in ev.checkins_accounts.all %}
+            <div class="p-3 bg-black/5 border border-suave rounded-xl flex items-center gap-3">
+                {% if checkin.user.perfil.foto %}<img src="{{ checkin.user.perfil.foto.url }}" class="w-10 h-10 rounded-full object-cover">
+                {% else %}<div class="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center"><i class="bi bi-person"></i></div>{% endif %}
+                <div>
+                    <h4 class="text-xs font-black uppercase texto-main">{{ checkin.user.first_name|default:checkin.user.username }}</h4>
+                    <p class="text-[9px] text-green-500 uppercase font-bold">Check-in Realizado</p>
+                </div>
+            </div>
+            {% endfor %}
+            
+            {% for presenca in ev.presencas.all %}
+            <div class="p-3 bg-black/5 border border-suave rounded-xl flex items-center gap-3">
+                {% if presenca.user.perfil.foto %}<img src="{{ presenca.user.perfil.foto.url }}" class="w-10 h-10 rounded-full object-cover">
+                {% else %}<div class="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center"><i class="bi bi-person"></i></div>{% endif %}
+                <div>
+                    <h4 class="text-xs font-black uppercase texto-main">{{ presenca.user.first_name|default:presenca.user.username }}</h4>
+                    <p class="text-[9px] text-blue-500 uppercase font-bold">Presença Confirmada</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% for ev in eventos %}
+<div id="modalListaEvento{{ ev.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Confirmados: {{ ev.titulo }}</h3>
+            <button type="button" onclick="fecharModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5 hover:bg-black/10 transition-colors">
+                <i class="bi bi-x-lg texto-main"></i>
+            </button>
+        </div>
+        
+        <div class="space-y-3">
+            {% for checkin in ev.checkins_accounts.all %}
+            <div class="p-3 bg-black/5 border border-suave rounded-xl flex items-center gap-3">
+                {% if checkin.user.perfil.foto %}
+                    <img src="{{ checkin.user.perfil.foto.url }}" class="w-10 h-10 rounded-full object-cover border border-suave">
+                {% else %}
+                    <div class="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center border border-suave texto-main">
+                        <i class="bi bi-person"></i>
+                    </div>
+                {% endif %}
+                <div>
+                    <h4 class="text-xs font-black uppercase texto-main">{{ checkin.user.first_name|default:checkin.user.username }}</h4>
+                    <p class="text-[9px] opacity-60 uppercase texto-main">Confirmou em: {{ checkin.data_criacao|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-6 opacity-50 fundo-card border border-dashed border-suave rounded-xl">
+                <p class="text-[10px] font-bold uppercase texto-main">Ninguém confirmou presença ainda.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% for ev in eventos %}
+<div id="modalEditarEvento{{ ev.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-lg fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Editar Evento</h3>
+            <button type="button" onclick="fecharModal('modalEditarEvento{{ ev.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i class="bi bi-x-lg"></i></button>
+        </div>
+        
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="editar_evento">
+            <input type="hidden" name="item_id" value="{{ ev.id }}">
+
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Categoria</label>
+                <select name="categoria" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+                    <option value="jogo_oficial" {% if ev.categoria == 'jogo_oficial' %}selected{% endif %}>Jogo Oficial</option>
+                    <option value="caravana" {% if ev.categoria == 'caravana' %}selected{% endif %}>Caravana</option>
+                    <option value="evento_social" {% if ev.categoria == 'evento_social' %}selected{% endif %}>Evento Social</option>
+                    <option value="reuniao" {% if ev.categoria == 'reuniao' %}selected{% endif %}>Reunião</option>
+                </select>
+            </div>
+
+            <input type="text" name="titulo" value="{{ ev.titulo }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <textarea name="informativo" rows="3" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none">{{ ev.informativo }}</textarea>
+            <input type="text" name="local" value="{{ ev.local }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Início</label>
+                    <input type="datetime-local" name="data" value="{{ ev.data|date:'Y-m-d\TH:i' }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-[10px] font-bold outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Fim</label>
+                    <input type="datetime-local" name="data_fim" value="{{ ev.data_fim|date:'Y-m-d\TH:i' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-[10px] font-bold outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Máx. Pessoas</label>
+                    <input type="number" name="max_participantes" value="{{ ev.max_participantes|default:'' }}" placeholder="Ilimitado" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Trocar Capa</label>
+                    <input type="file" name="imagem_capa" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold file:bg-black/10">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 bg-orange-500 shadow-lg">Salvar Edição</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% for caravana in caravanas %}
+<div id="modalEditarCaravana{{ caravana.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-lg fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Editar Caravana</h3>
+            <button type="button" onclick="fecharModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i class="bi bi-x-lg"></i></button>
+        </div>
+        
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="editar_caravana">
+            <input type="hidden" name="item_id" value="{{ caravana.id }}">
+
+            <input type="text" name="titulo" value="{{ caravana.titulo }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <input type="text" name="saida_local" value="{{ caravana.saida_local }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Saída</label>
+                <input type="datetime-local" name="saida_horario" value="{{ caravana.saida_horario|date:'Y-m-d\TH:i' }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-[10px] font-bold outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Total Vagas</label>
+                    <input type="number" name="vagas_totais" value="{{ caravana.vagas_totais }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Valor (R$)</label>
+                    <input type="number" step="0.01" name="valor" value="{{ caravana.valor|stringformat:'f' }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 bg-orange-500 shadow-lg">Salvar Edição</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
 
 <script>
     function mudarAba(idSecao) {

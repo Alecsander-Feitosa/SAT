@@ -79,21 +79,19 @@ class Evento(models.Model):
         if not self.max_participantes:
             return False 
             
-        # IMPORTAÇÃO LOCAL: Coloque a importação AQUI DENTRO da função
-        from accounts.models import CheckIn
+        from gamification.models import CheckIn
         ocupadas = CheckIn.objects.filter(evento=self).count()
         return ocupadas >= self.max_participantes
 
     def status_vagas(self):
-        # IMPORTAÇÃO LOCAL: Coloque a importação AQUI DENTRO da função
-        from accounts.models import CheckIn
+        from gamification.models import CheckIn
         confirmados = CheckIn.objects.filter(evento=self).count()
         
         if not self.max_participantes:
             return f"{confirmados} confirmados (Ilimitado)"
         
         return f"{confirmados} de {self.max_participantes} vagas"
-    
+
     def __str__(self):
         return self.titulo
 

@@ -5,7 +5,7 @@
 <div class="min-h-screen fundo-app px-5 pt-10 pb-40">
     <div class="flex items-center gap-4 mb-8">
         <a href="{% url 'perfil' %}" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">EDITAR <span class="texto-tema">PERFIL</span></h1>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">EDITAR <span class="texto-main">PERFIL</span></h1>
     </div>
 
     <form action="{% url 'editar_perfil' %}" method="POST" enctype="multipart/form-data" class="space-y-6">
@@ -32,7 +32,7 @@
         </div>
 
         <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
-            <h4 class="text-[10px] font-black texto-tema uppercase tracking-[0.2em] mb-2">Dados Pessoais</h4>
+            <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em] mb-2">Dados Pessoais</h4>
             
             <div>
                 <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Nome Completo *</label>
@@ -89,7 +89,7 @@
         </div>
 
         <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
-            <h4 class="text-[10px] font-black texto-tema uppercase tracking-[0.2em] mb-2">Endereço</h4>
+            <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em] mb-2">Endereço</h4>
             
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -125,41 +125,58 @@
                 </div>
                 <div class="col-span-2">
                     <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">UF *</label>
-                    <input type="text" name="uf" maxlength="2" value="{{ user.perfil.uf|default:'' }}" required class="w-full fundo-app border border-suave rounded-2xl px-2 py-3 text-sm font-bold texto-main text-center focus:border-tema outline-none uppercase">
+                    <input type="text" name="uf" maxlength="2" value="{{ user.perfil.uf|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-2 py-3 text-sm font-bold texto-main text-center focus:border-tema outline-none transition-colors uppercase">
                 </div>
             </div>
         </div>
 
         {% if user.perfil.torcida %}
         <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
-            <h4 class="text-[10px] font-black texto-tema uppercase tracking-[0.2em] mb-2">Documentos de Verificação</h4>
+            <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em] mb-2">Documentos de Verificação</h4>
             
             <div class="space-y-3">
                 <div class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
                     <input type="file" name="doc_frente" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqFrente')">
-                    <i class="bi bi-front texto-tema text-2xl mb-1 block"></i>
+                    <i class="bi bi-front texto-main text-2xl mb-1 block"></i>
                     <p class="text-[10px] font-black texto-main uppercase tracking-widest">RG/CNH - Foto Frente</p>
-                    <p id="nomeArqFrente" class="text-[8px] texto-main opacity-50 mt-1 truncate">Clique para enviar</p>
+                    <p id="nomeArqFrente" class="text-[8px] mt-1 truncate {% if user.perfil.doc_frente %}text-green-500 font-bold{% else %}texto-main opacity-50{% endif %}">
+                        {% if user.perfil.doc_frente %}
+                            ✅ Documento já anexado (Clique p/ alterar)
+                        {% else %}
+                            Clique para enviar
+                        {% endif %}
+                    </p>
                 </div>
 
                 <div class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
                     <input type="file" name="doc_verso" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqVerso')">
-                    <i class="bi bi-back texto-tema text-2xl mb-1 block"></i>
+                    <i class="bi bi-back texto-main text-2xl mb-1 block"></i>
                     <p class="text-[10px] font-black texto-main uppercase tracking-widest">RG/CNH - Foto Verso</p>
-                    <p id="nomeArqVerso" class="text-[8px] texto-main opacity-50 mt-1 truncate">Clique para enviar</p>
+                    <p id="nomeArqVerso" class="text-[8px] mt-1 truncate {% if user.perfil.doc_verso %}text-green-500 font-bold{% else %}texto-main opacity-50{% endif %}">
+                        {% if user.perfil.doc_verso %}
+                            ✅ Documento já anexado (Clique p/ alterar)
+                        {% else %}
+                            Clique para enviar
+                        {% endif %}
+                    </p>
                 </div>
 
                 <div class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
                     <input type="file" name="doc_selfie" accept="image/*" capture="user" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqSelfie')">
-                    <i class="bi bi-person-bounding-box texto-tema text-2xl mb-1 block"></i>
+                    <i class="bi bi-person-bounding-box texto-main text-2xl mb-1 block"></i>
                     <p class="text-[10px] font-black texto-main uppercase tracking-widest">Verificação Facial (Selfie)</p>
-                    <p id="nomeArqSelfie" class="text-[8px] texto-main opacity-50 mt-1 truncate">Tire uma selfie nítida</p>
-                </div>
+                    <p id="nomeArqSelfie" class="text-[8px] mt-1 truncate {% if user.perfil.doc_selfie %}text-green-500 font-bold{% else %}texto-main opacity-50{% endif %}">
+                        {% if user.perfil.doc_selfie %}
+                            ✅ Selfie já anexada (Clique p/ alterar)
+                        {% else %}
+                            Tire uma selfie nítida
+                        {% endif %}
+                    </p>
             </div>
         </div>
 
         <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
-            <h4 class="text-[10px] font-black texto-tema uppercase tracking-[0.2em] mb-2">Identidade na Torcida</h4>
+            <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em] mb-2">Identidade na Torcida</h4>
             
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -218,7 +235,7 @@
         if (input.files && input.files[0]) {
             document.getElementById(textElementId).innerText = "Selecionado: " + input.files[0].name;
             document.getElementById(textElementId).classList.remove("opacity-50");
-            document.getElementById(textElementId).classList.add("texto-tema");
+            document.getElementById(textElementId).classList.add("texto-main");
         }
     }
 </script>

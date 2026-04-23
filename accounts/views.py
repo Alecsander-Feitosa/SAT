@@ -618,41 +618,51 @@ def carteirinha(request):
 
 @login_required
 def confirmar_presenca(request, evento_id):
+    # IMPORTAÇÃO LOCAL: Força o sistema a guardar a vaga no Evento correto
+    from organizadas.models import Evento as OrgEvento
+    from accounts.models import CheckIn
+    
     if request.method == "POST":
-        evento = get_object_or_404(Evento, id=evento_id)
+        evento = get_object_or_404(OrgEvento, id=evento_id)
         
-        # 1. Captura os dados do formulário
-        lat = request.POST.get('latitude')
-        lon = request.POST.get('longitude')
-        foto = request.FILES.get('foto')
+        # Bloqueia duplicações (caso o utilizador clique duas vezes rápido)
+        if not CheckIn.objects.filter(user=request.user, evento=evento).exists():
+            
+            # Captura dados opcionais
+            lat = request.POST.get('latitude', 0.0)
+            lon = request.POST.get('longitude', 0.0)
+            foto = request.FILES.get('foto')
 
-        # 2. Registra o Check-in (O Signal no models.py dará os 50 XP)
-        checkin = CheckIn.objects.create(
-            user=request.user,
-            evento=evento,
-            latitude=float(lat) if lat else 0.0,
-            longitude=float(lon) if lon else 0.0,
-            foto=foto,
-            validado=True # Aqui você pode adicionar lógica de conferência depois
-        )
+            # Salva a presença ligada 100% ao evento real
+            CheckIn.objects.create(
+                user=request.user,
+                evento=evento,
+                latitude=float(lat) if lat else 0.0,
+                longitude=float(lon) if lon else 0.0,
+                foto=foto,
+                validado=True
+            )
+            messages.success(request, f"Presença confirmada no {evento.titulo}! +50 XP")
         
-        messages.success(request, f"Presença confirmada no {evento.titulo}! +50 XP")
-        return redirect('dashboard')
+        # ATUALIZADO: Em vez de mandar para o Dashboard, devolve para o evento
+        # para que o utilizador veja logo a tela verde de sucesso e a barra atualizada!
+        return redirect('detalhe_evento', evento_id=evento.id)
     
     return redirect('detalhe_evento', evento_id=evento_id)
 
 @login_required
 def detalhe_evento(request, evento_id):
-    evento = get_object_or_404(Evento, id=evento_id)
+    # IMPORTAÇÃO LOCAL: Força o sistema a puxar o Evento correto da Torcida
+    from organizadas.models import Evento as OrgEvento
+    from accounts.models import CheckIn
     
-    # Verifica se o usuário já confirmou presença
-    confirmado = Presenca.objects.filter(user=request.user, evento=evento).exists()
+    evento = get_object_or_404(OrgEvento, id=evento_id)
     
-    # Busca o perfil de gamificação
+    # ATUALIZADO: Agora procura corretamente na tabela de CheckIn
+    confirmado = CheckIn.objects.filter(user=request.user, evento=evento).exists()
+    
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
     
-    # Lógica de segurança para a cor do tema
-    # Se o nível não existir, usamos a cor padrão #ff6b00
     cor_tema = "#ff6b00"
     if perfil_game.nivel:
         cor_tema = perfil_game.nivel.cor_tema
@@ -846,13 +856,11 @@ def moderacao_torcida(request):
 
         return redirect('moderacao_torcida')
 
-    # --- BUSCA DE DADOS PARA O DASHBOARD DE MODERAÇÃO ---
-    # Membros
     membros_pendentes = Perfil.objects.filter(torcida=torcida_mod, aprovado=False).exclude(user=request.user)
     membros_ativos = Perfil.objects.filter(torcida=torcida_mod, aprovado=True)
     
-    # Importações locais de modelos de outros apps se necessário
-    from organizadas.models import Parceiro, Publicidade, Cancao, Regra, CategoriaDiretoria, CampoPersonalizado, FotoGaleria, ConquistaTorcida
+    # IMPORTAÇÃO LOCAL CORRIGIDA (Forçamos o OrgEvento e adicionamos as Caravanas)
+    from organizadas.models import Parceiro, Publicidade, Cancao, Regra, CategoriaDiretoria, CampoPersonalizado, FotoGaleria, ConquistaTorcida, Evento as OrgEvento, Caravana as OrgCaravana
     from loja.models import Produto, CategoriaLoja
 
     context = {
@@ -860,8 +868,11 @@ def moderacao_torcida(request):
         'membros_pendentes': membros_pendentes,
         'membros_ativos': membros_ativos,
         
-        # Dados para as outras abas do template
-        'eventos': Evento.objects.filter(torcida=torcida_mod).order_by('-data'), 
+        # CORREÇÃO PRINCIPAL: Usar o OrgEvento para puxar os check-ins verdadeiros
+        'eventos': OrgEvento.objects.filter(torcida=torcida_mod).order_by('-data'), 
+        'caravanas': OrgCaravana.objects.filter(torcida=torcida_mod).order_by('-saida_horario'),
+        
+        # Restantes dados...
         'parceiros': Parceiro.objects.filter(torcida=torcida_mod),
         'publicidades': Publicidade.objects.filter(torcida=torcida_mod),
         'campos_kyc': CampoPersonalizado.objects.filter(torcida=torcida_mod),
@@ -871,7 +882,6 @@ def moderacao_torcida(request):
         'conquistas': ConquistaTorcida.objects.filter(torcida=torcida_mod),
         'categorias_diretoria': CategoriaDiretoria.objects.filter(torcida=torcida_mod),
         
-        # Loja (Filtrar produtos que pertencem à torcida ou são gerais)
         'produtos': Produto.objects.filter(torcida=torcida_mod),
         'categorias_loja': CategoriaLoja.objects.filter(torcida=torcida_mod),
     }
@@ -1160,12 +1170,12 @@ def editar_perfil(request):
 
             perfil.rg_cnh = request.POST.get('rg_cnh', perfil.rg_cnh)
             
-            # CORREÇÃO: orgao_expedidor com "d" e o get pegando a chave correta
             perfil.orgao_expedidor = request.POST.get('orgao_expedidor', perfil.orgao_expedidor) 
             
-            # CORREÇÃO: Removidos perfil.telefone, nome_mae e nome_pai pois não existem no models.py
             perfil.whatsapp = request.POST.get('whatsapp', perfil.whatsapp)
-            
+            perfil.nome_mae = request.POST.get('nome_mae', perfil.nome_mae)
+            perfil.nome_pai = request.POST.get('nome_pai', perfil.nome_pai)
+
             perfil.cep = request.POST.get('cep', perfil.cep)
             perfil.rua = request.POST.get('rua', perfil.rua)
             perfil.numero = request.POST.get('numero', perfil.numero)
