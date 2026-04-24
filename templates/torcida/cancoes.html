@@ -1,98 +1,76 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="min-h-screen fundo-app px-5 pt-10 pb-40">
-    <div class="flex items-center gap-4 mb-8">
-        <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">NOSSAS <span class="texto-tema">CANÇÕES</span></h1>
+<div class="min-h-screen fundo-app px-4 md:px-8 pt-10 pb-40">
+    
+    <div class="flex items-center gap-4 mb-10">
+        <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-2xl md:text-3xl font-black italic uppercase tracking-tighter texto-main">
+                Nossas <span class="texto-tema">Canções</span>
+            </h1>
+            <p class="text-[10px] uppercase tracking-[0.2em] texto-main opacity-60 font-bold">O ritmo da bancada</p>
+        </div>
     </div>
-
-    {% if is_moderador %}
-    <div class="mb-8">
-        <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="bi bi-plus-circle-fill texto-tema"></i> Adicionar Canção
-        </h3>
-        <form method="POST" enctype="multipart/form-data" class="fundo-card p-5 rounded-[25px] border border-suave shadow-sm">
-            {% csrf_token %}
-            
-            <input type="text" name="titulo" placeholder="Título da Canção" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema mb-3">
-            
-            <textarea name="letra" rows="3" placeholder="Letra da música (opcional)" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema mb-3"></textarea>
-            
-            <div class="mb-4 space-y-3">
-                <div>
-                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 block mb-1">Link do YouTube (Opcional)</label>
-                    <input type="url" name="url_youtube" placeholder="Ex: https://youtube.com/watch?v=..." class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-sm focus:outline-none focus:border-tema">
-                </div>
-                
-                <div>
-                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 block mb-1">Upload de Áudio (Opcional)</label>
-                    <input type="file" name="arquivo_audio" accept="audio/*" class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
-                </div>
-            </div>
-            
-            <button type="submit" class="w-full bg-dinamico texto-claro py-3 rounded-xl font-black uppercase text-xs tracking-widest shadow-md active:scale-95 transition-transform">
-                Publicar Canção
-            </button>
-        </form>
-    </div>
-    {% endif %}
 
     <div class="space-y-6">
         {% for cancao in cancoes %}
-        <div class="fundo-card p-5 rounded-[25px] border border-suave shadow-sm">
-            <h4 class="texto-tema font-black uppercase italic text-lg mb-2">{{ cancao.titulo }}</h4>
-            <p class="texto-main opacity-80 text-xs leading-relaxed font-medium whitespace-pre-line mb-4">{{ cancao.letra }}</p>
-
-            <div class="w-full rounded-2xl overflow-hidden bg-black/5 border border-suave flex flex-col gap-2">
+        <div class="fundo-card p-5 md:p-8 rounded-[2rem] border border-suave shadow-sm hover:shadow-md transition-all duration-300">
+            
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-5">
+                <div class="flex-1">
+                    <h2 class="texto-main font-black uppercase italic text-xl md:text-2xl mb-1 flex items-center gap-3">
+                        <i class="bi bi-music-note-beamed texto-tema opacity-80"></i> {{ cancao.titulo }}
+                    </h2>
+                    {% if cancao.descricao %}
+                        <p class="texto-main opacity-60 text-xs mt-1">{{ cancao.descricao }}</p>
+                    {% endif %}
+                </div>
                 
-                {% if cancao.url_youtube %}
-                    <button type="button" onclick="abrirModal('modal-cancao-{{ cancao.id }}', '{{ cancao.url_youtube }}', 'iframe-{{ cancao.id }}')" class="w-full py-3 px-4 flex items-center justify-center gap-2 bg-red-600/10 texto-main font-bold text-xs uppercase tracking-wider hover:bg-red-600/20 transition-colors cursor-pointer">
-                        <i class="bi bi-youtube text-red-600 text-lg"></i> Assistir Vídeo
-                    </button>
-                
-                {% elif cancao.arquivo_audio %}
-                    <div class="p-3">
-                        <audio controls class="w-full outline-none">
-                            <source src="{{ cancao.arquivo_audio.url }}" type="audio/mpeg">
-                            O seu navegador não suporta áudio.
-                        </audio>
-                    </div>
-                
-                {% else %}
-                    <div class="py-6 flex flex-col items-center justify-center opacity-30">
-                        <i class="bi bi-mic-fill text-3xl mb-2"></i>
-                        <span class="text-[8px] font-black uppercase tracking-widest">Cante com a torcida</span>
-                    </div>
+                {% if cancao.video_url %}
+                <button onclick="abrirModal('modal-video-{{ cancao.id }}', '{{ cancao.video_url }}', 'iframe-{{ cancao.id }}')" 
+                        class="shrink-0 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-red-600/10 text-red-500 border border-red-500/20 hover:bg-red-600 hover:text-white transition-all text-xs font-black uppercase tracking-wider">
+                    <i class="bi bi-play-circle-fill text-lg"></i> Ver Vídeo
+                </button>
                 {% endif %}
             </div>
-            
-            {% if is_moderador %}
-            <div class="mt-4 pt-3 border-t border-suave flex justify-end">
-                 <a href="{% url 'excluir_cancao' cancao.id %}" onclick="return confirm('Tem certeza que deseja apagar esta música?')" class="text-[9px] font-black text-red-500 uppercase flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
-                     <i class="bi bi-trash-fill"></i> Apagar
-                 </a>
+
+            {% if cancao.letra %}
+            <div class="mt-4 p-5 md:p-6 fundo-app rounded-2xl border border-suave/50">
+                <p class="texto-main opacity-80 text-sm leading-relaxed whitespace-pre-line font-medium text-center md:text-left italic">
+                    {{ cancao.letra }}
+                </p>
             </div>
             {% endif %}
         </div>
 
-        {% if cancao.url_youtube %}
-        <div id="modal-cancao-{{ cancao.id }}" class="fixed inset-0 z-[1000] hidden bg-black/95 flex-col justify-center items-center p-4">
-            <div class="w-full max-w-2xl bg-[#121212] rounded-2xl overflow-hidden shadow-2xl relative border border-white/10">
-                <div class="flex justify-between items-center p-4 border-b border-white/10">
-                    <h3 class="texto-tema font-black italic uppercase text-sm">{{ cancao.titulo }}</h3>
-                    <button onclick="fecharModal('modal-cancao-{{ cancao.id }}')" class="text-white/50 hover:text-white text-3xl leading-none">&times;</button>
+        {% if cancao.video_url %}
+        <div id="modal-video-{{ cancao.id }}" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-sm items-center justify-center p-4 transition-opacity">
+            <div class="relative w-full max-w-4xl rounded-3xl overflow-hidden fundo-card border border-suave shadow-2xl">
+                
+                <div class="flex justify-between items-center p-4 border-b border-suave bg-black/20">
+                    <h3 class="texto-main font-black uppercase italic text-sm"><i class="bi bi-youtube text-red-500 mr-2"></i> {{ cancao.titulo }}</h3>
+                    <button onclick="fecharModal('modal-video-{{ cancao.id }}', 'iframe-{{ cancao.id }}')" class="w-8 h-8 flex items-center justify-center rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
-                <div class="relative pb-[56.25%] h-0">
-                    <iframe id="iframe-{{ cancao.id }}" class="absolute top-0 left-0 w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                
+                <div class="relative pt-[56.25%] w-full bg-black">
+                    <iframe id="iframe-{{ cancao.id }}" class="absolute inset-0 w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
+
             </div>
         </div>
         {% endif %}
 
         {% empty %}
-        <div class="p-10 text-center fundo-card rounded-[25px] border border-suave shadow-sm">
-            <i class="bi bi-music-note-list text-4xl texto-main opacity-20 mb-3 block"></i>
-            <p class="text-[10px] font-bold opacity-50 texto-main uppercase tracking-widest">Nenhuma canção no repertório.</p>
+        <div class="flex flex-col items-center justify-center py-20 text-center">
+            <div class="w-20 h-20 mb-4 rounded-full fundo-card border border-suave shadow-inner flex items-center justify-center">
+                <i class="bi bi-music-note-list text-4xl opacity-30 texto-main"></i>
+            </div>
+            <h3 class="text-lg font-bold texto-main mb-1">Repertório Vazio</h3>
+            <p class="text-sm opacity-50 texto-main">Ainda não existem canções registadas para esta torcida.</p>
         </div>
         {% endfor %}
     </div>
@@ -103,8 +81,8 @@ function abrirModal(modalId, rawUrl, iframeId) {
     let modal = document.getElementById(modalId);
     let iframe = document.getElementById(iframeId);
     
-    // Converte o link normal do Youtube para Embed automaticamente
-    if (iframe && (!iframe.src || iframe.src === window.location.href)) {
+    // Converte e injeta o link do YouTube apenas quando o utilizador clica
+    if (iframe) {
         let embedUrl = rawUrl;
         if (rawUrl.includes('watch?v=')) {
             let videoId = rawUrl.split('watch?v=')[1].split('&')[0];
@@ -113,27 +91,27 @@ function abrirModal(modalId, rawUrl, iframeId) {
             let videoId = rawUrl.split('youtu.be/')[1].split('?')[0];
             embedUrl = 'https://www.youtube.com/embed/' + videoId;
         }
-        iframe.src = embedUrl;
+        // Adiciona autoplay se desejado
+        iframe.src = embedUrl + "?autoplay=1";
     }
 
     if(modal) {
-        modal.style.display = 'flex';
         modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
 }
 
-function fecharModal(modalId) {
+function fecharModal(modalId, iframeId) {
     let modal = document.getElementById(modalId);
+    let iframe = document.getElementById(iframeId);
+    
     if(modal) {
-        modal.style.display = 'none';
         modal.classList.add('hidden');
-        
-        // Corta o áudio do vídeo ao fechar o modal
-        let iframe = modal.querySelector('iframe');
-        if (iframe) {
-            let src = iframe.src;
-            iframe.src = src;
-        }
+        modal.classList.remove('flex');
+    }
+    // Esvazia o src para forçar o vídeo e o áudio a pararem imediatamente
+    if(iframe) {
+        iframe.src = "";
     }
 }
 </script>

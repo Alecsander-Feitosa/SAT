@@ -1,46 +1,100 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="p-5 max-w-lg mx-auto">
-    <div class="flex items-center gap-3 mb-6">
-        <i class="bi bi-bus-front-fill text-3xl text-tema"></i>
+<div class="min-h-screen bg-black w-full pb-20 px-4 pt-6">
+    
+    <div class="mb-8 flex justify-between items-end">
         <div>
-            <h2 class="text-xl font-black italic uppercase">Caravanas</h2>
-            <p class="text-xs text-gray-500 font-bold">Viaje com a {{ nome_tema }}</p>
+            <h2 class="text-3xl font-black italic text-white uppercase drop-shadow-md" style="font-family: 'Montserrat', sans-serif;">
+                <span class="text-[#D37129]">Próximas</span> Viagens
+            </h2>
+            <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Caravanas Oficiais</p>
         </div>
+        <a href="{% url 'dashboard' %}" class="w-10 h-10 flex items-center justify-center bg-[#1a1a1a] border border-gray-800 text-gray-400 hover:text-white rounded-xl transition-all shadow-md">
+            <i class="bi bi-x-lg"></i>
+        </a>
     </div>
 
-    <div class="space-y-5">
+    <div class="flex flex-col gap-6">
         {% for caravana in caravanas %}
-        <div class="bg-white border-2 border-gray-50 rounded-3xl overflow-hidden shadow-sm relative">
-            <div class="absolute left-0 top-0 bottom-0 w-2 bg-tema"></div>
-            
-            <div class="p-5 pl-7">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-black text-lg uppercase leading-tight w-3/4">{{ caravana.titulo }}</h3>
-                    <div class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
-                        <i class="bi bi-people-fill text-tema mr-1"></i> {{ caravana.vagas_restantes }} vagas
+            <div class="bg-[#05070a] border border-gray-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+                
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#D37129]/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="flex justify-between items-start mb-6 relative z-10">
+                    <div>
+                        <span class="bg-[#D37129]/20 text-[#D37129] text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border border-[#D37129]/30 flex items-center gap-1 w-max">
+                            <i class="bi bi-bus-front-fill"></i> Caravana
+                        </span>
+                        <h3 class="text-2xl font-black text-white uppercase mt-4">{{ caravana.nome|default:"Caravana da Torcida" }}</h3>
                     </div>
                 </div>
-                
-                <p class="text-xs text-tema font-black mb-4"><i class="bi bi-geo-alt-fill"></i> Saída: {{ caravana.saida_local }}</p>
-                
-                <div class="flex items-center justify-between mt-4 p-3 bg-gray-50 rounded-2xl">
-                    <div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Valor Sócio</p>
-                        <p class="font-black text-lg text-tema">R$ {{ caravana.valor }}</p>
+
+                <div class="space-y-3 mt-2 mb-6 relative z-10">
+                    
+                    <div class="flex items-center text-sm text-gray-300 font-medium bg-[#0d1117] p-3.5 rounded-2xl border border-gray-800/50">
+                        <div class="w-10 h-10 flex items-center justify-center bg-gray-800/50 rounded-xl mr-3">
+                            <i class="bi bi-geo-alt-fill text-[#D37129] text-xl"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-0.5">Destino / Jogo</span>
+                            <span class="text-white font-bold">{{ caravana.destino|default:"Estádio Principal" }}</span>
+                        </div>
                     </div>
-                    <button class="bg-tema text-white px-5 py-2 rounded-xl text-sm font-black uppercase tracking-wide hover:opacity-90 active:scale-95 transition-all shadow-md shadow-tema/20">
-                        Reservar
-                    </button>
+
+                    <div class="flex gap-3">
+                        <div class="flex-1 flex items-center text-sm text-gray-300 font-medium bg-[#0d1117] p-3.5 rounded-2xl border border-gray-800/50">
+                            <div class="w-10 h-10 flex items-center justify-center bg-gray-800/50 rounded-xl mr-3 shrink-0">
+                                <i class="bi bi-calendar-event-fill text-[#D37129] text-lg"></i>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-0.5">Saída</span>
+                                <span class="text-white font-bold text-xs">{{ caravana.saida_horario|date:"d/m/y H:i" }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1 flex items-center text-sm text-gray-300 font-medium bg-[#0d1117] p-3.5 rounded-2xl border border-gray-800/50">
+                            <div class="w-10 h-10 flex items-center justify-center bg-green-500/10 rounded-xl mr-3 shrink-0">
+                                <i class="bi bi-cash-coin text-green-500 text-lg"></i>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-0.5">Valor</span>
+                                <span class="text-green-500 font-black">R$ {{ caravana.valor|default:"0,00" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if caravana.descricao %}
+                <div class="mb-6 bg-[#0d1117]/50 p-4 rounded-xl border border-gray-800/30 relative z-10">
+                    <p class="text-xs text-gray-400 leading-relaxed font-medium">
+                        <strong class="text-white uppercase tracking-widest text-[10px] block mb-1.5"><i class="bi bi-info-circle mr-1"></i> Informações Adicionais:</strong>
+                        {{ caravana.descricao }}
+                    </p>
+                </div>
+                {% endif %}
+
+                <div class="relative z-10 mt-2">
+                    <a href="{% url 'reservar_caravana' caravana.id %}" class="w-full flex items-center justify-center gap-2 text-white bg-[#D37129] hover:bg-[#b85a1a] font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#D37129]/30">
+                        <i class="bi bi-ticket-perforated-fill text-lg"></i>
+                        Garantir Minha Vaga
+                    </a>
+                    
+                    <p class="text-[9px] text-gray-500 uppercase tracking-widest text-center mt-3 font-bold">
+                        *Ao clicar, o teu lugar na caravana será registado. Clica novamente para cancelar.
+                    </p>
                 </div>
             </div>
-        </div>
+
         {% empty %}
-        <div class="text-center py-10">
-            <i class="bi bi-bus-front text-4xl text-gray-300"></i>
-            <p class="text-gray-500 font-bold mt-2">Nenhuma caravana agendada.</p>
-        </div>
+            <div class="flex flex-col items-center justify-center py-24 px-6 bg-[#05070a] border border-gray-800 rounded-3xl mt-4">
+                <div class="w-20 h-20 bg-[#D37129]/10 flex items-center justify-center rounded-full mb-5">
+                    <i class="bi bi-sign-stop text-[#D37129]/50 text-4xl"></i>
+                </div>
+                <h3 class="text-lg font-black text-white uppercase tracking-widest text-center">Sem Viagens</h3>
+                <p class="text-xs text-gray-500 text-center mt-2 font-medium">A diretoria ainda não lançou nenhuma caravana. Fica atento!</p>
+            </div>
         {% endfor %}
     </div>
 </div>

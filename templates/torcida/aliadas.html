@@ -1,25 +1,85 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="min-h-screen fundo-app px-5 pt-10 pb-40">
-    <div class="flex items-center gap-4 mb-8">
-        <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">UNIÃO <span class="texto-tema">SINISTRA</span></h1>
+<div class="min-h-screen fundo-app px-4 md:px-8 pt-10 pb-40 relative overflow-hidden">
+    
+    <div class="absolute -top-20 left-0 w-64 h-64 rounded-full blur-[100px] opacity-10 pointer-events-none" style="background-color: var(--cor-primaria);"></div>
+
+    <div class="relative mb-12 flex items-center gap-5 z-10">
+        <a href="javascript:history.back()" class="w-12 h-12 shrink-0 flex items-center justify-center rounded-2xl fundo-card border border-suave texto-main shadow-lg hover:text-white transition-all duration-300" style="hover:background-color: var(--cor-primaria); hover:border-color: var(--cor-primaria);">
+            <i class="bi bi-arrow-left text-xl"></i>
+        </a>
+        
+        <div>
+            <h1 class="text-3xl md:text-4xl font-black italic uppercase tracking-tighter texto-main drop-shadow-lg leading-none">
+                União <span class="texto-tema">Sinistra</span>
+            </h1>
+            <div class="flex items-center gap-3 mt-2">
+                <div class="h-[2px] w-8 rounded-full" style="background: linear-gradient(to right, var(--cor-primaria), transparent);"></div>
+                <p class="text-[10px] uppercase tracking-[0.3em] texto-main opacity-60 font-black">Alianças & Amizades</p>
+            </div>
+        </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6 relative z-10">
         {% for aliada in aliadas %}
-        <div class="fundo-card p-6 rounded-3xl border border-suave text-center shadow-sm">
-            <div class="w-16 h-16 fundo-app rounded-full mx-auto mb-3 flex items-center justify-center border border-tema shadow-inner overflow-hidden">
+        <div class="relative group">
+            
+            <div class="absolute -inset-0.5 rounded-[2.5rem] blur opacity-0 group-hover:opacity-40 transition duration-500" style="background: linear-gradient(45deg, var(--cor-primaria), transparent);"></div>
+            
+            <div class="relative fundo-card p-5 rounded-[2.5rem] border border-suave flex items-center gap-5 md:gap-6 shadow-sm group-hover:shadow-xl transition-all duration-300 overflow-hidden bg-[#121418]/90 backdrop-blur-sm">
+                
                 {% if aliada.logo %}
+                <div class="absolute -right-8 -bottom-8 w-40 h-40 opacity-[0.03] blur-xl pointer-events-none grayscale transition-transform duration-700 group-hover:scale-125 group-hover:opacity-[0.05]">
                     <img src="{{ aliada.logo.url }}" class="w-full h-full object-cover">
-                {% else %}
-                    <i class="bi bi-shield-shaded texto-tema text-3xl"></i>
+                </div>
                 {% endif %}
+
+                <div class="relative shrink-0">
+                    <div class="w-20 h-20 md:w-24 md:h-24 rounded-full p-1 bg-gradient-to-br from-suave to-transparent shadow-inner">
+                        <div class="w-full h-full rounded-full fundo-app flex items-center justify-center overflow-hidden border border-suave relative z-10">
+                            {% if aliada.logo %}
+                                <img src="{{ aliada.logo.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="{{ aliada.nome_organizada }}">
+                            {% else %}
+                                <i class="bi bi-shield-shaded texto-tema text-3xl opacity-30"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full fundo-card border-2 border-suave flex items-center justify-center shadow-lg z-20 group-hover:border-[var(--cor-primaria)] transition-colors duration-300">
+                        <i class="bi bi-link-45deg text-lg texto-tema"></i>
+                    </div>
+                </div>
+
+                <div class="flex-1 relative z-10 py-2">
+                    <h3 class="texto-main font-black uppercase italic text-lg md:text-xl leading-none mb-2 tracking-tight">
+                        {{ aliada.nome_organizada }}
+                    </h3>
+                    
+                    {% if aliada.clube %}
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 border border-suave/50 backdrop-blur-md">
+                        <i class="bi bi-shield-fill texto-tema text-[10px]"></i>
+                        <span class="texto-main text-[10px] font-bold uppercase tracking-widest opacity-80 mt-0.5">
+                            {{ aliada.clube }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="pr-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all duration-300">
+                    <i class="bi bi-chevron-right texto-tema text-xl"></i>
+                </div>
             </div>
-            <h4 class="texto-main font-black uppercase italic text-[10px]">{{ aliada.nome }}</h4>
         </div>
         {% empty %}
-        <p class="col-span-2 text-center text-xs opacity-50 texto-main">Nenhuma aliada cadastrada.</p>
+        <div class="col-span-full flex flex-col items-center justify-center py-20 text-center relative">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-[80px] opacity-20 pointer-events-none" style="background-color: var(--cor-primaria);"></div>
+            
+            <div class="w-24 h-24 mb-6 rounded-[2rem] fundo-card border border-suave shadow-2xl flex items-center justify-center relative z-10 rotate-3 hover:rotate-0 transition-transform duration-500 cursor-default">
+                <i class="bi bi-diagram-3-fill text-5xl texto-tema opacity-80" style="filter: drop-shadow(0 0 10px rgba(var(--cor-primaria-rgb), 0.5));"></i>
+            </div>
+            <h3 class="text-2xl font-black italic uppercase texto-main mb-2 tracking-tight relative z-10 drop-shadow-md">Nenhuma Aliança</h3>
+            <p class="text-xs font-medium opacity-60 texto-main max-w-xs mx-auto relative z-10 leading-relaxed uppercase tracking-widest">A bancada segue por conta própria no momento.</p>
+        </div>
         {% endfor %}
     </div>
 </div>

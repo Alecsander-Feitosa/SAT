@@ -1,25 +1,59 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="min-h-screen fundo-app px-5 pt-10 pb-40">
-    <div class="flex items-center gap-4 mb-8">
-       <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">MURAL DE <span class="texto-tema">GLÓRIAS</span></h1>
+<div class="min-h-screen fundo-app px-4 md:px-8 pt-10 pb-40">
+    
+    <div class="flex items-center gap-4 mb-10">
+       <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-2xl md:text-3xl font-black italic uppercase tracking-tighter texto-main">
+                Mural de <span class="texto-tema">Glórias</span>
+            </h1>
+            <p class="text-[10px] uppercase tracking-[0.2em] texto-main opacity-60 font-bold">As nossas conquistas</p>
+        </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {% for conquista in conquistas %}
-        <div class="flex flex-col items-center gap-2">
-            <div class="w-20 h-20 fundo-card rounded-[24px] flex items-center justify-center shadow-lg transition-transform hover:scale-105 overflow-hidden" style="border: 1px solid var(--cor-primaria); box-shadow: 0 0 15px rgba(0,0,0,0.1);">
+        <div class="fundo-card p-5 rounded-[2rem] border border-suave shadow-sm flex flex-col items-center text-center group hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+            
+            <div class="w-24 h-24 mb-4 rounded-3xl flex items-center justify-center shadow-inner relative overflow-hidden transition-all duration-300 group-hover:scale-105" style="border: 2px solid var(--cor-primaria);">
+                
+                <div class="absolute inset-0 opacity-10 bg-[var(--cor-primaria)]"></div>
+
                 {% if conquista.imagem %}
-                    <img src="{{ conquista.imagem.url }}" class="w-full h-full object-cover">
+                    <img src="{{ conquista.imagem.url }}" class="w-full h-full object-cover relative z-10" alt="{{ conquista.titulo }}">
                 {% else %}
-                    <i class="bi bi-trophy-fill texto-tema text-3xl" style="filter: drop-shadow(0 0 5px var(--cor-primaria));"></i>
+                    <i class="bi {{ conquista.icone|default:'bi-trophy' }} text-4xl texto-tema relative z-10" style="filter: drop-shadow(0 0 8px rgba(0,0,0,0.2));"></i>
                 {% endif %}
             </div>
-            <span class="text-[8px] font-black texto-main uppercase text-center leading-tight">{{ conquista.titulo }}<br><span class="opacity-50">{{ conquista.ano }}</span></span>
+            
+            <h3 class="texto-main font-black uppercase italic text-sm leading-tight mb-1">
+                {{ conquista.titulo }}
+            </h3>
+            
+            {% if conquista.data_conquista %}
+            <span class="inline-block mt-1 px-2 py-1 fundo-app border border-suave rounded-md texto-main opacity-70 text-[9px] font-bold uppercase tracking-widest">
+                {{ conquista.data_conquista|date:"Y" }}
+            </span>
+            {% endif %}
+
+            {% if conquista.descricao %}
+            <p class="texto-main opacity-60 text-[11px] mt-3 line-clamp-3 leading-relaxed">
+                {{ conquista.descricao }}
+            </p>
+            {% endif %}
+
         </div>
         {% empty %}
-        <p class="col-span-3 text-center text-xs opacity-50 texto-main mt-5">Nenhuma conquista cadastrada.</p>
+        <div class="col-span-full flex flex-col items-center justify-center py-20 text-center">
+            <div class="w-20 h-20 mb-4 rounded-full fundo-card border border-suave shadow-inner flex items-center justify-center">
+                <i class="bi bi-trophy text-4xl opacity-30 texto-main"></i>
+            </div>
+            <h3 class="text-lg font-bold texto-main mb-1">Mural Vazio</h3>
+            <p class="text-sm opacity-50 texto-main">Ainda não existem conquistas registadas no mural desta torcida.</p>
+        </div>
         {% endfor %}
     </div>
 </div>

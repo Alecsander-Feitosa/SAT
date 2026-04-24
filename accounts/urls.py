@@ -63,7 +63,7 @@ urlpatterns = [
     
     path('perfil/', views.perfil_view, name='perfil'),
     path('cancoes/excluir/<int:cancao_id>/', organizadas_views.excluir_cancao, name='excluir_cancao'),
-    
+    path('caravana/<int:caravana_id>/reservar/', views.toggle_presenca_caravana, name='reservar_caravana'),
     path('evento/<int:evento_id>/toggle-presenca/', views.toggle_presenca_evento, name='toggle_presenca_evento'),
     path('evento/<int:evento_id>/toggle-salvar/', views.toggle_salvar_evento, name='toggle_salvar_evento'),
 

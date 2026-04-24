@@ -1,28 +1,76 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="min-h-screen fundo-app px-5 pt-10 pb-40">
-    <div class="flex items-center gap-4 mb-8">
-        <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">CORPO <span class="texto-tema">DIRETIVO</span></h1>
+<div class="min-h-screen fundo-app px-4 md:px-8 pt-10 pb-40">
+    
+    <div class="flex items-center gap-4 mb-10">
+        <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-2xl md:text-3xl font-black italic uppercase texto-main tracking-tighter">
+                Corpo <span class="texto-tema">Diretivo</span>
+            </h1>
+            <p class="text-[10px] uppercase tracking-[0.2em] texto-main opacity-60 font-bold">Gestão & Liderança</p>
+        </div>
     </div>
 
-    <div class="space-y-4">
-        {% for membro in membros %}
-        <div class="fundo-card p-4 rounded-3xl border border-suave flex items-center gap-4 shadow-sm">
-            <div class="w-16 h-16 fundo-tema rounded-2xl flex items-center justify-center texto-claro font-black italic shadow-lg overflow-hidden">
-                {% if membro.foto %}
-                    <img src="{{ membro.foto.url }}" class="w-full h-full object-cover">
-                {% else %}
-                    <i class="bi bi-person-fill text-2xl"></i>
-                {% endif %}
-            </div>
-            <div>
-                <h4 class="texto-main font-black uppercase italic text-sm">{{ membro.nome }}</h4>
-                <p class="texto-main opacity-50 text-[10px] uppercase font-bold tracking-widest">{{ membro.cargo }}</p>
-            </div>
-        </div>
+    {% regroup membros by categoria as membros_por_categoria %}
+
+    <div class="space-y-12">
+        {% for grupo in membros_por_categoria %}
+            <section>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="h-[2px] flex-1 bg-gradient-to-r from-suave to-transparent"></div>
+                    <h2 class="texto-main text-xs font-black uppercase tracking-widest opacity-80 italic">
+                        {% if grupo.grouper %}
+                            {{ grupo.grouper.nome }}
+                        {% else %}
+                            Outros Membros
+                        {% endif %}
+                    </h2>
+                    <div class="h-[2px] w-10 bg-suave opacity-30"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for membro in grupo.list %}
+                    <div class="fundo-card p-5 rounded-[2rem] border border-suave shadow-sm flex items-center gap-5 transition-all hover:shadow-md">
+                        
+                        <div class="relative shrink-0">
+                            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden border-2 border-suave p-1">
+                                {% if membro.foto %}
+                                    <img src="{{ membro.foto.url }}" class="w-full h-full object-cover rounded-2xl" alt="{{ membro.nome }}">
+                                {% else %}
+                                    <div class="w-full h-full fundo-app flex items-center justify-center rounded-2xl">
+                                        <i class="bi bi-person text-3xl opacity-20 texto-main"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="flex-1">
+                            <h4 class="texto-main font-black uppercase italic text-lg leading-tight mb-1">{{ membro.nome }}</h4>
+                            <p class="texto-tema text-[11px] font-bold uppercase tracking-widest mb-3">{{ membro.cargo }}</p>
+                            
+                            {% if membro.ano_ingresso %}
+                            <div class="inline-flex items-center px-3 py-1.5 rounded-xl fundo-app border border-suave">
+                                <span class="texto-main opacity-70 text-[10px] uppercase font-bold tracking-tighter">
+                                    <i class="bi bi-calendar-check mr-1 opacity-50"></i> Desde {{ membro.ano_ingresso }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
         {% empty %}
-        <p class="text-center text-xs opacity-50 texto-main">Diretoria não cadastrada.</p>
+            <div class="flex flex-col items-center justify-center py-20 text-center">
+                <div class="w-20 h-20 mb-4 rounded-full fundo-card border border-suave shadow-inner flex items-center justify-center">
+                    <i class="bi bi-shield-lock text-4xl opacity-50 texto-main"></i>
+                </div>
+                <h3 class="text-lg font-bold texto-main mb-1">Diretoria não definida</h3>
+                <p class="text-sm opacity-70 texto-main">Nenhum membro registado no corpo diretivo até ao momento.</p>
+            </div>
         {% endfor %}
     </div>
 </div>

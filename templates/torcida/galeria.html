@@ -1,25 +1,39 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="min-h-screen fundo-app px-5 pt-10 pb-40">
+<div class="min-h-screen fundo-app px-4 md:px-8 pt-10 pb-40">
+    
     <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-4">
-            <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
-            <h1 class="text-2xl font-black italic uppercase texto-main">GALERIA</h1>
+            <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h1 class="text-2xl md:text-3xl font-black italic uppercase texto-main tracking-wide">Galeria</h1>
         </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-1">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
         {% for foto in fotos %}
-        <div class="aspect-square fundo-card overflow-hidden border border-suave shadow-sm relative group">
-            <img src="{{ foto.imagem.url }}" class="w-full h-full object-cover">
+        <div class="relative aspect-square fundo-card rounded-xl overflow-hidden border border-suave shadow-sm hover:shadow-lg transition-all duration-300 group cursor-pointer">
+            
+            <img src="{{ foto.imagem.url }}" alt="{{ foto.legenda|default:'Foto da galeria' }}" class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110">
+            
             {% if foto.legenda %}
-                <div class="absolute bottom-0 left-0 right-0 bg-black/60 p-1 text-[8px] text-white text-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    {{ foto.legenda }}
+                <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3 pt-8 pointer-events-none">
+                    <p class="text-white text-xs md:text-sm font-medium line-clamp-2 drop-shadow-md">
+                        {{ foto.legenda }}
+                    </p>
                 </div>
             {% endif %}
+            
         </div>
         {% empty %}
-        <p class="col-span-3 text-center text-xs opacity-50 texto-main mt-5">Nenhuma foto adicionada à galeria ainda.</p>
+        <div class="col-span-full flex flex-col items-center justify-center py-20 text-center">
+            <div class="w-20 h-20 mb-4 rounded-full fundo-card border border-suave shadow-inner flex items-center justify-center">
+                <i class="bi bi-images text-4xl opacity-50 texto-main"></i>
+            </div>
+            <h3 class="text-lg font-bold texto-main mb-1">Nenhum registo ainda</h3>
+            <p class="text-sm opacity-70 texto-main">A galeria desta torcida está vazia de momento. Volte mais tarde!</p>
+        </div>
         {% endfor %}
     </div>
 </div>
