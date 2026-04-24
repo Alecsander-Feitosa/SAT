@@ -462,35 +462,33 @@
 
                 <div class="space-y-3">
                     {% for cancao in cancoes %}
-                    <div class="fundo-card p-4 rounded-2xl border border-suave flex flex-col gap-3 relative overflow-hidden group">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center text-lg shadow-inner" style="color: var(--cor-primaria)">
-                                    <i class="bi bi-music-note-beamed"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-xs font-black uppercase texto-main">{{ cancao.titulo }}</h4>
-                                    {% if cancao.url_youtube %}
-                                        <a href="{{ cancao.url_youtube }}" target="_blank" class="text-[9px] font-bold text-red-500 hover:underline flex items-center gap-1 mt-0.5"><i class="bi bi-youtube"></i> Ver no YouTube</a>
-                                    {% elif cancao.arquivo_midia %}
-                                        <span class="text-[9px] font-bold text-green-600 flex items-center gap-1 mt-0.5"><i class="bi bi-play-circle-fill"></i> Mídia Disponível</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <form method="POST" onsubmit="return confirm('Remover esta canção da bancada?');">
-                                {% csrf_token %}
-                                <input type="hidden" name="item_id" value="{{ cancao.id }}">
-                                <button type="submit" name="acao" value="deletar_cancao" class="w-8 h-8 flex items-center justify-center text-red-500 opacity-30 group-hover:opacity-100 transition-opacity">
-                                    <i class="bi bi-trash"></i>
+                    <div class="fundo-card p-5 rounded-[24px] border border-suave group">
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="text-sm font-black uppercase texto-main">{{ cancao.titulo }}</h4>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="abrirModal('modalEditarCancao{{ cancao.id }}')" class="w-8 h-8 flex items-center justify-center text-orange-500 opacity-30 group-hover:opacity-100 transition-opacity">
+                                    <i class="bi bi-pencil-fill"></i>
                                 </button>
-                            </form>
+                                <form method="POST" onsubmit="return confirm('Remover esta canção da bancada?');" class="m-0">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="item_id" value="{{ cancao.id }}">
+                                    <button type="submit" name="acao" value="deletar_cancao" class="w-8 h-8 flex items-center justify-center text-red-500 opacity-30 group-hover:opacity-100 transition-opacity">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <p class="text-[10px] opacity-70 whitespace-pre-line bg-black/5 p-3 rounded-xl border border-suave">{{ cancao.descricao }}</p>
+                        <p class="text-[11px] opacity-70 whitespace-pre-line leading-relaxed font-medium">{{ cancao.descricao }}</p>
+                        {% if cancao.url_youtube %}
+                        <a href="{{ cancao.url_youtube }}" target="_blank" class="inline-flex items-center gap-2 text-[9px] font-black uppercase text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg mt-4 hover:bg-red-500/20 transition-colors">
+                            <i class="bi bi-youtube text-sm"></i> Ouvir no YouTube
+                        </a>
+                        {% endif %}
                     </div>
                     {% empty %}
                     <div class="text-center py-8 opacity-40 border border-dashed border-suave rounded-2xl bg-black/5">
-                        <i class="bi bi-mic text-3xl mb-2 block"></i>
-                        <p class="text-[10px] font-bold uppercase tracking-widest">Nenhuma canção registada.</p>
+                        <i class="bi bi-music-note-list text-3xl mb-2 block"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest">Nenhuma música adicionada.</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -518,13 +516,18 @@
                             </div>
                             <p class="text-[10px] opacity-60 line-clamp-1">{{ conquista.descricao }}</p>
                         </div>
-                        <form method="POST" onsubmit="return confirm('Remover esta conquista do histórico?');">
-                            {% csrf_token %}
-                            <input type="hidden" name="item_id" value="{{ conquista.id }}">
-                            <button type="submit" name="acao" value="deletar_conquista" class="w-8 h-8 flex items-center justify-center text-red-500 opacity-30 hover:opacity-100 transition-opacity">
-                                <i class="bi bi-trash"></i>
+                        <div class="flex flex-col gap-2">
+                            <button type="button" onclick="abrirModal('modalEditarConquista{{ conquista.id }}')" class="w-8 h-8 flex items-center justify-center text-orange-500 opacity-30 hover:opacity-100 transition-opacity">
+                                <i class="bi bi-pencil-fill"></i>
                             </button>
-                        </form>
+                            <form method="POST" onsubmit="return confirm('Remover esta conquista do histórico?');" class="m-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ conquista.id }}">
+                                <button type="submit" name="acao" value="deletar_conquista" class="w-8 h-8 flex items-center justify-center text-red-500 opacity-30 hover:opacity-100 transition-opacity">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                     {% empty %}
                     <div class="text-center py-6 opacity-40 border border-dashed border-suave rounded-2xl bg-black/5">
@@ -537,6 +540,73 @@
 
        <div id="institucional" class="secao-conteudo">
             <div class="mb-12">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Organograma / Diretoria</h3>
+                        <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Lideranças e Gestão</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="abrirModal('modalCategoriaDiretoria')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Categoria</button>
+                        <button onclick="abrirModal('modalMembroDiretoria')" class="text-[10px] bg-green-600 hover:bg-green-700 transition-colors text-white px-4 py-2 rounded-full font-black uppercase shadow-sm">+ Novo Membro</button>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    {% for cat in categorias_diretoria %}
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-suave pb-2">
+                            <h4 class="text-[10px] font-black uppercase tracking-widest opacity-50">{{ cat.nome }}</h4>
+                            <form method="POST" onsubmit="return confirm('Apagar categoria e todos os membros vinculados?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ cat.id }}">
+                                <button type="submit" name="acao" value="novo_membro_diretoria" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg" style="background-color: var(--cor-primaria)">Salvar Membro</button>
+                            </form>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {% for membro in cat.membrodiretoria_set.all|dictsort:"ordem" %}
+                            <div class="fundo-card p-4 rounded-2xl border border-suave flex items-center justify-between gap-4">
+                                <div class="flex items-center gap-4">
+                                    {% if membro.foto %}
+                                        <img src="{{ membro.foto.url }}" class="w-12 h-12 rounded-full object-cover border border-suave shadow-sm">
+                                    {% else %}
+                                        <div class="w-12 h-12 rounded-full bg-black/5 flex items-center justify-center border border-suave">
+                                            <i class="bi bi-person text-xl opacity-30"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h5 class="text-xs font-black uppercase texto-main leading-tight">{{ membro.nome }}</h5>
+                                        <p class="text-[10px] font-bold opacity-60 uppercase" style="color: var(--cor-primaria)">{{ membro.cargo }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <button type="button" onclick="abrirModal('modalEditarMembro{{ membro.id }}')" class="text-orange-500 opacity-30 hover:opacity-100 transition-opacity">
+                                        <i class="bi bi-pencil-fill text-xs"></i>
+                                    </button>
+                                    <form method="POST" onsubmit="return confirm('Remover membro da diretoria?');" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="item_id" value="{{ membro.id }}">
+                                        <button type="submit" name="acao" value="deletar_membro" class="w-8 h-8 flex items-center justify-center text-red-500 opacity-30 hover:opacity-100 transition-opacity">
+                                            <i class="bi bi-trash text-xs"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-[9px] font-bold opacity-30 uppercase italic col-span-full">Nenhum membro nesta categoria.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-10 opacity-40 border border-dashed border-suave rounded-[24px] bg-black/5">
+                        <i class="bi bi-diagram-3 text-3xl mb-2 block"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest">Nenhum setor da diretoria criado.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="mb-12">
                 <div class="flex justify-between items-center mb-5">
                     <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Regras e Estatuto</h3>
                     <button onclick="abrirModal('modalRegra')" class="text-[10px] bg-black/5 px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Regra</button>
@@ -545,38 +615,28 @@
                     {% for regra in regras|dictsort:"ordem" %}
                     <div class="fundo-card p-4 rounded-2xl border border-suave flex gap-4">
                         <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-black text-white text-sm" style="background-color: var(--cor-primaria)">{{ regra.ordem }}</div>
-                        <div class="flex-1">
-                            <h4 class="text-xs font-black uppercase texto-main">{{ regra.titulo }}</h4>
-                            <p class="text-[10px] opacity-70 leading-relaxed">{{ regra.descricao }}</p>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div class="mb-12">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Organograma / Diretoria</h3>
-                    <div class="flex gap-2">
-                        <button onclick="abrirModal('modalCategoriaDiretoria')" class="text-[10px] bg-black/5 px-3 py-2 rounded-full font-black uppercase border border-suave">+ Categoria</button>
-                        <button onclick="abrirModal('modalMembroDiretoria')" class="text-[10px] bg-black/5 px-3 py-2 rounded-full font-black uppercase border border-suave">+ Membro</button>
-                    </div>
-                </div>
-                <div class="space-y-8">
-                    {% for cat in categorias_diretoria|dictsort:"ordem" %}
-                    <div>
-                        <h4 class="text-[11px] font-black uppercase tracking-[0.2em] mb-4" style="color: var(--cor-primaria)">// {{ cat.nome }}</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {% for membro in cat.membrodiretoria_set.all|dictsort:"ordem" %}
-                            <div class="fundo-card p-4 rounded-2xl border border-suave flex items-center gap-4">
-                                {% if membro.foto %}<img src="{{ membro.foto.url }}" class="w-12 h-12 rounded-full object-cover">{% endif %}
-                                <div>
-                                    <h5 class="text-xs font-black uppercase texto-main">{{ membro.nome }}</h5>
-                                    <p class="text-[10px] font-bold opacity-60 uppercase" style="color: var(--cor-primaria)">{{ membro.cargo }}</p>
-                                </div>
+                        <div class="flex-1 flex justify-between items-start gap-4">
+                            <div>
+                                <h4 class="text-xs font-black uppercase texto-main">{{ regra.titulo }}</h4>
+                                <p class="text-[10px] opacity-70 leading-relaxed">{{ regra.descricao }}</p>
                             </div>
-                            {% endfor %}
+                            <div class="flex flex-col gap-3 shrink-0">
+                                <button type="button" onclick="abrirModal('modalEditarRegra{{ regra.id }}')" class="text-orange-500 opacity-50 hover:opacity-100 transition-opacity">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </button>
+                                <form method="POST" onsubmit="return confirm('Remover regra?');" class="m-0">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="item_id" value="{{ regra.id }}">
+                                    <button type="submit" name="acao" value="deletar_regra" class="text-red-500 opacity-50 hover:opacity-100 transition-opacity">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 opacity-40 border border-dashed border-suave rounded-2xl bg-black/5">
+                        <p class="text-[10px] font-bold uppercase tracking-widest">Nenhuma regra definida.</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -972,9 +1032,8 @@
                     <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Link do YouTube</label>
                     <div class="flex items-center bg-black/5 border border-suave rounded-xl px-3 overflow-hidden focus-within:ring-1 focus-within:ring-suave">
                         <i class="bi bi-youtube text-red-500"></i>
-                        <input type="url" name="url_youtube" placeholder="https://youtube.com/..." class="w-full bg-transparent px-3 py-3.5 text-xs font-bold outline-none">
+                        <input type="url" name="url_youtube" value="{{ cancao.video_url|default:'' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none" placeholder="Link do YouTube">                    </div>
                     </div>
-                </div>
 
                 <div class="text-center text-[10px] font-black opacity-30 uppercase">- OU -</div>
 
@@ -1378,6 +1437,80 @@
     </div>
 </div>
 {% endfor %}
+
+{% for cancao in cancoes %}
+<div id="modalEditarCancao{{ cancao.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Editar Canção</h3>
+            <button type="button" onclick="fecharModal('modalEditarCancao{{ cancao.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center texto-main bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="editar_cancao">
+            <input type="hidden" name="item_id" value="{{ cancao.id }}">
+            <input type="text" name="titulo" value="{{ cancao.titulo }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <textarea name="descricao" required rows="4" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none">{{ cancao.descricao }}</textarea>
+            <input type="url" name="url_youtube" value="{{ cancao.url_youtube|default:'' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none" placeholder="Link do YouTube">
+            <button type="submit" class="w-full py-4 mt-2 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Alterações</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% for regra in regras %}
+<div id="modalEditarRegra{{ regra.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Editar Regra</h3>
+            <button type="button" onclick="fecharModal('modalEditarRegra{{ regra.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="editar_regra">
+            <input type="hidden" name="item_id" value="{{ regra.id }}">
+            <input type="text" name="titulo" value="{{ regra.titulo }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <div class="grid grid-cols-2 gap-3">
+                <input type="text" name="categoria" value="{{ regra.categoria|default:'' }}" placeholder="Categoria" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                <input type="number" name="ordem" value="{{ regra.ordem }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+            </div>
+            <textarea name="descricao" required rows="4" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none">{{ regra.descricao }}</textarea>
+            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Regra</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% for membro in diretoria %}
+<div id="modalEditarMembro{{ membro.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Editar Membro</h3>
+            <button type="button" onclick="fecharModal('modalEditarMembro{{ membro.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="editar_membro_diretoria">
+            <input type="hidden" name="item_id" value="{{ membro.id }}">
+            <select name="categoria_id" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                {% for cat in categorias_diretoria %}
+                <option value="{{ cat.id }}" {% if membro.categoria.id == cat.id %}selected{% endif %}>{{ cat.nome }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="nome" value="{{ membro.nome }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <input type="text" name="cargo" value="{{ membro.cargo }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <div class="grid grid-cols-2 gap-3">
+                <input type="number" name="ano_ingresso" value="{{ membro.ano_ingresso|default:'' }}" placeholder="Ano" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+                <input type="number" name="ordem" value="{{ membro.ordem }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            </div>
+            <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Alterar Foto (Vazio para manter atual)</label>
+            <input type="file" name="foto" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
+            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Membro</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
 
 <script>
     function mudarAba(idSecao) {

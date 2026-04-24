@@ -41,6 +41,8 @@ from .decorators import torcida_required
 from .models import Perfil, Presenca, Conquista, Evento, CheckIn, PlanoSocio
 from .forms import CadastroForm, PerfilCompletoForm
 from loja.models import Produto
+from .models import Presenca, PresencaCaravana
+
 
 
 # 1. Ecrã para escolher a torcida ANTES de logar
@@ -199,10 +201,8 @@ class CadastroForm(forms.ModelForm):
     confirmar_senha = forms.CharField(widget=forms.PasswordInput())
     cpf = forms.CharField(max_length=14)
     telefone = forms.CharField(max_length=20) 
-    nome = forms.CharField(max_length=150)   
+    nome = forms.CharField(max_length=150) 
     
-    # O time não pode estar aqui, foi para a Etapa 2
-
     class Meta:
         model = User
         fields = ('email',)
@@ -218,7 +218,13 @@ class CadastroForm(forms.ModelForm):
         
         user = super().save(commit=False)
         user.username = email_limpo 
-        user.first_name = self.cleaned_data["nome"]
+        
+        # 1. Separar o Nome Completo em Nome e Sobrenome
+        nome_completo = self.cleaned_data.get("nome", "")
+        partes_nome = nome_completo.split(' ', 1)
+        user.first_name = partes_nome[0]
+        user.last_name = partes_nome[1] if len(partes_nome) > 1 else ''
+        
         user.set_password(self.cleaned_data["senha"])
         
         if commit:
@@ -226,11 +232,13 @@ class CadastroForm(forms.ModelForm):
             if not User.objects.filter(username=email_limpo).exists():
                 user.save()
                 
+                # 2. Guardar CPF e Telefone corretamente no Perfil
                 Perfil.objects.update_or_create(
                     user=user,
                     defaults={
                         'cpf': self.cleaned_data.get('cpf'),
-                        'whatsapp': self.cleaned_data.get('telefone'),
+                        'telefone': self.cleaned_data.get('telefone'),
+                        'whatsapp': self.cleaned_data.get('telefone'), # Opcional: preenche o whatsapp com o mesmo número
                     }
                 )
         return user
@@ -1305,7 +1313,8 @@ def admin_editar_utilizador(request, perfil_id):
         user_alvo.save()
         
         # O "or None" evita o erro de UNIQUE constraint caso o campo venha vazio
-        perfil.cpf = request.POST.get('cpf') or None 
+        perfil.cpf = request.POST.get('cpf') or None
+        perfil.telefone = request.POST.get('telefone', perfil.telefone) 
         perfil.whatsapp = request.POST.get('whatsapp', perfil.whatsapp)
         perfil.rg_cnh = request.POST.get('rg_cnh', perfil.rg_cnh)
         perfil.orgao_expedidor = request.POST.get('orgao_expedidor', perfil.orgao_expedidor)
@@ -1337,3 +1346,60 @@ def admin_editar_utilizador(request, perfil_id):
         'perfil_edit': perfil,
     }
     return render(request, 'admin_utilizadores.html', context)
+
+# --- LÓGICA PARA EVENTOS ---
+@login_required
+def toggle_presenca_evento(request, evento_id):
+    evento = get_object_or_404(Evento, id=evento_id)
+    presenca = Presenca.objects.filter(user=request.user, evento=evento).first()
+    
+    if presenca:
+        presenca.delete() # Desconfirma
+        messages.warning(request, "Presença cancelada.")
+    else:
+        Presenca.objects.create(user=request.user, evento=evento) # Confirma
+        messages.success(request, "Presença confirmada!")
+        
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+
+@login_required
+def toggle_salvar_evento(request, evento_id):
+    evento = get_object_or_404(Evento, id=evento_id)
+    perfil = request.user.perfil
+    
+    if evento in perfil.eventos_salvos.all():
+        perfil.eventos_salvos.remove(evento)
+    else:
+        perfil.eventos_salvos.add(evento)
+        messages.success(request, "Evento salvo!")
+        
+    # Devolve o utilizador à página onde ele estava
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+# --- LÓGICA PARA CARAVANAS ---
+@login_required
+def toggle_presenca_caravana(request, caravana_id):
+    caravana = get_object_or_404(Caravana, id=caravana_id)
+    presenca = PresencaCaravana.objects.filter(user=request.user, caravana=caravana).first()
+    
+    if presenca:
+        presenca.delete()
+        messages.warning(request, "Nome retirado da caravana.")
+    else:
+        PresencaCaravana.objects.create(user=request.user, caravana=caravana)
+        messages.success(request, "Nome adicionado à caravana!")
+        
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+
+@login_required
+def toggle_salvar_caravana(request, caravana_id):
+    caravana = get_object_or_404(Caravana, id=caravana_id)
+    perfil = request.user.perfil
+    
+    if caravana in perfil.caravanas_salvas.all():
+        perfil.caravanas_salvas.remove(caravana)
+    else:
+        perfil.caravanas_salvas.add(caravana)
+        messages.success(request, "Caravana salva com sucesso!")
+        
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))

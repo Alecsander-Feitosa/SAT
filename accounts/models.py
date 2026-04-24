@@ -15,6 +15,7 @@ class Perfil(models.Model):
     torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.SET_NULL, null=True, blank=True)    
     cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)
     whatsapp = models.CharField(max_length=20, blank=True)
+    telefone = models.CharField(max_length=20, blank=True)
     aprovado = models.BooleanField(default=False)
     
     # Dados Pessoais
@@ -44,8 +45,24 @@ class Perfil(models.Model):
     rede_social = models.CharField(max_length=100, blank=True)
     seguidores = models.ManyToManyField(User, related_name='seguindo', blank=True)
     
+    # NOVOS CAMPOS PARA FAVORITAR (SALVAR)
+    eventos_salvos = models.ManyToManyField('organizadas.Evento', related_name='salvo_por', blank=True)
+    caravanas_salvas = models.ManyToManyField('organizadas.Caravana', related_name='salvo_por', blank=True)
+
     def __str__(self):
         return f"Perfil de {self.user.username}"
+
+# NOVO MODELO (Coloque no final do arquivo)
+class PresencaCaravana(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    caravana = models.ForeignKey('organizadas.Caravana', on_delete=models.CASCADE, related_name='presencas_caravana')
+    data_confirmacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'caravana') # Impede que o usuário confirme 2 vezes na mesma caravana
+
+
+
 
 # --- NOVO: Histórico KYC (Veiculação/Aprovações) ---
 class HistoricoSocio(models.Model):
@@ -88,8 +105,8 @@ class Cancao(models.Model):
     torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, related_name='cancoes')
     titulo = models.CharField(max_length=100)
     descricao = models.TextField("Descrição/Contexto", blank=True)
-    letra = models.TextField()
-    url_youtube = models.URLField("URL do YouTube", blank=True, null=True)
+    letra = models.TextField(blank=True, null=True, help_text="Letra completa da música")
+    video_url = models.URLField(blank=True, null=True, help_text="Link embed do vídeo")
     arquivo_audio = models.FileField(upload_to='cancoes/audio/', blank=True, null=True)
 
     def __str__(self):

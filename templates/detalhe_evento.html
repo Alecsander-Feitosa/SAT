@@ -102,54 +102,51 @@
             </p>
         </div>
 
-        {% if not confirmado %}
-            {% if evento.vagas_esgotadas %}
-                <div class="bg-red-500/10 border border-red-500/20 p-6 rounded-[32px] text-center mb-10 backdrop-blur-sm">
-                    <i class="bi bi-x-octagon-fill text-3xl text-red-500 mb-2 block"></i>
-                    <p class="text-red-500 text-[12px] font-black uppercase tracking-widest leading-none">Vagas Esgotadas</p>
-                    <p class="text-red-400/70 text-[9px] font-bold uppercase mt-2 tracking-wide">Infelizmente, este evento atingiu a lotação máxima.</p>
-                </div>
-            {% else %}
-                <form action="{% url 'confirmar_presenca' evento.id %}" method="POST" class="mt-6 mb-10">
-                    {% csrf_token %}
-                    <div class="bg-gradient-to-b from-white/10 to-white/5 p-6 rounded-[32px] border border-white/10 shadow-2xl relative overflow-hidden backdrop-blur-md">
-                        
-                        <div class="relative z-10 text-center">
-                            {% if evento.valor == 0 or not evento.valor %}
-                                <p class="text-gray-300 text-[10px] font-black uppercase tracking-widest mb-1">Entrada Livre</p>
-                                <h3 class="text-xl font-black italic uppercase text-white mb-5">Garantir Lugar</h3>
-                                
-                                <button type="submit" class="w-full bg-tema text-white py-4 rounded-2xl font-black uppercase text-[11px] shadow-tema hover:scale-[1.02] active:scale-95 transition-all tracking-widest flex items-center justify-center gap-2">
-                                    <i class="bi bi-check2-circle text-lg"></i> Confirmar Vaga
-                                </button>
-                            {% else %}
-                                <p class="text-gray-300 text-[10px] font-black uppercase tracking-widest mb-1">Acesso Premium</p>
-                                <h3 class="text-2xl font-black italic uppercase text-white mb-5">R$ {{ evento.valor }}</h3>
-                                
-                                <button type="submit" class="w-full bg-tema text-white py-4 rounded-2xl font-black uppercase text-[11px] shadow-tema hover:scale-[1.02] active:scale-95 transition-all tracking-widest flex items-center justify-center gap-2">
-                                    <i class="bi bi-credit-card-fill text-lg"></i> Comprar Ingresso
-                                </button>
-                            {% endif %}
-                            
-                            <div class="mt-5 pt-4 border-t border-white/10 flex justify-center items-center gap-2">
-                                <i class="bi bi-lightning-charge-fill text-yellow-500"></i>
-                                <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Ganha +{{ evento.xp_recompensa|default:50 }} XP neste evento</span>
-                            </div>
+        <div class="flex flex-col gap-3 mb-10">
+            
+            <form action="{% url 'toggle_presenca_evento' evento.id %}" method="POST" class="w-full">
+                {% csrf_token %}
+                
+                {% if confirmado %}
+                    <button type="submit" class="w-full bg-red-500/10 border border-red-500/30 text-red-500 py-4 rounded-2xl font-black uppercase text-[11px] shadow-lg hover:bg-red-500/20 active:scale-95 transition-all tracking-widest flex items-center justify-center gap-2">
+                        <i class="bi bi-x-circle-fill text-lg"></i> Cancelar Presença
+                    </button>
+                    <p class="text-center text-green-500/80 text-[9px] font-bold uppercase mt-2 tracking-wide">✅ A tua vaga está garantida e o XP contabilizado.</p>
+                {% else %}
+                    {% if evento.vagas_esgotadas %}
+                        <div class="w-full bg-red-500/10 border border-red-500/20 text-red-500 py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-2 opacity-70 cursor-not-allowed">
+                            <i class="bi bi-x-octagon-fill text-lg"></i> Vagas Esgotadas
                         </div>
-                    </div>
+                    {% else %}
+                        <button type="submit" class="w-full bg-tema text-white py-4 rounded-2xl font-black uppercase text-[11px] shadow-tema hover:scale-[1.02] active:scale-95 transition-all tracking-widest flex items-center justify-center gap-2">
+                            <i class="bi bi-check2-circle text-lg"></i> 
+                            {% if evento.valor == 0 or not evento.valor %}Confirmar Presença{% else %}Comprar Ingresso (R$ {{ evento.valor }}){% endif %}
+                        </button>
+                        <p class="text-center text-gray-400 text-[9px] font-bold uppercase mt-2 tracking-widest"><i class="bi bi-lightning-charge-fill text-yellow-500"></i> Ganha +{{ evento.xp_recompensa|default:50 }} XP neste evento</p>
+                    {% endif %}
+                {% endif %}
+            </form>
+
+            <div class="flex gap-3 w-full mt-2">
+                <form action="{% url 'toggle_salvar_evento' evento.id %}" method="POST" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full bg-white/5 border border-white/10 text-white py-3 rounded-2xl font-bold uppercase text-[10px] hover:bg-white/10 active:scale-95 transition-all tracking-widest flex items-center justify-center gap-2">
+                        {% if evento in request.user.perfil.eventos_salvos.all %}
+                            <i class="bi bi-bookmark-fill texto-tema"></i> Salvo
+                        {% else %}
+                            <i class="bi bi-bookmark"></i> Guardar
+                        {% endif %}
+                    </button>
                 </form>
-            {% endif %}
-        {% else %}
-            <div class="bg-green-500/10 border border-green-500/20 p-6 rounded-[32px] text-center mb-10 backdrop-blur-sm">
-                <div class="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-                    <i class="bi bi-check-lg text-2xl text-white font-black"></i>
-                </div>
-                <p class="text-green-400 text-[12px] font-black uppercase tracking-widest leading-none">Presença Confirmada</p>
-                <p class="text-green-500/60 text-[9px] font-bold uppercase mt-2 tracking-wide">A tua vaga está garantida e o XP contabilizado.</p>
+
+                <button onclick="compartilharItem('{{ evento.titulo }}', 'Acede a este evento da SAT:', '{{ request.build_absolute_uri }}')" class="flex-1 bg-white/5 border border-white/10 text-white py-3 rounded-2xl font-bold uppercase text-[10px] hover:bg-white/10 active:scale-95 transition-all tracking-widest flex items-center justify-center gap-2">
+                    <i class="bi bi-share"></i> Partilhar
+                </button>
             </div>
-        {% endif %}
-        <div class="mt-8 bg-white/5 border border-white/5 p-5 rounded-2xl">
-            <h3 class="text-[10px] font-black uppercase text-gray-400 mb-3 tracking-widest"><i class="bi bi-share"></i> Partilhar na SAT Social</h3>
+        </div>
+
+        <div class="bg-white/5 border border-white/5 p-5 rounded-2xl">
+            <h3 class="text-[10px] font-black uppercase text-gray-400 mb-3 tracking-widest"><i class="bi bi-chat-quote"></i> Publicar na SAT Social</h3>
             <form action="{% url 'social_compartilhar' tipo_item='evento' item_id=evento.id %}" method="POST" class="flex flex-col gap-3">
                 {% csrf_token %}
                 <textarea name="texto" rows="2" placeholder="Vais a este evento? Diz algo à malta..." class="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-tema transition-colors"></textarea>
@@ -157,7 +154,7 @@
                 <div class="flex gap-2">
                     <select name="visibilidade" class="flex-1 bg-black/20 border border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-300 focus:outline-none appearance-none">
                         <option value="global">Mural Global (Todos)</option>
-                        <option value="torcida">Apenas minha Torcida</option>
+                        <option value="torcida">Apenas a minha Torcida</option>
                     </select>
                     
                     <button type="submit" class="bg-tema text-white px-5 py-2 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-tema hover:scale-[1.02] active:scale-95 transition-transform flex items-center gap-2">
@@ -168,4 +165,22 @@
         </div>
     </div>
 </div>
+
+<script>
+    function compartilharItem(titulo, texto, url) {
+        if (navigator.share) {
+            // Abre o menu nativo do telemóvel (WhatsApp, Insta, etc)
+            navigator.share({
+                title: titulo,
+                text: texto,
+                url: url
+            }).catch(console.error);
+        } else {
+            // Se estiver no PC, copia para a área de transferência
+            navigator.clipboard.writeText(url).then(function() {
+                alert("Link copiado! Podes enviar aos teus amigos.");
+            });
+        }
+    }
+</script>
 {% endblock %}

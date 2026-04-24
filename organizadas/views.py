@@ -119,18 +119,16 @@ def cancoes(request, slug):
     cancoes_lista = Cancao.objects.filter(torcida=torcida)
     
     if request.method == 'POST' and request.user.is_staff:
-        # Atualizado para os novos nomes do banco de dados (titulo e url_youtube)
         Cancao.objects.create(
             titulo=request.POST.get('nome', 'Sem título'),
             letra=request.POST.get('letra'),
-            url_youtube=request.POST.get('link_youtube'),
+            video_url=request.POST.get('url_youtube'), # <-- CORRIGIDO AQUI
             torcida=torcida
         )
         messages.success(request, 'Canção adicionada!')
         return redirect('cancoes', slug=slug)
 
     return render(request, 'torcida/cancoes.html', {'cancoes': cancoes_lista, 'torcida': torcida})
-
 @login_required
 def excluir_cancao(request, cancao_id):
     cancao = get_object_or_404(Cancao, id=cancao_id)
@@ -297,7 +295,26 @@ def painel_moderador(request):
                 foto=request.FILES.get('foto')
             )
             messages.success(request, "Membro adicionado à diretoria!")
-            
+        
+        elif acao == 'novo_membro_diretoria': # Alterado para coincidir com o botão do HTML
+            cat_id = request.POST.get('categoria_id')
+            categoria = CategoriaDiretoria.objects.get(id=cat_id) if cat_id else None
+            MembroDiretoria.objects.create(
+                torcida=minha_torcida,
+                categoria=categoria,
+                nome=request.POST.get('nome'),
+                cargo=request.POST.get('cargo'),
+                ano_ingresso=request.POST.get('ano_ingresso') or None,
+                ordem=request.POST.get('ordem', 0),
+                foto=request.FILES.get('foto')
+            )
+            messages.success(request, "Membro adicionado à diretoria!")
+
+        # APROVEITE E ADICIONE ESTA AÇÃO QUE ESTAVA FALTANDO PARA APAGAR CATEGORIAS
+        elif acao == 'deletar_categoria_diretoria':
+            get_object_or_404(CategoriaDiretoria, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
+            messages.success(request, "Categoria e membros removidos.")
+        
         elif acao == 'deletar_membro':
             get_object_or_404(MembroDiretoria, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
             messages.success(request, "Membro removido da diretoria.")
@@ -367,9 +384,23 @@ def painel_moderador(request):
                 titulo=request.POST.get('titulo'),
                 descricao=request.POST.get('descricao', ''),
                 letra=request.POST.get('letra', ''),
-                url_youtube=request.POST.get('url_youtube', '')
+                video_url=request.POST.get('url_youtube', '') # <-- CORRIGIDO AQUI
             )
             messages.success(request, "Canção adicionada ao repertório!")
+
+        elif acao == 'editar_cancao':
+            cancao = get_object_or_404(Cancao, id=request.POST.get('item_id'), torcida=minha_torcida)
+            cancao.titulo = request.POST.get('titulo', cancao.titulo)
+            cancao.descricao = request.POST.get('descricao', cancao.descricao)
+            cancao.letra = request.POST.get('letra', cancao.letra)
+            cancao.video_url = request.POST.get('url_youtube', cancao.video_url) # <-- CORRIGIDO AQUI
+            cancao.save()
+            messages.success(request, "Canção atualizada com sucesso!")
+            
+            # 3. Guardar na base de dados
+            cancao.save()
+            messages.success(request, f"A canção '{cancao.titulo}' foi atualizada com sucesso!")
+
 
         # 6. ALIADAS
         elif acao == 'nova_aliada':
@@ -409,6 +440,65 @@ def painel_moderador(request):
         elif acao == 'deletar_produto':
             get_object_or_404(Produto, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
             messages.success(request, "Produto removido da loja.")
+
+        # --- ADICIONAR NA SECÇÃO 3 (DIRETORIA E REGRAS) ---
+        elif acao == 'editar_regra':
+            regra = get_object_or_404(Regra, id=request.POST.get('item_id'), torcida=minha_torcida)
+            regra.titulo = request.POST.get('titulo', regra.titulo)
+            regra.descricao = request.POST.get('descricao', regra.descricao)
+            regra.categoria = request.POST.get('categoria', regra.categoria)
+            regra.ordem = request.POST.get('ordem', regra.ordem)
+            regra.save()
+            messages.success(request, "Regra atualizada com sucesso!")
+
+        elif acao == 'editar_membro_diretoria':
+            membro = get_object_or_404(MembroDiretoria, id=request.POST.get('item_id'), torcida=minha_torcida)
+            cat_id = request.POST.get('categoria_id')
+            if cat_id:
+                membro.categoria = get_object_or_404(CategoriaDiretoria, id=cat_id)
+            membro.nome = request.POST.get('nome', membro.nome)
+            membro.cargo = request.POST.get('cargo', membro.cargo)
+            membro.ano_ingresso = request.POST.get('ano_ingresso') or None
+            membro.ordem = request.POST.get('ordem', membro.ordem)
+            if 'foto' in request.FILES:
+                membro.foto = request.FILES['foto']
+            membro.save()
+            messages.success(request, "Membro da diretoria atualizado!")
+
+        # --- ADICIONAR NA SECÇÃO 4 (GALERIA) ---
+        elif acao == 'editar_foto_galeria':
+            foto = get_object_or_404(FotoGaleria, id=request.POST.get('item_id'), torcida=minha_torcida)
+            foto.titulo = request.POST.get('titulo', foto.titulo)
+            foto.legenda = request.POST.get('legenda', foto.legenda)
+            if 'imagem' in request.FILES:
+                foto.imagem = request.FILES['imagem']
+            foto.save()
+            messages.success(request, "Informações da foto atualizadas!")
+
+        # --- ADICIONAR NA SECÇÃO 5 (CONQUISTAS) ---
+        elif acao == 'editar_conquista':
+            conq = get_object_or_404(ConquistaTorcida, id=request.POST.get('item_id'), torcida=minha_torcida)
+            conq.titulo = request.POST.get('titulo', conq.titulo)
+            conq.descricao = request.POST.get('descricao', conq.descricao)
+            conq.icone = request.POST.get('icone', conq.icone)
+            nova_data = request.POST.get('data_conquista')
+            if nova_data:
+                conq.data_conquista = nova_data
+            if 'imagem' in request.FILES:
+                conq.imagem = request.FILES['imagem']
+            conq.save()
+            messages.success(request, "Conquista atualizada!")
+
+        # --- ADICIONAR NA SECÇÃO 6 (ALIADAS) ---
+        elif acao == 'editar_aliada':
+            aliada = get_object_or_404(Aliada, id=request.POST.get('item_id'), torcida=minha_torcida)
+            aliada.nome_organizada = request.POST.get('nome_organizada', aliada.nome_organizada)
+            aliada.clube = request.POST.get('clube', aliada.clube)
+            if 'logo' in request.FILES:
+                aliada.logo = request.FILES['logo']
+            aliada.save()
+            messages.success(request, "Aliança atualizada!")
+
 
         # Redireciona sempre para limpar o POST e evitar submissão duplicada ao atualizar a página
         return redirect('painel_moderador')
