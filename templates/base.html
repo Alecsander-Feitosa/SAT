@@ -128,16 +128,16 @@
             
             {% if request.user.is_staff and not request.user.is_superuser %}
                 <p class="px-4 text-[9px] font-black texto-main opacity-40 uppercase tracking-widest my-4">Administração</p>
-                <a href="{% url 'painel_moderador' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 no-underline group transition-all border border-orange-500/20">
+                <a href="{% url 'painel_moderador' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl bg-orange-500/10 hover:bg-orange-500 text-orange-600 no-underline group transition-all border border-orange-500/20">
                     <i class="bi bi-shield-lock-fill text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="text-sm font-black uppercase tracking-widest">Painel do Moderador</span>
+                    <span class="text-main font-black uppercase tracking-widest">Painel do Moderador</span>
                 </a>
                 <hr class="border-suave my-4">
             {% endif %}
 
-            <a href="{% url 'logout' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-red-50 no-underline text-red-500">
+            <a href="{% url 'logout' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-red-50 no-underline text-main">
                 <i class="bi bi-door-open-fill text-lg"></i>
-                <span class="text-sm font-bold">Sair</span>
+                <span class="text-main font-bold">Sair</span>
             </a>
         </div>
     </div>

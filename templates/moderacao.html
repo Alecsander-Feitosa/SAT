@@ -127,8 +127,7 @@
                             </div>
                         </div>
                         <div class="flex gap-2 w-full sm:w-auto">
-                            <form method="POST" action="{% url 'moderacao_torcida' %}" class="flex-1 sm:flex-none" onsubmit="return confirm('Tem a certeza que quer REJEITAR e eliminar o registo de {{ pendente.user.first_name }}?');">
-                                {% csrf_token %}
+                            <form method="POST" action="{% url 'moderacao_torcida' %}" class="flex-1 sm:flex-none" onsubmit="return confirm('Tem a certeza que quer REJEITAR o pedido de {{ pendente.user.first_name|default:pendente.user.username }}? Ele voltará para o público geral da SAT.');">                                {% csrf_token %}
                                 <input type="hidden" name="acao" value="rejeitar_socio">
                                 <input type="hidden" name="perfil_id" value="{{ pendente.id }}">
                                 <button type="submit" class="w-full px-4 py-2 bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors rounded-xl text-[10px] font-black uppercase border border-red-500/20 flex items-center justify-center gap-2">
@@ -194,8 +193,7 @@
                     <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Campos de Registo (KYC)</h3>
                     <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Perguntas extras no perfil do sócio</p>
                 </div>
-                <button onclick="abrirModal('modalCampoCustom')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Novo Campo</button>
-            </div>
+                <button onclick="abrirModal('modalCampoCustom')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Novo Campo</button>            </div>
             
             <div class="space-y-3">
                 {% for campo in campos_kyc %}
@@ -280,16 +278,18 @@
                                 <h4 class="text-sm font-black uppercase texto-main leading-tight">{{ ev.titulo }}</h4>
                                 
                                 <div class="flex items-center gap-2 shrink-0 ml-3">
-                                    <button type="button" onclick="abrirModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center">
+                                    <button type="button" onclick="abrirModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Ver Lista de Confirmados">
                                         <i class="bi bi-people-fill text-xs"></i>
                                     </button>
-                                    <button type="button" onclick="abrirModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 transition-colors text-blue-500 flex items-center justify-center" title="Ver Lista de Confirmados">
-                                        <i class="bi bi-people-fill text-xs"></i>
+
+                                    <button type="button" onclick="abrirModal('modalEditarEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center" title="Editar Evento">
+                                        <i class="bi bi-pencil-fill text-xs"></i>
                                     </button>
+
                                     <form method="POST" onsubmit="return confirm('Apagar este evento definitivamente?');" class="m-0">
                                         {% csrf_token %}
                                         <input type="hidden" name="item_id" value="{{ ev.id }}">
-                                        <button type="submit" name="acao" value="deletar_evento" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-colors text-red-600 flex items-center justify-center">
+                                        <button type="submit" name="acao" value="deletar_evento" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 flex items-center justify-center" title="Excluir Evento">
                                             <i class="bi bi-trash text-xs"></i>
                                         </button>
                                     </form>
@@ -385,6 +385,109 @@
             </div>
         </div>
 
+        <div id="eventos" class="secao-conteudo">
+            <div class="mb-10">
+                <div class="flex justify-between items-center mb-5">
+                    <div>
+                        <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Gestão de Eventos</h3>
+                        <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Jogos, Festas e Reuniões</p>
+                    </div>
+                    <button onclick="abrirModal('modalEvento')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Novo Evento</button>
+                </div>
+
+                <div class="space-y-3">
+                    {% for ev in eventos %}
+                    <div class="fundo-card p-4 rounded-2xl border border-suave flex items-center justify-between gap-4 group">
+                        <div class="flex items-center gap-4 flex-1">
+                            <div class="w-12 h-12 rounded-xl bg-black/5 flex items-center justify-center overflow-hidden shrink-0 border border-suave">
+                                {% if ev.imagem_capa %}
+                                    <img src="{{ ev.imagem_capa.url }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    <i class="bi bi-calendar-event text-xl opacity-30" style="color: var(--cor-primaria)"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-black uppercase texto-main leading-tight">{{ ev.titulo }}</h4>
+                                <p class="text-[10px] font-bold opacity-60 uppercase flex items-center gap-1 mt-0.5">
+                                    <i class="bi bi-clock"></i> {{ ev.data|date:"d/m H:i" }} | <i class="bi bi-geo-alt ml-1"></i> {{ ev.local }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 shrink-0 ml-3">
+                            <button type="button" onclick="abrirModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center">
+                                <i class="bi bi-people-fill text-xs"></i>
+                            </button>
+                            
+                            <button type="button" onclick="abrirModal('modalEditarEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
+                                <i class="bi bi-pencil-fill text-xs"></i>
+                            </button>
+
+                            <form method="POST" onsubmit="return confirm('Apagar este evento definitivamente?');" class="m-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ ev.id }}">
+                                <button type="submit" name="acao" value="deletar_evento" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 flex items-center justify-center">
+                                    <i class="bi bi-trash text-xs"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 opacity-40 border border-dashed border-suave rounded-[24px] bg-black/5">
+                        <i class="bi bi-calendar-x text-3xl mb-2 block"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest">Nenhum evento agendado.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-5">
+                    <div>
+                        <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Caravanas e Viagens</h3>
+                        <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Deslocamentos da Torcida</p>
+                    </div>
+                    <button onclick="abrirModal('modalCaravana')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Caravana</button>
+                </div>
+
+                <div class="space-y-3">
+                    {% for caravana in caravanas %}
+                    <div class="fundo-card p-4 rounded-2xl border border-suave flex items-center justify-between gap-4 group">
+                        <div class="flex items-center gap-4 flex-1">
+                            <div class="w-12 h-12 rounded-xl bg-black/5 flex items-center justify-center shrink-0 border border-suave">
+                                <i class="bi bi-bus-front text-xl opacity-50" style="color: var(--cor-primaria)"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-black uppercase texto-main leading-tight">{{ caravana.titulo }}</h4>
+                                <p class="text-[10px] font-bold opacity-60 uppercase flex items-center gap-1 mt-0.5">
+                                    <i class="bi bi-signpost-split"></i> {{ caravana.saida_local }} | R$ {{ caravana.valor }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0">
+                            <button type="button" onclick="abrirModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
+                                <i class="bi bi-pencil-fill text-xs"></i>
+                            </button>
+                            <form method="POST" onsubmit="return confirm('Cancelar e apagar caravana?');" class="m-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ caravana.id }}">
+                                <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 flex items-center justify-center">
+                                    <i class="bi bi-trash text-xs"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 opacity-40 border border-dashed border-suave rounded-[24px] bg-black/5">
+                        <i class="bi bi-bus-front text-3xl mb-2 block"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest">Nenhuma caravana agendada.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         <div id="loja" class="secao-conteudo">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Loja</h3>
@@ -432,15 +535,22 @@
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {% for foto in galeria %}
-                    <div class="fundo-card rounded-2xl border border-suave overflow-hidden group relative">
-                        <img src="{{ foto.imagem.url }}" class="w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="fundo-card aspect-square rounded-2xl relative overflow-hidden group border border-suave">
+                        {% if foto.imagem %}
+                            <img src="{{ foto.imagem.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center bg-black/5"><i class="bi bi-image text-3xl opacity-20"></i></div>
+                        {% endif %}
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
                             <p class="text-[10px] text-white font-black uppercase truncate">{{ foto.titulo }}</p>
-                            <form method="POST" onsubmit="return confirm('Apagar esta foto da galeria?');">
-                                {% csrf_token %}
-                                <input type="hidden" name="item_id" value="{{ foto.id }}">
-                                <button type="submit" name="acao" value="deletar_foto" class="text-[9px] text-red-400 font-bold uppercase mt-1">Excluir</button>
-                            </form>
+                            <div class="flex gap-3 mt-1">
+                                <button type="button" onclick="abrirModal('modalEditarFoto{{ foto.id }}')" class="text-[9px] text-orange-400 font-bold uppercase">Editar</button>
+                                <form method="POST" onsubmit="return confirm('Apagar esta foto da galeria?');" class="m-0">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="item_id" value="{{ foto.id }}">
+                                    <button type="submit" name="acao" value="deletar_foto" class="text-[9px] text-red-400 font-bold uppercase">Excluir</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                     {% empty %}
@@ -479,8 +589,8 @@
                             </div>
                         </div>
                         <p class="text-[11px] opacity-70 whitespace-pre-line leading-relaxed font-medium">{{ cancao.descricao }}</p>
-                        {% if cancao.url_youtube %}
-                        <a href="{{ cancao.url_youtube }}" target="_blank" class="inline-flex items-center gap-2 text-[9px] font-black uppercase text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg mt-4 hover:bg-red-500/20 transition-colors">
+                        {% if cancao.video_url %}
+                        <a href="{{ cancao.video_url }}" target="_blank" class="inline-flex items-center gap-2 text-[9px] font-black uppercase text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg mt-4 hover:bg-red-500/20 transition-colors">
                             <i class="bi bi-youtube text-sm"></i> Ouvir no YouTube
                         </a>
                         {% endif %}
@@ -645,7 +755,7 @@
             <div>
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Torcidas Aliadas</h3>
-                    <button onclick="abrirModal('modalAliada')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Enviar Convite</button>
+                    <button onclick="abrirModal('modalAliada')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">Adicionar Aliada</button>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {% for aliada in aliadas %}
@@ -654,6 +764,20 @@
                         <div class="flex-1">
                             <h5 class="text-xs font-black uppercase texto-main">{{ aliada.nome_organizada }}</h5>
                             <p class="text-[10px] font-bold uppercase" style="color: var(--cor-primaria)">{{ aliada.clube }}</p>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button type="button" onclick="abrirModal('modalEditarAliada{{ aliada.id }}')" class="w-8 h-8 flex items-center justify-center text-orange-500 opacity-50 hover:opacity-100 transition-opacity">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <form method="POST" onsubmit="return confirm('Remover esta torcida aliada?');" class="m-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="acao" value="deletar_aliada">
+                                <input type="hidden" name="item_id" value="{{ aliada.id }}">
+                                <button type="submit" class="w-8 h-8 flex items-center justify-center text-red-500 opacity-50 hover:opacity-100 transition-opacity">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                     {% empty %}
@@ -1274,127 +1398,124 @@
         </form>
     </div>
 </div>
-
 {% for ev in eventos %}
 <div id="modalListaEvento{{ ev.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
     <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
         <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
-            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Confirmados: {{ ev.titulo }}</h3>
-            <button type="button" onclick="fecharModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg texto-main"></i></button>
-        </div>
-        
-        <div class="space-y-3">
-            {% for checkin in ev.checkins_accounts.all %}
-            <div class="p-3 bg-black/5 border border-suave rounded-xl flex items-center gap-3">
-                {% if checkin.user.perfil.foto %}<img src="{{ checkin.user.perfil.foto.url }}" class="w-10 h-10 rounded-full object-cover">
-                {% else %}<div class="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center"><i class="bi bi-person"></i></div>{% endif %}
-                <div>
-                    <h4 class="text-xs font-black uppercase texto-main">{{ checkin.user.first_name|default:checkin.user.username }}</h4>
-                    <p class="text-[9px] text-green-500 uppercase font-bold">Check-in Realizado</p>
-                </div>
-            </div>
-            {% endfor %}
-            
-            {% for presenca in ev.presencas.all %}
-            <div class="p-3 bg-black/5 border border-suave rounded-xl flex items-center gap-3">
-                {% if presenca.user.perfil.foto %}<img src="{{ presenca.user.perfil.foto.url }}" class="w-10 h-10 rounded-full object-cover">
-                {% else %}<div class="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center"><i class="bi bi-person"></i></div>{% endif %}
-                <div>
-                    <h4 class="text-xs font-black uppercase texto-main">{{ presenca.user.first_name|default:presenca.user.username }}</h4>
-                    <p class="text-[9px] text-blue-500 uppercase font-bold">Presença Confirmada</p>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-{% endfor %}
-
-{% for ev in eventos %}
-<div id="modalListaEvento{{ ev.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
-    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
-        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
-            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Confirmados: {{ ev.titulo }}</h3>
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Confirmados: {{ ev.titulo }}</h3>
             <button type="button" onclick="fecharModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5 hover:bg-black/10 transition-colors">
                 <i class="bi bi-x-lg texto-main"></i>
             </button>
         </div>
         
         <div class="space-y-3">
+            {% for checkin in ev.checkin_set.all %}
+            <div class="p-3 bg-black/5 border border-suave rounded-xl flex items-center gap-3">
+                {% if checkin.user and checkin.user.perfil.foto %}
+                    <img src="{{ checkin.user.perfil.foto.url }}" class="w-10 h-10 rounded-full object-cover border border-suave">
+                {% else %}
+                    <div class="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center border border-suave texto-main"><i class="bi bi-person"></i></div>
+                {% endif %}
+                <div class="flex-1">
+                    <h4 class="text-xs font-black uppercase texto-main">
+                        {% if checkin.user %}
+                            {{ checkin.user.first_name|default:checkin.user.username }}
+                        {% else %}
+                            {{ checkin.nome_visitante }} <span class="opacity-50">(Visitante)</span>
+                        {% endif %}
+                    </h4>
+                    <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                        <span class="text-[9px] text-orange-500 uppercase font-bold">Via Gamificação</span>
+                        {% if checkin.user and checkin.user.perfil.whatsapp %}
+                            <span class="text-[9px] font-bold opacity-60"><i class="bi bi-whatsapp text-green-500"></i> {{ checkin.user.perfil.whatsapp }}</span>
+                        {% elif checkin.user %}
+                            <span class="text-[9px] font-bold opacity-60"><i class="bi bi-envelope"></i> {{ checkin.user.email }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
             {% for checkin in ev.checkins_accounts.all %}
             <div class="p-3 bg-black/5 border border-suave rounded-xl flex items-center gap-3">
                 {% if checkin.user.perfil.foto %}
                     <img src="{{ checkin.user.perfil.foto.url }}" class="w-10 h-10 rounded-full object-cover border border-suave">
                 {% else %}
-                    <div class="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center border border-suave texto-main">
-                        <i class="bi bi-person"></i>
-                    </div>
+                    <div class="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center border border-suave texto-main"><i class="bi bi-person"></i></div>
                 {% endif %}
-                <div>
+                <div class="flex-1">
                     <h4 class="text-xs font-black uppercase texto-main">{{ checkin.user.first_name|default:checkin.user.username }}</h4>
-                    <p class="text-[9px] opacity-60 uppercase texto-main">Confirmou em: {{ checkin.data_criacao|date:"d/m/Y H:i" }}</p>
+                    <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                        <span class="text-[9px] text-green-500 uppercase font-bold">Check-in Realizado</span>
+                        {% if checkin.user.perfil.whatsapp %}
+                            <span class="text-[9px] font-bold opacity-60"><i class="bi bi-whatsapp text-green-500"></i> {{ checkin.user.perfil.whatsapp }}</span>
+                        {% else %}
+                            <span class="text-[9px] font-bold opacity-60"><i class="bi bi-envelope"></i> {{ checkin.user.email }}</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-            {% empty %}
-            <div class="text-center py-6 opacity-50 fundo-card border border-dashed border-suave rounded-xl">
-                <p class="text-[10px] font-bold uppercase texto-main">Ninguém confirmou presença ainda.</p>
+            {% endfor %}
+
+            {% for presenca in ev.presencas.all %}
+            <div class="p-3 bg-black/5 border border-suave rounded-xl flex items-center gap-3">
+                {% if presenca.user.perfil.foto %}
+                    <img src="{{ presenca.user.perfil.foto.url }}" class="w-10 h-10 rounded-full object-cover border border-suave">
+                {% else %}
+                    <div class="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center border border-suave texto-main"><i class="bi bi-person"></i></div>
+                {% endif %}
+                <div class="flex-1">
+                    <h4 class="text-xs font-black uppercase texto-main">{{ presenca.user.first_name|default:presenca.user.username }}</h4>
+                    <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                        <span class="text-[9px] text-blue-500 uppercase font-bold">Confirmou Presença</span>
+                        {% if presenca.user.perfil.whatsapp %}
+                            <span class="text-[9px] font-bold opacity-60"><i class="bi bi-whatsapp text-green-500"></i> {{ presenca.user.perfil.whatsapp }}</span>
+                        {% else %}
+                            <span class="text-[9px] font-bold opacity-60"><i class="bi bi-envelope"></i> {{ presenca.user.email }}</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
             {% endfor %}
+
+            {% if not ev.checkins_accounts.all and not ev.presencas.all and not ev.checkin_set.all %}
+            <div class="text-center py-10 opacity-40 border border-dashed border-suave rounded-2xl bg-black/5">
+                <i class="bi bi-people text-3xl mb-2 block"></i>
+                <p class="text-[10px] font-bold uppercase tracking-widest">Ninguém confirmado ainda.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
-{% endfor %}
 
-{% for ev in eventos %}
 <div id="modalEditarEvento{{ ev.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
     <div class="w-full max-w-lg fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
         <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
             <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Editar Evento</h3>
             <button type="button" onclick="fecharModal('modalEditarEvento{{ ev.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i class="bi bi-x-lg"></i></button>
         </div>
-        
         <form method="POST" enctype="multipart/form-data" class="space-y-4">
             {% csrf_token %}
             <input type="hidden" name="acao" value="editar_evento">
             <input type="hidden" name="item_id" value="{{ ev.id }}">
-
-            <div>
-                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Categoria</label>
-                <select name="categoria" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-                    <option value="jogo_oficial" {% if ev.categoria == 'jogo_oficial' %}selected{% endif %}>Jogo Oficial</option>
-                    <option value="caravana" {% if ev.categoria == 'caravana' %}selected{% endif %}>Caravana</option>
-                    <option value="evento_social" {% if ev.categoria == 'evento_social' %}selected{% endif %}>Evento Social</option>
-                    <option value="reuniao" {% if ev.categoria == 'reuniao' %}selected{% endif %}>Reunião</option>
-                </select>
-            </div>
-
+            <select name="categoria" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+                <option value="jogo_oficial" {% if ev.categoria == 'jogo_oficial' %}selected{% endif %}>Jogo Oficial</option>
+                <option value="caravana" {% if ev.categoria == 'caravana' %}selected{% endif %}>Caravana</option>
+                <option value="evento_social" {% if ev.categoria == 'evento_social' %}selected{% endif %}>Evento Social</option>
+                <option value="reuniao" {% if ev.categoria == 'reuniao' %}selected{% endif %}>Reunião</option>
+            </select>
             <input type="text" name="titulo" value="{{ ev.titulo }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
             <textarea name="informativo" rows="3" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none">{{ ev.informativo }}</textarea>
             <input type="text" name="local" value="{{ ev.local }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-
             <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Início</label>
-                    <input type="datetime-local" name="data" value="{{ ev.data|date:'Y-m-d\TH:i' }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-[10px] font-bold outline-none">
-                </div>
-                <div>
-                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Fim</label>
-                    <input type="datetime-local" name="data_fim" value="{{ ev.data_fim|date:'Y-m-d\TH:i' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-[10px] font-bold outline-none">
-                </div>
+                <input type="datetime-local" name="data" value="{{ ev.data|date:'Y-m-d\TH:i' }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-[10px] font-bold">
+                <input type="datetime-local" name="data_fim" value="{{ ev.data_fim|date:'Y-m-d\TH:i' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-[10px] font-bold">
             </div>
-
             <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Máx. Pessoas</label>
-                    <input type="number" name="max_participantes" value="{{ ev.max_participantes|default:'' }}" placeholder="Ilimitado" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
-                </div>
-                <div>
-                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Trocar Capa</label>
-                    <input type="file" name="imagem_capa" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold file:bg-black/10">
-                </div>
+                <input type="number" name="max_participantes" value="{{ ev.max_participantes|default:'' }}" placeholder="Vagas (Ilimitado)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold">
+                <input type="file" name="imagem_capa" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
             </div>
-
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 bg-orange-500 shadow-lg">Salvar Edição</button>
+            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Edição</button>
         </form>
     </div>
 </div>
@@ -1451,8 +1572,7 @@
             <input type="hidden" name="item_id" value="{{ cancao.id }}">
             <input type="text" name="titulo" value="{{ cancao.titulo }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
             <textarea name="descricao" required rows="4" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none">{{ cancao.descricao }}</textarea>
-            <input type="url" name="url_youtube" value="{{ cancao.url_youtube|default:'' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none" placeholder="Link do YouTube">
-            <button type="submit" class="w-full py-4 mt-2 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Alterações</button>
+            <input type="url" name="url_youtube" value="{{ cancao.video_url|default:'' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none" placeholder="Link do YouTube">            <button type="submit" class="w-full py-4 mt-2 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Alterações</button>
         </form>
     </div>
 </div>
@@ -1506,6 +1626,106 @@
             <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Alterar Foto (Vazio para manter atual)</label>
             <input type="file" name="foto" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
             <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Membro</button>
+        </form>
+    </div>
+</div>
+{% endfor %}{% for aliada in aliadas %}
+<div id="modalEditarAliada{{ aliada.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Editar Aliança</h3>
+            <button type="button" onclick="fecharModal('modalEditarAliada{{ aliada.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="editar_aliada">
+            <input type="hidden" name="item_id" value="{{ aliada.id }}">
+            <input type="text" name="nome_organizada" value="{{ aliada.nome_organizada }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            <input type="text" name="clube" value="{{ aliada.clube }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            
+            <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Alterar Logo (Deixe vazio para manter o atual)</label>
+            <input type="file" name="logo" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
+            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Aliança</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% for foto in galeria %}
+<div id="modalEditarFoto{{ foto.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Editar Foto</h3>
+            <button type="button" onclick="fecharModal('modalEditarFoto{{ foto.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="editar_foto">
+            <input type="hidden" name="item_id" value="{{ foto.id }}">
+            
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Título</label>
+                <input type="text" name="titulo" value="{{ foto.titulo }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Descrição / História</label>
+                <textarea name="legenda" rows="3" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none">{{ foto.legenda }}</textarea>
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Alterar Imagem (Deixe vazio para manter)</label>
+                <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
+            </div>
+
+            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Alterações</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% for conquista in conquistas %}
+<div id="modalEditarConquista{{ conquista.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Editar Conquista</h3>
+            <button type="button" onclick="fecharModal('modalEditarConquista{{ conquista.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="editar_conquista">
+            <input type="hidden" name="item_id" value="{{ conquista.id }}">
+            
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Título da Glória</label>
+                <input type="text" name="titulo" value="{{ conquista.titulo }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Ícone</label>
+                    <select name="icone" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                        <option value="bi-trophy" {% if conquista.icone == 'bi-trophy' %}selected{% endif %}>🏆 Troféu</option>
+                        <option value="bi-medal" {% if conquista.icone == 'bi-medal' %}selected{% endif %}>🏅 Medalha</option>
+                        <option value="bi-award" {% if conquista.icone == 'bi-award' %}selected{% endif %}>📜 Prémio</option>
+                        <option value="bi-star" {% if conquista.icone == 'bi-star' %}selected{% endif %}>⭐ Estrela</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Data</label>
+                    <input type="date" name="data_conquista" value="{{ conquista.data_conquista|date:'Y-m-d' }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Descrição do Marco</label>
+                <textarea name="descricao" rows="3" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none">{{ conquista.descricao }}</textarea>
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Alterar Foto do Troféu (Vazio para manter)</label>
+                <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
+            </div>
+
+            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Alterações</button>
         </form>
     </div>
 </div>

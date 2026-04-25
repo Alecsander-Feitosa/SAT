@@ -869,8 +869,7 @@ def moderacao_torcida(request):
     
     # IMPORTAÇÃO LOCAL CORRIGIDA (Forçamos o OrgEvento e adicionamos as Caravanas)
     from organizadas.models import Parceiro, Publicidade, Cancao, Regra, CategoriaDiretoria, CampoPersonalizado, FotoGaleria, ConquistaTorcida, Evento as OrgEvento, Caravana as OrgCaravana
-    from loja.models import Produto, CategoriaLoja
-
+    from loja.models import Produto, CategoriaProduto
     context = {
         'torcida': torcida_mod,
         'membros_pendentes': membros_pendentes,
@@ -891,7 +890,7 @@ def moderacao_torcida(request):
         'categorias_diretoria': CategoriaDiretoria.objects.filter(torcida=torcida_mod),
         
         'produtos': Produto.objects.filter(torcida=torcida_mod),
-        'categorias_loja': CategoriaLoja.objects.filter(torcida=torcida_mod),
+        'categorias_loja': CategoriaProduto.objects.filter(torcida=torcida_mod),
     }
     
     return render(request, 'moderacao.html', context)

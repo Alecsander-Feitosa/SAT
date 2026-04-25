@@ -150,7 +150,7 @@
                 
                 {% if request.user.is_superuser %}
                     <div class="mt-4 mb-4 w-full">
-                        <a href="{% url 'admin_master' %}" class="w-full bg-red-600/10 border-2 border-red-600 text-red-500 hover:bg-red-600 hover:text-white font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-red-600/20 flex items-center justify-center gap-2">
+                        <a href="{% url 'admin_master' %}" class="w-full bg-red-600/10 border-2 border-red-600 text-main hover:bg-red-600 hover:text-white font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-red-600/20 flex items-center justify-center gap-2">
                             <i class="bi bi-shield-lock-fill text-lg"></i>
                             Painel Admin Master
                         </a>
@@ -193,12 +193,12 @@
                     <i class="bi bi-box-arrow-up-right texto-main opacity-30 text-xs"></i>
                 </a>
 
-                <a href="{% url 'logout' %}" class="menu-item flex items-center justify-between p-4 no-underline hover:bg-red-500/10 transition-colors">
+                <a href="{% url 'logout' %}" class="menu-item flex items-center justify-between p-4 no-underline hover:bg-main/10 transition-colors">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 bg-red-500/10 rounded-xl flex items-center justify-center text-red-500 border border-red-500/20">
-                            <i class="bi bi-box-arrow-right text-lg"></i>
+                        <div class="w-9 h-9 bg-main/10 rounded-xl flex items-center justify-center text-main border border-main/20">
+                            <i class="bi bi-box-arrow-right text-main"></i>
                         </div>
-                        <span class="text-xs font-bold text-red-500 uppercase">Encerrar Sessão</span>
+                        <span class="text-xs font-bold text-main uppercase">Encerrar Sessão</span>
                     </div>
                 </a>
             </div>

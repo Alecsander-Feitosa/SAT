@@ -50,7 +50,7 @@
                 {% for message in messages %}
                     <div class="p-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-center shadow-sm 
                         {% if message.tags == 'success' %} bg-green-500/10 text-green-500 border border-green-500/20 
-                        {% else %} bg-red-500/10 text-red-500 border border-red-500/20 {% endif %}">
+                        {% else %} bg-main/10 text-main border border-main/20 {% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -70,7 +70,7 @@
             <div class="flex gap-2 relative">
                 <form action="{% url 'dashboard' %}" method="GET" id="barraPesquisa" class="hidden absolute right-12 top-0 h-9 fundo-app border border-suave rounded-full flex items-center px-3 shadow-sm z-50">
                     <input type="text" name="q" placeholder="Buscar perfil..." class="bg-transparent border-none outline-none text-xs w-32 texto-main focus:ring-0">
-                    <button type="button" onclick="togglePesquisa()" class="text-gray-400 hover:text-red-500 ml-2">
+                    <button type="button" onclick="togglePesquisa()" class="text-gray-400 hover:text-main ml-2">
                         <i class="bi bi-x-lg text-[10px]"></i>
                     </button>
                 </form>
@@ -159,7 +159,7 @@
                         {% if request.user == post.autor_s or request.user.is_staff %}
                         <form action="{% url 'social_excluir_post' post.id %}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta publicação?');" class="m-0">
                             {% csrf_token %}
-                            <button type="submit" class="w-full text-left px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-500/10 flex items-center gap-2 transition-colors border-none bg-transparent cursor-pointer">
+                            <button type="submit" class="w-full text-left px-4 py-2.5 text-xs font-bold text-main hover:bg-main/10 flex items-center gap-2 transition-colors border-none bg-transparent cursor-pointer">
                                 <i class="bi bi-trash3"></i> Excluir
                             </button>
                         </form>
@@ -233,10 +233,10 @@
                 <form action="{% url 'social_curtir_post' post.id %}" method="POST" class="m-0" onsubmit="return curtirPostAjax(event, this, {{ post.id }})">
                     {% csrf_token %}
                     <button type="submit" class="action-btn flex items-center gap-1.5 group outline-none bg-transparent border-none p-0 cursor-pointer">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-red-500/10 transition-colors">
-                            <i id="icone-coracao-{{ post.id }}" class="bi {% if request.user in post.curtidas.all %}bi-heart-fill text-red-500{% else %}bi-heart texto-main opacity-40{% endif %} text-lg group-hover:text-red-500 transition-colors"></i>
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-main/10 transition-colors">
+                            <i id="icone-coracao-{{ post.id }}" class="bi {% if request.user in post.curtidas.all %}bi-heart-fill text-main{% else %}bi-heart texto-main opacity-40{% endif %} text-lg group-hover:text-main transition-colors"></i>
                         </div>
-                        <span id="contador-curtidas-{{ post.id }}" class="text-[11px] font-black uppercase tracking-widest texto-main opacity-60 group-hover:text-red-500">{{ post.curtidas.count|default:"0" }}</span>
+                        <span id="contador-curtidas-{{ post.id }}" class="text-[11px] font-black uppercase tracking-widest texto-main opacity-60 group-hover:text-main">{{ post.curtidas.count|default:"0" }}</span>
                     </button>
                 </form>
 
@@ -395,7 +395,7 @@
             var contador = document.getElementById('contador-curtidas-' + postId);
             if(contador) contador.innerText = data.likes_count;
             if(icone) {
-                icone.className = data.liked ? "bi bi-heart-fill text-red-500 text-lg group-hover:text-red-500 transition-colors" : "bi bi-heart texto-main opacity-40 text-lg group-hover:text-red-500 transition-colors";
+                icone.className = data.liked ? "bi bi-heart-fill text-main text-lg group-hover:text-main transition-colors" : "bi bi-heart texto-main opacity-40 text-lg group-hover:text-main transition-colors";
             }
         }).catch(console.error);
         return false;

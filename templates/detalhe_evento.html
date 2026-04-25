@@ -132,7 +132,7 @@
                     {% csrf_token %}
                     <button type="submit" class="w-full bg-white/5 border border-white/10 text-white py-3 rounded-2xl font-bold uppercase text-[10px] hover:bg-white/10 active:scale-95 transition-all tracking-widest flex items-center justify-center gap-2">
                         {% if evento in request.user.perfil.eventos_salvos.all %}
-                            <i class="bi bi-bookmark-fill texto-tema"></i> Salvo
+                            <i class="bi bi-bookmark-fill texto-main"></i> Salvo
                         {% else %}
                             <i class="bi bi-bookmark"></i> Guardar
                         {% endif %}

@@ -81,18 +81,18 @@ function abrirModal(modalId, rawUrl, iframeId) {
     let modal = document.getElementById(modalId);
     let iframe = document.getElementById(iframeId);
     
-    // Converte e injeta o link do YouTube apenas quando o utilizador clica
-    if (iframe) {
-        let embedUrl = rawUrl;
-        if (rawUrl.includes('watch?v=')) {
-            let videoId = rawUrl.split('watch?v=')[1].split('&')[0];
-            embedUrl = 'https://www.youtube.com/embed/' + videoId;
-        } else if (rawUrl.includes('youtu.be/')) {
-            let videoId = rawUrl.split('youtu.be/')[1].split('?')[0];
-            embedUrl = 'https://www.youtube.com/embed/' + videoId;
+    if (iframe && rawUrl) {
+        let videoId = "";
+        // Extrai o ID de links padrão, Shorts, youtu.be, etc.
+        let regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+        let match = rawUrl.match(regExp);
+
+        if (match && match[2].length === 11) {
+            videoId = match[2];
+            iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1';
+        } else {
+            iframe.src = rawUrl; // Fallback caso seja um formato desconhecido
         }
-        // Adiciona autoplay se desejado
-        iframe.src = embedUrl + "?autoplay=1";
     }
 
     if(modal) {
@@ -109,9 +109,8 @@ function fecharModal(modalId, iframeId) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
-    // Esvazia o src para forçar o vídeo e o áudio a pararem imediatamente
     if(iframe) {
-        iframe.src = "";
+        iframe.src = ""; // Para o vídeo e áudio imediatamente ao fechar
     }
 }
 </script>

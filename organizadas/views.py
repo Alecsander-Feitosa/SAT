@@ -2,16 +2,13 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.dateparse import parse_datetime
-from accounts.models import Aliada
+from accounts.models import Aliada, Fatura, Assinatura, PlanoSocio, Cancao, CampoPersonalizado, Perfil, HistoricoSocio
 from .models import Torcida, Evento, MembroDiretoria, Regra, FotoGaleria
-from accounts.models import Fatura, Assinatura, PlanoSocio 
-from organizadas.models import (
-    Torcida, Evento, Caravana, Post, Curtida, Parceiro, 
-    Publicidade, FotoGaleria, ConquistaTorcida, MembroDiretoria, CategoriaDiretoria, Regra
-)
-from accounts.models import Perfil, Cancao, Aliada, HistoricoSocio, CampoPersonalizado
+# IMPORTAÇÃO LOCAL CORRIGIDA (Separando o que é do Organizadas e o que é do Accounts)
+from organizadas.models import Torcida, Evento, MembroDiretoria, Regra, FotoGaleria, Parceiro, Publicidade, CategoriaDiretoria, ConquistaTorcida, Caravana
 from loja.models import Produto, CategoriaProduto
 from django.http import HttpResponse
+
 # --- VIEWS PÚBLICAS E GERAIS ---
 
 def lista_torcidas(request):
@@ -167,10 +164,20 @@ def painel_moderador(request):
             messages.success(request, f"Sócio {p.user.username} aprovado!")
             
         elif acao == 'rejeitar_socio':
-            p = get_object_or_404(Perfil, id=request.POST.get('perfil_id'), torcida=minha_torcida)
-            HistoricoSocio.objects.create(perfil=p, acao="Rejeitado", moderador=request.user, observacao=request.POST.get('motivo', 'Rejeitado via Painel'))
-            p.delete() 
-            messages.warning(request, "Solicitação de sócio rejeitada.")
+            # PRIMEIRO BUSCA O PERFIL
+            perfil_alvo = get_object_or_404(Perfil, id=request.POST.get('perfil_id'), torcida=minha_torcida)
+            
+            # Remove o pedido e volta o usuário 100% para o público geral
+            perfil_alvo.torcida = None
+            perfil_alvo.aprovado = False
+            perfil_alvo.vulgo = ""
+            perfil_alvo.pelotao = ""
+            perfil_alvo.save()
+            
+            # Regista no histórico
+            HistoricoSocio.objects.create(perfil=perfil_alvo, acao="Rejeitado", moderador=request.user, observacao="Rejeitado via Painel")
+            
+            messages.warning(request, "Solicitação rejeitada. O utilizador voltou para o público geral.")
             
         elif acao == 'remover_socio':
             p = get_object_or_404(Perfil, id=request.POST.get('perfil_id'), torcida=minha_torcida)
@@ -227,26 +234,22 @@ def painel_moderador(request):
             messages.success(request, "Evento apagado.")
         
         elif acao == 'editar_evento':
-            ev = get_object_or_404(Evento, id=request.POST.get('item_id'), torcida=minha_torcida)
-            ev.categoria = request.POST.get('categoria', ev.categoria)
-            ev.titulo = request.POST.get('titulo', ev.titulo)
-            ev.local = request.POST.get('local', ev.local)
+            evento = get_object_or_404(Evento, id=request.POST.get('item_id'), torcida=minha_torcida)
+            evento.titulo = request.POST.get('titulo', evento.titulo)
+            evento.categoria = request.POST.get('categoria', evento.categoria)
+            evento.informativo = request.POST.get('informativo', evento.informativo)
+            evento.local = request.POST.get('local', evento.local)
+            evento.data = request.POST.get('data', evento.data)
+            evento.data_fim = request.POST.get('data_fim') or None
             
-            nova_data = request.POST.get('data')
-            if nova_data: ev.data = parse_datetime(nova_data)
-                
-            nova_data_fim = request.POST.get('data_fim')
-            if nova_data_fim: ev.data_fim = parse_datetime(nova_data_fim)
-                
-            max_p = request.POST.get('max_participantes')
-            ev.max_participantes = max_p if max_p else None
-            ev.informativo = request.POST.get('informativo', ev.informativo)
+            vagas = request.POST.get('max_participantes')
+            evento.max_participantes = int(vagas) if vagas else None
             
             if 'imagem_capa' in request.FILES:
-                ev.imagem_capa = request.FILES['imagem_capa']
+                evento.imagem_capa = request.FILES['imagem_capa']
                 
-            ev.save()
-            messages.success(request, f"Evento '{ev.titulo}' atualizado!")
+            evento.save()
+            messages.success(request, f"Evento '{evento.titulo}' atualizado!")
 
         elif acao == 'nova_caravana':
             Caravana.objects.create(
@@ -357,7 +360,7 @@ def painel_moderador(request):
                 
             minha_torcida.save() # Grava tudo na base de dados
             messages.success(request, "Identidade do App atualizada com sucesso!")
-
+        # 8. GALERIA
         elif acao == 'nova_foto_galeria':
             FotoGaleria.objects.create(
                 torcida=minha_torcida,
@@ -366,6 +369,15 @@ def painel_moderador(request):
                 imagem=request.FILES.get('imagem')
             )
             messages.success(request, "Foto adicionada à galeria!")
+
+        elif acao == 'editar_foto':
+            foto = get_object_or_404(FotoGaleria, id=request.POST.get('item_id'), torcida=minha_torcida)
+            foto.titulo = request.POST.get('titulo', foto.titulo)
+            foto.legenda = request.POST.get('legenda', foto.legenda)
+            if 'imagem' in request.FILES:
+                foto.imagem = request.FILES['imagem']
+            foto.save()
+            messages.success(request, "Registo da galeria atualizado!")
 
         # 5. CONQUISTAS E CANÇÕES
         elif acao == 'nova_conquista':
@@ -377,6 +389,19 @@ def painel_moderador(request):
                 imagem=request.FILES.get('imagem')
             )
             messages.success(request, "Conquista registada no mural!")
+
+        elif acao == 'editar_conquista':
+            conquista = get_object_or_404(ConquistaTorcida, id=request.POST.get('item_id'), torcida=minha_torcida)
+            conquista.titulo = request.POST.get('titulo', conquista.titulo)
+            conquista.icone = request.POST.get('icone', conquista.icone)
+            conquista.data_conquista = request.POST.get('data_conquista', conquista.data_conquista)
+            conquista.descricao = request.POST.get('descricao', conquista.descricao)
+            
+            if 'imagem' in request.FILES:
+                conquista.imagem = request.FILES['imagem']
+                
+            conquista.save()
+            messages.success(request, "Histórico de glórias atualizado!")
 
         elif acao == 'nova_cancao':
             Cancao.objects.create(
@@ -401,7 +426,6 @@ def painel_moderador(request):
             cancao.save()
             messages.success(request, f"A canção '{cancao.titulo}' foi atualizada com sucesso!")
 
-
         # 6. ALIADAS
         elif acao == 'nova_aliada':
             Aliada.objects.create(
@@ -412,6 +436,19 @@ def painel_moderador(request):
                 status='aceito'
             )
             messages.success(request, "Torcida Aliada adicionada com sucesso!")
+
+        elif acao == 'deletar_aliada':
+            get_object_or_404(Aliada, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
+            messages.success(request, "Aliança removida com sucesso.")
+            
+        elif acao == 'editar_aliada':
+            aliada = get_object_or_404(Aliada, id=request.POST.get('item_id'), torcida=minha_torcida)
+            aliada.nome_organizada = request.POST.get('nome_organizada', aliada.nome_organizada)
+            aliada.clube = request.POST.get('clube', aliada.clube)
+            if 'logo' in request.FILES:
+                aliada.logo = request.FILES['logo']
+            aliada.save()
+            messages.success(request, "Aliança atualizada!")
 
         # 7. LOJA E PRODUTOS
         elif acao == 'nova_categoria_loja':
@@ -465,30 +502,6 @@ def painel_moderador(request):
             membro.save()
             messages.success(request, "Membro da diretoria atualizado!")
 
-        # --- ADICIONAR NA SECÇÃO 4 (GALERIA) ---
-        elif acao == 'editar_foto_galeria':
-            foto = get_object_or_404(FotoGaleria, id=request.POST.get('item_id'), torcida=minha_torcida)
-            foto.titulo = request.POST.get('titulo', foto.titulo)
-            foto.legenda = request.POST.get('legenda', foto.legenda)
-            if 'imagem' in request.FILES:
-                foto.imagem = request.FILES['imagem']
-            foto.save()
-            messages.success(request, "Informações da foto atualizadas!")
-
-        # --- ADICIONAR NA SECÇÃO 5 (CONQUISTAS) ---
-        elif acao == 'editar_conquista':
-            conq = get_object_or_404(ConquistaTorcida, id=request.POST.get('item_id'), torcida=minha_torcida)
-            conq.titulo = request.POST.get('titulo', conq.titulo)
-            conq.descricao = request.POST.get('descricao', conq.descricao)
-            conq.icone = request.POST.get('icone', conq.icone)
-            nova_data = request.POST.get('data_conquista')
-            if nova_data:
-                conq.data_conquista = nova_data
-            if 'imagem' in request.FILES:
-                conq.imagem = request.FILES['imagem']
-            conq.save()
-            messages.success(request, "Conquista atualizada!")
-
         # --- ADICIONAR NA SECÇÃO 6 (ALIADAS) ---
         elif acao == 'editar_aliada':
             aliada = get_object_or_404(Aliada, id=request.POST.get('item_id'), torcida=minha_torcida)
@@ -515,7 +528,11 @@ def painel_moderador(request):
         'campos_custom': CampoPersonalizado.objects.filter(torcida=minha_torcida),
         
         # Eventos
-        'eventos': Evento.objects.filter(torcida=minha_torcida).order_by('-data'),
+        'eventos': Evento.objects.filter(torcida=minha_torcida).prefetch_related(
+            'checkins_accounts__user__perfil',
+            'presencas__user__perfil',
+            'checkin_set__user__perfil'
+        ).order_by('-data'),
         'caravanas': Caravana.objects.filter(torcida=minha_torcida).order_by('-saida_horario'),
         
         # Institucional e Marca
