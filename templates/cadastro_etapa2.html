@@ -100,7 +100,8 @@
                 </div>
             {% endif %}
 
-            <form method="POST" action="{% url 'cadastro_etapa2' %}" class="mb-8">                {% csrf_token %}
+            <form method="POST" action="{% url 'cadastro_etapa2' %}" class="mb-8">
+                {% csrf_token %}
                 
                 <div class="mb-6 border border-suave rounded-[20px] overflow-hidden fundo-card shadow-sm">
                     <details class="group">
@@ -210,7 +211,7 @@
                     </h3>
                     
                     <div class="grid grid-cols-2 gap-3">
-                        <div>
+                        <div class="torcida-card" data-time="Neutro">
                             <input type="radio" name="torcida_id" id="torcida_neutra" value="neutro" class="radio-escondido" {% if not user.perfil.torcida %}checked{% endif %}>
                             <label for="torcida_neutra" class="cursor-pointer block h-full">
                                 <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center gap-2 h-28 transition-all relative">
@@ -222,7 +223,7 @@
                         </div>
 
                         {% for torcida in torcidas %}
-                        <div>
+                        <div class="torcida-card" data-time="{{ torcida.time_relacionado }}">
                             <input type="radio" name="torcida_id" id="torcida_{{ torcida.id }}" value="{{ torcida.id }}" class="radio-escondido" {% if user.perfil.torcida.id == torcida.id %}checked{% endif %}>
                             <label for="torcida_{{ torcida.id }}" class="cursor-pointer block h-full">
                                 <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center gap-2 h-28 transition-all relative">
@@ -251,4 +252,41 @@
 
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const timeRadios = document.querySelectorAll('input[name="time_coracao"]');
+    const torcidaCards = document.querySelectorAll('.torcida-card');
+
+    function filtrar() {
+        const timeSelecionado = document.querySelector('input[name="time_coracao"]:checked')?.value;
+        
+        if (!timeSelecionado) return;
+
+        torcidaCards.forEach(card => {
+            // Se for do mesmo time ou se for a opção "Neutro", mostra
+            if (card.dataset.time === timeSelecionado || card.dataset.time === "Neutro" || !card.dataset.time || card.dataset.time === "None") {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+                
+                // Se a torcida que foi ocultada estiver marcada, desmarca-a e marca "Público Geral"
+                const input = card.querySelector('input[type="radio"]');
+                if (input && input.checked) {
+                    input.checked = false;
+                    document.getElementById('torcida_neutra').checked = true;
+                }
+            }
+        });
+    }
+
+    // Escuta mudanças nos botões de time
+    timeRadios.forEach(radio => {
+        radio.addEventListener('change', filtrar);
+    });
+
+    // Roda uma vez no início para aplicar o filtro caso um time já venha selecionado do banco
+    filtrar();
+});
+</script>
 {% endblock %}

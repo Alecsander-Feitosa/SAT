@@ -142,9 +142,8 @@
                     </div>
 
                     {% for t in torcidas %}
-                    <div>
-                        <input type="radio" name="torcida_id" id="tor_{{ t.id }}" value="{{ t.id }}" class="radio-escondido" {% if perfil.torcida.id == t.id %}checked{% endif %}>
-                        <label for="tor_{{ t.id }}" class="cursor-pointer block h-full">
+                        <div class="torcida-item" data-time="{{ t.time_relacionado }}">
+                            <input type="radio" name="torcida_id" id="tor_{{ t.id }}" value="{{ t.id }}" class="radio-escondido" {% if perfil.torcida.id == t.id %}checked{% endif %}>
                             <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center h-28 text-center relative">
                                 <i class="bi bi-check-circle-fill texto-main absolute top-2 right-2 text-sm opacity-0 check-icon"></i>
                                 {% if t.logo %}
@@ -196,6 +195,53 @@
                     if (menuTimes) {
                         menuTimes.removeAttribute('open');
                     }
+                }
+            });
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const radiosTime = document.querySelectorAll('input[name="time_coracao"]');
+        const textoTimeAtual = document.getElementById('texto-time-atual');
+        const menuTimes = document.getElementById('menu-times');
+        
+        // NOVA LÓGICA DE FILTRO
+        const torcidaItems = document.querySelectorAll('.torcida-item');
+        
+        function filtrarTorcidas(timeSelecionado) {
+            torcidaItems.forEach(item => {
+                if (item.dataset.time === timeSelecionado) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                    const radio = item.querySelector('input[type="radio"]');
+                    if (radio && radio.checked) {
+                        radio.checked = false;
+                        document.getElementById('tor_neutra').checked = true;
+                    }
+                }
+            });
+        }
+
+        // Aplica o filtro inicial
+        const timeAtual = document.querySelector('input[name="time_coracao"]:checked');
+        if (timeAtual) {
+            filtrarTorcidas(timeAtual.value);
+        } else {
+            torcidaItems.forEach(item => item.style.display = 'none');
+        }
+
+        radiosTime.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    // Atualiza o texto imediatamente
+                    textoTimeAtual.innerHTML = `Meu Time: <span class="texto-main">${this.value}</span>`;
+                    // Fecha o menu retrátil suavemente
+                    if (menuTimes) {
+                        menuTimes.removeAttribute('open');
+                    }
+                    // Filtra as torcidas em tempo real
+                    filtrarTorcidas(this.value);
                 }
             });
         });

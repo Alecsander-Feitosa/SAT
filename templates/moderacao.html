@@ -232,160 +232,146 @@
         </div>
 
         <div id="eventos" class="secao-conteudo">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Painel de Eventos</h3>
-                    <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Jogos, Reuniões e Acções</p>
-                </div>
-                <button onclick="abrirModal('modalEvento')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Novo Evento</button>
-            </div>
-            
-            <div class="space-y-4">
-                {% for ev in eventos %}
-                <div class="fundo-card p-0 rounded-[24px] border border-suave overflow-hidden flex flex-col sm:flex-row group shadow-sm">
-                    <div class="sm:w-48 h-32 sm:h-auto bg-black/5 relative shrink-0">
-                        {% if ev.imagem_capa %}
-                        <img src="{{ ev.imagem_capa.url }}" class="w-full h-full object-cover">
-                        {% else %}
-                        <div class="w-full h-full flex items-center justify-center"><i class="bi bi-calendar-event text-3xl opacity-20"></i></div>
-                        {% endif %}
-                        <div class="absolute top-2 left-2 px-2.5 py-1 rounded bg-black/80 backdrop-blur-md text-[8px] font-black uppercase text-white tracking-widest border border-white/10 shadow-lg">
-                            {{ ev.get_categoria_display }}
-                        </div>
+            <div class="mb-10">
+                <div class="flex justify-between items-center mb-5">
+                    <div>
+                        <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Gestão de Eventos</h3>
+                        <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Jogos, Festas e Reuniões</p>
                     </div>
-                    
-                    <div class="mt-3">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-[10px] font-black uppercase opacity-60">Ocupação:</span>
-                            <span class="text-[10px] font-black text-orange-500">{{ ev.status_vagas }}</span>
-                        </div>
-                        
-                       <div class="w-full h-1.5 bg-black/10 rounded-full overflow-hidden border border-suave">
-                            {% with c_checkin=ev.checkins_accounts.count c_pres=ev.presencas.count %}
-                                {% with confirmados=c_checkin|add:c_pres %}
-                                
-                                    {% if ev.max_participantes %}
-                                        {% widthratio confirmados ev.max_participantes 100 as porcentagem %}
-                                        <div class="h-full transition-all duration-500" 
-                                            style="width: {{ porcentagem }}%; background-color: var(--cor-primaria)">
+                    <button onclick="abrirModal('modalEvento')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Novo Evento</button>
+                </div>
+
+                <div class="space-y-3">
+                    {% for ev in eventos %}
+                    <div class="fundo-card p-4 rounded-2xl border border-suave flex items-start sm:items-center justify-between gap-4 group flex-col sm:flex-row">
+                        <div class="flex items-start sm:items-center gap-4 flex-1">
+                            <div class="w-12 h-12 rounded-xl bg-black/5 flex items-center justify-center overflow-hidden shrink-0 border border-suave">
+                                {% if ev.imagem_capa %}
+                                    <img src="{{ ev.imagem_capa.url }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    <i class="bi bi-calendar-event text-xl opacity-30" style="color: var(--cor-primaria)"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-xs font-black uppercase texto-main leading-tight">{{ ev.titulo }}</h4>
+                                <p class="text-[10px] font-bold opacity-60 uppercase flex items-center gap-1 mt-0.5">
+                                    <i class="bi bi-clock"></i> {{ ev.data|date:"d/m H:i" }} | <i class="bi bi-geo-alt ml-1"></i> {{ ev.local }}
+                                </p>
+                                <div class="flex items-center gap-1.5 text-[9px] font-black uppercase text-orange-500 mt-1">
+                                    <i class="bi bi-people-fill"></i> {{ ev.status_vagas }}
+                                </div>
+                                <div class="flex flex-wrap gap-1 mt-2">
+                                    {% for checkin in ev.checkins_accounts.all %}
+                                        <div class="flex items-center gap-1.5 bg-black/5 border border-suave px-2 py-1 rounded-full" title="{{ checkin.user.get_full_name|default:checkin.user.username }}">
+                                            {% if checkin.user.perfil.foto %}
+                                                <img src="{{ checkin.user.perfil.foto.url }}" class="w-4 h-4 rounded-full object-cover border border-suave/20">
+                                            {% else %}
+                                                <i class="bi bi-person-circle text-[10px] opacity-40"></i>
+                                            {% endif %}
+                                            <span class="text-[8px] font-bold uppercase opacity-70">{{ checkin.user.first_name|default:checkin.user.username }}</span>
                                         </div>
-                                    {% else %}
-                                        <div class="h-full bg-green-500" style="width: 100%"></div>
-                                    {% endif %}
-                                    
-                                {% endwith %}
-                            {% endwith %} </div>
-                    </div>
-
-                    <div class="p-5 flex-1 flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-sm font-black uppercase texto-main leading-tight">{{ ev.titulo }}</h4>
-                                
-                                <div class="flex items-center gap-2 shrink-0 ml-3">
-                                    <button type="button" onclick="abrirModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Ver Lista de Confirmados">
-                                        <i class="bi bi-people-fill text-xs"></i>
-                                    </button>
-
-                                    <button type="button" onclick="abrirModal('modalEditarEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center" title="Editar Evento">
-                                        <i class="bi bi-pencil-fill text-xs"></i>
-                                    </button>
-
-                                    <form method="POST" onsubmit="return confirm('Apagar este evento definitivamente?');" class="m-0">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="item_id" value="{{ ev.id }}">
-                                        <button type="submit" name="acao" value="deletar_evento" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 flex items-center justify-center" title="Excluir Evento">
-                                            <i class="bi bi-trash text-xs"></i>
-                                        </button>
-                                    </form>
+                                    {% empty %}
+                                        <span class="text-[8px] font-bold uppercase opacity-30 italic">Sem check-ins</span>
+                                    {% endfor %}
                                 </div>
                             </div>
-                            <p class="text-[10px] opacity-60 line-clamp-2 mb-3">{{ ev.informativo|default:"Sem descrição." }}</p>
                         </div>
                         
-                        <div class="flex flex-wrap gap-x-4 gap-y-2 mt-auto">
-                            <div class="flex items-center gap-1.5 text-[9px] font-bold opacity-70 uppercase">
-                                <i class="bi bi-geo-alt" style="color: var(--cor-primaria)"></i> {{ ev.local }}
-                            </div>
-                            <div class="flex items-center gap-1.5 text-[9px] font-bold opacity-70 uppercase">
-                                <i class="bi bi-clock" style="color: var(--cor-primaria)"></i> {{ ev.data|date:"d/m/Y H:i" }}
-                                {% if ev.data_fim %} <span class="opacity-50 mx-1">até</span> {{ ev.data_fim|date:"d/m/Y H:i" }} {% endif %}
-                            </div>
-                            
-                            <div class="flex items-center gap-1.5 text-[9px] font-black uppercase text-orange-500">
-                                <i class="bi bi-people-fill"></i> {{ ev.status_vagas }}
-                            </div>
+                        <div class="flex items-center gap-2 shrink-0 ml-0 sm:ml-3">
+                            <button type="button" onclick="abrirModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center">
+                                <i class="bi bi-people-fill text-xs"></i>
+                            </button>
+                            <button type="button" onclick="abrirModal('modalEditarEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
+                                <i class="bi bi-pencil-fill text-xs"></i>
+                            </button>
+                            <form method="POST" onsubmit="return confirm('Apagar este evento definitivamente?');" class="m-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ ev.id }}">
+                                <button type="submit" name="acao" value="deletar_evento" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 flex items-center justify-center">
+                                    <i class="bi bi-trash text-xs"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
-                </div>
-                {% empty %}
-                <div class="text-center py-10 opacity-40 border border-dashed border-suave rounded-[24px] bg-black/5">
-                    <i class="bi bi-calendar-x text-3xl mb-2 block"></i>
-                    <p class="text-[10px] font-bold uppercase tracking-widest">Nenhum evento agendado.</p>
-                </div>
-                {% endfor %}
-                 <div class="mt-10">
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
-                            <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Caravanas e Viagens</h3>
-                            <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Gestão de viagens da torcida</p>
-                        </div>
-                        <button onclick="abrirModal('modalCaravana')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Caravana</button>
+                    {% empty %}
+                    <div class="text-center py-8 opacity-40 border border-dashed border-suave rounded-[24px] bg-black/5">
+                        <i class="bi bi-calendar-x text-3xl mb-2 block"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest">Nenhum evento agendado.</p>
                     </div>
+                    {% endfor %}
+                </div>
+            </div>
 
-                    <div class="space-y-4">
-                        {% for caravana in caravanas %}
-                        <div class="fundo-card p-5 rounded-[24px] border border-suave flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div class="flex-1 w-full">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="text-sm font-black uppercase texto-main leading-tight">{{ caravana.titulo }}</h4>
-                                    
-                                    <div class="flex items-center gap-2 shrink-0 ml-3 sm:hidden">
-                                        <button type="button" onclick="abrirModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
-                                            <i class="bi bi-pencil-fill text-xs"></i>
-                                        </button>
-                                        <form method="POST" onsubmit="return confirm('Apagar esta caravana definitivamente?');" class="m-0">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="item_id" value="{{ caravana.id }}">
-                                            <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 text-red-600 flex items-center justify-center"><i class="bi bi-trash text-xs"></i></button>
-                                        </form>
-                                    </div>
-                                    </div>
-                                <div class="flex flex-wrap gap-x-4 gap-y-2">
-                                    <div class="flex items-center gap-1.5 text-[9px] font-bold opacity-70 uppercase">
-                                        <i class="bi bi-geo-alt" style="color: var(--cor-primaria)"></i> Saída: {{ caravana.saida_local }}
-                                    </div>
-                                    <div class="flex items-center gap-1.5 text-[9px] font-bold opacity-70 uppercase">
-                                        <i class="bi bi-clock" style="color: var(--cor-primaria)"></i> {{ caravana.saida_horario|date:"d/m/Y H:i" }}
-                                    </div>
-                                    <div class="flex items-center gap-1.5 text-[9px] font-bold opacity-70 uppercase">
-                                        <i class="bi bi-people" style="color: var(--cor-primaria)"></i> Vagas: {{ caravana.vagas_totais }}
-                                    </div>
-                                    <div class="flex items-center gap-1.5 text-[9px] font-bold text-green-600 uppercase">
-                                        <i class="bi bi-currency-dollar"></i> R$ {{ caravana.valor }}
-                                    </div>
+            <div>
+                <div class="flex justify-between items-center mb-5">
+                    <div>
+                        <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Caravanas e Viagens</h3>
+                        <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Deslocamentos da Torcida</p>
+                    </div>
+                    <button onclick="abrirModal('modalCaravana')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Caravana</button>
+                </div>
+
+                <div class="space-y-3">
+                    {% for caravana in caravanas %}
+                    <div class="fundo-card p-4 rounded-2xl border border-suave flex flex-col gap-4 group">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-4 flex-1">
+                                <div class="w-12 h-12 rounded-xl bg-black/5 flex items-center justify-center shrink-0 border border-suave">
+                                    <i class="bi bi-bus-front text-xl opacity-50" style="color: var(--cor-primaria)"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-black uppercase texto-main leading-tight">{{ caravana.titulo }}</h4>
+                                    <p class="text-[10px] font-bold opacity-60 uppercase flex items-center gap-1 mt-0.5">
+                                        <i class="bi bi-signpost-split"></i> {{ caravana.saida_local }} | R$ {{ caravana.valor }}
+                                    </p>
+                                    <p class="text-[10px] font-black uppercase flex items-center gap-1 mt-1 text-orange-500">
+                                        <i class="bi bi-people-fill"></i> {{ caravana.passageiros.count }} / {{ caravana.vagas_totais }} Vagas Ocupadas
+                                    </p>
                                 </div>
                             </div>
                             
-                            <div class="flex items-center gap-2 shrink-0 hidden sm:flex">
-                                <button type="button" onclick="abrirModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-orange-500 flex items-center justify-center">
+                            <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0">
+                                <button type="button" onclick="abrirModal('modalListaCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Ver Confirmados">
+                                    <i class="bi bi-people-fill text-xs"></i>
+                                </button>
+                                <a href="{% url 'exportar_csv_moderacao' tipo='caravana' item_id=caravana.id %}" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Baixar CSV">
+                                    <i class="bi bi-filetype-csv text-xs"></i>
+                                </a>
+                                <button type="button" onclick="abrirModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
                                     <i class="bi bi-pencil-fill text-xs"></i>
                                 </button>
-                                <form method="POST" onsubmit="return confirm('Apagar esta caravana definitivamente?');" class="m-0">
+                                <form method="POST" onsubmit="return confirm('Cancelar caravana?');" class="m-0">
                                     {% csrf_token %}
                                     <input type="hidden" name="item_id" value="{{ caravana.id }}">
-                                    <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-colors text-red-600 flex items-center justify-center"><i class="bi bi-trash text-xs"></i></button>
+                                    <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 flex items-center justify-center">
+                                        <i class="bi bi-trash text-xs"></i>
+                                    </button>
                                 </form>
                             </div>
-                            </div>
-                        {% empty %}
-                        <div class="text-center py-10 opacity-40 border border-dashed border-suave rounded-[24px] bg-black/5">
-                            <i class="bi bi-bus-front text-3xl mb-2 block"></i>
-                            <p class="text-[10px] font-bold uppercase tracking-widest">Nenhuma caravana agendada.</p>
                         </div>
-                        {% endfor %}
+
+                        <div class="flex flex-wrap gap-1.5 pt-3 border-t border-suave/50">
+                            {% for passageiro in caravana.passageiros.all %}
+                                <div class="flex items-center gap-1.5 bg-black/5 border border-suave px-2 py-1 rounded-full" title="{{ passageiro.get_full_name|default:passageiro.username }}">
+                                    {% if passageiro.perfil.foto %}
+                                        <img src="{{ passageiro.perfil.foto.url }}" class="w-4 h-4 rounded-full object-cover border border-suave">
+                                    {% else %}
+                                        <i class="bi bi-person-circle text-[10px] opacity-40"></i>
+                                    {% endif %}
+                                    <span class="text-[8px] font-black uppercase texto-main opacity-70">{{ passageiro.first_name|default:passageiro.username }}</span>
+                                </div>
+                            {% empty %}
+                                <span class="text-[8px] font-bold uppercase opacity-30 italic">Aguardando confirmações...</span>
+                            {% endfor %}
+                        </div>
                     </div>
-                </div>   
+                    {% empty %}
+                    <div class="text-center py-8 opacity-40 border border-dashed border-suave rounded-[24px] bg-black/5">
+                        <i class="bi bi-bus-front text-3xl mb-2 block"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest">Nenhuma caravana agendada.</p>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
 
@@ -456,41 +442,56 @@
 
                 <div class="space-y-3">
                     {% for caravana in caravanas %}
-                    <div class="fundo-card p-4 rounded-2xl border border-suave flex items-center justify-between gap-4 group">
-                        <div class="flex items-center gap-4 flex-1">
-                            <div class="w-12 h-12 rounded-xl bg-black/5 flex items-center justify-center shrink-0 border border-suave">
-                                <i class="bi bi-bus-front text-xl opacity-50" style="color: var(--cor-primaria)"></i>
+                    <div class="fundo-card p-4 rounded-2xl border border-suave flex flex-col gap-4 group">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-4 flex-1">
+                                <div class="w-12 h-12 rounded-xl bg-black/5 flex items-center justify-center shrink-0 border border-suave">
+                                    <i class="bi bi-bus-front text-xl opacity-50" style="color: var(--cor-primaria)"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-black uppercase texto-main leading-tight">{{ caravana.titulo }}</h4>
+                                    <p class="text-[10px] font-bold opacity-60 uppercase flex items-center gap-1 mt-0.5">
+                                        <i class="bi bi-signpost-split"></i> {{ caravana.saida_local }} | R$ {{ caravana.valor }}
+                                    </p>
+                                    <p class="text-[10px] font-black uppercase flex items-center gap-1 mt-1 text-orange-500">
+                                        <i class="bi bi-people-fill"></i> {{ caravana.passageiros.count }} / {{ caravana.vagas_totais }} Vagas Ocupadas
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h4 class="text-xs font-black uppercase texto-main leading-tight">{{ caravana.titulo }}</h4>
-                                <p class="text-[10px] font-bold opacity-60 uppercase flex items-center gap-1 mt-0.5">
-                                    <i class="bi bi-signpost-split"></i> {{ caravana.saida_local }} | R$ {{ caravana.valor }}
-                                </p>
-                                <p class="text-[10px] font-black uppercase flex items-center gap-1 mt-1 text-orange-500">
-                                    <i class="bi bi-people-fill"></i> {{ caravana.passageiros.count }} / {{ caravana.vagas_totais }} Vagas Ocupadas
-                                </p>
+                            
+                            <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0">
+                                <button type="button" onclick="abrirModal('modalListaCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Ver Confirmados">
+                                    <i class="bi bi-people-fill text-xs"></i>
+                                </button>
+                                <a href="{% url 'exportar_csv_moderacao' tipo='caravana' item_id=caravana.id %}" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Baixar CSV">
+                                    <i class="bi bi-filetype-csv text-xs"></i>
+                                </a>
+                                <button type="button" onclick="abrirModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
+                                    <i class="bi bi-pencil-fill text-xs"></i>
+                                </button>
+                                <form method="POST" onsubmit="return confirm('Cancelar caravana?');" class="m-0">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="item_id" value="{{ caravana.id }}">
+                                    <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 flex items-center justify-center">
+                                        <i class="bi bi-trash text-xs"></i>
+                                    </button>
+                                </form>
                             </div>
                         </div>
-                        
-                        <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0">
-                            <button type="button" onclick="abrirModal('modalListaCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Ver Confirmados">
-                                <i class="bi bi-people-fill text-xs"></i>
-                            </button>
-                            
-                            <a href="{% url 'exportar_csv_moderacao' tipo='caravana' item_id=caravana.id %}" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Baixar Lista de Passageiros">
-                                <i class="bi bi-filetype-csv text-xs"></i>
-                            </a>
-                            
-                            <button type="button" onclick="abrirModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
-                                <i class="bi bi-pencil-fill text-xs"></i>
-                            </button>
-                            <form method="POST" onsubmit="return confirm('Cancelar e apagar caravana?');" class="m-0">
-                                {% csrf_token %}
-                                <input type="hidden" name="item_id" value="{{ caravana.id }}">
-                                <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 flex items-center justify-center">
-                                    <i class="bi bi-trash text-xs"></i>
-                                </button>
-                            </form>
+
+                        <div class="flex flex-wrap gap-1.5 pt-3 border-t border-suave/50">
+                            {% for passageiro in caravana.passageiros.all %}
+                                <div class="flex items-center gap-1.5 bg-black/5 border border-suave px-2 py-1 rounded-full">
+                                    {% if passageiro.perfil.foto %}
+                                        <img src="{{ passageiro.perfil.foto.url }}" class="w-4 h-4 rounded-full object-cover border border-suave">
+                                    {% else %}
+                                        <i class="bi bi-person-circle text-[10px] opacity-40"></i>
+                                    {% endif %}
+                                    <span class="text-[8px] font-black uppercase texto-main opacity-70">{{ passageiro.first_name|default:passageiro.username }}</span>
+                                </div>
+                            {% empty %}
+                                <span class="text-[8px] font-bold uppercase opacity-30 italic">Aguardando confirmações...</span>
+                            {% endfor %}
                         </div>
                     </div>
                     {% empty %}
@@ -731,7 +732,7 @@
                 </div>
             </div>
 
-            <div class="mb-12">
+           <div class="mb-12">
                 <div class="flex justify-between items-center mb-5">
                     <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Regras e Estatuto</h3>
                     <button onclick="abrirModal('modalRegra')" class="text-[10px] bg-black/5 px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Regra</button>
@@ -742,18 +743,21 @@
                         <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-black text-white text-sm" style="background-color: var(--cor-primaria)">{{ regra.ordem }}</div>
                         <div class="flex-1 flex justify-between items-start gap-4">
                             <div>
-                                <h4 class="text-xs font-black uppercase texto-main">{{ regra.titulo }}</h4>
-                                <p class="text-[10px] opacity-70 leading-relaxed">{{ regra.descricao }}</p>
+                                <h4 class="text-xs font-black uppercase texto-main leading-tight">{{ regra.titulo }}</h4>
+                                {% if regra.categoria %}
+                                    <p class="text-[9px] font-bold text-orange-500 uppercase mt-0.5">{{ regra.categoria }}</p>
+                                {% endif %}
+                                <p class="text-[10px] font-bold opacity-60 mt-2">{{ regra.descricao }}</p>
                             </div>
-                            <div class="flex flex-col gap-3 shrink-0">
+                            <div class="flex flex-col gap-2">
                                 <button type="button" onclick="abrirModal('modalEditarRegra{{ regra.id }}')" class="text-orange-500 opacity-50 hover:opacity-100 transition-opacity">
-                                    <i class="bi bi-pencil-fill"></i>
+                                    <i class="bi bi-pencil-fill text-xs"></i>
                                 </button>
                                 <form method="POST" onsubmit="return confirm('Remover regra?');" class="m-0">
                                     {% csrf_token %}
                                     <input type="hidden" name="item_id" value="{{ regra.id }}">
                                     <button type="submit" name="acao" value="deletar_regra" class="text-red-500 opacity-50 hover:opacity-100 transition-opacity">
-                                        <i class="bi bi-trash"></i>
+                                        <i class="bi bi-trash text-xs"></i>
                                     </button>
                                 </form>
                             </div>

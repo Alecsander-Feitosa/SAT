@@ -71,6 +71,34 @@
                     </div>
                 </div>
 
+                <div class="mb-6 relative z-10 fundo-app p-4 rounded-2xl border border-suave shadow-sm">
+                    <h4 class="text-[10px] texto-main opacity-60 uppercase tracking-widest font-bold mb-3 flex items-center gap-1">
+                        <i class="bi bi-people-fill"></i> Confirmados ({{ caravana.passageiros.count }})
+                    </h4>
+                    
+                    {% if caravana.passageiros.all %}
+                        <div class="flex flex-wrap gap-2">
+                            {% for passageiro in caravana.passageiros.all %}
+                            <div class="flex items-center gap-2 fundo-card border border-suave px-2.5 py-1.5 rounded-full">
+                                {% if passageiro.perfil.foto %}
+                                    <img src="{{ passageiro.perfil.foto.url }}" class="w-5 h-5 rounded-full object-cover border border-suave">
+                                {% else %}
+                                    <div class="w-5 h-5 rounded-full bg-black/10 flex items-center justify-center border border-suave texto-main opacity-70">
+                                        <i class="bi bi-person text-[10px]"></i>
+                                    </div>
+                                {% endif %}
+                                <span class="text-[9px] font-black uppercase texto-main truncate max-w-[80px]">
+                                    {{ passageiro.first_name|default:passageiro.username }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-[9px] font-bold opacity-40 uppercase tracking-widest italic flex items-center gap-1">
+                            <i class="bi bi-info-circle"></i> Seja o primeiro a garantir vaga!
+                        </p>
+                    {% endif %}
+                </div>
                 <div class="relative z-10 mt-2">
                     {% if request.user in caravana.passageiros.all %}
                         <a href="{% url 'reservar_caravana' caravana.id %}" 

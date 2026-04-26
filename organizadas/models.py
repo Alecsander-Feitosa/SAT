@@ -8,6 +8,7 @@ class Torcida(models.Model):
     nome = models.CharField(max_length=200)
     sigla = models.CharField("Sigla (Ex: TJF, MV)", max_length=10, blank=True, null=True)
     slug = models.SlugField(unique=True, max_length=200, blank=True)
+    time_relacionado = models.CharField("Time do Coração (Filtro)", max_length=100, blank=True, null=True, help_text="Nome exato do time para o filtro funcionar (Ex: Flamengo, Vasco, Corinthians)")
     fundacao = models.DateField("Data de Fundação")
     mascote = models.CharField("Mascote", max_length=100, blank=True)
     lema = models.CharField("Lema da Torcida", max_length=200, blank=True)
