@@ -311,11 +311,10 @@
                                 <i class="bi bi-clock" style="color: var(--cor-primaria)"></i> {{ ev.data|date:"d/m/Y H:i" }}
                                 {% if ev.data_fim %} <span class="opacity-50 mx-1">até</span> {{ ev.data_fim|date:"d/m/Y H:i" }} {% endif %}
                             </div>
-                            {% if ev.max_participantes %}
-                            <div class="flex items-center gap-1.5 text-[9px] font-bold opacity-70 uppercase">
-                                <i class="bi bi-people" style="color: var(--cor-primaria)"></i> Máx: {{ ev.max_participantes }} vagas
+                            
+                            <div class="flex items-center gap-1.5 text-[9px] font-black uppercase text-orange-500">
+                                <i class="bi bi-people-fill"></i> {{ ev.status_vagas }}
                             </div>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -467,13 +466,21 @@
                                 <p class="text-[10px] font-bold opacity-60 uppercase flex items-center gap-1 mt-0.5">
                                     <i class="bi bi-signpost-split"></i> {{ caravana.saida_local }} | R$ {{ caravana.valor }}
                                 </p>
+                                <p class="text-[10px] font-black uppercase flex items-center gap-1 mt-1 text-orange-500">
+                                    <i class="bi bi-people-fill"></i> {{ caravana.passageiros.count }} / {{ caravana.vagas_totais }} Vagas Ocupadas
+                                </p>
                             </div>
                         </div>
                         
                         <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0">
+                            <button type="button" onclick="abrirModal('modalListaCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Ver Confirmados">
+                                <i class="bi bi-people-fill text-xs"></i>
+                            </button>
+                            
                             <a href="{% url 'exportar_csv_moderacao' tipo='caravana' item_id=caravana.id %}" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Baixar Lista de Passageiros">
                                 <i class="bi bi-filetype-csv text-xs"></i>
                             </a>
+                            
                             <button type="button" onclick="abrirModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
                                 <i class="bi bi-pencil-fill text-xs"></i>
                             </button>
@@ -638,11 +645,11 @@
                             <button type="button" onclick="abrirModal('modalEditarConquista{{ conquista.id }}')" class="w-8 h-8 flex items-center justify-center text-orange-500 opacity-30 hover:opacity-100 transition-opacity">
                                 <i class="bi bi-pencil-fill"></i>
                             </button>
-                            <form method="POST" onsubmit="return confirm('Remover esta conquista do histórico?');" class="m-0">
+                            <form method="POST" onsubmit="return confirm('Tem a certeza que deseja excluir esta conquista? O mural será atualizado.');" class="m-0">
                                 {% csrf_token %}
                                 <input type="hidden" name="item_id" value="{{ conquista.id }}">
-                                <button type="submit" name="acao" value="deletar_conquista" class="w-8 h-8 flex items-center justify-center text-red-500 opacity-30 hover:opacity-100 transition-opacity">
-                                    <i class="bi bi-trash"></i>
+                                <button type="submit" name="acao" value="deletar_conquista" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 flex items-center justify-center" title="Deletar Conquista">
+                                    <i class="bi bi-trash text-xs"></i>
                                 </button>
                             </form>
                         </div>
@@ -1732,12 +1739,58 @@
                 <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
             </div>
 
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Alterações</button>
+           <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Alterações</button>
         </form>
     </div>
 </div>
+{% endfor %} 
+{% for caravana in caravanas %}
+<div id="modalListaCaravana{{ caravana.id }}" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
+            <div>
+                <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Passageiros: {{ caravana.titulo }}</h3>
+                <p class="text-[10px] font-bold opacity-60 uppercase mt-1">{{ caravana.passageiros.count }} / {{ caravana.vagas_totais }} Vagas Ocupadas</p>
+            </div>
+            <button type="button" onclick="fecharModal('modalListaCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5 hover:bg-black/10 transition-colors">
+                <i class="bi bi-x-lg texto-main"></i>
+            </button>
+        </div>
+        
+        <div class="space-y-3">
+            {% for passageiro in caravana.passageiros.all %}
+            <div class="p-3 bg-black/5 border border-suave rounded-xl flex items-center gap-3">
+                {% if passageiro.perfil.foto %}
+                    <img src="{{ passageiro.perfil.foto.url }}" class="w-10 h-10 rounded-full object-cover border border-suave">
+                {% else %}
+                    <div class="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center border border-suave texto-main"><i class="bi bi-person"></i></div>
+                {% endif %}
+                <div class="flex-1">
+                    <h4 class="text-xs font-black uppercase texto-main">
+                        {{ passageiro.first_name|default:passageiro.username }}
+                    </h4>
+                    <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                        {% if passageiro.perfil.whatsapp %}
+                            <span class="text-[9px] font-bold opacity-60"><i class="bi bi-whatsapp text-green-500"></i> {{ passageiro.perfil.whatsapp }}</span>
+                        {% else %}
+                            <span class="text-[9px] font-bold opacity-60"><i class="bi bi-envelope"></i> {{ passageiro.email }}</span>
+                        {% endif %}
+                        {% if passageiro.perfil.vulgo %}
+                            <span class="text-[9px] font-bold opacity-60 uppercase border-l border-suave pl-2 ml-1">{{ passageiro.perfil.vulgo }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-10 opacity-40 border border-dashed border-suave rounded-2xl bg-black/5">
+                <i class="bi bi-bus-front text-3xl mb-2 block"></i>
+                <p class="text-[10px] font-bold uppercase tracking-widest">Nenhum passageiro confirmado.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 {% endfor %}
-
 
 <script>
     function mudarAba(idSecao) {

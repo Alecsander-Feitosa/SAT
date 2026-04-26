@@ -403,6 +403,11 @@ def painel_moderador(request):
             conquista.save()
             messages.success(request, "Histórico de glórias atualizado!")
 
+        elif acao == 'deletar_conquista':
+            get_object_or_404(ConquistaTorcida, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
+            messages.success(request, "Conquista removida com sucesso do mural!")
+
+
         elif acao == 'nova_cancao':
             Cancao.objects.create(
                 torcida=minha_torcida,

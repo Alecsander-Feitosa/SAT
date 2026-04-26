@@ -87,8 +87,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                # ADICIONE ESTA LINHA ABAIXO:
                 'accounts.context_processors.tema_torcida',
+                'accounts.context_processors.torcida_branding', # <-- Adicionado aqui corretamente
             ],
         },
     },
