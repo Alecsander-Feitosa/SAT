@@ -33,9 +33,9 @@ def loja_view(request):
     if aba == 'torcida' and torcida_usuario:
         base_produtos = Produto.objects.filter(torcida=torcida_usuario)
     else:
-        # Global = produtos que não pertencem a nenhuma torcida (null)
-        base_produtos = Produto.objects.filter(torcida__isnull=True)
-        
+        # Global = MOSTRA TODOS OS PRODUTOS (Da SAT e de todas as Torcidas)
+        base_produtos = Produto.objects.all()
+    
     produtos = base_produtos
 
     # 4. Aplicar o filtro de categoria
@@ -65,12 +65,10 @@ def loja_view(request):
     return render(request, 'store.html', context)
 
 @login_required
+@login_required
 def adicionar_ao_carrinho(request, produto_id):
-    # Proteção: Permite adicionar produtos da SUA torcida OU produtos globais
-    if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
-        produto = get_object_or_404(Produto, Q(id=produto_id) & (Q(torcida=request.user.perfil.torcida) | Q(torcida__isnull=True)))
-    else:
-        produto = get_object_or_404(Produto, id=produto_id, torcida__isnull=True)
+    # Permite adicionar ao carrinho produtos de qualquer torcida ou SAT
+    produto = get_object_or_404(Produto, id=produto_id)
 
     is_ajax = request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
     variacao_id = request.POST.get('variacao_id')
@@ -106,11 +104,8 @@ def adicionar_ao_carrinho(request, produto_id):
 
 @login_required
 def detalhe_produto(request, produto_id):
-    # Proteção: Permite visualizar produtos da SUA torcida OU produtos globais
-    if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
-        produto = get_object_or_404(Produto, Q(id=produto_id) & (Q(torcida=request.user.perfil.torcida) | Q(torcida__isnull=True)))
-    else:
-        produto = get_object_or_404(Produto, id=produto_id, torcida__isnull=True)
+    # Permite visualizar os detalhes de qualquer produto
+    produto = get_object_or_404(Produto, id=produto_id)
         
     return render(request, 'loja/detalhe_produto.html', {'produto': produto})
 

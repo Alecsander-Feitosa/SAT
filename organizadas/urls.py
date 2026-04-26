@@ -29,4 +29,6 @@ urlpatterns = [
     path('hub/<slug:slug>/viagens/', views.viagens, name='viagens'),
     path('financeiro/', views.admin_financeiro, name='admin_financeiro'),
     path('financeiro/exportar/', views.exportar_financeiro_csv, name='exportar_financeiro_csv'),
+    path('caravana/<int:caravana_id>/reservar/', views.reservar_caravana, name='reservar_caravana'),
+    path('evento/<int:evento_id>/confirmar/', views.confirmar_evento, name='confirmar_evento'),
 ]

@@ -1,4 +1,5 @@
-# accounts/context_processors.py
+from organizadas.models import Torcida
+
 
 def tema_torcida(request):
     # Cor padrão do SAT Elite
@@ -17,3 +18,42 @@ def tema_torcida(request):
             pass
             
     return context
+
+
+
+def torcida_branding(request):
+    torcida = None
+    
+    # 1. Se o usuário estiver logado e tiver uma torcida vinculada
+    if request.user.is_authenticated and hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+        torcida = request.user.perfil.torcida
+    
+    # 2. Se não estiver logado, mas escolheu uma torcida na sessão (Pré-login)
+    else:
+        torcida_id = request.session.get('torcida_pre_selecionada')
+        if torcida_id:
+            torcida = Torcida.objects.filter(id=torcida_id).first()
+
+    if torcida:
+        return {
+            'branding': {
+                'nome': torcida.nome,
+                'logo': torcida.logo.url if torcida.logo else None,
+                'cor_primaria': torcida.cor_primaria or "#D37129",
+                'cor_secundaria': torcida.cor_secundaria or "#FFFFFF",
+                'cor_fundo': torcida.cor_fundo or "#121212",
+                'cor_terciaria': torcida.cor_terciaria or "#FFFFFF",
+            }
+        }
+    
+    # Cores padrão da SAT caso nenhuma torcida seja detectada
+    return {
+        'branding': {
+            'nome': 'SAT',
+            'logo': None,
+            'cor_primaria': "#D37129",
+            'cor_secundaria': "#FFFFFF",
+            'cor_fundo': "#121212",
+            'cor_terciaria': "#FFFFFF",
+        }
+    }

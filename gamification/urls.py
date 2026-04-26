@@ -16,4 +16,5 @@ urlpatterns = [
     path('eventos/', views.lista_eventos, name='lista_eventos'),
     path('evento/<int:evento_id>/', views.detalhe_evento, name='detalhe_evento'),
     path('loja/', loja_views.loja_view, name='loja_view'),
+    path('salvar-evento/<int:evento_id>/', views.salvar_evento, name='toggle_salvar_evento'),
 ]

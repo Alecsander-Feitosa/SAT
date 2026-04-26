@@ -216,5 +216,30 @@
             }
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    title: '{% if message.tags == "success" %}Sucesso!{% elif message.tags == "error" %}Erro!{% else %}Aviso{% endif %}',
+                    text: '{{ message }}',
+                    icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" %}error{% else %}info{% endif %}',
+                    
+                    // Cores dinâmicas vindas do banco de dados (Models da Torcida)
+                    confirmButtonColor: '{{ user.perfil.torcida.cor_primaria|default:"#D37129" }}',
+                    background: '{{ user.perfil.torcida.cor_fundo|default:"#121212" }}',
+                    color: '#FFFFFF', // Cor do texto
+                    
+                    // Estilo arredondado igual ao design da SAT
+                    customClass: {
+                        popup: 'rounded-[2rem] border border-suave shadow-2xl',
+                        confirmButton: 'rounded-xl px-6 py-3 font-black uppercase tracking-widest'
+                    },
+                    timer: 3500,
+                    showConfirmButton: true
+                });
+            {% endfor %}
+        {% endif %}
+    </script>
 </body>
 </html>

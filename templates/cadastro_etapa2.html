@@ -100,8 +100,7 @@
                 </div>
             {% endif %}
 
-            <form method="POST" action="{% url 'seja_socio' %}" class="mb-8">
-                {% csrf_token %}
+            <form method="POST" action="{% url 'cadastro_etapa2' %}" class="mb-8">                {% csrf_token %}
                 
                 <div class="mb-6 border border-suave rounded-[20px] overflow-hidden fundo-card shadow-sm">
                     <details class="group">
@@ -166,7 +165,7 @@
 
         {% else %}
             
-            <form method="POST" action="{% url 'seja_socio' %}">
+            <form method="POST" action="{% url 'cadastro_etapa2' %}">
                 {% csrf_token %}
                 
                 <div class="mb-8 border border-suave rounded-[20px] overflow-hidden fundo-card shadow-sm">

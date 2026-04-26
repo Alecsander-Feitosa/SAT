@@ -72,21 +72,29 @@
                 </div>
 
                 <div class="relative z-10 mt-2">
-                    {% if caravana.vagas_restantes > 0 %}
-                        <a href="{% url 'reservar_caravana' caravana.id %}" class="w-full flex items-center justify-center gap-2 texto-claro font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-lg" style="background-color: var(--cor-primaria); box-shadow: 0 4px 15px rgba(var(--cor-primaria-rgb), 0.3);">
+                    {% if request.user in caravana.passageiros.all %}
+                        <a href="{% url 'reservar_caravana' caravana.id %}" 
+                        class="w-full flex items-center justify-center gap-3 bg-green-500/10 text-green-500 border-2 border-green-500/50 font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all shadow-sm"
+                        style="border-color: var(--cor-primaria);">
+                            <i class="bi bi-check-all text-2xl"></i>
+                            <span>Vaga Garantida</span>
+                        </a>
+                        <p class="text-[9px] text-green-500 opacity-80 uppercase tracking-widest text-center mt-2 font-bold">
+                            Clica para cancelar a tua participação
+                        </p>
+                    {% elif caravana.vagas_restantes > 0 %}
+                        <a href="{% url 'reservar_caravana' caravana.id %}" 
+                        class="w-full flex items-center justify-center gap-2 texto-claro font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-lg" 
+                        style="background-color: var(--cor-primaria); box-shadow: 0 10px 20px -10px var(--cor-primaria);">
                             <i class="bi bi-ticket-perforated-fill text-lg"></i>
                             Garantir Minha Vaga
                         </a>
                     {% else %}
-                        <button disabled class="w-full flex items-center justify-center gap-2 bg-red-500/10 text-red-500 border border-red-500/20 font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest cursor-not-allowed">
+                        <button disabled class="w-full flex items-center justify-center gap-2 bg-white/5 text-white/20 border border-white/10 font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest cursor-not-allowed">
                             <i class="bi bi-x-circle-fill text-lg"></i>
                             Vagas Esgotadas
                         </button>
                     {% endif %}
-                    
-                    <p class="text-[9px] texto-main opacity-50 uppercase tracking-widest text-center mt-3 font-bold">
-                        *Ao clicar, o teu lugar na caravana será registado.
-                    </p>
                 </div>
             </div>
 

@@ -42,8 +42,8 @@ from .models import Perfil, Presenca, Conquista, Evento, CheckIn, PlanoSocio
 from .forms import CadastroForm, PerfilCompletoForm
 from loja.models import Produto
 from .models import Presenca, PresencaCaravana
-
-
+import csv
+from django.http import HttpResponse
 
 # 1. Ecrã para escolher a torcida ANTES de logar
 def escolher_torcida_publico(request):
@@ -80,68 +80,103 @@ def viagens_view(request):
 
 
 # accounts/views.py
+
+# SAT/accounts/views.py
+
 # accounts/views.py
 
 def cadastro(request):
-    # Identifica se o utilizador veio de uma torcida específica (Sessão)
-    torcida_id = request.session.get('torcida_pre_selecionada')
-    torcida = Torcida.objects.filter(id=torcida_id).first() if torcida_id else None
+    # 1. Verifica se existe uma torcida pré-selecionada na sessão (vinda do pre_login_torcida)
+    torcida_id_sessao = request.session.get('torcida_pre_selecionada')
+    torcida_pre = Torcida.objects.filter(id=torcida_id_sessao).first() if torcida_id_sessao else None
 
     if request.method == 'POST':
         form = CadastroForm(request.POST)
         if form.is_valid():
-            # Verifica se as senhas batem manualmente para garantir
+            # Validação de senhas conforme o teu formulário personalizado
             if request.POST.get('senha') != request.POST.get('confirmar_senha'):
                 messages.error(request, "As senhas não coincidem.")
-                return render(request, 'cadastro.html', {'form': form, 'torcida': torcida})
+                return render(request, 'cadastro.html', {'form': form, 'torcida': torcida_pre})
 
-            # 1. Cria o utilizador e o perfil base
+            # Cria o utilizador e o perfil base através do form.save()
             user = form.save()
             perfil = user.perfil
             
-            # 2. SOLICITAÇÃO AUTOMÁTICA DA TORCIDA AQUI
-            if torcida:
-                perfil.torcida = torcida
+            # Se ele já veio de um link de torcida, vincula logo como pendente
+            if torcida_pre:
+                perfil.torcida = torcida_pre
                 perfil.aprovado = False 
                 perfil.save()
-                
-                # Limpa a sessão pois já não precisamos
-                if 'torcida_pre_selecionada' in request.session:
-                    del request.session['torcida_pre_selecionada']
-                    
-                messages.success(request, f"Conta criada! Solicitação enviada para a aprovação da {torcida.nome}.")
             
-            # 3. Faz o login automático
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            # GUARDA O ID NA SESSÃO: Fundamental para a Etapa 2 saber quem é o utilizador
+            request.session['novo_usuario_id'] = user.id
+            request.session.modified = True 
             
-            # 4. Vai direto para o Dashboard (Eliminamos a Etapa 2 para quem já vem da torcida!)
-            return redirect('dashboard') 
+            # Redireciona para a Etapa 2 SEM fazer login ainda
+            return redirect('cadastro_etapa2') 
         else:
-            # Se cair aqui, o e-mail já existe ou falta algo
-            print("ERROS DO FORMULÁRIO:", form.errors)
-            messages.error(request, "Erro: Este e-mail já está registado ou os dados são inválidos.")
+            # Caso o e-mail já exista ou o formulário seja inválido
+            messages.error(request, "Erro no cadastro. Verifique se o e-mail já está registado.")
     else:
         form = CadastroForm()
         
-    return render(request, 'cadastro.html', {'form': form, 'torcida': torcida})
+    return render(request, 'cadastro.html', {'form': form, 'torcida': torcida_pre})
 
-@login_required
+
 def cadastro_etapa2(request):
-    perfil = request.user.perfil
+    # 1. Recupera o ID do utilizador que acabou de se registar na Etapa 1
+    novo_usuario_id = request.session.get('novo_usuario_id')
     
-    # Pega o ID da torcida que foi salva lá no início (escolher-torcida)
-    torcida_id_sessao = request.session.get('torcida_pre_selecionada')
-    
-    # BUSCA A TORCIDA NO BANCO PARA MANDAR PRO HTML (Isto corrigirá o texto em branco!)
-    torcida_selecionada = None
-    if torcida_id_sessao:
-        from organizadas.models import Torcida
-        torcida_selecionada = Torcida.objects.filter(id=torcida_id_sessao).first()
+    # Segurança: se não houver ID na sessão, volta para o início
+    if not novo_usuario_id:
+        return redirect('cadastro')
+        
+    from django.contrib.auth.models import User
+    user_alvo = get_object_or_404(User, id=novo_usuario_id)
+    perfil = user_alvo.perfil
 
-    # Se já tem tudo, vai pro dashboard
-    if perfil.torcida and perfil.time_coracao:
+    if request.method == 'POST':
+        # Captura os dados enviados pelo teu HTML (cadastro_etapa2.html)
+        time_escolhido = request.POST.get('time_coracao')
+        torcida_escolhida_id = request.POST.get('torcida_id')
+
+        # 1. Grava o Time do Coração
+        if time_escolhido:
+            perfil.time_coracao = time_escolhido
+
+        # 2. Grava a Torcida e define como pendente para aprovação
+        if torcida_escolhida_id:
+            if torcida_escolhida_id == 'neutro':
+                perfil.torcida = None
+                perfil.aprovado = False
+            else:
+                from organizadas.models import Torcida
+                nova_torcida = Torcida.objects.filter(id=torcida_escolhida_id).first()
+                if nova_torcida:
+                    perfil.torcida = nova_torcida
+                    perfil.aprovado = False 
+        
+        # SALVA TUDO NO BANCO DE DADOS ANTES DO LOGIN
+        perfil.save()
+
+        # 3. REALIZA O LOGIN FINAL (Agora com os dados guardados)
+        from django.contrib.auth import login
+        user_alvo.backend = 'django.contrib.auth.backends.ModelBackend'
+        login(request, user_alvo)
+        
+        # Limpa as variáveis temporárias da sessão
+        if 'novo_usuario_id' in request.session:
+            del request.session['novo_usuario_id']
+        if 'torcida_pre_selecionada' in request.session:
+            del request.session['torcida_pre_selecionada']
+
+        messages.success(request, f"Bem-vindo, {user_alvo.first_name}! Perfil configurado com sucesso.")
         return redirect('dashboard')
 
+    # Dados para carregar os escudos e a lista de torcidas no template
+    from organizadas.models import Torcida
+    torcidas_lista = Torcida.objects.all()
+    
     times_brasil = [
         {"nome": "Flamengo", "escudo": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Flamengo_braz_logo.svg"},
         {"nome": "Corinthians", "escudo": "https://upload.wikimedia.org/wikipedia/pt/b/b4/Corinthians_simbolo.png"},
@@ -155,47 +190,20 @@ def cadastro_etapa2(request):
         {"nome": "Botafogo", "escudo": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Escudo_Botafogo.svg"},
         {"nome": "Fluminense", "escudo": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Escudo_Fluminense_FC_2024.svg"},
         {"nome": "Santos", "escudo": "https://upload.wikimedia.org/wikipedia/commons/1/15/Santos_Logo.png"},
-        {"nome": "Bahia", "escudo": "https://upload.wikimedia.org/wikipedia/pt/9/90/ECBahia.png"},
-        {"nome": "Sport", "escudo": "https://upload.wikimedia.org/wikipedia/pt/3/30/Sport_Club_do_Recife.png"},
-        {"nome": "Fortaleza", "escudo": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Fortaleza_Esporte_Clube_logo.svg"},
-        {"nome": "Ceará", "escudo": "https://upload.wikimedia.org/wikipedia/commons/3/38/Cear%C3%A1_Sporting_Club_logo.svg"},
-        {"nome": "Athletico-PR", "escudo": "https://upload.wikimedia.org/wikipedia/commons/b/b3/CA_Paranaense.svg"},
-        {"nome": "Coritiba", "escudo": "https://upload.wikimedia.org/wikipedia/commons/b/b0/Coritiba_FBC_%282011%29.svg"},
     ]
 
-    if request.method == 'POST':
-        data_nasc = request.POST.get('data_nascimento')
-        time_coracao = request.POST.get('time_coracao')
-        
-        if data_nasc:
-            perfil.data_nascimento = data_nasc
-        if time_coracao:
-            perfil.time_coracao = time_coracao
-
-        # Como a torcida já foi escolhida na tela anterior, apenas salvamos ela aqui
-        if torcida_selecionada:
-            perfil.torcida = torcida_selecionada
-            perfil.aprovado = False 
-            perfil.save()
-            
-            # Limpa a sessão
-            if 'torcida_pre_selecionada' in request.session:
-                del request.session['torcida_pre_selecionada']
-                
-            messages.success(request, f"Pedido enviado! Aguarde a aprovação da {torcida_selecionada.nome}.")
-            return redirect('dashboard')
-        else:
-            perfil.save()
-            return redirect('dashboard')
-
     context = {
-        'torcida': torcida_selecionada,  # MANDA PARA O HTML PARA PERSONALIZAR
+        'perfil': perfil,
+        'torcida': perfil.torcida, 
+        'torcidas': torcidas_lista,
         'times_brasil': times_brasil,
     }
     return render(request, 'cadastro_etapa2.html', context)
 
+from django import forms
+from django.contrib.auth.models import User
+from .models import Perfil
 
-# accounts/views.py
 class CadastroForm(forms.ModelForm):
     senha = forms.CharField(widget=forms.PasswordInput())
     confirmar_senha = forms.CharField(widget=forms.PasswordInput())
@@ -209,7 +217,7 @@ class CadastroForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if User.objects.filter(username=email).exists():
+        if User.objects.filter(username=email).exists() or User.objects.filter(email=email).exists():
             raise forms.ValidationError("Este e-mail já está cadastrado.")
         return email
 
@@ -218,6 +226,7 @@ class CadastroForm(forms.ModelForm):
         
         user = super().save(commit=False)
         user.username = email_limpo 
+        user.email = email_limpo
         
         # 1. Separar o Nome Completo em Nome e Sobrenome
         nome_completo = self.cleaned_data.get("nome", "")
@@ -228,21 +237,46 @@ class CadastroForm(forms.ModelForm):
         user.set_password(self.cleaned_data["senha"])
         
         if commit:
-            from django.contrib.auth.models import User
-            if not User.objects.filter(username=email_limpo).exists():
-                user.save()
-                
-                # 2. Guardar CPF e Telefone corretamente no Perfil
-                Perfil.objects.update_or_create(
-                    user=user,
-                    defaults={
-                        'cpf': self.cleaned_data.get('cpf'),
-                        'telefone': self.cleaned_data.get('telefone'),
-                        'whatsapp': self.cleaned_data.get('telefone'), # Opcional: preenche o whatsapp com o mesmo número
-                    }
-                )
+            user.save()
+            
+            # 2. Guardar CPF e Telefone corretamente no Perfil
+            Perfil.objects.update_or_create(
+                user=user,
+                defaults={
+                    'cpf': self.cleaned_data.get('cpf'),
+                    'telefone': self.cleaned_data.get('telefone'),
+                    'whatsapp': self.cleaned_data.get('telefone'), # Preenche o whatsapp com o mesmo número
+                }
+            )
         return user
-# FIM DA ATUALIZAÇÃO: Classe CadastroForm
+
+
+class PerfilCompletoForm(forms.ModelForm):
+    class Meta:
+        model = Perfil
+        fields = [
+            'foto',
+            'data_nascimento', 'rg_cnh', 
+            'orgao_expedidor', 
+
+            'cep', 
+            'rua', 
+            'numero', 
+            'complemento', 
+            'bairro',
+            'cidade', 
+            'uf',
+            'doc_frente', 
+            'doc_verso', 
+            'doc_selfie',
+            'vulgo', 
+            'pelotao',
+            'rede_social'
+        ]
+        widgets = {
+            field: forms.TextInput(attrs={'class': 'form-control sat-input'}) 
+            for field in fields if field not in ['data_nascimento', 'foto', 'foto_documento_frente', 'foto_documento_verso', 'verificacao_facial']
+        }
 
 @login_required
 def dashboard(request):
@@ -849,7 +883,7 @@ def moderacao_torcida(request):
                 
                 perfil_alvo.save()
                 messages.success(request, f"Perfil de {user_alvo.first_name} atualizado com sucesso!")
-
+                
             elif acao == 'remover_socio':
                 # Nova Lógica de Banimento: Remove da torcida, mas mantém o Perfil SAT
                 perfil_alvo.torcida = None
@@ -1259,42 +1293,6 @@ def seguranca(request):
             
     return render(request, 'seguranca.html')
 
-
-
-def cadastro_etapa2_view(request):
-    # 1. Recupera o ID da torcida da sessão
-    torcida_id = request.session.get('torcida_selecionada_id')
-    
-    # Se o usuário caiu aqui de paraquedas sem escolher a torcida, manda ele voltar
-    if not torcida_id:
-        return redirect('escolher_torcida_url_name')
-        
-    # 2. Busca o objeto da Torcida
-    torcida = Torcida.objects.get(id=torcida_id)
-    
-    if request.method == 'POST':
-        form = CadastroEtapa2Form(request.POST)
-        if form.is_valid():
-            # Salva o perfil, associando também a torcida ao usuário
-            perfil = form.save(commit=False)
-            perfil.torcida = torcida # Associa a torcida aqui!
-            perfil.save()
-            
-            # Limpa a sessão após o uso (opcional, mas recomendado)
-            if 'torcida_selecionada_id' in request.session:
-                del request.session['torcida_selecionada_id']
-                
-            return redirect('dashboard') # Redireciona para o fim do fluxo
-    else:
-        form = CadastroEtapa2Form()
-
-    # 3. Envia a torcida para o template para personalizar a tela
-    context = {
-        'form': form,
-        'torcida': torcida
-    }
-    return render(request, 'cadastro_etapa2.html', context)
-
 @login_required
 def admin_editar_utilizador(request, perfil_id):
     # Trava de segurança: Apenas superusuários (Admin Master) podem acessar
@@ -1402,3 +1400,73 @@ def toggle_salvar_caravana(request, caravana_id):
         messages.success(request, "Caravana salva com sucesso!")
         
     return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+
+@login_required
+def exportar_csv_moderacao(request, tipo, item_id=0):
+    perfil = request.user.perfil
+    
+    # Bloqueio de segurança
+    if not request.user.is_staff or not perfil.torcida:
+        return redirect('dashboard')
+        
+    torcida = perfil.torcida
+    
+    # Configura a resposta para baixar um arquivo CSV
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    # Adiciona o BOM do UTF-8 para o Excel ler os acentos brasileiros perfeitamente
+    response.write('\ufeff'.encode('utf8')) 
+    writer = csv.writer(response, delimiter=';') # Ponto e vírgula divide melhor no Excel PT-BR
+    
+    if tipo == 'socios':
+        response['Content-Disposition'] = f'attachment; filename="socios_{torcida.sigla or torcida.nome}.csv"'
+        writer.writerow(['NOME', 'EMAIL', 'CPF', 'WHATSAPP', 'VULGO', 'PELOTAO', 'STATUS'])
+        
+        membros = Perfil.objects.filter(torcida=torcida)
+        for m in membros:
+            status = "Aprovado" if m.aprovado else "Pendente"
+            writer.writerow([
+                m.user.first_name or m.user.username, 
+                m.user.email, 
+                m.cpf or "", 
+                m.whatsapp or "", 
+                m.vulgo or "", 
+                m.pelotao or "", 
+                status
+            ])
+            
+    elif tipo == 'evento':
+        from organizadas.models import Evento as OrgEvento
+        evento = get_object_or_404(OrgEvento, id=item_id, torcida=torcida)
+        response['Content-Disposition'] = f'attachment; filename="evento_{evento.id}_lista.csv"'
+        writer.writerow(['NOME', 'EMAIL', 'WHATSAPP', 'VULGO', 'TIPO_CONFIRMACAO'])
+        
+        # Presenças Simples
+        for presenca in evento.presencas.all():
+            u = presenca.user
+            writer.writerow([u.first_name or u.username, u.email, u.perfil.whatsapp or "", u.perfil.vulgo or "", "Confirmou Presenca"])
+            
+        # Check-ins Validados (via Gamificação)
+        for checkin in evento.checkins_accounts.all():
+            u = checkin.user
+            writer.writerow([u.first_name or u.username, u.email, u.perfil.whatsapp or "", u.perfil.vulgo or "", "Check-in Gamificado"])
+            
+    elif tipo == 'caravana':
+        from organizadas.models import Caravana as OrgCaravana
+        from accounts.models import PresencaCaravana
+        caravana = get_object_or_404(OrgCaravana, id=item_id, torcida=torcida)
+        response['Content-Disposition'] = f'attachment; filename="caravana_{caravana.id}_lista.csv"'
+        writer.writerow(['NOME', 'EMAIL', 'WHATSAPP', 'VULGO', 'PELOTAO', 'RG/CNH'])
+        
+        presencas = PresencaCaravana.objects.filter(caravana=caravana)
+        for p in presencas:
+            u = p.user
+            writer.writerow([
+                u.first_name or u.username, 
+                u.email, 
+                u.perfil.whatsapp or "", 
+                u.perfil.vulgo or "", 
+                u.perfil.pelotao or "", 
+                u.perfil.rg_cnh or ""
+            ])
+
+    return response

@@ -35,40 +35,6 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 @login_required
-def confirmar_presenca(request, evento_id):
-    
-    evento = get_object_or_404(Evento, id=evento_id)
-    
-    if request.method == "POST":
-        # 1. Verifica se já não tem check-in para evitar duplicados
-        if CheckIn.objects.filter(user=request.user, evento=evento).exists():
-            messages.info(request, "Você já tem presença garantida neste evento!")
-            return redirect('detalhe_evento', evento_id=evento.id)
-            
-        # 2. Verifica se ainda há vagas (Se houver limite configurado)
-        if evento.vagas_esgotadas():
-            messages.error(request, "Infelizmente, as vagas para este evento esgotaram!")
-            return redirect('detalhe_evento', evento_id=evento.id)
-
-        # 3. Lógica Grátis vs Pago
-        if evento.valor == 0:
-            # É GRÁTIS: Confirma automaticamente sem pedir foto
-            CheckIn.objects.create(
-                user=request.user, 
-                evento=evento,
-                validado=True # Presença automaticamente validada
-            )
-            messages.success(request, "Presença confirmada com sucesso! Vaga garantida.")
-            return redirect('detalhe_evento', evento_id=evento.id)
-            
-        else:
-            # É PAGO: Redireciona para o checkout / check-in de pagamento que será criado
-            # Passamos o ID do evento para a tela de pagamento saber o que cobrar
-            return redirect('checkout_evento', evento_id=evento.id)
-                
-    return redirect('detalhe_evento', evento_id=evento.id)
-
-@login_required
 def noticias(request):
     # Aqui você listará as notícias da SAT
     return render(request, 'noticias.html')
@@ -254,3 +220,51 @@ def bet_view(request):
         'cor_tema': '#D37129', # Laranja padrão do SAT
     }
     return render(request, 'bet_manutencao.html', context)
+
+@login_required
+def confirmar_presenca(request, evento_id):
+    evento = get_object_or_404(Evento, id=evento_id)
+    
+    if request.method == "POST":
+        # 1. Tenta encontrar um check-in já existente
+        checkin = CheckIn.objects.filter(user=request.user, evento=evento).first()
+        
+        if checkin:
+            # SE EXISTE: Apaga (Cancela a presença)
+            checkin.delete()
+            messages.info(request, "A tua presença no evento foi cancelada.")
+            return redirect('detalhe_evento', evento_id=evento.id)
+            
+        # 2. SE NÃO EXISTE: Verifica as vagas antes de criar
+        if evento.vagas_esgotadas():
+            messages.error(request, "Infelizmente, as vagas para este evento esgotaram!")
+            return redirect('detalhe_evento', evento_id=evento.id)
+
+        # 3. Lógica para evento Grátis
+        if evento.valor == 0 or not evento.valor:
+            CheckIn.objects.create(
+                user=request.user, 
+                evento=evento,
+                validado=True 
+            )
+            messages.success(request, "Presença confirmada! Vaga garantida.")
+        else:
+            # Se for pago, redireciona para o checkout
+            return redirect('checkout_evento', evento_id=evento.id)
+                
+    return redirect('detalhe_evento', evento_id=evento.id)
+
+@login_required
+def salvar_evento(request, evento_id):
+    evento = get_object_or_404(Evento, id=evento_id)
+    perfil = request.user.perfil
+    
+    # Adiciona ou remove da lista de favoritos do utilizador
+    if evento in perfil.eventos_salvos.all():
+        perfil.eventos_salvos.remove(evento)
+        messages.info(request, "Evento removido dos teus itens salvos.")
+    else:
+        perfil.eventos_salvos.add(evento)
+        messages.success(request, "Evento guardado com sucesso!")
+        
+    return redirect('detalhe_evento', evento_id=evento.id)

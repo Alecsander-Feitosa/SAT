@@ -516,7 +516,6 @@ def painel_moderador(request):
         # Redireciona sempre para limpar o POST e evitar submissão duplicada ao atualizar a página
         return redirect('painel_moderador')
 
-
     # ==========================================
     # RENDERIZAÇÃO DA PÁGINA (GET)
     # ==========================================
@@ -553,6 +552,29 @@ def painel_moderador(request):
     }
     
     return render(request, 'moderacao.html', context)
+
+
+
+@login_required
+def reservar_caravana(request, caravana_id):
+    caravana = get_object_or_404(Caravana, id=caravana_id)
+    
+    # Verifica se já está na lista
+    if request.user in caravana.passageiros.all():
+        caravana.passageiros.remove(request.user)
+        messages.info(request, "A tua reserva na caravana foi cancelada.")
+    else:
+        # Se não está na lista, tenta adicionar
+        if caravana.vagas_restantes() > 0:
+            caravana.passageiros.add(request.user)
+            messages.success(request, f"Vaga garantida na caravana {caravana.titulo}!")
+        else:
+            messages.error(request, "Infelizmente esta caravana já está lotada.")
+            
+    # ATENÇÃO AQUI: Este return tem que estar na mesma direção do 'if' e 'else' de cima!
+    return redirect('viagens', slug=caravana.torcida.slug)
+
+
 
 from django.utils import timezone # Adicionamos o import do timezone aqui por segurança
 
@@ -636,3 +658,23 @@ def exportar_financeiro_csv(request):
         ])
     
     return response
+
+from gamification.models import CheckIn
+
+@login_required
+def confirmar_evento(request, evento_id):
+    evento = get_object_or_404(Evento, id=evento_id)
+    # Procura se já existe um check-in deste utilizador para este evento
+    checkin = CheckIn.objects.filter(user=request.user, evento=evento).first()
+
+    if checkin:
+        checkin.delete()
+        messages.info(request, f"Presença cancelada no evento: {evento.titulo}")
+    else:
+        if not evento.vagas_esgotadas():
+            CheckIn.objects.create(user=request.user, evento=evento)
+            messages.success(request, f"Presença confirmada em: {evento.titulo}!")
+        else:
+            messages.error(request, "Este evento já atingiu o limite de participantes.")
+
+    return redirect('lista_eventos', slug=evento.torcida.slug)
