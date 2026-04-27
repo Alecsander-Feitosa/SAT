@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import FotoGaleria, ConquistaTorcida, MembroDiretoria, Regra, Caravana, Evento, Noticia, Post, Curtida, Parceiro, Publicidade, Torcida
-
-
+from django.forms import TextInput
+from django import forms  # <-- Nova importação necessária
 
 class ModeradorBaseAdmin(admin.ModelAdmin):
     """
@@ -38,10 +38,23 @@ class ModeradorBaseAdmin(admin.ModelAdmin):
 from django.contrib import admin
 from .models import Torcida, Evento, Noticia, Post, Parceiro, Publicidade
 
+class TorcidaAdminForm(forms.ModelForm):
+    class Meta:
+        model = Torcida
+        fields = '__all__'
+        widgets = {
+            'cor_primaria': forms.TextInput(attrs={'type': 'color', 'style': 'height: 40px; width: 80px; padding: 0; cursor: pointer; border: none;'}),
+            'cor_secundaria': forms.TextInput(attrs={'type': 'color', 'style': 'height: 40px; width: 80px; padding: 0; cursor: pointer; border: none;'}),
+            'cor_terciaria': forms.TextInput(attrs={'type': 'color', 'style': 'height: 40px; width: 80px; padding: 0; cursor: pointer; border: none;'}),
+            'cor_fundo': forms.TextInput(attrs={'type': 'color', 'style': 'height: 40px; width: 80px; padding: 0; cursor: pointer; border: none;'}),
+        }
+
+
 @admin.register(Torcida)
 class TorcidaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'sigla', 'fundacao')
-    
+    form = TorcidaAdminForm
+    list_display = ('nome', 'sigla', 'cor_primaria')
+    search_fields = ('nome', 'sigla')
     # 1. Filtra a lista: o moderador só vê a sua própria claque
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -58,6 +71,16 @@ class TorcidaAdmin(admin.ModelAdmin):
     # 3. Impede que o moderador apague a própria claque por engano
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
+    
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        campos_de_cor = ['cor_primaria', 'cor_secundaria', 'cor_terciaria', 'cor_fundo']
+        
+        if db_field.name in campos_de_cor:
+            kwargs['widget'] = TextInput(attrs={
+                'type': 'color',
+                'style': 'height: 40px; width: 80px; padding: 0; cursor: pointer; border: none; border-radius: 4px;'
+            })
+        return super().formfield_for_dbfield(db_field, **kwargs)
 
 @admin.register(Caravana)
 class CaravanaAdmin(ModeradorBaseAdmin):

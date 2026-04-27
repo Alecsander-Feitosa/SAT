@@ -353,13 +353,13 @@ def dashboard(request):
         posts_sociais = Post.objects.filter(torcida=torcida_selecionada).order_by('-data_criacao')[:10]
         parceiros = Parceiro.objects.filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))
         publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora).filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))
+        produtos_destaque = Produto.objects.filter(destaque=True).filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))[:4]
     else:
         eventos = Evento.objects.filter(data__gte=agora).order_by('data')[:3]
         posts_sociais = Post.objects.all().order_by('-data_criacao')[:10]
         parceiros = Parceiro.objects.filter(torcida__isnull=True)
         publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora, torcida__isnull=True)
-
-    produtos_destaque = Produto.objects.filter(destaque=True)[:4]
+        produtos_destaque = Produto.objects.filter(destaque=True, torcida__isnull=True)[:4]
 
     context = {
         'produtos_destaque': produtos_destaque,
@@ -902,7 +902,8 @@ def moderacao_torcida(request):
     membros_ativos = Perfil.objects.filter(torcida=torcida_mod, aprovado=True)
     
     # IMPORTAÇÃO LOCAL CORRIGIDA (Forçamos o OrgEvento e adicionamos as Caravanas)
-    from organizadas.models import Parceiro, Publicidade, Cancao, Regra, CategoriaDiretoria, CampoPersonalizado, FotoGaleria, ConquistaTorcida, Evento as OrgEvento, Caravana as OrgCaravana
+    from organizadas.models import Parceiro, Publicidade, Regra, CategoriaDiretoria, FotoGaleria, ConquistaTorcida, Evento as OrgEvento, Caravana as OrgCaravana
+    from accounts.models import Cancao, CampoPersonalizado
     from loja.models import Produto, CategoriaProduto
     context = {
         'torcida': torcida_mod,
