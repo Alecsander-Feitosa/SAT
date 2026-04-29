@@ -939,10 +939,14 @@
         <form method="POST" enctype="multipart/form-data" class="space-y-4">
             {% csrf_token %}
             <input type="text" name="nome" required placeholder="Nome do Produto" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            
+            <textarea name="descricao" rows="2" placeholder="Descrição do Produto" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none"></textarea>
+
             <div class="grid grid-cols-2 gap-3">
-                <input type="number" step="0.01" name="preco" required placeholder="Preço (R$)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+                <input type="number" step="0.01" name="preco" required placeholder="Preço Orig. (R$)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
                 <input type="number" step="0.01" name="preco_promocional" placeholder="Promocional (R$)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
             </div>
+            
             <div class="grid grid-cols-2 gap-3">
                 <select name="categoria_id" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
                     <option value="">Sem Categoria</option>
@@ -950,8 +954,14 @@
                     <option value="{{ cat.id }}">{{ cat.nome }}</option>
                     {% endfor %}
                 </select>
-                <input type="number" name="estoque" placeholder="Estoque" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+                <input type="number" name="estoque" required placeholder="Estoque" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
             </div>
+
+            <div class="flex items-center gap-2 p-3 bg-black/5 rounded-xl border border-suave">
+                <input type="checkbox" name="destaque" id="destaqueProd" class="w-4 h-4 text-orange-500 bg-transparent border-suave rounded cursor-pointer">
+                <label for="destaqueProd" class="text-[10px] font-black uppercase opacity-70 cursor-pointer">Produto em Destaque?</label>
+            </div>
+
             <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
             <button type="submit" name="acao" value="novo_produto" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Publicar Produto</button>
         </form>
@@ -1000,7 +1010,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+           <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Máx. Participantes</label>
                     <input type="number" name="max_participantes" placeholder="Vazio = Ilimitado" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
@@ -1011,6 +1021,10 @@
                 </div>
             </div>
 
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Valor do Ingresso (R$)</label>
+                <input type="number" step="0.01" name="valor" value="0.00" placeholder="Deixe 0.00 se for Grátis" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
+            </div>
             <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 shadow-lg" style="background-color: var(--cor-primaria)">Publicar Evento</button>
         </form>
     </div>

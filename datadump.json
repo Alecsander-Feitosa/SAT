@@ -1,0 +1,1998 @@
+[
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$hAp7QXFhVFGw0nWbn0fMGJ$pCj/R/vDQ+4sOJkMddjhMV056nwLH6ZqCu4NKupkFbk=",
+        "last_login": "2026-04-27T00:05:15.899Z",
+        "is_superuser": true,
+        "username": "micro",
+        "first_name": "micro",
+        "last_name": "",
+        "email": "micro@gmail.com",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2026-02-20T02:01:17.820Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$DRHaYiy4BBfAoHtPwagT5q$a9t6ntzrF+MTbv0WI0u5P9xxbdUTepT5+0XGD9gTZw8=",
+        "last_login": "2026-04-23T22:07:24.969Z",
+        "is_superuser": false,
+        "username": "rosi",
+        "first_name": "Rosimeri feitosa",
+        "last_name": "",
+        "email": "rosi@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-02-21T13:18:36Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$8Bl8iSbMdPS4twjqPdWCfR$WK68LKoaserFxIm2lEK54d2J7dxbqVqU/i9w/3R+2tE=",
+        "last_login": "2026-04-24T19:08:05.751Z",
+        "is_superuser": false,
+        "username": "Carlindoteste",
+        "first_name": "Carlin",
+        "last_name": "",
+        "email": "carlindoteste@hotmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-03-01T15:09:03.161Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$CWY6BaPBiXCuof26UMEo65$BYx87a3VDtfd53pc1M0ssJo/PG97X8CAmqf0jvWrQyE=",
+        "last_login": "2026-04-26T23:44:23.508Z",
+        "is_superuser": false,
+        "username": "Raphael",
+        "first_name": "Raphael",
+        "last_name": "",
+        "email": "raphael@gmail.com",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2026-03-02T04:22:37Z",
+        "groups": [],
+        "user_permissions": [
+            [
+                "add_aliada",
+                "accounts",
+                "aliada"
+            ],
+            [
+                "change_aliada",
+                "accounts",
+                "aliada"
+            ],
+            [
+                "delete_aliada",
+                "accounts",
+                "aliada"
+            ],
+            [
+                "view_aliada",
+                "accounts",
+                "aliada"
+            ],
+            [
+                "add_cancao",
+                "accounts",
+                "cancao"
+            ],
+            [
+                "change_cancao",
+                "accounts",
+                "cancao"
+            ],
+            [
+                "delete_cancao",
+                "accounts",
+                "cancao"
+            ],
+            [
+                "view_cancao",
+                "accounts",
+                "cancao"
+            ],
+            [
+                "change_perfil",
+                "accounts",
+                "perfil"
+            ],
+            [
+                "view_perfil",
+                "accounts",
+                "perfil"
+            ],
+            [
+                "add_caravana",
+                "organizadas",
+                "caravana"
+            ],
+            [
+                "change_caravana",
+                "organizadas",
+                "caravana"
+            ],
+            [
+                "delete_caravana",
+                "organizadas",
+                "caravana"
+            ],
+            [
+                "view_caravana",
+                "organizadas",
+                "caravana"
+            ],
+            [
+                "add_comentario",
+                "organizadas",
+                "comentario"
+            ],
+            [
+                "change_comentario",
+                "organizadas",
+                "comentario"
+            ],
+            [
+                "delete_comentario",
+                "organizadas",
+                "comentario"
+            ],
+            [
+                "view_comentario",
+                "organizadas",
+                "comentario"
+            ],
+            [
+                "add_conquistatorcida",
+                "organizadas",
+                "conquistatorcida"
+            ],
+            [
+                "change_conquistatorcida",
+                "organizadas",
+                "conquistatorcida"
+            ],
+            [
+                "delete_conquistatorcida",
+                "organizadas",
+                "conquistatorcida"
+            ],
+            [
+                "view_conquistatorcida",
+                "organizadas",
+                "conquistatorcida"
+            ],
+            [
+                "add_curtida",
+                "organizadas",
+                "curtida"
+            ],
+            [
+                "change_curtida",
+                "organizadas",
+                "curtida"
+            ],
+            [
+                "delete_curtida",
+                "organizadas",
+                "curtida"
+            ],
+            [
+                "view_curtida",
+                "organizadas",
+                "curtida"
+            ],
+            [
+                "add_evento",
+                "organizadas",
+                "evento"
+            ],
+            [
+                "change_evento",
+                "organizadas",
+                "evento"
+            ],
+            [
+                "delete_evento",
+                "organizadas",
+                "evento"
+            ],
+            [
+                "view_evento",
+                "organizadas",
+                "evento"
+            ],
+            [
+                "add_fotogaleria",
+                "organizadas",
+                "fotogaleria"
+            ],
+            [
+                "change_fotogaleria",
+                "organizadas",
+                "fotogaleria"
+            ],
+            [
+                "delete_fotogaleria",
+                "organizadas",
+                "fotogaleria"
+            ],
+            [
+                "view_fotogaleria",
+                "organizadas",
+                "fotogaleria"
+            ],
+            [
+                "add_membrodiretoria",
+                "organizadas",
+                "membrodiretoria"
+            ],
+            [
+                "change_membrodiretoria",
+                "organizadas",
+                "membrodiretoria"
+            ],
+            [
+                "delete_membrodiretoria",
+                "organizadas",
+                "membrodiretoria"
+            ],
+            [
+                "view_membrodiretoria",
+                "organizadas",
+                "membrodiretoria"
+            ],
+            [
+                "add_noticia",
+                "organizadas",
+                "noticia"
+            ],
+            [
+                "change_noticia",
+                "organizadas",
+                "noticia"
+            ],
+            [
+                "delete_noticia",
+                "organizadas",
+                "noticia"
+            ],
+            [
+                "view_noticia",
+                "organizadas",
+                "noticia"
+            ],
+            [
+                "add_parceiro",
+                "organizadas",
+                "parceiro"
+            ],
+            [
+                "change_parceiro",
+                "organizadas",
+                "parceiro"
+            ],
+            [
+                "delete_parceiro",
+                "organizadas",
+                "parceiro"
+            ],
+            [
+                "view_parceiro",
+                "organizadas",
+                "parceiro"
+            ],
+            [
+                "add_post",
+                "organizadas",
+                "post"
+            ],
+            [
+                "change_post",
+                "organizadas",
+                "post"
+            ],
+            [
+                "delete_post",
+                "organizadas",
+                "post"
+            ],
+            [
+                "view_post",
+                "organizadas",
+                "post"
+            ],
+            [
+                "add_publicidade",
+                "organizadas",
+                "publicidade"
+            ],
+            [
+                "change_publicidade",
+                "organizadas",
+                "publicidade"
+            ],
+            [
+                "delete_publicidade",
+                "organizadas",
+                "publicidade"
+            ],
+            [
+                "view_publicidade",
+                "organizadas",
+                "publicidade"
+            ],
+            [
+                "add_regra",
+                "organizadas",
+                "regra"
+            ],
+            [
+                "change_regra",
+                "organizadas",
+                "regra"
+            ],
+            [
+                "delete_regra",
+                "organizadas",
+                "regra"
+            ],
+            [
+                "view_regra",
+                "organizadas",
+                "regra"
+            ],
+            [
+                "add_torcida",
+                "organizadas",
+                "torcida"
+            ],
+            [
+                "change_torcida",
+                "organizadas",
+                "torcida"
+            ],
+            [
+                "delete_torcida",
+                "organizadas",
+                "torcida"
+            ],
+            [
+                "view_torcida",
+                "organizadas",
+                "torcida"
+            ]
+        ]
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$mcAIPcRSXn3LB0BmiO5XkL$wUmh1IR+Yn+s2jTflJdHQKNnYzU+iWXBjz9z9qvgQPM=",
+        "last_login": "2026-04-24T19:08:23.046Z",
+        "is_superuser": false,
+        "username": "sara1@gmail.com",
+        "first_name": "Saja",
+        "last_name": "",
+        "email": "sara1@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-03-28T18:32:33.171Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$lexAsZDOivHkgeP5uEe6P7$uHUgV3NWkgEDM1+eEvG2PId2pv0yzd/mCKF49r+gzuU=",
+        "last_login": "2026-04-25T18:27:04.464Z",
+        "is_superuser": false,
+        "username": "micro@gmail.com",
+        "first_name": "ALECSANDER",
+        "last_name": "",
+        "email": "micro@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-25T18:27:03.989Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$go1T7ZWe3Fz4L2fPFhh3RQ$jD5m92moMVSYNqCLxoQFhtx9vbe6isX765swpp+tp/o=",
+        "last_login": "2026-04-25T18:30:28.042Z",
+        "is_superuser": false,
+        "username": "testeuser@gmail.com",
+        "first_name": "testeuser",
+        "last_name": "",
+        "email": "testeuser@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-25T18:30:12.581Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$7nPMJ8Kps1ln9THvEPzWZW$sDMsGSqT6xPYum0Pc/www/+sz1CSq9W+Un7IYJoLnqI=",
+        "last_login": "2026-04-25T18:41:37.092Z",
+        "is_superuser": false,
+        "username": "testeuser458465456454@gmail.com",
+        "first_name": "testers=user73647863",
+        "last_name": "",
+        "email": "testeuser458465456454@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-25T18:41:12.257Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$jXhVTbedjlrc5CONfht0jV$Vnk9Gh+gxvS4dLpldOaafL6PCqYrJT/bnuP47Dlu3zw=",
+        "last_login": "2026-04-25T18:51:28.472Z",
+        "is_superuser": false,
+        "username": "testeuser45846578554@gmail.com",
+        "first_name": "testetete",
+        "last_name": "",
+        "email": "testeuser45846578554@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-25T18:51:18.193Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$21dHHiCtZQgl90jb3nuexd$IDXmTUZqmPLWUrER2znOtmnQ/Wtz2VzUxJ/xJbkzLnk=",
+        "last_login": "2026-04-25T18:59:33.462Z",
+        "is_superuser": false,
+        "username": "testeuser4554@gmail.com",
+        "first_name": "testeuser000",
+        "last_name": "",
+        "email": "testeuser4554@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-25T18:59:20.087Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$3tAam7k3CppeHDVJl4RUZI$na8FSVrNje3KyXmxvbrNB0FwpnlIPzmYvZJSunnGGxo=",
+        "last_login": "2026-04-25T19:22:10.107Z",
+        "is_superuser": false,
+        "username": "SAT_main@gmail.com",
+        "first_name": "SAT_man",
+        "last_name": "",
+        "email": "SAT_main@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-25T19:19:28.173Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$qszvnYz4NcSPVa69VQgN1v$Ty6g6brO9P2fCtUCJWtfPy4JJAzpNwnt5SOacMBM0/M=",
+        "last_login": "2026-04-26T23:26:19.719Z",
+        "is_superuser": false,
+        "username": "testetorcida@gmail.com",
+        "first_name": "testetorcida",
+        "last_name": "",
+        "email": "testetorcida@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-26T23:25:54.141Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$KdevGewLTvUDeAKLO5gEaB$/eV5mapEucJKfibKVtE0XSb+f0LYe+rPsDfEujOVeVE=",
+        "last_login": "2026-04-26T23:28:48.006Z",
+        "is_superuser": false,
+        "username": "testeusertorcida2@htimalil.com",
+        "first_name": "testeusertorcida2",
+        "last_name": "",
+        "email": "testeusertorcida2@htimalil.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-26T23:28:36.506Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$yYfQHidfS7cFyo8girBkGn$gQ2YZbm0VixTK6/+vYzOizTGRqALx6MpuRfMEc9asXA=",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "testeusertorcida3@htimalil.com",
+        "first_name": "testeusertorcida3",
+        "last_name": "",
+        "email": "testeusertorcida3@htimalil.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-26T23:34:50.555Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "0edrxxp204260cotsxeh2dy5dmq2ry6z",
+    "fields": {
+        "session_data": ".eJxVzMEOgjAQBNB_6dk0tG6pcPTuNzTb3UWqhJoWTsZ_FxIuXOfNzFctuVBiDJ8iocoklPKMjKo3FxVwXcawVikhseqVUacsIr1l3oFfOD-zpjwvJUW9V_ShVT8yy3Q_uqeDEeu4rcV0JAiAw80O1lHbxugAvGPXXCX6ATxahg2pYeoiXaHxLaCJtjObqt8fbCdCPA:1w1GPl:cu9swT8IcxTHu0AxfttKcXjutd5aDs5G24UOOFZhowk",
+        "expire_date": "2026-03-28T04:15:49.175Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "2gnkxrs2fb9tes7axzr9zb73zdlwslas",
+    "fields": {
+        "session_data": ".eJxVzMEOwiAQBNB_4WwI0AWsR-9-A9ldQKqmJKU9Gf9dmvSg13kz8xYBt7WEraUlTFFchBan34yQn2neIT5wvlfJdV6XieRekYc2easxva5H9--gYCt9nfTICQEwn002lp0jsgDeRquGRD6DRxOhI6vII_EAyjtATWbUXcXnC_QZN_4:1vwuI9:kQ9AaF36Qw75RHLjFPhozRLIQw_lAZhXlATfWjQX5SU",
+        "expire_date": "2026-03-16T03:49:57.844Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "2yfgouz2w6eq77lteikhxskxej4emb43",
+    "fields": {
+        "session_data": ".eJxVjMsOwiAQAP-FsyGlvIpH7_2GZpddpGogKe3J-O-GpAe9zkzmLRY49rwcjbdlJXEVyovLL0SITy7d0APKvcpYy76tKHsiT9vkXIlft7P9G2RouX8VOe1Hq4H1hGQNTtYO5BmJMfkwxpi0wYAKkWkwzvmQDAAHTyGxEp8vGQc5BQ:1w32XY:eUKwTiXLkYKt1zjODfNnRuMZdLm4Z4doF2cKJ30NFFo",
+        "expire_date": "2026-04-02T01:51:12.591Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "4uw32ksnx03xfs5rgq2j8913yflxcsw9",
+    "fields": {
+        "session_data": ".eJxVjDsOwjAQBe_iGlmOHX-Wkj5niNbeNQ4gR4qTCnF3EikFtG9m3luMuK1l3Bov40TiKqy4_G4R05PrAeiB9T7LNNd1maI8FHnSJoeZ-HU73b-Dgq3stbcQbPZZOTCGkC33GDRop5WOGDpM2UWi4E3nWSnkCOwt9WAAdh7E5wvYojfD:1w3wc6:14iewVCPC7vzpPQX-kQ6hhzFeAUOUEVqlOlNNBkyVIg",
+        "expire_date": "2026-04-04T13:43:38.008Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "5i961m6cg28ib1q8s3opjiw6mtj87bkz",
+    "fields": {
+        "session_data": ".eJxVzMEOwiAQBNB_4WwI0AWsR-9-A9ldQKqmJKU9Gf9dmvSg13kz8xYBt7WEraUlTFFchBan34yQn2neIT5wvlfJdV6XieRekYc2easxva5H9--gYCt9nfTICQEwn002lp0jsgDeRquGRD6DRxOhI6vII_EAyjtATWbUXcXnC_QZN_4:1w1pOU:82Hl0izHZBQzVYwleiFhwfA2rPHCIs3mfGjbQ4LcR1A",
+        "expire_date": "2026-03-29T17:36:50.021Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "7zc889am8v3bu5a77rc2rt6kc9w37t0s",
+    "fields": {
+        "session_data": ".eJxVjDsOwjAQRO_iGll2_KekzxmsXXuDA8iW4qRC3J1ESgHdaN6bebMI21ri1mmJc2ZX5tjlt0NIT6oHyA-o98ZTq-syIz8UftLOx5bpdTvdv4MCvexrDZ60lUGbhMGkDGLPKqgsrRfJK8hJBbLkpfAaPTiHQSIYMUyTDgOwzxfTNzd_:1wFJU6:En20VP6R4Eh1T0oO02_Xrv333K108VkxyLjzQpmrRM0",
+        "expire_date": "2026-05-05T22:22:22.992Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "92d7t4u266om8qotkqvwoqmvpxmburf1",
+    "fields": {
+        "session_data": ".eJxVjEsOAiEQBe_C2hBoAcGle89AummQUQPJfFbGuyvJLHT7quq9RMRtrXFb8hwnFmcB4vC7EaZHbgPwHduty9TbOk8khyJ3ushr5_y87O7fQcWljhqLRvj6lMA7UJCVOQWyBthZW4z1GkCTZg6BVSrelSMlpKCM8eSceH8A7-838w:1w29C9:PZGrVUkda5cMVijPEzhu3b0L_88Dq3YPaBHkNp94nqk",
+        "expire_date": "2026-03-30T14:45:25.115Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "ak8qdpn2r18tjx7gyt7gy5df3smlio2t",
+    "fields": {
+        "session_data": ".eJxVjDsOwjAQRO_iGll2_KekzxmsXXuDA8iW4qRC3J1ESgHdaN6bebMI21ri1mmJc2ZX5tjlt0NIT6oHyA-o98ZTq-syIz8UftLOx5bpdTvdv4MCvexrDZ60lUGbhMGkDGLPKqgsrRfJK8hJBbLkpfAaPTiHQSIYMUyTDgOwzxfTNzd_:1w7lSA:DundzNMdMRevGmHtstuyz21Ccf059NLr3yAfCjxIQxo",
+        "expire_date": "2026-04-15T02:37:10.444Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "c3609vbnqrlz91efsyr2x2km2pcipn6r",
+    "fields": {
+        "session_data": ".eJxVjDsOwjAQBe_iGlmOHX-Wkj5niNbeNQ4gR4qTCnF3EikFtG9m3luMuK1l3Bov40TiKqy4_G4R05PrAeiB9T7LNNd1maI8FHnSJoeZ-HU73b-Dgq3stbcQbPZZOTCGkC33GDRop5WOGDpM2UWi4E3nWSnkCOwt9WAAdh7E5wvYojfD:1w1J5t:5_xpvdmTdaJvM0BFDmyrNo8xE4HLUXRnPa11qgjxmvQ",
+        "expire_date": "2026-03-28T07:07:29.743Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "d5gyrx20ub01attpqdfgpqjwmyerualz",
+    "fields": {
+        "session_data": ".eJxVjDsOwjAQBe_iGlmOHX-Wkj5niNbeNQ4gR4qTCnF3EikFtG9m3luMuK1l3Bov40TiKqy4_G4R05PrAeiB9T7LNNd1maI8FHnSJoeZ-HU73b-Dgq3stbcQbPZZOTCGkC33GDRop5WOGDpM2UWi4E3nWSnkCOwt9WAAdh7E5wvYojfD:1w1IfW:mhi0u44nWworelNYy-Dn3ZVBh8zMs0aMdUFBRJ0ZMPY",
+        "expire_date": "2026-03-28T06:40:14.698Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "fdbk74w3t58mumpgqtbpa04h1m56jfcm",
+    "fields": {
+        "session_data": ".eJxVjDsOwjAQRO_iGll2_KekzxmsXXuDA8iW4qRC3J1ESgHdaN6bebMI21ri1mmJc2ZX5tjlt0NIT6oHyA-o98ZTq-syIz8UftLOx5bpdTvdv4MCvexrDZ60lUGbhMGkDGLPKqgsrRfJK8hJBbLkpfAaPTiHQSIYMUyTDgOwzxfTNzd_:1w1J1V:kzLkwHbtI-wrrr9SEv7TN9TsC-Fh1W3BgfDOSlUdeuU",
+        "expire_date": "2026-03-28T07:02:57.728Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "if8t24vpyscwzxaus8j47r58qdm89361",
+    "fields": {
+        "session_data": ".eJxVjEsOAiEQBe_C2hBoAcGle89AummQUQPJfFbGuyvJLHT7quq9RMRtrXFb8hwnFmcB4vC7EaZHbgPwHduty9TbOk8khyJ3ushr5_y87O7fQcWljhqLRvj6lMA7UJCVOQWyBthZW4z1GkCTZg6BVSrelSMlpKCM8eSceH8A7-838w:1vvTSD:U1GJB3lyOYTVGH0IEiMLN6d0Tm8Diy60VTpf0VFp9Mg",
+        "expire_date": "2026-03-12T04:58:25.533Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "k649ptd4l5ylhat07b1qwxqbw40oumsh",
+    "fields": {
+        "session_data": ".eJxVzMEOwiAQBNB_4WwI0AWsR-9-A9ldQKqmJKU9Gf9dmvSg13kz8xYBt7WEraUlTFFchBan34yQn2neIT5wvlfJdV6XieRekYc2easxva5H9--gYCt9nfTICQEwn002lp0jsgDeRquGRD6DRxOhI6vII_EAyjtATWbUXcXnC_QZN_4:1vwrHC:X4rQrTBKwPuccwFHB9h0HVyyiYIe7-oPhle3ofi27wE",
+        "expire_date": "2026-03-16T00:36:46.261Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "ml1vig0kmqvi2tqgpzuhetnut67h7jqu",
+    "fields": {
+        "session_data": "eyJ0b3JjaWRhX3ByZV9zZWxlY2lvbmFkYSI6MX0:1w63qK:nf9cLTDtMSJN-zUBSs91y5gezIFOEGN789DTpaymlhU",
+        "expire_date": "2026-04-10T09:51:04.691Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "s4knj0lpzp9todti48iotexc1o6librm",
+    "fields": {
+        "session_data": ".eJxVjDsOwjAQRO_iGll2_KekzxmsXXuDA8iW4qRC3J1ESgHdaN6bebMI21ri1mmJc2ZX5tjlt0NIT6oHyA-o98ZTq-syIz8UftLOx5bpdTvdv4MCvexrDZ60lUGbhMGkDGLPKqgsrRfJK8hJBbLkpfAaPTiHQSIYMUyTDgOwzxfTNzd_:1w1pUq:27M05-Ya78mdqLLTSELjN5uDKbU6qPCOLzPvRLraI40",
+        "expire_date": "2026-03-29T17:43:24.502Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "si4wx2hg3n3f2csbp1dyvghkw8qaxyai",
+    "fields": {
+        "session_data": "e30:1w1FWs:v55IHLwde9VRlBgPRsYM6THBYJ2xTe_FYuR4wqODGzk",
+        "expire_date": "2026-03-28T03:19:06.261Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "ucwf5sygngv0nat7pbsrlmpburrk95pe",
+    "fields": {
+        "session_data": ".eJxVzMEOwiAQBNB_4WwI0AWsR-9-A9ldQKqmJKU9Gf9dmvSg13kz8xYBt7WEraUlTFFchBan34yQn2neIT5wvlfJdV6XieRekYc2easxva5H9--gYCt9nfTICQEwn002lp0jsgDeRquGRD6DRxOhI6vII_EAyjtATWbUXcXnC_QZN_4:1w1l21:NDqaVfyf59Wdf_KIKwW0BT9O_g_Y-22L9BrzxIdERKo",
+        "expire_date": "2026-03-29T12:57:21.678Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "umjm1b0exw6autn1zd1yzscrret2a67v",
+    "fields": {
+        "session_data": ".eJxVzMEOwiAQBNB_4WwI0AWsR-9-A9ldQKqmJKU9Gf9dmvSg13kz8xYBt7WEraUlTFFchBan34yQn2neIT5wvlfJdV6XieRekYc2easxva5H9--gYCt9nfTICQEwn002lp0jsgDeRquGRD6DRxOhI6vII_EAyjtATWbUXcXnC_QZN_4:1wH9TP:uUDylWvyrspiBeewqzODcqB3KoUP_rPNkmGK5vPN5CE",
+        "expire_date": "2026-05-11T00:05:15.918Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "unqmgrsnhazhkkd9h881hje5jlz6ywym",
+    "fields": {
+        "session_data": ".eJxVzMEOwiAQBNB_4WwI0AWsR-9-A9ldQKqmJKU9Gf9dmvSg13kz8xYBt7WEraUlTFFchBan34yQn2neIT5wvlfJdV6XieRekYc2easxva5H9--gYCt9nfTICQEwn002lp0jsgDeRquGRD6DRxOhI6vII_EAyjtATWbUXcXnC_QZN_4:1vtYQm:RlyQbsoi2GpBepDfTuX9ktUNq0rgua7wf9H0LnE7YD0",
+        "expire_date": "2026-03-06T21:53:00.722Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "whpxpzyozpca9kwdefajfo585gxth4ge",
+    "fields": {
+        "session_data": ".eJxVjDEOwjAMRe-SGUWKWycxIztniBwnpgXUSk07Ie4OlTrA-t97_2USb-uQtlaXNBZzNq4zp98xszzqtJNy5-k2W5mndRmz3RV70Gavc6nPy-H-HQzchm-tKh57JMY-K7EAqATPgYMDgS4Se4peWWOA3GtEAiQsKF4LZefM-wMVqzgt:1w1GNv:MB3D7ASAj_ABVm6hZzMB9V4tTqhE-eR2tVNIdHOZOb8",
+        "expire_date": "2026-03-28T04:13:55.669Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "zjfwkmh1x64chhjuhwzgva9yjrgbrcri",
+    "fields": {
+        "session_data": ".eJxVjDsOwjAQRO_iGll2_KekzxmsXXuDA8iW4qRC3J1ESgHdaN6bebMI21ri1mmJc2ZX5tjlt0NIT6oHyA-o98ZTq-syIz8UftLOx5bpdTvdv4MCvexrDZ60lUGbhMGkDGLPKqgsrRfJK8hJBbLkpfAaPTiHQSIYMUyTDgOwzxfTNzd_:1w9ZBe:lMmMX3_Wa_2F0XkeL_829bhGh5z0OL_Hj5rQaeHUIuk",
+        "expire_date": "2026-04-20T01:55:34.770Z"
+    }
+},
+{
+    "model": "sites.site",
+    "fields": {
+        "domain": "example.com",
+        "name": "example.com"
+    }
+},
+{
+    "model": "socialaccount.socialaccount",
+    "pk": 1,
+    "fields": {
+        "user": [
+            "Carlindoteste"
+        ],
+        "provider": "teste_user_PR",
+        "uid": "teste_ID",
+        "last_login": "2026-03-14T02:46:20.961Z",
+        "date_joined": "2026-03-14T02:46:20.961Z",
+        "extra_data": {
+            "aplicacao": "SAT Core",
+            "versao": "1.0.0",
+            "ambiente": "desenvolvimento",
+            "configuracoes_torcida": {
+                "nome": "Força Jovem",
+                "cor_primaria": "#000000",
+                "cor_secundaria": "#FFFFFF",
+                "ativa": true,
+                "funcionalidades": [
+                    "mural_social",
+                    "checkin_eventos",
+                    "gamificacao"
+                ],
+                "limite_membros": null
+            }
+        }
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 1,
+    "fields": {
+        "user": [
+            "micro"
+        ],
+        "foto": "perfil_fotos/Captura_de_tela_2026-02-12_205746.png",
+        "time_coracao": "Flamengo",
+        "torcida": 2,
+        "cpf": "547885954675",
+        "whatsapp": "124568758646",
+        "telefone": "",
+        "aprovado": true,
+        "data_nascimento": "2001-06-27",
+        "nome_mae": "micro 2",
+        "nome_pai": "micro 3",
+        "rg_cnh": "5648521459",
+        "orgao_expedidor": "detran",
+        "cep": "25545300",
+        "rua": "Rua Inês Medeiros",
+        "numero": "192",
+        "complemento": "casa vermelha",
+        "bairro": "Darcy Fonseca",
+        "cidade": "recreio",
+        "uf": "RJ",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 2,
+    "fields": {
+        "user": [
+            "rosi"
+        ],
+        "foto": "",
+        "time_coracao": null,
+        "torcida": 1,
+        "cpf": "854.698.787-54",
+        "whatsapp": "21996926671",
+        "telefone": "",
+        "aprovado": true,
+        "data_nascimento": null,
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [
+            [
+                "micro"
+            ]
+        ],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 3,
+    "fields": {
+        "user": [
+            "Carlindoteste"
+        ],
+        "foto": "",
+        "time_coracao": null,
+        "torcida": 1,
+        "cpf": "46.878.535.88",
+        "whatsapp": "84996528871",
+        "telefone": "",
+        "aprovado": true,
+        "data_nascimento": null,
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 5,
+    "fields": {
+        "user": [
+            "Raphael"
+        ],
+        "foto": "",
+        "time_coracao": "Flamengo",
+        "torcida": 1,
+        "cpf": "45621378564",
+        "whatsapp": "2154879626",
+        "telefone": "",
+        "aprovado": true,
+        "data_nascimento": "2026-04-08",
+        "nome_mae": "aaa",
+        "nome_pai": "aaa",
+        "rg_cnh": "sssss",
+        "orgao_expedidor": "detran",
+        "cep": "25545300",
+        "rua": "Rua Inês ",
+        "numero": "143",
+        "complemento": "f",
+        "bairro": "Fonseca",
+        "cidade": "recreio",
+        "uf": "RJ",
+        "doc_frente": "documentos/frente/artworks-000056580593-sdwlgr-t500x500.jpg",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "ref",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 14,
+    "fields": {
+        "user": [
+            "sara1@gmail.com"
+        ],
+        "foto": "",
+        "time_coracao": "Flamengo",
+        "torcida": null,
+        "cpf": "854698787123",
+        "whatsapp": "85664968546",
+        "telefone": "",
+        "aprovado": false,
+        "data_nascimento": "2005-06-30",
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 24,
+    "fields": {
+        "user": [
+            "micro@gmail.com"
+        ],
+        "foto": "",
+        "time_coracao": null,
+        "torcida": null,
+        "cpf": "85469878754",
+        "whatsapp": "81994159249",
+        "telefone": "81994159249",
+        "aprovado": false,
+        "data_nascimento": null,
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 25,
+    "fields": {
+        "user": [
+            "testeuser@gmail.com"
+        ],
+        "foto": "",
+        "time_coracao": null,
+        "torcida": null,
+        "cpf": "09243688875",
+        "whatsapp": "81994159245521",
+        "telefone": "81994159245521",
+        "aprovado": false,
+        "data_nascimento": null,
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 26,
+    "fields": {
+        "user": [
+            "testeuser458465456454@gmail.com"
+        ],
+        "foto": "",
+        "time_coracao": null,
+        "torcida": null,
+        "cpf": "85469945474",
+        "whatsapp": "21545685489464",
+        "telefone": "21545685489464",
+        "aprovado": false,
+        "data_nascimento": null,
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 27,
+    "fields": {
+        "user": [
+            "testeuser45846578554@gmail.com"
+        ],
+        "foto": "",
+        "time_coracao": "Flamengo",
+        "torcida": null,
+        "cpf": "1546587798",
+        "whatsapp": "81994152438",
+        "telefone": "81994152438",
+        "aprovado": false,
+        "data_nascimento": null,
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 28,
+    "fields": {
+        "user": [
+            "testeuser4554@gmail.com"
+        ],
+        "foto": "",
+        "time_coracao": "Flamengo",
+        "torcida": 1,
+        "cpf": "12354876544",
+        "whatsapp": "2166879854565",
+        "telefone": "2166879854565",
+        "aprovado": false,
+        "data_nascimento": null,
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 29,
+    "fields": {
+        "user": [
+            "SAT_main@gmail.com"
+        ],
+        "foto": "",
+        "time_coracao": "Cruzeiro",
+        "torcida": null,
+        "cpf": "2154879653548",
+        "whatsapp": "21996457895",
+        "telefone": "21996457895",
+        "aprovado": false,
+        "data_nascimento": null,
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 30,
+    "fields": {
+        "user": [
+            "testetorcida@gmail.com"
+        ],
+        "foto": "",
+        "time_coracao": "Flamengo",
+        "torcida": null,
+        "cpf": "879852365474",
+        "whatsapp": "52556879851",
+        "telefone": "52556879851",
+        "aprovado": false,
+        "data_nascimento": null,
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 31,
+    "fields": {
+        "user": [
+            "testeusertorcida2@htimalil.com"
+        ],
+        "foto": "",
+        "time_coracao": "Flamengo",
+        "torcida": null,
+        "cpf": "145128545",
+        "whatsapp": "81994549249",
+        "telefone": "81994549249",
+        "aprovado": false,
+        "data_nascimento": null,
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.perfil",
+    "pk": 32,
+    "fields": {
+        "user": [
+            "testeusertorcida3@htimalil.com"
+        ],
+        "foto": "",
+        "time_coracao": null,
+        "torcida": null,
+        "cpf": "092.432.577-16",
+        "whatsapp": "81994159299",
+        "telefone": "81994159299",
+        "aprovado": false,
+        "data_nascimento": null,
+        "nome_mae": "",
+        "nome_pai": "",
+        "rg_cnh": "",
+        "orgao_expedidor": "",
+        "cep": "",
+        "rua": "",
+        "numero": "",
+        "complemento": "",
+        "bairro": "",
+        "cidade": "",
+        "uf": "",
+        "doc_frente": "",
+        "doc_verso": "",
+        "doc_selfie": "",
+        "vulgo": "",
+        "pelotao": "",
+        "rede_social": "",
+        "seguidores": [],
+        "eventos_salvos": [],
+        "caravanas_salvas": []
+    }
+},
+{
+    "model": "accounts.campopersonalizado",
+    "pk": 1,
+    "fields": {
+        "torcida": 1,
+        "nome_campo": "tamanho",
+        "obrigatorio": true
+    }
+},
+{
+    "model": "accounts.campopersonalizado",
+    "pk": 2,
+    "fields": {
+        "torcida": 1,
+        "nome_campo": "tamanho da camisa",
+        "obrigatorio": true
+    }
+},
+{
+    "model": "accounts.aliada",
+    "pk": 1,
+    "fields": {
+        "torcida": 1,
+        "torcida_convidada": null,
+        "nome_organizada": "Força",
+        "clube": "Flamengo",
+        "logo": "torcidas/aliadas/images.jpg",
+        "status": "pendente"
+    }
+},
+{
+    "model": "accounts.cancao",
+    "pk": 1,
+    "fields": {
+        "torcida": 1,
+        "titulo": "teste test",
+        "descricao": "teste",
+        "letra": "ggggg",
+        "video_url": "https://www.youtube.com/watch?v=x3EAyoxtyjs",
+        "arquivo_audio": ""
+    }
+},
+{
+    "model": "accounts.cancao",
+    "pk": 2,
+    "fields": {
+        "torcida": 1,
+        "titulo": "teste ",
+        "descricao": "sdadsad",
+        "letra": "",
+        "video_url": "https://www.youtube.com/watch?v=x3EAyoxtyjs",
+        "arquivo_audio": ""
+    }
+},
+{
+    "model": "accounts.planosocio",
+    "pk": 1,
+    "fields": {
+        "ativo": true,
+        "nome": "Torcedor Raiz",
+        "preco": "14.90",
+        "beneficios": "Carteirinha digital de sócio\r\nAcesso ao grupo exclusivo (WhatsApp/Telegram)\r\nPrioridade em caravanas (não incluso no valor)\r\nDesconto em produtos oficiais (5%)\r\nParticipação em sorteios mensais",
+        "destaque": false,
+        "torcida": 1
+    }
+},
+{
+    "model": "accounts.planosocio",
+    "pk": 2,
+    "fields": {
+        "ativo": true,
+        "nome": "Torcedor Fanático",
+        "preco": "29.90",
+        "beneficios": "Todos os benefícios do plano básico\r\nCarteirinha física personalizada\r\nDesconto maior em produtos (10%)\r\nPrioridade na compra de ingressos\r\nAcesso a eventos exclusivos da torcida\r\nBrindes ocasionais (adesivos, bandeiras pequenas)",
+        "destaque": true,
+        "torcida": 1
+    }
+},
+{
+    "model": "accounts.planosocio",
+    "pk": 3,
+    "fields": {
+        "ativo": true,
+        "nome": "Elite da Torcida",
+        "preco": "59.90",
+        "beneficios": "Todos os benefícios anteriores\r\nCamisa oficial da torcida (1 por ano)\r\nDesconto máximo (15%) em produtos\r\nVaga garantida em caravanas (pagando apenas transporte)\r\nAcesso VIP em eventos e jogos\r\nParticipação em decisões internas (enquetes/votações)\r\nKit exclusivo anual (camisa + brindes)",
+        "destaque": false,
+        "torcida": 1
+    }
+},
+{
+    "model": "gamification.nivel",
+    "pk": 3,
+    "fields": {
+        "nome": "Recruta",
+        "xp_minimo": 0,
+        "cor_tema": "#94a3b8",
+        "icone": ""
+    }
+},
+{
+    "model": "gamification.nivel",
+    "pk": 4,
+    "fields": {
+        "nome": "Bronze",
+        "xp_minimo": 500,
+        "cor_tema": "#cd7f35",
+        "icone": ""
+    }
+},
+{
+    "model": "gamification.nivel",
+    "pk": 5,
+    "fields": {
+        "nome": "Prata",
+        "xp_minimo": 2500,
+        "cor_tema": "#c0c0c0",
+        "icone": ""
+    }
+},
+{
+    "model": "gamification.nivel",
+    "pk": 6,
+    "fields": {
+        "nome": "Ouro",
+        "xp_minimo": 5000,
+        "cor_tema": "#ffd700",
+        "icone": ""
+    }
+},
+{
+    "model": "gamification.nivel",
+    "pk": 8,
+    "fields": {
+        "nome": "Lenda",
+        "xp_minimo": 20000,
+        "cor_tema": "#ff0000",
+        "icone": ""
+    }
+},
+{
+    "model": "organizadas.torcida",
+    "pk": 1,
+    "fields": {
+        "nome": "TORCIDA JOVEM",
+        "sigla": "TJF",
+        "slug": "camisetas",
+        "time_relacionado": "Flamengo",
+        "fundacao": "2024-03-06",
+        "mascote": "força",
+        "lema": "",
+        "historia": "SSSSSSSS\r\n#FFFFFF",
+        "logo": "logos_torcida/logo-378803284-1754450030-7cc7b0ca6e9be1b361908547cd5647731754450030-480-0.webp",
+        "imagem_fundo": "",
+        "cor_primaria": "#000000",
+        "cor_secundaria": "#560101",
+        "cor_terciaria": "#ffffff",
+        "cor_fundo": "#000000"
+    }
+},
+{
+    "model": "organizadas.torcida",
+    "pk": 2,
+    "fields": {
+        "nome": "Fúria Jovem",
+        "sigla": "FJV",
+        "slug": "FJV",
+        "time_relacionado": "Botafogo",
+        "fundacao": "2020-03-06",
+        "mascote": "FJV",
+        "lema": "Força botafogo",
+        "historia": "teste",
+        "logo": "logos_torcida/artworks-000056580593-sdwlgr-t500x500.jpg",
+        "imagem_fundo": "fundos_torcida/artworks-000056580593-sdwlgr-t500x500.jpg",
+        "cor_primaria": "#D37129",
+        "cor_secundaria": "#FFFFFF",
+        "cor_terciaria": "#000000",
+        "cor_fundo": "#121212"
+    }
+},
+{
+    "model": "organizadas.caravana",
+    "pk": 2,
+    "fields": {
+        "torcida": 1,
+        "titulo": "teste",
+        "saida_local": "teste",
+        "saida_horario": "2026-05-06T19:37:00Z",
+        "valor": "150.00",
+        "vagas_totais": 50,
+        "passageiros": [
+            [
+                "Raphael"
+            ]
+        ]
+    }
+},
+{
+    "model": "organizadas.evento",
+    "pk": 10,
+    "fields": {
+        "torcida": 1,
+        "categoria": "evento_social",
+        "valor": "0.00",
+        "titulo": "teste",
+        "descricao": null,
+        "local": "sede",
+        "data": "2026-05-08T23:55:00Z",
+        "data_fim": "2026-05-09T23:55:00Z",
+        "max_participantes": 20,
+        "imagem_capa": "eventos/Captura_de_tela_2026-04-17_231625.png",
+        "informativo": "test",
+        "ativo": true,
+        "latitude": null,
+        "longitude": null,
+        "raio_checkin": 500,
+        "xp_recompensa": 50
+    }
+},
+{
+    "model": "organizadas.post",
+    "pk": 1,
+    "fields": {
+        "autor": [
+            "rosi"
+        ],
+        "torcida": 1,
+        "texto": "            vamos!!!",
+        "imagem": "posts/sat_logo.png",
+        "data_criacao": "2026-03-01T19:49:49.655Z"
+    }
+},
+{
+    "model": "organizadas.post",
+    "pk": 2,
+    "fields": {
+        "autor": [
+            "rosi"
+        ],
+        "torcida": 1,
+        "texto": "NIKE",
+        "imagem": "posts/download.png",
+        "data_criacao": "2026-03-14T18:08:32.479Z"
+    }
+},
+{
+    "model": "organizadas.curtida",
+    "pk": 21,
+    "fields": {
+        "post": 2,
+        "usuario": [
+            "rosi"
+        ],
+        "data_curtida": "2026-03-15T16:53:15.883Z"
+    }
+},
+{
+    "model": "organizadas.curtida",
+    "pk": 61,
+    "fields": {
+        "post": 1,
+        "usuario": [
+            "Raphael"
+        ],
+        "data_curtida": "2026-03-15T17:48:12.817Z"
+    }
+},
+{
+    "model": "organizadas.curtida",
+    "pk": 77,
+    "fields": {
+        "post": 1,
+        "usuario": [
+            "micro"
+        ],
+        "data_curtida": "2026-03-21T13:54:11.684Z"
+    }
+},
+{
+    "model": "organizadas.parceiro",
+    "pk": 1,
+    "fields": {
+        "nome": "PArceiro 1",
+        "logo": "parceiros/download.png",
+        "link": "https://www.nike.com.br/?utm_source=google&utm_medium=cpc&utm_campaign=Google_Search_NIKE-INST-ROAS&gad_source=1&gad_campaignid=23493853333&gbraid=0AAAAADob9lPZJf-ohRLQO9XuBB8xWWN_1&gclid=CjwKCAjw687N",
+        "torcida": null
+    }
+},
+{
+    "model": "organizadas.publicidade",
+    "pk": 1,
+    "fields": {
+        "titulo": "publi",
+        "imagem": "publicidade/download.png",
+        "link": "https://www.nike.com.br/?utm_source=google&utm_medium=cpc&utm_campaign=Google_Search_NIKE-INST-ROAS&gad_source=1&gad_campaignid=23493853333&gbraid=0AAAAADob9lPZJf-ohRLQO9XuBB8xWWN_1&gclid=CjwKCAjw687N",
+        "data_inicio": "2026-03-14T06:27:22Z",
+        "data_fim": "2026-03-17T06:27:26Z",
+        "tempo_exibicao": 8,
+        "ativo": true,
+        "torcida": null
+    }
+},
+{
+    "model": "organizadas.publicidade",
+    "pk": 2,
+    "fields": {
+        "titulo": "teste",
+        "imagem": "publicidade/images.jpg",
+        "link": "https://www.nike.com.br/?utm_source=google&utm_medium=cpc&utm_campaign=Google_Search_NIKE-INST-ROAS&gad_source=1&gad_campaignid=23493853333&gbraid=0AAAAADob9lPZJf-ohRLQO9XuBB8xWWN_1&gclid=CjwKCAjw687N",
+        "data_inicio": "2026-04-09T02:44:30Z",
+        "data_fim": "2026-04-30T03:31:44Z",
+        "tempo_exibicao": 5,
+        "ativo": true,
+        "torcida": 1
+    }
+},
+{
+    "model": "organizadas.publicidade",
+    "pk": 3,
+    "fields": {
+        "titulo": "jogo teste",
+        "imagem": "publicidade/Captura_de_tela_2026-01-22_113848.png",
+        "link": "https://www.nike.com.br/?utm_source=google&utm_medium=cpc&utm_campaign=Google_Search_NIKE-INST-ROAS&gad_source=1&gad_campaignid=23493853333&gbraid=0AAAAADob9lPZJf-ohRLQO9XuBB8xWWN_1&gclid=CjwKCAjw687N",
+        "data_inicio": "2026-04-09T02:43:45Z",
+        "data_fim": "2026-05-01T02:43:57Z",
+        "tempo_exibicao": 5,
+        "ativo": true,
+        "torcida": 1
+    }
+},
+{
+    "model": "organizadas.comentario",
+    "pk": 1,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "micro"
+        ],
+        "texto": "top",
+        "data_criacao": "2026-03-15T16:17:38.154Z"
+    }
+},
+{
+    "model": "organizadas.comentario",
+    "pk": 2,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "sara1@gmail.com"
+        ],
+        "texto": ".",
+        "data_criacao": "2026-03-30T01:32:37.449Z"
+    }
+},
+{
+    "model": "organizadas.comentario",
+    "pk": 3,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "sara1@gmail.com"
+        ],
+        "texto": ".",
+        "data_criacao": "2026-03-30T01:32:38.412Z"
+    }
+},
+{
+    "model": "organizadas.comentario",
+    "pk": 4,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "sara1@gmail.com"
+        ],
+        "texto": "ddddd",
+        "data_criacao": "2026-03-30T01:39:36.648Z"
+    }
+},
+{
+    "model": "organizadas.comentario",
+    "pk": 5,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "sara1@gmail.com"
+        ],
+        "texto": "ddddd",
+        "data_criacao": "2026-03-30T01:39:44.927Z"
+    }
+},
+{
+    "model": "organizadas.comentario",
+    "pk": 6,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "sara1@gmail.com"
+        ],
+        "texto": "ddddd",
+        "data_criacao": "2026-03-30T01:39:45.334Z"
+    }
+},
+{
+    "model": "organizadas.comentario",
+    "pk": 7,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "sara1@gmail.com"
+        ],
+        "texto": "ddddd",
+        "data_criacao": "2026-03-30T01:39:45.480Z"
+    }
+},
+{
+    "model": "organizadas.comentario",
+    "pk": 8,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "sara1@gmail.com"
+        ],
+        "texto": "ddddd",
+        "data_criacao": "2026-03-30T01:39:45.606Z"
+    }
+},
+{
+    "model": "organizadas.comentario",
+    "pk": 9,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "sara1@gmail.com"
+        ],
+        "texto": "s",
+        "data_criacao": "2026-03-30T01:48:27.772Z"
+    }
+},
+{
+    "model": "organizadas.comentario",
+    "pk": 10,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "sara1@gmail.com"
+        ],
+        "texto": "s",
+        "data_criacao": "2026-03-30T01:58:33.648Z"
+    }
+},
+{
+    "model": "organizadas.comentario",
+    "pk": 11,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "sara1@gmail.com"
+        ],
+        "texto": "s",
+        "data_criacao": "2026-03-30T02:12:20.785Z"
+    }
+},
+{
+    "model": "organizadas.fotogaleria",
+    "pk": 1,
+    "fields": {
+        "torcida": 1,
+        "titulo": "Foto",
+        "imagem": "galeria_torcida/images.jpg",
+        "legenda": "test",
+        "data_publicacao": "2026-04-05T03:28:26.596Z"
+    }
+},
+{
+    "model": "organizadas.conquistatorcida",
+    "pk": 2,
+    "fields": {
+        "torcida": 1,
+        "titulo": "titulo...",
+        "descricao": "musicas ",
+        "icone": "bi-award",
+        "data_conquista": "2026-04-18",
+        "imagem": "conquistas_torcida/adl-1.jpg"
+    }
+},
+{
+    "model": "organizadas.categoriadiretoria",
+    "pk": 1,
+    "fields": {
+        "torcida": 1,
+        "nome": "Presidente",
+        "ordem": 1
+    }
+},
+{
+    "model": "organizadas.membrodiretoria",
+    "pk": 1,
+    "fields": {
+        "torcida": 1,
+        "categoria": null,
+        "nome": "Rafael",
+        "cargo": "Presidente",
+        "ano_ingresso": null,
+        "foto": "diretoria_torcida/images.jpg",
+        "ordem": 0
+    }
+},
+{
+    "model": "organizadas.membrodiretoria",
+    "pk": 2,
+    "fields": {
+        "torcida": 1,
+        "categoria": 1,
+        "nome": "Raphaell",
+        "cargo": "Presidente",
+        "ano_ingresso": 2000,
+        "foto": "",
+        "ordem": 0
+    }
+},
+{
+    "model": "organizadas.regra",
+    "pk": 2,
+    "fields": {
+        "torcida": 1,
+        "categoria": "vestimetas",
+        "titulo": "Regra teste",
+        "descricao": "teste de regra",
+        "ordem": 1
+    }
+},
+{
+    "model": "social.post",
+    "pk": 1,
+    "fields": {
+        "autor_s": [
+            "rosi"
+        ],
+        "titulo": "",
+        "texto": "nike",
+        "imagem": "posts/download_faSvadC.png",
+        "torcida": 1,
+        "time_relacionado": null,
+        "evento_relacionado": null,
+        "caravana_relacionada": null,
+        "conquista_relacionada": null,
+        "foto_relacionada": null,
+        "data_criacao": "2026-03-15T17:36:26.501Z",
+        "curtidas": [
+            [
+                "Raphael"
+            ]
+        ]
+    }
+},
+{
+    "model": "social.post",
+    "pk": 2,
+    "fields": {
+        "autor_s": [
+            "sara1@gmail.com"
+        ],
+        "titulo": "",
+        "texto": "teste",
+        "imagem": "posts/img-time6.jpg",
+        "torcida": null,
+        "time_relacionado": null,
+        "evento_relacionado": null,
+        "caravana_relacionada": null,
+        "conquista_relacionada": null,
+        "foto_relacionada": null,
+        "data_criacao": "2026-03-30T02:12:46.139Z",
+        "curtidas": [
+            [
+                "micro"
+            ],
+            [
+                "Raphael"
+            ]
+        ]
+    }
+},
+{
+    "model": "social.post",
+    "pk": 3,
+    "fields": {
+        "autor_s": [
+            "micro"
+        ],
+        "titulo": "teste...",
+        "texto": "teste",
+        "imagem": "posts/1.png",
+        "torcida": null,
+        "time_relacionado": null,
+        "evento_relacionado": null,
+        "caravana_relacionada": null,
+        "conquista_relacionada": null,
+        "foto_relacionada": null,
+        "data_criacao": "2026-04-16T01:19:42.442Z",
+        "curtidas": [
+            [
+                "Raphael"
+            ]
+        ]
+    }
+},
+{
+    "model": "social.post",
+    "pk": 4,
+    "fields": {
+        "autor_s": [
+            "Raphael"
+        ],
+        "titulo": "Compartilhou um(a) Evento",
+        "texto": "teste",
+        "imagem": "",
+        "torcida": 1,
+        "time_relacionado": null,
+        "evento_relacionado": null,
+        "caravana_relacionada": null,
+        "conquista_relacionada": null,
+        "foto_relacionada": null,
+        "data_criacao": "2026-04-22T03:34:43.385Z",
+        "curtidas": []
+    }
+},
+{
+    "model": "social.comentario",
+    "pk": 1,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "micro"
+        ],
+        "texto": "top",
+        "data": "2026-03-15T17:37:04.651Z"
+    }
+},
+{
+    "model": "social.comentario",
+    "pk": 2,
+    "fields": {
+        "post": 2,
+        "autor": [
+            "Raphael"
+        ],
+        "texto": "ok",
+        "data": "2026-03-30T02:26:45.408Z"
+    }
+},
+{
+    "model": "social.comentario",
+    "pk": 3,
+    "fields": {
+        "post": 2,
+        "autor": [
+            "Raphael"
+        ],
+        "texto": "ok",
+        "data": "2026-04-09T03:46:32.180Z"
+    }
+},
+{
+    "model": "social.comentario",
+    "pk": 4,
+    "fields": {
+        "post": 1,
+        "autor": [
+            "Raphael"
+        ],
+        "texto": "...",
+        "data": "2026-04-18T02:03:51.653Z"
+    }
+},
+{
+    "model": "loja.categoriaproduto",
+    "pk": 1,
+    "fields": {
+        "torcida": 1,
+        "nome": "Mantos"
+    }
+},
+{
+    "model": "loja.categoriaproduto",
+    "pk": 2,
+    "fields": {
+        "torcida": 1,
+        "nome": "Short"
+    }
+},
+{
+    "model": "loja.produto",
+    "pk": 1,
+    "fields": {
+        "nome": "Manto",
+        "descricao": "flamengo ..",
+        "categoria": 1,
+        "torcida": 1,
+        "preco": "199.99",
+        "preco_promocional": null,
+        "estoque": 6,
+        "imagem": "produtos/processed-6f480b97-d7f5-49b4-b0b1-7beb85495d83.jpeg",
+        "destaque": true
+    }
+},
+{
+    "model": "loja.produto",
+    "pk": 2,
+    "fields": {
+        "nome": "teste short",
+        "descricao": "",
+        "categoria": 2,
+        "torcida": 1,
+        "preco": "199.99",
+        "preco_promocional": "149.99",
+        "estoque": 8,
+        "imagem": "produtos/Captura_de_tela_2026-04-22_023436.png",
+        "destaque": false
+    }
+}
+]

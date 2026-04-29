@@ -225,7 +225,8 @@ def painel_moderador(request):
                 local=request.POST.get('local'),
                 max_participantes=request.POST.get('max_participantes') or None,
                 informativo=request.POST.get('informativo', ''),
-                imagem_capa=request.FILES.get('imagem_capa')
+                imagem_capa=request.FILES.get('imagem_capa'),
+                valor=request.POST.get('valor', 0.00) # <--- ADICIONAR ESTA LINHA
             )
             messages.success(request, "Novo evento publicado!")
             
@@ -241,6 +242,7 @@ def painel_moderador(request):
             evento.local = request.POST.get('local', evento.local)
             evento.data = request.POST.get('data', evento.data)
             evento.data_fim = request.POST.get('data_fim') or None
+            evento.valor = request.POST.get('valor') or evento.valor # <--- ADICIONAR ESTA LINHA
             
             vagas = request.POST.get('max_participantes')
             evento.max_participantes = int(vagas) if vagas else None

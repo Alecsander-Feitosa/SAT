@@ -63,6 +63,7 @@ class Evento(models.Model):
     titulo = models.CharField(max_length=100)
     descricao = models.TextField(blank=True, null=True)
     local = models.CharField(max_length=255)
+    valor = models.DecimalField("Valor da Entrada", max_digits=8, decimal_places=2, default=0.00, help_text="Deixe 0.00 se for grátis")
     
     data = models.DateTimeField("Data/Hora Início")
     data_fim = models.DateTimeField("Data/Hora Fim", null=True, blank=True)
