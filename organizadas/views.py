@@ -217,6 +217,9 @@ def painel_moderador(request):
         # 2. EVENTOS E CARAVANAS
         elif acao == 'novo_evento':
             Evento.objects.create(
+                # Na parte de novo_evento:
+                valor = request.POST.get('valor', '0')
+                novo_evento.valor = float(valor) if valor else 0.00
                 torcida=minha_torcida,
                 categoria=request.POST.get('categoria', 'evento_social'),
                 titulo=request.POST.get('titulo'),
@@ -235,6 +238,7 @@ def painel_moderador(request):
             messages.success(request, "Evento apagado.")
         
         elif acao == 'editar_evento':
+            valor = request.POST.get('valor', '0')
             evento = get_object_or_404(Evento, id=request.POST.get('item_id'), torcida=minha_torcida)
             evento.titulo = request.POST.get('titulo', evento.titulo)
             evento.categoria = request.POST.get('categoria', evento.categoria)

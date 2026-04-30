@@ -91,9 +91,9 @@ class CaravanaAdmin(ModeradorBaseAdmin):
 
 @admin.register(Evento)
 class EventoAdmin(ModeradorBaseAdmin):
-    list_display = ('titulo', 'torcida', 'data', 'local', 'ativo')
+    list_display = ('titulo', 'data', 'local', 'valor', 'ativo')
     list_filter = ('ativo', 'torcida')
-    search_fields = ('titulo', 'local')
+    fields = ('torcida', 'titulo', 'categoria', 'data', 'data_fim', 'local', 'valor', 'max_participantes', 'raio_checkin', 'xp_recompensa', 'informativo', 'imagem_capa', 'ativo')
     list_editable = ('ativo',)
 
 

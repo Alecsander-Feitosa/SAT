@@ -1547,6 +1547,14 @@
                 <input type="number" name="max_participantes" value="{{ ev.max_participantes|default:'' }}" placeholder="Vagas (Ilimitado)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold">
                 <input type="file" name="imagem_capa" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
             </div>
+            
+            <!-- COLOQUE O CAMPO DE VALOR AQUI -->
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Valor do Ingresso (R$)</label>
+                <input type="number" step="0.01" name="valor" value="{{ ev.valor|stringformat:'f'|default:'0.00' }}" placeholder="Deixe 0.00 se for Grátis" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+            </div>
+            <!-- FIM DO CAMPO DE VALOR -->
+
             <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Edição</button>
         </form>
     </div>
