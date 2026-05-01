@@ -962,6 +962,12 @@
                 <label for="destaqueProd" class="text-[10px] font-black uppercase opacity-70 cursor-pointer">Produto em Destaque?</label>
             </div>
 
+            <div>
+                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Tamanhos / Variações</label>
+                <input type="text" name="tamanhos" placeholder="Ex: P, M, G, GG (separados por vírgula)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+                <p class="text-[8px] font-bold opacity-40 mt-1 ml-1">Deixe vazio se o produto não tem variação de tamanho.</p>
+            </div>
+
             <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
             <button type="submit" name="acao" value="novo_produto" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Publicar Produto</button>
         </form>

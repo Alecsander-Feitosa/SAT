@@ -6,7 +6,7 @@ from accounts.models import Aliada, Fatura, Assinatura, PlanoSocio, Cancao, Camp
 from .models import Torcida, Evento, MembroDiretoria, Regra, FotoGaleria
 # IMPORTAÇÃO LOCAL CORRIGIDA (Separando o que é do Organizadas e o que é do Accounts)
 from organizadas.models import Torcida, Evento, MembroDiretoria, Regra, FotoGaleria, Parceiro, Publicidade, CategoriaDiretoria, ConquistaTorcida, Caravana
-from loja.models import Produto, CategoriaProduto
+from loja.models import Produto, CategoriaProduto, Variacao
 from django.http import HttpResponse
 
 # --- VIEWS PÚBLICAS E GERAIS ---
@@ -216,10 +216,8 @@ def painel_moderador(request):
 
         # 2. EVENTOS E CARAVANAS
         elif acao == 'novo_evento':
+            valor_str = request.POST.get('valor', '0')
             Evento.objects.create(
-                # Na parte de novo_evento:
-                valor = request.POST.get('valor', '0')
-                novo_evento.valor = float(valor) if valor else 0.00
                 torcida=minha_torcida,
                 categoria=request.POST.get('categoria', 'evento_social'),
                 titulo=request.POST.get('titulo'),
@@ -229,7 +227,7 @@ def painel_moderador(request):
                 max_participantes=request.POST.get('max_participantes') or None,
                 informativo=request.POST.get('informativo', ''),
                 imagem_capa=request.FILES.get('imagem_capa'),
-                valor=request.POST.get('valor', 0.00) # <--- ADICIONAR ESTA LINHA
+                valor=float(valor_str) if valor_str else 0.00,
             )
             messages.success(request, "Novo evento publicado!")
             
@@ -472,7 +470,7 @@ def painel_moderador(request):
             
             preco_promo = request.POST.get('preco_promocional')
             
-            Produto.objects.create(
+            novo_produto = Produto.objects.create(
                 torcida=minha_torcida,
                 nome=request.POST.get('nome'),
                 descricao=request.POST.get('descricao', ''),
@@ -483,6 +481,19 @@ def painel_moderador(request):
                 destaque=request.POST.get('destaque') == 'on',
                 imagem=request.FILES.get('imagem')
             )
+            
+            # Criar variações de tamanho automaticamente
+            tamanhos_str = request.POST.get('tamanhos', '')
+            if tamanhos_str:
+                for tamanho in tamanhos_str.split(','):
+                    tamanho = tamanho.strip()
+                    if tamanho:
+                        Variacao.objects.create(
+                            produto=novo_produto,
+                            nome=tamanho,
+                            estoque=0
+                        )
+            
             messages.success(request, "Produto adicionado à loja oficial!")
 
         elif acao == 'deletar_produto':
