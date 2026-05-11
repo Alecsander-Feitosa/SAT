@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --cor-primaria: {% if user.perfil.torcida %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %};
+    }
+    .bg-dinamico { background-color: var(--cor-primaria) !important; }
+    .text-dinamico { color: var(--cor-primaria) !important; }
+    .border-dinamico { border-color: var(--cor-primaria) !important; }
+</style>
+
+<div class="w-full min-h-screen fundo-app px-5 pt-8 pb-32">
+    
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'beneficios' %}" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main shadow-sm border border-suave transition-transform hover:scale-105">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-black italic texto-main uppercase" style="font-family: 'Montserrat', sans-serif;">
+                    CHECKOUT <span class="text-dinamico">PIX</span>
+                </h1>
+                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Fatura #{{ fatura.id }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="fundo-card border border-suave rounded-3xl p-6 shadow-sm mb-6 flex flex-col items-center text-center">
+        <h2 class="text-lg font-black texto-main uppercase mb-2">Pague com PIX</h2>
+        <p class="text-xs texto-main opacity-70 mb-4">Escaneie o QR Code ou copie o código abaixo para pagar no app do seu banco. A aprovação é imediata!</p>
+        
+        <div class="bg-white p-4 rounded-2xl shadow-inner mb-4">
+            {% if fatura.pix_qrcode %}
+            <img src="{{ fatura.pix_qrcode }}" alt="QR Code PIX" class="w-48 h-48 object-contain">
+            {% else %}
+            <div class="w-48 h-48 bg-gray-100 flex items-center justify-center text-gray-400">
+                <i class="bi bi-qr-code text-5xl"></i>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="w-full">
+            <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mb-1 text-left ml-2">Pix Copia e Cola</p>
+            <div class="flex items-center gap-2">
+                <input type="text" id="pixCopiaCola" value="{{ fatura.pix_copia_e_cola }}" readonly class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none text-dinamico">
+                <button onclick="copiarPix()" class="w-12 h-12 bg-dinamico text-white rounded-xl shadow-md flex items-center justify-center active:scale-95 transition-transform shrink-0">
+                    <i class="bi bi-copy"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="fundo-card border border-suave rounded-3xl p-5 shadow-sm">
+        <div class="flex justify-between items-center mb-3">
+            <span class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest">Resumo da Compra</span>
+            <span class="bg-yellow-500/10 text-yellow-600 px-2 py-1 rounded text-[8px] font-black uppercase border border-yellow-500/20 animate-pulse">Aguardando Pagamento</span>
+        </div>
+        <div class="flex justify-between items-center mb-2">
+            <span class="text-sm font-bold texto-main">{{ fatura.assinatura.plano.nome }}</span>
+            <span class="text-sm font-black texto-main">R$ {{ fatura.valor|floatformat:2 }}</span>
+        </div>
+        <div class="flex justify-between items-center border-t border-suave pt-2 mt-2">
+            <span class="text-xs font-black texto-main uppercase">Total</span>
+            <span class="text-xl font-black text-dinamico">R$ {{ fatura.valor|floatformat:2 }}</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copiarPix() {
+        var copyText = document.getElementById("pixCopiaCola");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); /* Mobile */
+        navigator.clipboard.writeText(copyText.value);
+        
+        // Efeito visual de copiado
+        const btn = event.currentTarget;
+        const icon = btn.querySelector('i');
+        icon.classList.remove('bi-copy');
+        icon.classList.add('bi-check-lg');
+        setTimeout(() => {
+            icon.classList.remove('bi-check-lg');
+            icon.classList.add('bi-copy');
+        }, 2000);
+    }
+</script>
+{% endblock %}

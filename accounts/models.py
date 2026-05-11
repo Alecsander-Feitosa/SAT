@@ -210,6 +210,12 @@ class Fatura(models.Model):
     data_pagamento = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
     metodo_pagamento = models.CharField(max_length=50, blank=True, help_text="Ex: PIX, Cartão")
+    
+    # --- Integração Efí Bank (PIX) ---
+    txid = models.CharField(max_length=35, blank=True, null=True, help_text="ID da transação na Efí Bank")
+    loc_id = models.IntegerField(blank=True, null=True, help_text="ID da location (Payload do PIX)")
+    pix_copia_e_cola = models.TextField(blank=True, null=True)
+    pix_qrcode = models.URLField(blank=True, null=True, help_text="URL da imagem do QR Code")
 
     def __str__(self):
         return f"Fatura {self.id} - {self.status}"

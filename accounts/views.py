@@ -43,7 +43,16 @@ from .forms import CadastroForm, PerfilCompletoForm
 from loja.models import Produto
 from .models import Presenca, PresencaCaravana
 import csv
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+# Importação do Utilitário PIX
+try:
+    from .efi_utils import gerar_cobranca_pix
+except ImportError:
+    # Caso falte alguma lib, não quebra tudo
+    pass
 
 # 1. Ecrã para escolher a torcida ANTES de logar
 def escolher_torcida_publico(request):
@@ -798,6 +807,84 @@ def perfil_view(request):
 def ranking_torcida(request):
     from gamification.models import PerfilGamificacao
     # Busca os top 10 torcedores com mais XP, trazendo o usuário e o nível junto
+
+# ==========================================
+# VIEWS DO EFÍ BANK (PIX)
+# ==========================================
+
+@login_required
+def pagar_fatura_pix(request, fatura_id):
+    fatura = get_object_or_404(Fatura, id=fatura_id, assinatura__perfil=request.user.perfil)
+    
+    # Se a fatura não tem um txid (nunca foi gerado PIX ou expirou), gera agora
+    if not fatura.txid:
+        resultado = gerar_cobranca_pix(fatura)
+        if not resultado.get('sucesso'):
+            messages.error(request, f"Erro ao gerar PIX: {resultado.get('erro')}")
+            return redirect('financeiro')
+            
+    return render(request, 'checkout_pix.html', {'fatura': fatura})
+
+@csrf_exempt
+def webhook_efi(request):
+    """
+    Endpoint que a Efí chama quando um PIX é pago.
+    Precisa retornar 200 OK rapidamente.
+    """
+    if request.method == 'POST':
+        try:
+            body = json.loads(request.body)
+            # O payload da Efí envia uma lista de "pix" recebidos
+            if 'pix' in body:
+                for pix in body['pix']:
+                    txid = pix.get('txid')
+                    
+                    if txid:
+                        # Busca a fatura com esse txid
+                        fatura = Fatura.objects.filter(txid=txid, status='pendente').first()
+                        if fatura:
+                            # Marca como pago e ativa a assinatura se necessário
+                            fatura.status = 'pago'
+                            fatura.metodo_pagamento = 'PIX'
+                            fatura.data_pagamento = timezone.now()
+                            fatura.save()
+                            
+                            if not fatura.assinatura.ativa:
+                                fatura.assinatura.ativa = True
+                                fatura.assinatura.save()
+                                
+            return JsonResponse({'status': 'ok'})
+        except Exception as e:
+            print("Erro no webhook Efí:", e)
+            return JsonResponse({'status': 'erro'}, status=400)
+            
+    return JsonResponse({'status': 'método não permitido'}, status=405)
+
+@login_required
+def financeiro(request):
+    perfil = request.user.perfil
+    
+    # Pega todas as faturas do usuário
+    faturas = Fatura.objects.filter(assinatura__perfil=perfil).order_by('-data_vencimento')
+    faturas_pendentes = faturas.filter(status='pendente')
+    faturas_pagas = faturas.filter(status='pago')
+    
+    # Verifica a fatura atrasada mais urgente
+    hoje = timezone.now().date()
+    fatura_atrasada = faturas_pendentes.filter(data_vencimento__lt=hoje).first()
+    
+    # Se não tem atrasada, pega a próxima a vencer
+    proxima_fatura = fatura_atrasada if fatura_atrasada else faturas_pendentes.first()
+    
+    # Assinatura ativa (se tiver)
+    assinatura_ativa = Assinatura.objects.filter(perfil=perfil, ativa=True).first()
+    
+    context = {
+        'faturas': faturas,
+        'proxima_fatura': proxima_fatura,
+        'assinatura_ativa': assinatura_ativa,
+    }
+    return render(request, 'financeiro.html', context)
     lideres = PerfilGamificacao.objects.select_related('user', 'nivel').order_by('-xp_total')[:10]
     
     context = {
@@ -1471,3 +1558,128 @@ def exportar_csv_moderacao(request, tipo, item_id=0):
             ])
 
     return response
+
+# ==========================================
+# INTEGRAÇÃO EFÍ BANK (PIX)
+# ==========================================
+
+@login_required
+def pagar_fatura_pix(request, fatura_id):
+    from accounts.models import Fatura
+    from accounts.efi_utils import gerar_cobranca_pix
+    
+    fatura = get_object_or_404(Fatura, id=fatura_id, assinatura__perfil__user=request.user)
+    
+    if fatura.status == 'pago':
+        messages.info(request, "Esta fatura já está paga.")
+        return redirect('dashboard')
+        
+    # Se ainda não tem txid ou qr code, gera
+    if not fatura.txid:
+        resultado = gerar_cobranca_pix(fatura, tipo='fatura')
+        if not resultado.get('sucesso'):
+            messages.error(request, f"Erro ao gerar PIX: {resultado.get('erro')}")
+            return redirect('dashboard')
+            
+    return render(request, 'pagar_pix.html', {'fatura': fatura})
+
+@csrf_exempt
+def webhook_efi(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            # A Efí envia um array de 'pix' quando o pagamento é confirmado
+            if 'pix' in data:
+                for pagamento in data['pix']:
+                    txid = pagamento.get('txid')
+                    
+                    if txid:
+                        from accounts.models import Fatura
+                        from loja.models import Pedido
+                        
+                        # Tenta encontrar e atualizar na Loja
+                        pedido = Pedido.objects.filter(txid=txid).first()
+                        if pedido:
+                            pedido.status = 'pago'
+                            pedido.save()
+                            continue
+                            
+                        # Tenta encontrar e atualizar nos Planos
+                        fatura = Fatura.objects.filter(txid=txid).first()
+                        if fatura:
+                            fatura.status = 'pago'
+                            fatura.data_pagamento = timezone.now()
+                            fatura.save()
+                            
+            return JsonResponse({'status': 'ok'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+            
+    return HttpResponse(status=405)
+
+
+# ==========================================
+# PAINEL DO MODERADOR DE PLANOS
+# ==========================================
+
+@login_required
+def painel_planos(request):
+    if not request.user.is_staff or not hasattr(request.user, 'perfil') or not request.user.perfil.torcida:
+        messages.error(request, "Acesso negado. Apenas moderadores autorizados.")
+        return redirect('dashboard')
+
+    planos = PlanoSocio.objects.filter(torcida=request.user.perfil.torcida).order_by('-id')
+    context = {
+        'planos': planos,
+        'torcida': request.user.perfil.torcida
+    }
+    return render(request, 'painel_planos.html', context)
+
+@login_required
+def form_plano(request, plano_id=None):
+    if not (request.user.is_staff and hasattr(request.user, 'perfil') and request.user.perfil.torcida):
+        return redirect('dashboard')
+        
+    plano = get_object_or_404(PlanoSocio, id=plano_id, torcida=request.user.perfil.torcida) if plano_id else None
+    
+    if request.method == 'POST':
+        nome = request.POST.get('nome')
+        preco = request.POST.get('preco').replace(',', '.')
+        beneficios = request.POST.get('beneficios')
+        destaque = request.POST.get('destaque') == 'on'
+        ativo = request.POST.get('ativo') == 'on'
+        
+        if plano:
+            plano.nome = nome
+            plano.preco = preco
+            plano.beneficios = beneficios
+            plano.destaque = destaque
+            plano.ativo = ativo
+            plano.save()
+            messages.success(request, 'Plano atualizado!')
+        else:
+            PlanoSocio.objects.create(
+                nome=nome,
+                preco=preco,
+                beneficios=beneficios,
+                destaque=destaque,
+                ativo=ativo,
+                torcida=request.user.perfil.torcida
+            )
+            messages.success(request, 'Plano criado com sucesso!')
+            
+        return redirect('painel_planos')
+        
+    context = {
+        'plano': plano,
+        'torcida': request.user.perfil.torcida
+    }
+    return render(request, 'form_plano.html', context)
+
+@login_required
+def excluir_plano(request, plano_id):
+    if request.user.is_staff and hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+        plano = get_object_or_404(PlanoSocio, id=plano_id, torcida=request.user.perfil.torcida)
+        plano.delete()
+        messages.success(request, 'Plano removido com sucesso.')
+    return redirect('painel_planos')

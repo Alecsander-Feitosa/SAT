@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    :root { --cor-primaria: {{ torcida.cor_primaria|default:"#D37129" }}; }
+</style>
+
+<div class="min-h-screen fundo-app pb-20">
+    <div class="fundo-card border-b border-suave pt-12 pb-6 px-6 shadow-lg flex items-center gap-4">
+        <a href="{% url 'painel_planos' %}" class="w-10 h-10 fundo-app rounded-full flex items-center justify-center texto-main border border-suave shadow-sm">
+            <i class="bi bi-arrow-left text-xl"></i>
+        </a>
+        <div>
+            <h1 class="text-xl font-black italic uppercase texto-main">
+                {% if plano %}Editar{% else %}Novo{% endif %} <span style="color: var(--cor-primaria)">Plano</span>
+            </h1>
+        </div>
+    </div>
+
+    <div class="px-6 mt-6">
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="fundo-card p-5 rounded-2xl shadow-sm border border-suave space-y-4">
+                <div>
+                    <label class="block text-[10px] font-black texto-main opacity-50 uppercase mb-1">Nome do Plano</label>
+                    <input type="text" name="nome" value="{{ plano.nome|default:'' }}" required class="w-full fundo-app border border-suave rounded-xl p-3 text-sm outline-none texto-main font-bold">
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-black texto-main opacity-50 uppercase mb-1">Preço Mensal (R$)</label>
+                    <input type="number" step="0.01" name="preco" value="{{ plano.preco|default:'' }}" required class="w-full fundo-app border border-suave rounded-xl p-3 text-sm outline-none texto-main font-bold">
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-black texto-main opacity-50 uppercase mb-1">Benefícios (Um por linha)</label>
+                    <textarea name="beneficios" rows="4" required class="w-full fundo-app border border-suave rounded-xl p-3 text-sm outline-none texto-main font-bold">{{ plano.beneficios|default:'' }}</textarea>
+                </div>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <input type="checkbox" name="destaque" id="destaque" {% if plano.destaque %}checked{% endif %} class="w-4 h-4 accent-[var(--cor-primaria)] border border-suave">
+                    <label for="destaque" class="text-xs font-black uppercase texto-main">Destacar plano na vitrine?</label>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" name="ativo" id="ativo" {% if not plano or plano.ativo %}checked{% endif %} class="w-4 h-4 accent-[var(--cor-primaria)] border border-suave">
+                    <label for="ativo" class="text-xs font-black uppercase texto-main">Plano Ativo?</label>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full text-white py-4 rounded-2xl font-black italic uppercase text-xs shadow-lg mt-6" style="background-color: var(--cor-primaria)">
+                {% if plano %}Salvar Alterações{% else %}Criar Plano{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

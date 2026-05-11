@@ -127,23 +127,44 @@ def finalizar_checkout(request):
     if not itens_carrinho.exists():
         return redirect('loja')
     
-    total_geral = sum(item.produto.preco * item.quantidade for item in itens_carrinho)
+    total_geral = sum(item.produto.preco_atual() * item.quantidade for item in itens_carrinho)
     
-    with transaction.atomic():
-        pedido = Pedido.objects.create(usuario=request.user, total=total_geral, status='pendente')
-        for item in itens_carrinho:
-            ItemPedido.objects.create(pedido=pedido, produto=item.produto, quantidade=item.quantidade, preco_unitario=item.produto.preco)
-            item.produto.estoque -= item.quantidade
-            item.produto.save()
-        itens_carrinho.delete()
+    try:
+        with transaction.atomic():
+            pedido = Pedido.objects.create(usuario=request.user, total=total_geral, status='pendente')
+            for item in itens_carrinho:
+                ItemPedido.objects.create(pedido=pedido, produto=item.produto, quantidade=item.quantidade, preco_unitario=item.produto.preco_atual())
+                item.produto.estoque -= item.quantidade
+                item.produto.save()
+            
+            from accounts.efi_utils import gerar_cobranca_pix
+            pix_data = gerar_cobranca_pix(pedido, tipo='pedido')
+            
+            if not pix_data.get('sucesso'):
+                raise Exception(pix_data.get('erro', 'Erro desconhecido ao gerar PIX'))
+                
+            itens_carrinho.delete()
+            
+        return render(request, 'loja/sucesso.html', {'pedido': pedido, 'pix_data': pix_data})
         
-    return render(request, 'loja/sucesso.html', {'pedido': pedido})
+    except Exception as e:
+        messages.error(request, f"Erro ao gerar pagamento PIX: {str(e)}")
+        return redirect('checkout_exemplo')
     
 @login_required
 def checkout_exemplo_view(request):
     itens = ItemCarrinho.objects.filter(usuario=request.user)
-    total_geral = sum(item.produto.preco * item.quantidade for item in itens)
-    return render(request, 'loja/checkout_exemplo.html', {'itens': itens, 'total_geral': total_geral})
+    total_geral = sum(item.produto.preco_atual() * item.quantidade for item in itens)
+    
+    torcida = None
+    if hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+        torcida = request.user.perfil.torcida
+        
+    return render(request, 'loja/checkout_exemplo.html', {
+        'itens': itens, 
+        'total_geral': total_geral,
+        'torcida': torcida
+    })
 
 # ==========================================
 # PAINEL DO MODERADOR DA LOJA
@@ -235,3 +256,4 @@ def checkout_evento(request, evento_id):
     # Por enquanto, apenas retorna uma mensagem simples na tela.
     # Depois poderás criar o HTML real de pagamento aqui!
     return HttpResponse(f"<h1>Área de Pagamento</h1><p>A comprar ingresso para: <b>{evento.titulo}</b> por R$ {evento.valor}</p>")
+# Force reload server

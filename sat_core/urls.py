@@ -20,7 +20,7 @@ urlpatterns = [
     path('eventos/', views.lista_eventos, name='lista_eventos'),
     
     # Área financeira
-    path('financeiro/', TemplateView.as_view(template_name='financeiro.html'), name='financeiro'),
+    path('financeiro/', accounts_views.financeiro, name='financeiro'),
     
     # ROTAS DE ADMINISTRAÇÃO DA SAT
     path('admin-financeiro/', TemplateView.as_view(template_name='admin_financeiro.html'), name='admin_financeiro'),

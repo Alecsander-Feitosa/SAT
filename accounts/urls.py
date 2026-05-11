@@ -70,4 +70,14 @@ urlpatterns = [
 
     path('caravana/<int:caravana_id>/toggle-presenca/', views.toggle_presenca_caravana, name='toggle_presenca_caravana'),
     path('caravana/<int:caravana_id>/toggle-salvar/', views.toggle_salvar_caravana, name='toggle_salvar_caravana'),
+    
+    # PAINEL DE PLANOS
+    path('painel/planos/', views.painel_planos, name='painel_planos'),
+    path('painel/planos/novo/', views.form_plano, name='novo_plano'),
+    path('painel/planos/editar/<int:plano_id>/', views.form_plano, name='editar_plano'),
+    path('painel/planos/excluir/<int:plano_id>/', views.excluir_plano, name='excluir_plano'),
+
+    # EFÍ BANK (PIX)
+    path('fatura/<int:fatura_id>/pix/', views.pagar_fatura_pix, name='pagar_fatura_pix'),
+    path('api/webhooks/efi/', views.webhook_efi, name='webhook_efi'),
 ]

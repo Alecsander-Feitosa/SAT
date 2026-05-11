@@ -69,11 +69,9 @@
             </div>
         </div>
         
-        <form action="{% url 'checkout_exemplo' %}" method="GET"> 
-            <button type="submit" class="w-full py-4 fundo-tema texto-claro rounded-2xl font-black italic uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
-                Finalizar Pedido <i class="bi bi-arrow-right-short text-2xl leading-none"></i>
-            </button>
-        </form>
+        <a href="{% url 'checkout_exemplo' %}" class="w-full py-4 fundo-tema texto-claro rounded-2xl font-black italic uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all block text-center">
+            Finalizar Pedido <i class="bi bi-arrow-right-short text-2xl leading-none"></i>
+        </a>
     </div>
 </div>
 

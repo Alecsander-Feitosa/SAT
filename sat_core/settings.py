@@ -14,6 +14,13 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-chave-dev-123')
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+# --- Configurações do Efí Bank (PIX) ---
+EFI_CLIENT_ID = os.getenv('EFI_CLIENT_ID', '')
+EFI_CLIENT_SECRET = os.getenv('EFI_CLIENT_SECRET', '')
+efi_cert_path = os.getenv('EFI_CERTIFICADO', '')
+EFI_CERTIFICADO = os.path.join(BASE_DIR, efi_cert_path) if efi_cert_path else ''
+EFI_SANDBOX = os.getenv('EFI_SANDBOX', 'True') == 'True'
+
 # --- NOVO: Obrigatório para o Render permitir logins e formulários via HTTPS ---
 CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
 

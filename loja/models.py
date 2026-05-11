@@ -66,6 +66,12 @@ class Pedido(models.Model):
     data_pedido = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    
+    # --- Integração Efí Bank (PIX) ---
+    txid = models.CharField(max_length=35, blank=True, null=True, help_text="ID da transação na Efí Bank")
+    loc_id = models.IntegerField(blank=True, null=True, help_text="ID da location (Payload do PIX)")
+    pix_copia_e_cola = models.TextField(blank=True, null=True)
+    pix_qrcode = models.URLField(blank=True, null=True, help_text="URL da imagem do QR Code")
 
 class ItemPedido(models.Model):
     pedido = models.ForeignKey(Pedido, related_name='itens', on_delete=models.CASCADE)

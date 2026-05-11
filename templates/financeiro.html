@@ -64,24 +64,28 @@
             <div class="flex justify-between items-center">
                 <div>
                     <p class="text-[10px] text-white/50 font-medium mb-1">Plano Atual</p>
-                    <p class="text-sm font-bold text-white uppercase">Sócio Ouro</p>
+                    <p class="text-sm font-bold text-white uppercase">{% if assinatura_ativa %}{{ assinatura_ativa.plano.nome }}{% else %}Sem Plano{% endif %}</p>
                 </div>
                 <div class="text-right">
                     <p class="text-[10px] text-white/50 font-medium mb-1">Valor Mensal</p>
-                    <p class="text-sm font-black text-white">R$ 29,90</p>
+                    <p class="text-sm font-black text-white">{% if assinatura_ativa %}R$ {{ assinatura_ativa.plano.preco|floatformat:2 }}{% else %}-{% endif %}</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="w-full bg-red-500/10 border border-red-500/20 rounded-3xl p-5 mb-8 flex flex-col items-center text-center">
-        <i class="bi bi-exclamation-circle-fill text-red-500 text-3xl mb-2"></i>
-        <h3 class="text-red-500 font-bold text-sm uppercase mb-1">Mensalidade Atrasada</h3>
-        <p class="text-xs texto-main opacity-70 mb-4">Sua fatura de Março venceu dia 10. Evite o bloqueio da sua carteirinha.</p>
-        <button class="w-full bg-red-500 text-white font-black uppercase tracking-widest py-3.5 rounded-2xl text-xs shadow-lg shadow-red-500/30 transition-transform active:scale-95 flex justify-center items-center gap-2">
+    {% if proxima_fatura %}
+    <div class="w-full {% if proxima_fatura.data_vencimento < hoje %}bg-red-500/10 border-red-500/20{% else %}bg-yellow-500/10 border-yellow-500/20{% endif %} border rounded-3xl p-5 mb-8 flex flex-col items-center text-center">
+        <i class="bi {% if proxima_fatura.data_vencimento < hoje %}bi-exclamation-circle-fill text-red-500{% else %}bi-clock-fill text-yellow-500{% endif %} text-3xl mb-2"></i>
+        <h3 class="{% if proxima_fatura.data_vencimento < hoje %}text-red-500{% else %}text-yellow-600{% endif %} font-bold text-sm uppercase mb-1">
+            {% if proxima_fatura.data_vencimento < hoje %}Mensalidade Atrasada{% else %}Mensalidade Pendente{% endif %}
+        </h3>
+        <p class="text-xs texto-main opacity-70 mb-4">Sua fatura vence{% if proxima_fatura.data_vencimento < hoje %}u{% endif %} dia {{ proxima_fatura.data_vencimento|date:"d/m" }}.</p>
+        <a href="{% url 'pagar_fatura_pix' proxima_fatura.id %}" class="w-full {% if proxima_fatura.data_vencimento < hoje %}bg-red-500 shadow-red-500/30{% else %}bg-yellow-500 shadow-yellow-500/30{% endif %} text-white font-black uppercase tracking-widest py-3.5 rounded-2xl text-xs shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2">
             <i class="bi bi-qr-code-scan"></i> Pagar com PIX Agora
-        </button>
+        </a>
     </div>
+    {% endif %}
 
     <div class="mb-8">
         <div class="flex justify-between items-end mb-4">
@@ -90,53 +94,33 @@
         </div>
 
         <div class="space-y-3">
-            <div class="w-full fundo-card border border-red-500/30 rounded-[20px] p-4 flex justify-between items-center shadow-sm">
+            {% for f in faturas %}
+            <div class="w-full fundo-card border {% if f.status == 'pendente' %}border-red-500/30{% else %}border-suave opacity-70{% endif %} rounded-[20px] p-4 flex justify-between items-center shadow-sm">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
-                        <i class="bi bi-receipt"></i>
+                    <div class="w-10 h-10 rounded-full {% if f.status == 'pendente' %}bg-red-500/10 text-red-500{% else %}bg-green-500/10 text-green-500{% endif %} flex items-center justify-center">
+                        <i class="bi {% if f.status == 'pendente' %}bi-receipt{% else %}bi-check-circle-fill{% endif %}"></i>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold texto-main leading-none mb-1">Março / 2026</h4>
-                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider">Venceu em 10/03</p>
+                        <h4 class="text-sm font-bold texto-main leading-none mb-1">{{ f.data_vencimento|date:"F / Y" }}</h4>
+                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider">
+                            {% if f.status == 'pendente' %}Vence em {{ f.data_vencimento|date:"d/m" }}{% else %}Pago via {{ f.metodo_pagamento }}{% endif %}
+                        </p>
                     </div>
                 </div>
                 <div class="text-right flex flex-col items-end">
-                    <span class="text-sm font-black texto-main mb-1">R$ 29,90</span>
-                    <span class="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase tracking-widest">Pendente</span>
+                    <span class="text-sm font-black texto-main mb-1">R$ {{ f.valor|floatformat:2 }}</span>
+                    {% if f.status == 'pendente' %}
+                        <span class="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase tracking-widest">Pendente</span>
+                    {% else %}
+                        <span class="bg-green-500/20 text-green-600 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Pago</span>
+                    {% endif %}
                 </div>
             </div>
-
-            <div class="w-full fundo-card border border-suave rounded-[20px] p-4 flex justify-between items-center shadow-sm opacity-70">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
-                        <i class="bi bi-check-circle-fill"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold texto-main leading-none mb-1">Fevereiro / 2026</h4>
-                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider">Pago via PIX</p>
-                    </div>
-                </div>
-                <div class="text-right flex flex-col items-end">
-                    <span class="text-sm font-black texto-main mb-1">R$ 29,90</span>
-                    <span class="bg-green-500/20 text-green-600 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Pago</span>
-                </div>
+            {% empty %}
+            <div class="text-center py-4">
+                <p class="text-xs texto-main opacity-50">Nenhuma fatura encontrada.</p>
             </div>
-
-            <div class="w-full fundo-card border border-suave rounded-[20px] p-4 flex justify-between items-center shadow-sm opacity-70">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
-                        <i class="bi bi-check-circle-fill"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold texto-main leading-none mb-1">Janeiro / 2026</h4>
-                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider">Pago via Cartão</p>
-                    </div>
-                </div>
-                <div class="text-right flex flex-col items-end">
-                    <span class="text-sm font-black texto-main mb-1">R$ 29,90</span>
-                    <span class="bg-green-500/20 text-green-600 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Pago</span>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 

@@ -1,57 +1,72 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="min-h-screen bg-[#F8F9FA] pb-40">
+<style>
+    :root { --cor-primaria: {{ torcida.cor_primaria|default:"#D37129" }}; }
+</style>
+
+<div class="min-h-screen fundo-app pb-40">
     <div class="px-5 pt-10 mb-6 flex items-center">
-        <a href="{% url 'ver_carrinho' %}" class="text-[#1A1A1A] mr-4">
-            <i class="bi bi-arrow-left text-2xl"></i>
+        <a href="{% url 'ver_carrinho' %}" class="texto-main mr-4 w-10 h-10 fundo-card rounded-2xl flex items-center justify-center border border-suave shadow-sm">
+            <i class="bi bi-arrow-left text-lg font-bold"></i>
         </a>
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter text-[#1A1A1A]">
-            FINALIZAR <span class="text-[#D37129]">PEDIDO</span>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">
+            FINALIZAR <span style="color: var(--cor-primaria)">PEDIDO</span>
         </h1>
     </div>
 
+    {% if messages %}
+    <div class="px-5 mb-6">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl border font-bold text-xs uppercase shadow-sm {% if message.tags == 'error' %}bg-red-500/10 text-red-600 border-red-500/20{% else %}bg-green-500/10 text-green-600 border-green-500/20{% endif %}">
+            <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle-fill{% else %}bi-check-circle-fill{% endif %} mr-1"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="px-5 mb-8">
-        <h2 class="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-4">Seus Itens</h2>
-        <div class="bg-white rounded-[24px] p-4 shadow-sm border border-gray-100 space-y-3">
+        <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4">Seus Itens</h2>
+        <div class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave space-y-3">
             {% for item in itens %}
             <div class="flex justify-between items-center">
-                <span class="text-xs font-bold text-gray-600">{{ item.quantidade }}x {{ item.produto.nome }}</span>
-                <span class="text-xs font-black text-[#1A1A1A]">R$ {{ item.produto.preco }}</span>
+                <span class="text-xs font-bold texto-main opacity-80">{{ item.quantidade }}x {{ item.produto.nome }}</span>
+                <span class="text-xs font-black texto-main">R$ {{ item.produto.preco_atual }}</span>
             </div>
             {% endfor %}
-            <div class="pt-3 border-t border-gray-50 flex justify-between items-center">
-                <span class="text-sm font-black uppercase italic">Total</span>
-                <span class="text-lg font-black text-[#D37129]">R$ {{ total_geral }}</span>
+            <div class="pt-4 mt-2 border-t border-suave flex justify-between items-center">
+                <span class="text-sm font-black uppercase italic texto-main">Total</span>
+                <span class="text-lg font-black" style="color: var(--cor-primaria)">R$ {{ total_geral }}</span>
             </div>
         </div>
     </div>
 
     <div class="px-5 mb-8">
-        <h2 class="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-4">Pagamento</h2>
+        <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4">Pagamento</h2>
         <div class="grid grid-cols-1 gap-3">
-            <div class="flex items-center justify-between p-4 bg-white border-2 border-[#D37129] rounded-2xl shadow-sm">
+            <div class="flex items-center justify-between p-4 fundo-card border-2 rounded-2xl shadow-sm" style="border-color: var(--cor-primaria)">
                 <div class="flex items-center gap-3">
-                    <i class="bi bi-qr-code text-xl text-[#D37129]"></i>
-                    <span class="text-sm font-bold text-[#1A1A1A]">Pix (Instantâneo)</span>
+                    <i class="bi bi-qr-code text-xl" style="color: var(--cor-primaria)"></i>
+                    <span class="text-sm font-bold texto-main">Pix (Instantâneo)</span>
                 </div>
-                <i class="bi bi-check-circle-fill text-[#D37129]"></i>
+                <i class="bi bi-check-circle-fill text-lg" style="color: var(--cor-primaria)"></i>
             </div>
             
-            <div class="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-2xl opacity-50">
+            <div class="flex items-center justify-between p-4 fundo-card border border-suave rounded-2xl opacity-40">
                 <div class="flex items-center gap-3">
-                    <i class="bi bi-credit-card text-xl text-gray-400"></i>
-                    <span class="text-sm font-bold text-gray-400">Cartão de Crédito</span>
+                    <i class="bi bi-credit-card text-xl texto-main"></i>
+                    <span class="text-sm font-bold texto-main">Cartão de Crédito (Breve)</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="px-5">
+    <div class="px-5 mt-6 mb-24">
         <form action="{% url 'finalizar_checkout' %}" method="POST">
             {% csrf_token %}
-            <button type="submit" class="w-full py-5 bg-[#1A1A1A] text-white rounded-2xl font-black italic uppercase tracking-widest shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3">
+            <button type="submit" class="w-full py-5 text-white rounded-2xl font-black italic uppercase tracking-widest shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3" style="background-color: var(--cor-primaria)">
                 Confirmar e Pagar
-                <i class="bi bi-arrow-right text-[#D37129]"></i>
+                <i class="bi bi-arrow-right text-white"></i>
             </button>
         </form>
     </div>
