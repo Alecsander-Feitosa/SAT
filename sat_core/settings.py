@@ -17,11 +17,25 @@ ALLOWED_HOSTS = ['*']
 # --- Configurações do Efí Bank (PIX) ---
 EFI_CLIENT_ID = os.getenv('EFI_CLIENT_ID', '')
 EFI_CLIENT_SECRET = os.getenv('EFI_CLIENT_SECRET', '')
-efi_cert_path = os.getenv('EFI_CERTIFICADO', '')
-EFI_CERTIFICADO = os.path.join(BASE_DIR, efi_cert_path) if efi_cert_path else ''
 EFI_SANDBOX = os.getenv('EFI_SANDBOX', 'True') == 'True'
 EFI_CHAVE_PIX = os.getenv('EFI_CHAVE_PIX', 'sua_chave_pix_aqui@gmail.com')
 EFI_CONTA_ID = os.getenv('EFI_CONTA_ID', '')  # ID da conta Efí (necessário para pagamento com cartão)
+
+# Certificado: prioriza Base64 (para Render/produção), depois caminho local
+import base64 as _b64
+_efi_cert_b64 = os.getenv('EFI_CERT_BASE64', '')
+if _efi_cert_b64:
+    # No Render: recria o arquivo .pem a partir do Base64
+    _cert_dir = os.path.join(BASE_DIR, 'certs')
+    os.makedirs(_cert_dir, exist_ok=True)
+    _cert_file = os.path.join(_cert_dir, 'certificado.pem')
+    with open(_cert_file, 'wb') as f:
+        f.write(_b64.b64decode(_efi_cert_b64))
+    EFI_CERTIFICADO = _cert_file
+else:
+    # Local: usa o caminho relativo do .env
+    _efi_cert_path = os.getenv('EFI_CERTIFICADO', '')
+    EFI_CERTIFICADO = os.path.join(BASE_DIR, _efi_cert_path) if _efi_cert_path else ''
 
 # --- NOVO: Obrigatório para o Render permitir logins e formulários via HTTPS ---
 CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
