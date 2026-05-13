@@ -164,13 +164,8 @@
     </div>
 </div>
 
-<a href="{% url 'ver_carrinho' %}" class="fixed bottom-24 right-5 w-14 h-14 fundo-card border-2 border-tema rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all z-50 group">
-    <i class="bi bi-cart3 text-xl texto-main group-hover:scale-110 transition-transform"></i>
-    
-    <span id="badge-carrinho" class="absolute -top-2 -right-2 fundo-tema texto-claro text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-fundo-app shadow-md {% if total_itens_carrinho == 0 %}hidden{% else %}animate-bounce{% endif %}">
-        {{ total_itens_carrinho }}
-    </span>
-</a>
+
+
 
 <script>
     window.addCarrinhoAjax = function(event, formElement) {

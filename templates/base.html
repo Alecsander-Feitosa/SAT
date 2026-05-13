@@ -144,6 +144,20 @@
 
     <main class="{% if user.is_authenticated and "/moderacao/" not in request.path %}pt-[140px] pb-28{% endif %} w-full min-h-screen">
         {% block content %}{% endblock %}
+
+        {# Botão flutuante do carrinho — aparece em todas as páginas da loja #}
+        {% if user.is_authenticated %}
+            {% with url_name=request.resolver_match.url_name %}
+            {% if url_name == 'loja' or url_name == 'detalhe_produto' or url_name == 'ver_carrinho' or url_name == 'checkout_exemplo' or url_name == 'painel_loja' or url_name == 'novo_produto' or url_name == 'editar_produto' %}
+            <a href="{% url 'ver_carrinho' %}" id="btn-carrinho-flutuante" class="fixed bottom-24 right-5 w-14 h-14 fundo-card border-2 border-tema rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all z-50 group">
+                <i class="bi bi-cart3 text-xl texto-main group-hover:scale-110 transition-transform"></i>
+                <span id="badge-carrinho" class="absolute -top-2 -right-2 fundo-tema texto-claro text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-fundo-app shadow-md {% if total_itens_carrinho == 0 %}hidden{% endif %}">
+                    {{ total_itens_carrinho }}
+                </span>
+            </a>
+            {% endif %}
+            {% endwith %}
+        {% endif %}
     </main>
 
    {% if user.is_authenticated and "/moderacao/" not in request.path %}

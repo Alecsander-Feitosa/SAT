@@ -112,6 +112,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.tema_torcida',
                 'accounts.context_processors.torcida_branding', # <-- Adicionado aqui corretamente
+                'accounts.context_processors.carrinho_global',  # <-- Carrinho em todas as páginas
             ],
         },
     },

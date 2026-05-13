@@ -1,4 +1,19 @@
 from organizadas.models import Torcida
+from django.db.models import Sum
+
+
+def carrinho_global(request):
+    """Injeta a contagem de itens do carrinho em TODAS as páginas."""
+    total = 0
+    if request.user.is_authenticated:
+        try:
+            from loja.models import ItemCarrinho
+            total = ItemCarrinho.objects.filter(usuario=request.user).aggregate(
+                Sum('quantidade')
+            )['quantidade__sum'] or 0
+        except Exception:
+            pass
+    return {'total_itens_carrinho': total}
 
 
 def tema_torcida(request):
