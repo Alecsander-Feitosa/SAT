@@ -1,4 +1,4 @@
-﻿aiohappyeyeballs==2.6.1
+aiohappyeyeballs==2.6.1
 aiohttp==3.13.3
 aiosignal==1.4.0
 annotated-doc==0.0.4
@@ -98,3 +98,5 @@ yarl==1.23.0
 zipp==3.23.0
 dj-database-url
 psycopg2-binary
+cloudinary
+django-cloudinary-storage

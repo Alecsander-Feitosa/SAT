@@ -73,6 +73,8 @@ INSTALLED_APPS = [
     'organizadas',   # Torcidas
     'social',
     'loja',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 SITE_ID = 1
@@ -167,6 +169,17 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # --- Arquivos de Mídia (Uploads de Notícias/Produtos/Avatar) ---
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# --- Cloudinary: Armazenamento permanente de imagens (Render apaga arquivos locais a cada deploy) ---
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', ''),
+}
+
+# Só usa Cloudinary se as credenciais estiverem configuradas (produção)
+if os.getenv('CLOUDINARY_CLOUD_NAME'):
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # --- CORS (Permite que o App Android acesse a API) ---
 CORS_ALLOW_ALL_ORIGINS = True # Em produção, mudaremos para domínios específicos
