@@ -62,7 +62,10 @@
                         </li>
                         {% endfor %}
                     </ul>
-                    <button class="w-full py-3 rounded-xl fundo-tema texto-claro font-black uppercase text-[10px]">Assinar</button>
+                    <form method="POST" action="{% url 'assinar_plano' plano.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full py-3 rounded-xl fundo-tema texto-claro font-black uppercase text-[10px] transition-transform active:scale-95">Assinar</button>
+                    </form>
                 </div>
                 {% empty %}
                 <div class="w-full text-center py-8 fundo-card border border-suave rounded-[30px] opacity-70">

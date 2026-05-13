@@ -7,7 +7,9 @@ from django.http import JsonResponse
 from .models import Produto, ItemCarrinho, Pedido, ItemPedido, Variacao
 from django.contrib import messages
 from django.http import HttpResponse
+from django.conf import settings
 from organizadas.models import Evento
+import json
 
 
 
@@ -122,33 +124,161 @@ def remover_do_carrinho(request, item_id):
     return redirect('ver_carrinho')
 
 @login_required
+def calcular_frete(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            cep = data.get('cep', '').replace('-', '')
+            
+            if len(cep) != 8:
+                return JsonResponse({'sucesso': False, 'erro': 'CEP inválido.'})
+            
+            itens = ItemCarrinho.objects.filter(usuario=request.user)
+            peso_total = sum((item.produto.peso or 0.500) * item.quantidade for item in itens)
+            
+            valor_pac = 15.00 + float(peso_total * 2)
+            valor_sedex = 30.00 + float(peso_total * 4)
+            
+            if int(cep[0]) > 5:
+                valor_pac += 20.00
+                valor_sedex += 40.00
+                
+            opcoes = [
+                {'tipo': 'PAC', 'valor': round(valor_pac, 2), 'prazo': '7 a 10 dias úteis'},
+                {'tipo': 'SEDEX', 'valor': round(valor_sedex, 2), 'prazo': '2 a 4 dias úteis'}
+            ]
+            
+            return JsonResponse({'sucesso': True, 'opcoes': opcoes})
+        except Exception as e:
+            return JsonResponse({'sucesso': False, 'erro': str(e)})
+    return JsonResponse({'sucesso': False, 'erro': 'Método não permitido.'})
+
+@login_required
 def finalizar_checkout(request):
+    if request.method != 'POST':
+        return redirect('loja')
+        
     itens_carrinho = ItemCarrinho.objects.filter(usuario=request.user)
     if not itens_carrinho.exists():
         return redirect('loja')
     
-    total_geral = sum(item.produto.preco_atual() * item.quantidade for item in itens_carrinho)
+    total_produtos = sum(item.produto.preco_atual() * item.quantidade for item in itens_carrinho)
+    
+    # --- Tipo de entrega ---
+    retirada_sede = request.POST.get('tipo_entrega') == 'sede'
+    metodo_pagamento = request.POST.get('metodo_pagamento', 'pix')
+    
+    # --- Dados de endereço (só se for envio) ---
+    cep = endereco = numero = complemento = bairro = cidade = estado = None
+    modalidade_frete = None
+    valor_frete = 0.0
+    
+    if not retirada_sede:
+        cep = request.POST.get('cep')
+        endereco = request.POST.get('rua')
+        numero = request.POST.get('numero')
+        complemento = request.POST.get('complemento')
+        bairro = request.POST.get('bairro')
+        cidade = request.POST.get('cidade')
+        estado = request.POST.get('estado')
+        
+        modalidade_frete = request.POST.get('modalidade_frete')
+        valor_frete_str = request.POST.get('valor_frete', '0')
+        try:
+            valor_frete = float(valor_frete_str.replace(',', '.'))
+        except ValueError:
+            valor_frete = 0.0
+        
+    total_geral = float(total_produtos) + valor_frete
+    
+    # --- Dados pessoais (para boleto e cartão) ---
+    cpf = request.POST.get('cpf', '')
+    nome_completo = request.POST.get('nome_completo', request.user.get_full_name() or request.user.username)
+    email = request.POST.get('email', request.user.email)
     
     try:
         with transaction.atomic():
-            pedido = Pedido.objects.create(usuario=request.user, total=total_geral, status='pendente')
+            pedido = Pedido.objects.create(
+                usuario=request.user, 
+                total=total_geral, 
+                status='aguardando_retirada' if (retirada_sede and metodo_pagamento == 'sede') else 'pendente',
+                retirada_sede=retirada_sede,
+                metodo_pagamento=metodo_pagamento,
+                cep=cep,
+                endereco=endereco,
+                numero=numero,
+                complemento=complemento,
+                bairro=bairro,
+                cidade=cidade,
+                estado=estado,
+                valor_frete=valor_frete,
+                modalidade_frete=modalidade_frete if not retirada_sede else 'Retirada na Sede'
+            )
             for item in itens_carrinho:
                 ItemPedido.objects.create(pedido=pedido, produto=item.produto, quantidade=item.quantidade, preco_unitario=item.produto.preco_atual())
                 item.produto.estoque -= item.quantidade
                 item.produto.save()
             
-            from accounts.efi_utils import gerar_cobranca_pix
-            pix_data = gerar_cobranca_pix(pedido, tipo='pedido')
+            pix_data = None
+            boleto_data = None
+            cartao_data = None
             
-            if not pix_data.get('sucesso'):
-                raise Exception(pix_data.get('erro', 'Erro desconhecido ao gerar PIX'))
+            # ===== PIX =====
+            if metodo_pagamento == 'pix':
+                from accounts.efi_utils import gerar_cobranca_pix
+                pix_data = gerar_cobranca_pix(pedido, tipo='pedido')
+                
+                if not pix_data.get('sucesso'):
+                    raise Exception(pix_data.get('erro', 'Erro desconhecido ao gerar PIX'))
+            
+            # ===== BOLETO =====
+            elif metodo_pagamento == 'boleto':
+                from accounts.efi_utils import gerar_cobranca_boleto
+                boleto_data = gerar_cobranca_boleto(pedido, cpf, nome_completo, email)
+                
+                if not boleto_data.get('sucesso'):
+                    raise Exception(boleto_data.get('erro', 'Erro ao gerar boleto'))
+            
+            # ===== CARTÃO DE CRÉDITO =====
+            elif metodo_pagamento == 'cartao':
+                from accounts.efi_utils import gerar_cobranca_cartao
+                payment_token = request.POST.get('payment_token', '')
+                nascimento = request.POST.get('nascimento', '')
+                telefone = request.POST.get('telefone', '')
+                
+                endereco_dados = {
+                    'rua': endereco or request.POST.get('rua', ''),
+                    'numero': numero or request.POST.get('numero', ''),
+                    'bairro': bairro or request.POST.get('bairro', ''),
+                    'cep': cep or request.POST.get('cep', ''),
+                    'cidade': cidade or request.POST.get('cidade', ''),
+                    'estado': estado or request.POST.get('estado', ''),
+                }
+                
+                if not payment_token:
+                    raise Exception('Token do cartão não recebido. Tente novamente.')
+                    
+                cartao_data = gerar_cobranca_cartao(
+                    pedido, payment_token, cpf, nome_completo, 
+                    email, nascimento, telefone, endereco_dados
+                )
+                
+                if not cartao_data.get('sucesso'):
+                    raise Exception(cartao_data.get('erro', 'Erro ao processar cartão'))
                 
             itens_carrinho.delete()
             
-        return render(request, 'loja/sucesso.html', {'pedido': pedido, 'pix_data': pix_data})
+        return render(request, 'loja/sucesso.html', {
+            'pedido': pedido, 
+            'pix_data': pix_data,
+            'boleto_data': boleto_data,
+            'cartao_data': cartao_data,
+            'metodo_pagamento': metodo_pagamento,
+            'retirada_sede': retirada_sede
+        })
         
     except Exception as e:
-        messages.error(request, f"Erro ao gerar pagamento PIX: {str(e)}")
+        messages.error(request, f"Erro ao processar pedido: {str(e)}")
         return redirect('checkout_exemplo')
     
 @login_required
@@ -163,7 +293,9 @@ def checkout_exemplo_view(request):
     return render(request, 'loja/checkout_exemplo.html', {
         'itens': itens, 
         'total_geral': total_geral,
-        'torcida': torcida
+        'torcida': torcida,
+        'efi_conta_id': settings.EFI_CONTA_ID,
+        'efi_sandbox': settings.EFI_SANDBOX,
     })
 
 # ==========================================

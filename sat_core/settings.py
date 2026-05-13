@@ -20,6 +20,8 @@ EFI_CLIENT_SECRET = os.getenv('EFI_CLIENT_SECRET', '')
 efi_cert_path = os.getenv('EFI_CERTIFICADO', '')
 EFI_CERTIFICADO = os.path.join(BASE_DIR, efi_cert_path) if efi_cert_path else ''
 EFI_SANDBOX = os.getenv('EFI_SANDBOX', 'True') == 'True'
+EFI_CHAVE_PIX = os.getenv('EFI_CHAVE_PIX', 'sua_chave_pix_aqui@gmail.com')
+EFI_CONTA_ID = os.getenv('EFI_CONTA_ID', '')  # ID da conta Efí (necessário para pagamento com cartão)
 
 # --- NOVO: Obrigatório para o Render permitir logins e formulários via HTTPS ---
 CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']

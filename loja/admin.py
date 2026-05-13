@@ -21,6 +21,6 @@ class ItemPedidoInline(admin.TabularInline):
 
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'usuario', 'total', 'status', 'data_pedido')
-    list_filter = ('status', 'data_pedido')
+    list_display = ('id', 'usuario', 'total', 'status', 'retirada_sede', 'metodo_pagamento', 'data_pedido')
+    list_filter = ('status', 'retirada_sede', 'metodo_pagamento', 'data_pedido')
     inlines = [ItemPedidoInline]

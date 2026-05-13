@@ -38,7 +38,7 @@ from accounts.models import Perfil
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from .decorators import torcida_required
-from .models import Perfil, Presenca, Conquista, Evento, CheckIn, PlanoSocio
+from .models import Perfil, Presenca, Conquista, Evento, CheckIn, PlanoSocio, Assinatura, Fatura
 from .forms import CadastroForm, PerfilCompletoForm
 from loja.models import Produto
 from .models import Presenca, PresencaCaravana
@@ -1611,11 +1611,74 @@ def webhook_efi(request):
                             fatura.data_pagamento = timezone.now()
                             fatura.save()
                             
+                            # Ativa a assinatura vinculada
+                            if not fatura.assinatura.ativa:
+                                fatura.assinatura.ativa = True
+                                fatura.assinatura.save()
+                            
             return JsonResponse({'status': 'ok'})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
             
     return HttpResponse(status=405)
+
+
+# ==========================================
+# ASSINATURA DE PLANO PELO USUÁRIO
+# ==========================================
+
+@login_required
+def assinar_plano(request, plano_id):
+    """
+    Cria a Assinatura + primeira Fatura para o plano escolhido,
+    gera a cobrança PIX e redireciona para o checkout.
+    """
+    if request.method != 'POST':
+        return redirect('seja_socio')
+    
+    perfil = request.user.perfil
+    plano = get_object_or_404(PlanoSocio, id=plano_id, ativo=True)
+    
+    # Verifica se o usuário já tem uma assinatura ativa para esse plano
+    assinatura_existente = Assinatura.objects.filter(perfil=perfil, plano=plano, ativa=True).first()
+    if assinatura_existente:
+        # Se já tem assinatura, verifica se há fatura pendente
+        fatura_pendente = Fatura.objects.filter(assinatura=assinatura_existente, status='pendente').first()
+        if fatura_pendente:
+            return redirect('pagar_fatura_pix', fatura_id=fatura_pendente.id)
+        messages.info(request, 'Você já possui este plano ativo!')
+        return redirect('financeiro')
+    
+    # Desativa assinaturas anteriores (troca de plano)
+    Assinatura.objects.filter(perfil=perfil, ativa=True).update(ativa=False)
+    
+    # Cria a nova assinatura
+    assinatura = Assinatura.objects.create(
+        perfil=perfil,
+        plano=plano,
+        ativa=False  # Só ativa depois de pagar
+    )
+    
+    # Cria a primeira fatura
+    from datetime import timedelta
+    fatura = Fatura.objects.create(
+        assinatura=assinatura,
+        valor=plano.preco,
+        data_vencimento=timezone.now().date() + timedelta(days=3),
+        status='pendente'
+    )
+    
+    # Gera a cobrança PIX
+    try:
+        resultado = gerar_cobranca_pix(fatura, tipo='fatura')
+        if not resultado.get('sucesso'):
+            messages.error(request, f"Erro ao gerar PIX: {resultado.get('erro')}")
+            return redirect('financeiro')
+    except Exception as e:
+        messages.error(request, f"Erro ao gerar PIX: {str(e)}")
+        return redirect('financeiro')
+    
+    return redirect('pagar_fatura_pix', fatura_id=fatura.id)
 
 
 # ==========================================

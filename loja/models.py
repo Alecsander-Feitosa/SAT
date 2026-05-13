@@ -21,6 +21,7 @@ class Produto(models.Model):
     preco_promocional = models.DecimalField("Preço Promocional", max_digits=10, decimal_places=2, null=True, blank=True)
     
     estoque = models.PositiveIntegerField(default=0)
+    peso = models.DecimalField("Peso (kg)", max_digits=5, decimal_places=3, default=0.500)
     imagem = models.ImageField("Imagem Principal", upload_to='produtos/', null=True, blank=True)
     destaque = models.BooleanField(default=False)
 
@@ -59,19 +60,44 @@ class Pedido(models.Model):
         ('pendente', 'Pendente'),
         ('pago', 'Pago'),
         ('enviado', 'Enviado'),
+        ('aguardando_retirada', 'Aguardando Retirada'),
         ('concluido', 'Concluído'),
         ('cancelado', 'Cancelado'),
+    ]
+    PAGAMENTO_CHOICES = [
+        ('pix', 'PIX'),
+        ('boleto', 'Boleto Bancário'),
+        ('cartao', 'Cartão de Crédito'),
+        ('sede', 'Pagar na Sede'),
     ]
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     data_pedido = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pendente')
+    
+    # --- Tipo de Entrega ---
+    retirada_sede = models.BooleanField("Retirar na Sede?", default=False)
+    
+    # --- Dados de Entrega e Frete (só para envio) ---
+    cep = models.CharField(max_length=9, blank=True, null=True)
+    endereco = models.CharField(max_length=255, blank=True, null=True)
+    numero = models.CharField(max_length=20, blank=True, null=True)
+    complemento = models.CharField(max_length=100, blank=True, null=True)
+    bairro = models.CharField(max_length=100, blank=True, null=True)
+    cidade = models.CharField(max_length=100, blank=True, null=True)
+    estado = models.CharField(max_length=2, blank=True, null=True)
+    
+    valor_frete = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    modalidade_frete = models.CharField(max_length=50, blank=True, null=True)
+    
+    # --- Método de Pagamento ---
+    metodo_pagamento = models.CharField(max_length=20, choices=PAGAMENTO_CHOICES, default='pix')
     
     # --- Integração Efí Bank (PIX) ---
     txid = models.CharField(max_length=35, blank=True, null=True, help_text="ID da transação na Efí Bank")
     loc_id = models.IntegerField(blank=True, null=True, help_text="ID da location (Payload do PIX)")
     pix_copia_e_cola = models.TextField(blank=True, null=True)
-    pix_qrcode = models.URLField(blank=True, null=True, help_text="URL da imagem do QR Code")
+    pix_qrcode = models.TextField(blank=True, null=True, help_text="URL ou base64 da imagem do QR Code")
 
 class ItemPedido(models.Model):
     pedido = models.ForeignKey(Pedido, related_name='itens', on_delete=models.CASCADE)

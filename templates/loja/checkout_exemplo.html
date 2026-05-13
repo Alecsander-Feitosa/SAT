@@ -2,6 +2,29 @@
 {% block content %}
 <style>
     :root { --cor-primaria: {{ torcida.cor_primaria|default:"#D37129" }}; }
+    .loading-frete { opacity: 0.5; pointer-events: none; }
+    
+    /* Radio Cards */
+    .radio-card { position: absolute; opacity: 0; pointer-events: none; }
+    .radio-card:checked + label .card-option {
+        border-color: var(--cor-primaria) !important;
+        background: rgba(211, 113, 41, 0.06) !important;
+        box-shadow: 0 0 0 2px var(--cor-primaria) inset !important;
+    }
+    .radio-card:checked + label .card-check {
+        opacity: 1 !important;
+        transform: scale(1) !important;
+    }
+    .card-option { transition: all 0.25s ease; }
+    .card-check { opacity: 0; transform: scale(0.5); transition: all 0.2s ease; }
+    
+    /* Slide animation */
+    .slide-section { 
+        max-height: 0; overflow: hidden; opacity: 0;
+        transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease; 
+        margin-top: 0; 
+    }
+    .slide-section.open { max-height: 1200px; opacity: 1; margin-top: 2rem; }
 </style>
 
 <div class="min-h-screen fundo-app pb-40">
@@ -25,50 +48,574 @@
     </div>
     {% endif %}
 
-    <div class="px-5 mb-8">
-        <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4">Seus Itens</h2>
-        <div class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave space-y-3">
-            {% for item in itens %}
-            <div class="flex justify-between items-center">
-                <span class="text-xs font-bold texto-main opacity-80">{{ item.quantidade }}x {{ item.produto.nome }}</span>
-                <span class="text-xs font-black texto-main">R$ {{ item.produto.preco_atual }}</span>
-            </div>
-            {% endfor %}
-            <div class="pt-4 mt-2 border-t border-suave flex justify-between items-center">
-                <span class="text-sm font-black uppercase italic texto-main">Total</span>
-                <span class="text-lg font-black" style="color: var(--cor-primaria)">R$ {{ total_geral }}</span>
+    <form action="{% url 'finalizar_checkout' %}" method="POST" id="form-checkout">
+        {% csrf_token %}
+        <input type="hidden" name="valor_frete" id="input_valor_frete" value="0.00">
+        <input type="hidden" name="modalidade_frete" id="input_modalidade_frete" value="">
+
+        <!-- ======================== -->
+        <!-- 1. TIPO DE ENTREGA       -->
+        <!-- ======================== -->
+        <div class="px-5 mb-8">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-truck"></i> Tipo de Entrega
+            </h2>
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Opção: Enviar -->
+                <div>
+                    <input type="radio" name="tipo_entrega" id="entrega_enviar" value="enviar" class="radio-card" checked>
+                    <label for="entrega_enviar" class="cursor-pointer block">
+                        <div class="card-option fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center h-28 text-center relative">
+                            <i class="bi bi-check-circle-fill absolute top-2 right-2 text-sm card-check" style="color: var(--cor-primaria)"></i>
+                            <i class="bi bi-truck text-2xl texto-main mb-2 opacity-70"></i>
+                            <span class="text-[10px] font-black uppercase tracking-wider texto-main">Enviar</span>
+                            <span class="text-[8px] font-bold texto-main opacity-40 uppercase mt-0.5">PAC / SEDEX</span>
+                        </div>
+                    </label>
+                </div>
+                <!-- Opção: Retirar na Sede -->
+                <div>
+                    <input type="radio" name="tipo_entrega" id="entrega_sede" value="sede" class="radio-card">
+                    <label for="entrega_sede" class="cursor-pointer block">
+                        <div class="card-option fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center h-28 text-center relative">
+                            <i class="bi bi-check-circle-fill absolute top-2 right-2 text-sm card-check" style="color: var(--cor-primaria)"></i>
+                            <i class="bi bi-shop text-2xl texto-main mb-2 opacity-70"></i>
+                            <span class="text-[10px] font-black uppercase tracking-wider texto-main">Na Sede</span>
+                            <span class="text-[8px] font-bold texto-main opacity-40 uppercase mt-0.5">Frete Grátis</span>
+                        </div>
+                    </label>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="px-5 mb-8">
-        <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4">Pagamento</h2>
-        <div class="grid grid-cols-1 gap-3">
-            <div class="flex items-center justify-between p-4 fundo-card border-2 rounded-2xl shadow-sm" style="border-color: var(--cor-primaria)">
-                <div class="flex items-center gap-3">
-                    <i class="bi bi-qr-code text-xl" style="color: var(--cor-primaria)"></i>
-                    <span class="text-sm font-bold texto-main">Pix (Instantâneo)</span>
+        <!-- ======================== -->
+        <!-- 2. ENDEREÇO (só envio)   -->
+        <!-- ======================== -->
+        <div class="px-5 slide-section open" id="secao_endereco">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-geo-alt"></i> Dados de Entrega
+            </h2>
+            <div class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave space-y-4">
+                
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-2">
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">CEP</label>
+                        <input type="text" name="cep" id="cep" maxlength="9" placeholder="00000-000" class="campo-endereco w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" onblur="buscarCep(this.value)">
+                    </div>
+                    <div class="col-span-1 flex items-end">
+                        <button type="button" onclick="buscarCep(document.getElementById('cep').value)" class="w-full py-3 fundo-tema texto-claro rounded-xl font-bold text-xs shadow-sm">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
                 </div>
-                <i class="bi bi-check-circle-fill text-lg" style="color: var(--cor-primaria)"></i>
+
+                <div class="grid grid-cols-4 gap-3">
+                    <div class="col-span-3">
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Rua</label>
+                        <input type="text" name="rua" id="rua" class="campo-endereco w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Nº</label>
+                        <input type="text" name="numero" class="campo-endereco w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Complemento</label>
+                        <input type="text" name="complemento" placeholder="Opcional" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Bairro</label>
+                        <input type="text" name="bairro" id="bairro" class="campo-endereco w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-2">
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Cidade</label>
+                        <input type="text" name="cidade" id="cidade" class="campo-endereco w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">UF</label>
+                        <input type="text" name="estado" id="uf" maxlength="2" class="campo-endereco w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors uppercase">
+                    </div>
+                </div>
+
             </div>
-            
-            <div class="flex items-center justify-between p-4 fundo-card border border-suave rounded-2xl opacity-40">
-                <div class="flex items-center gap-3">
-                    <i class="bi bi-credit-card text-xl texto-main"></i>
-                    <span class="text-sm font-bold texto-main">Cartão de Crédito (Breve)</span>
+        </div>
+
+        <!-- Aviso de Retirada na Sede (escondido por padrão) -->
+        <div class="px-5 slide-section" id="aviso_sede">
+            <div class="fundo-card rounded-[24px] p-6 shadow-sm border-2 border-dashed text-center" style="border-color: var(--cor-primaria)">
+                <i class="bi bi-shop text-4xl mb-3 block" style="color: var(--cor-primaria)"></i>
+                <h3 class="text-sm font-black texto-main uppercase tracking-wider mb-2">Retirada na Sede</h3>
+                <p class="text-[11px] texto-main opacity-60 font-bold leading-relaxed">
+                    Após confirmar o pedido, retire seus produtos na sede da torcida. 
+                    Você receberá uma notificação quando estiver pronto para retirada.
+                </p>
+                <div class="mt-4 bg-green-500/10 text-green-600 px-4 py-2 rounded-xl border border-green-500/20 inline-flex items-center gap-2">
+                    <i class="bi bi-check-circle-fill text-sm"></i>
+                    <span class="text-[10px] font-black uppercase tracking-wider">Frete Grátis</span>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="px-5 mt-6 mb-24">
-        <form action="{% url 'finalizar_checkout' %}" method="POST">
-            {% csrf_token %}
-            <button type="submit" class="w-full py-5 text-white rounded-2xl font-black italic uppercase tracking-widest shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3" style="background-color: var(--cor-primaria)">
-                Confirmar e Pagar
+        <!-- Seção de Frete (Opções Geradas Dinamicamente — só para envio) -->
+        <div class="px-5 mt-8 hidden" id="secao_frete">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-box-seam"></i> Opções de Frete
+            </h2>
+            <div class="space-y-3" id="lista_fretes">
+            </div>
+        </div>
+
+        <!-- ======================== -->
+        <!-- 3. RESUMO DO PEDIDO      -->
+        <!-- ======================== -->
+        <div class="px-5 mt-8 mb-8">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-receipt"></i> Resumo do Pedido
+            </h2>
+            <div class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave space-y-3">
+                {% for item in itens %}
+                <div class="flex justify-between items-center pb-3 border-b border-suave/50">
+                    <span class="text-xs font-bold texto-main opacity-80 flex-1">{{ item.quantidade }}x {{ item.produto.nome }}</span>
+                    <span class="text-xs font-black texto-main">R$ {{ item.produto.preco_atual }}</span>
+                </div>
+                {% endfor %}
+                
+                <div class="flex justify-between items-center py-1">
+                    <span class="text-xs font-bold texto-main opacity-60">Subtotal</span>
+                    <span class="text-xs font-black texto-main">R$ <span id="subtotal_valor" data-valor="{{ total_geral }}">{{ total_geral }}</span></span>
+                </div>
+                
+                <div class="flex justify-between items-center py-1 hidden" id="linha_frete_resumo">
+                    <span class="text-xs font-bold texto-main opacity-60">Frete (<span id="nome_frete_resumo">-</span>)</span>
+                    <span class="text-xs font-black texto-main">R$ <span id="valor_frete_resumo">0,00</span></span>
+                </div>
+
+                <div class="pt-4 mt-2 border-t border-suave flex justify-between items-center">
+                    <span class="text-sm font-black uppercase italic texto-main">Total a Pagar</span>
+                    <span class="text-xl font-black" style="color: var(--cor-primaria)">R$ <span id="total_final">{{ total_geral }}</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== -->
+        <!-- 4. MÉTODO DE PAGAMENTO   -->
+        <!-- ======================== -->
+        <div class="px-5 mb-8">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-credit-card"></i> Método de Pagamento
+            </h2>
+            <div class="space-y-3">
+                <!-- PIX -->
+                <div>
+                    <input type="radio" name="metodo_pagamento" id="pag_pix" value="pix" class="radio-card" checked>
+                    <label for="pag_pix" class="cursor-pointer block">
+                        <div class="card-option flex items-center justify-between p-4 fundo-card border border-suave rounded-2xl shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(211,113,41,0.1)">
+                                    <i class="bi bi-qr-code text-lg" style="color: var(--cor-primaria)"></i>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold texto-main block">PIX</span>
+                                    <span class="text-[9px] font-bold texto-main opacity-40 uppercase">Aprovação instantânea</span>
+                                </div>
+                            </div>
+                            <i class="bi bi-check-circle-fill text-lg card-check" style="color: var(--cor-primaria)"></i>
+                        </div>
+                    </label>
+                </div>
+                <!-- Boleto -->
+                <div>
+                    <input type="radio" name="metodo_pagamento" id="pag_boleto" value="boleto" class="radio-card">
+                    <label for="pag_boleto" class="cursor-pointer block">
+                        <div class="card-option flex items-center justify-between p-4 fundo-card border border-suave rounded-2xl shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                                    <i class="bi bi-upc-scan text-lg text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold texto-main block">Boleto Bancário</span>
+                                    <span class="text-[9px] font-bold texto-main opacity-40 uppercase">Vence em 5 dias úteis</span>
+                                </div>
+                            </div>
+                            <i class="bi bi-check-circle-fill text-lg text-blue-600 card-check"></i>
+                        </div>
+                    </label>
+                </div>
+                <!-- Cartão de Crédito -->
+                <div>
+                    <input type="radio" name="metodo_pagamento" id="pag_cartao" value="cartao" class="radio-card">
+                    <label for="pag_cartao" class="cursor-pointer block">
+                        <div class="card-option flex items-center justify-between p-4 fundo-card border border-suave rounded-2xl shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                                    <i class="bi bi-credit-card-2-front text-lg text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold texto-main block">Cartão de Crédito</span>
+                                    <span class="text-[9px] font-bold texto-main opacity-40 uppercase">Aprovação na hora</span>
+                                </div>
+                            </div>
+                            <i class="bi bi-check-circle-fill text-lg text-purple-600 card-check"></i>
+                        </div>
+                    </label>
+                </div>
+                <!-- Pagar na Sede -->
+                <div>
+                    <input type="radio" name="metodo_pagamento" id="pag_sede" value="sede" class="radio-card">
+                    <label for="pag_sede" class="cursor-pointer block">
+                        <div class="card-option flex items-center justify-between p-4 fundo-card border border-suave rounded-2xl shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                                    <i class="bi bi-cash-stack text-lg text-green-600"></i>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold texto-main block">Pagar na Sede</span>
+                                    <span class="text-[9px] font-bold texto-main opacity-40 uppercase">Dinheiro, Cartão ou PIX presencial</span>
+                                </div>
+                            </div>
+                            <i class="bi bi-check-circle-fill text-lg text-green-600 card-check"></i>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== -->
+        <!-- 4b. DADOS PESSOAIS       -->
+        <!-- (boleto e cartão)        -->
+        <!-- ======================== -->
+        <div class="px-5 slide-section" id="secao_dados_pessoais">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-person-vcard"></i> Dados do Pagador
+            </h2>
+            <div class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave space-y-4">
+                <div>
+                    <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Nome Completo</label>
+                    <input type="text" name="nome_completo" value="{{ user.get_full_name }}" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">CPF</label>
+                        <input type="text" name="cpf" id="cpf_input" maxlength="14" placeholder="000.000.000-00" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">E-mail</label>
+                        <input type="email" name="email" value="{{ user.email }}" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== -->
+        <!-- 4c. DADOS DO CARTÃO      -->
+        <!-- ======================== -->
+        <div class="px-5 slide-section" id="secao_cartao">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-credit-card-2-front"></i> Dados do Cartão
+            </h2>
+            <div class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave space-y-4">
+                <div>
+                    <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Número do Cartão</label>
+                    <input type="text" id="card_number" maxlength="19" placeholder="0000 0000 0000 0000" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none tracking-widest">
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Validade</label>
+                        <input type="text" id="card_expiry" maxlength="5" placeholder="MM/AA" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none text-center">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">CVV</label>
+                        <input type="text" id="card_cvv" maxlength="4" placeholder="000" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none text-center">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Bandeira</label>
+                        <select id="card_brand" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                            <option value="visa">Visa</option>
+                            <option value="mastercard">Master</option>
+                            <option value="elo">Elo</option>
+                            <option value="amex">Amex</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Nascimento</label>
+                        <input type="date" name="nascimento" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Telefone</label>
+                        <input type="text" name="telefone" maxlength="15" placeholder="(00) 00000-0000" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    </div>
+                </div>
+                <input type="hidden" name="payment_token" id="payment_token">
+                <p id="card_error" class="text-red-500 text-[10px] font-bold hidden"></p>
+            </div>
+        </div>
+
+        <!-- ======================== -->
+        <!-- 5. BOTÃO CONFIRMAR       -->
+        <!-- ======================== -->
+        <div class="px-5 mt-6 mb-24">
+            <button type="submit" id="btn_confirmar" class="w-full py-5 text-white rounded-2xl font-black italic uppercase tracking-widest shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3 opacity-50 cursor-not-allowed" style="background-color: var(--cor-primaria)" disabled>
+                <span id="btn_texto">Confirmar e Pagar</span>
                 <i class="bi bi-arrow-right text-white"></i>
             </button>
-        </form>
-    </div>
+            <p class="text-[9px] text-center mt-3 texto-main opacity-50 font-bold uppercase" id="btn_dica">Selecione a entrega e o pagamento para continuar.</p>
+        </div>
+    </form>
 </div>
+
+<script type='text/javascript' src='https://cdn.efipay.com.br/js/payment/v1/payment.min.js'></script>
+<script>
+    // ========================
+    // ENTREGA: Enviar vs Sede
+    // ========================
+    const radioEnviar = document.getElementById('entrega_enviar');
+    const radioSede = document.getElementById('entrega_sede');
+    const secaoEndereco = document.getElementById('secao_endereco');
+    const avisoSede = document.getElementById('aviso_sede');
+    const secaoFrete = document.getElementById('secao_frete');
+    const camposEndereco = document.querySelectorAll('.campo-endereco');
+
+    function atualizarEntrega() {
+        const isSede = radioSede.checked;
+        if (isSede) {
+            secaoEndereco.classList.remove('open');
+            secaoFrete.classList.add('hidden');
+            avisoSede.classList.add('open');
+            camposEndereco.forEach(c => c.removeAttribute('required'));
+            document.getElementById('input_valor_frete').value = '0.00';
+            document.getElementById('input_modalidade_frete').value = 'Retirada na Sede';
+            document.getElementById('linha_frete_resumo').classList.add('hidden');
+            const subtotal = parseFloat(document.getElementById('subtotal_valor').getAttribute('data-valor').replace(',', '.'));
+            document.getElementById('total_final').innerText = subtotal.toFixed(2).replace('.', ',');
+            verificarBotao();
+        } else {
+            secaoEndereco.classList.add('open');
+            avisoSede.classList.remove('open');
+            camposEndereco.forEach(c => c.setAttribute('required', ''));
+            verificarBotao();
+        }
+    }
+    radioEnviar.addEventListener('change', atualizarEntrega);
+    radioSede.addEventListener('change', atualizarEntrega);
+
+    // ========================
+    // PAGAMENTO
+    // ========================
+    const pagRadios = document.querySelectorAll('input[name="metodo_pagamento"]');
+    const secaoDados = document.getElementById('secao_dados_pessoais');
+    const secaoCartao = document.getElementById('secao_cartao');
+
+    function atualizarPagamento() {
+        const metodo = document.querySelector('input[name="metodo_pagamento"]:checked').value;
+        const btnTexto = document.getElementById('btn_texto');
+        
+        // Mostra/esconde seções extras
+        const precisaDados = (metodo === 'boleto' || metodo === 'cartao');
+        const precisaCartao = (metodo === 'cartao');
+        
+        if (precisaDados) { secaoDados.classList.add('open'); } else { secaoDados.classList.remove('open'); }
+        if (precisaCartao) { secaoCartao.classList.add('open'); } else { secaoCartao.classList.remove('open'); }
+        
+        // Texto do botão
+        if (metodo === 'sede') { btnTexto.innerText = 'Confirmar Pedido'; }
+        else if (metodo === 'cartao') { btnTexto.innerText = 'Pagar com Cartão'; }
+        else if (metodo === 'boleto') { btnTexto.innerText = 'Gerar Boleto'; }
+        else { btnTexto.innerText = 'Confirmar e Pagar'; }
+        
+        verificarBotao();
+    }
+    pagRadios.forEach(r => r.addEventListener('change', atualizarPagamento));
+
+    // ========================
+    // ATIVAR/DESATIVAR BOTÃO
+    // ========================
+    function verificarBotao() {
+        const btn = document.getElementById('btn_confirmar');
+        const dica = document.getElementById('btn_dica');
+        const isSede = radioSede.checked;
+        const metodo = document.querySelector('input[name="metodo_pagamento"]:checked').value;
+        
+        if (isSede || metodo === 'sede') {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            dica.innerText = metodo === 'sede' ? 'Retire e pague na sede.' : '';
+        } else {
+            const freteSelected = document.querySelector('input[name="opcao_frete"]:checked');
+            if (freteSelected) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                dica.innerText = '';
+            } else {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                dica.innerText = 'Preencha o endereço e selecione o frete.';
+            }
+        }
+    }
+
+    // ========================
+    // MASKS
+    // ========================
+    document.getElementById('cep').addEventListener('input', function (e) {
+        let x = e.target.value.replace(/\D/g, '').match(/(\d{0,5})(\d{0,3})/);
+        e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2];
+    });
+    document.getElementById('cpf_input').addEventListener('input', function (e) {
+        let v = e.target.value.replace(/\D/g, '');
+        v = v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        e.target.value = v;
+    });
+    document.getElementById('card_number').addEventListener('input', function(e) {
+        let v = e.target.value.replace(/\D/g, '').substring(0, 16);
+        e.target.value = v.replace(/(\d{4})/g, '$1 ').trim();
+    });
+    document.getElementById('card_expiry').addEventListener('input', function(e) {
+        let v = e.target.value.replace(/\D/g, '');
+        if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2,4);
+        e.target.value = v;
+    });
+
+    // ========================
+    // CEP + ViaCEP
+    // ========================
+    function buscarCep(cep) {
+        cep = cep.replace(/\D/g, '');
+        if (cep.length === 8) {
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.erro) {
+                        document.getElementById('rua').value = data.logradouro;
+                        document.getElementById('bairro').value = data.bairro;
+                        document.getElementById('cidade').value = data.localidade;
+                        document.getElementById('uf').value = data.uf;
+                        calcularFreteApi(cep);
+                    } else { alert("CEP não encontrado."); }
+                })
+                .catch(err => console.error(err));
+        }
+    }
+
+    // ========================
+    // CÁLCULO DE FRETE
+    // ========================
+    function calcularFreteApi(cep) {
+        const listaFretes = document.getElementById('lista_fretes');
+        secaoFrete.classList.remove('hidden');
+        listaFretes.innerHTML = '<div class="text-center py-4"><i class="bi bi-arrow-repeat animate-spin text-2xl" style="color: var(--cor-primaria)"></i><p class="text-[10px] font-bold uppercase mt-2 opacity-50">Calculando frete...</p></div>';
+
+        fetch("{% url 'calcular_frete' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+            body: JSON.stringify({ cep: cep })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.sucesso) {
+                listaFretes.innerHTML = '';
+                data.opcoes.forEach((opcao, index) => {
+                    const checked = index === 0 ? 'checked' : '';
+                    listaFretes.innerHTML += `
+                        <label class="flex items-center justify-between p-4 fundo-card border border-suave rounded-2xl cursor-pointer hover:border-tema transition-colors">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="opcao_frete" value="${opcao.valor}" data-nome="${opcao.tipo}" class="w-4 h-4" onchange="selecionarFrete(this)" ${checked}>
+                                <div><span class="text-sm font-bold texto-main block">${opcao.tipo}</span><span class="text-[10px] texto-main opacity-50 uppercase block font-bold">${opcao.prazo}</span></div>
+                            </div>
+                            <span class="font-black text-sm" style="color: var(--cor-primaria)">R$ ${opcao.valor.toFixed(2).replace('.', ',')}</span>
+                        </label>`;
+                });
+                const primeiroRadio = document.querySelector('input[name="opcao_frete"]');
+                if(primeiroRadio) selecionarFrete(primeiroRadio);
+            } else { listaFretes.innerHTML = `<p class="text-red-500 text-xs font-bold">${data.erro}</p>`; }
+        })
+        .catch(() => { listaFretes.innerHTML = '<p class="text-red-500 text-xs font-bold">Erro ao calcular frete.</p>'; });
+    }
+
+    function selecionarFrete(radioElement) {
+        const valorFrete = parseFloat(radioElement.value);
+        const nomeFrete = radioElement.getAttribute('data-nome');
+        const subtotal = parseFloat(document.getElementById('subtotal_valor').getAttribute('data-valor').replace(',', '.'));
+        const total = subtotal + valorFrete;
+        document.getElementById('linha_frete_resumo').classList.remove('hidden');
+        document.getElementById('nome_frete_resumo').innerText = nomeFrete;
+        document.getElementById('valor_frete_resumo').innerText = valorFrete.toFixed(2).replace('.', ',');
+        document.getElementById('total_final').innerText = total.toFixed(2).replace('.', ',');
+        document.getElementById('input_valor_frete').value = valorFrete.toFixed(2);
+        document.getElementById('input_modalidade_frete').value = nomeFrete;
+        verificarBotao();
+    }
+
+    // ========================
+    // CARTÃO: Tokenização Efí
+    // ========================
+    const EFI_CONTA_ID = '{{ efi_conta_id }}';
+    const EFI_SANDBOX = {{ efi_sandbox|yesno:"true,false" }};
+
+    document.getElementById('form-checkout').addEventListener('submit', function(e) {
+        const metodo = document.querySelector('input[name="metodo_pagamento"]:checked').value;
+        
+        if (metodo !== 'cartao') return true; // Submete normal
+        
+        e.preventDefault();
+        const btn = document.getElementById('btn_confirmar');
+        const btnTexto = document.getElementById('btn_texto');
+        const cardError = document.getElementById('card_error');
+        
+        btn.disabled = true;
+        btnTexto.innerText = 'Processando...';
+        cardError.classList.add('hidden');
+        
+        const cardNumber = document.getElementById('card_number').value.replace(/\s/g, '');
+        const expiry = document.getElementById('card_expiry').value.split('/');
+        const cvv = document.getElementById('card_cvv').value;
+        const brand = document.getElementById('card_brand').value;
+        
+        if (!EFI_CONTA_ID) {
+            cardError.innerText = 'Pagamento com cartão não configurado. Use PIX ou Boleto.';
+            cardError.classList.remove('hidden');
+            btn.disabled = false;
+            btnTexto.innerText = 'Pagar com Cartão';
+            return;
+        }
+        
+        try {
+            EfiJs.CreditCard
+                .setAccount(EFI_CONTA_ID)
+                .setEnvironment(EFI_SANDBOX ? 'sandbox' : 'production')
+                .setCreditCardData({
+                    brand: brand,
+                    number: cardNumber,
+                    cvv: cvv,
+                    expirationMonth: expiry[0] || '',
+                    expirationYear: '20' + (expiry[1] || '')
+                })
+                .getPaymentToken()
+                .then(function(result) {
+                    document.getElementById('payment_token').value = result.payment_token;
+                    document.getElementById('form-checkout').submit();
+                })
+                .catch(function(err) {
+                    cardError.innerText = 'Erro ao processar cartão: ' + (err.error_description || err.message || 'Verifique os dados.');
+                    cardError.classList.remove('hidden');
+                    btn.disabled = false;
+                    btnTexto.innerText = 'Pagar com Cartão';
+                });
+        } catch(err) {
+            cardError.innerText = 'Erro: ' + err.message;
+            cardError.classList.remove('hidden');
+            btn.disabled = false;
+            btnTexto.innerText = 'Pagar com Cartão';
+        }
+    });
+    
+    // Inicialização
+    atualizarEntrega();
+</script>
 {% endblock %}

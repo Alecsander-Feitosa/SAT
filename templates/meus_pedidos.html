@@ -17,20 +17,44 @@
                     <p class="text-[10px] font-bold texto-main opacity-50 uppercase mt-0.5">{{ pedido.data_pedido|date:"d M Y" }}</p>
                 </div>
                 <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full 
-                    {% if pedido.status == 'Concluído' %}bg-green-500/10 text-green-500
-                    {% elif pedido.status == 'Pendente' %}bg-yellow-500/10 text-yellow-500
+                    {% if pedido.status == 'concluido' %}bg-green-500/10 text-green-500
+                    {% elif pedido.status == 'pago' %}bg-green-500/10 text-green-500
+                    {% elif pedido.status == 'pendente' %}bg-yellow-500/10 text-yellow-500
+                    {% elif pedido.status == 'aguardando_retirada' %}bg-blue-500/10 text-blue-500
+                    {% elif pedido.status == 'enviado' %}bg-purple-500/10 text-purple-500
+                    {% elif pedido.status == 'cancelado' %}bg-red-500/10 text-red-500
                     {% else %}bg-blue-500/10 text-blue-500{% endif %}">
-                    {{ pedido.status|default:"Em Processamento" }}
+                    {{ pedido.get_status_display|default:"Em Processamento" }}
                 </span>
             </div>
             
+            <!-- Info de entrega e pagamento -->
+            <div class="flex gap-2 mb-3 flex-wrap">
+                {% if pedido.retirada_sede %}
+                <span class="bg-green-500/10 text-green-600 border border-green-500/20 px-2 py-1 rounded-lg text-[8px] font-black uppercase flex items-center gap-1">
+                    <i class="bi bi-shop"></i> Retirada na Sede
+                </span>
+                {% else %}
+                <span class="bg-blue-500/10 text-blue-600 border border-blue-500/20 px-2 py-1 rounded-lg text-[8px] font-black uppercase flex items-center gap-1">
+                    <i class="bi bi-truck"></i> {{ pedido.modalidade_frete|default:"Envio" }}
+                </span>
+                {% endif %}
+                
+                {% if pedido.metodo_pagamento == 'sede' %}
+                <span class="bg-orange-500/10 text-orange-600 border border-orange-500/20 px-2 py-1 rounded-lg text-[8px] font-black uppercase flex items-center gap-1">
+                    <i class="bi bi-cash-stack"></i> Pagar na Sede
+                </span>
+                {% else %}
+                <span class="bg-purple-500/10 text-purple-600 border border-purple-500/20 px-2 py-1 rounded-lg text-[8px] font-black uppercase flex items-center gap-1">
+                    <i class="bi bi-qr-code"></i> PIX
+                </span>
+                {% endif %}
+            </div>
+
             <div class="flex items-center justify-between mt-3">
                 <span class="text-xs font-bold texto-main opacity-70">{{ pedido.itens.count|default:"1" }} iten(s)</span>
                 <span class="text-sm font-black texto-main">R$ {{ pedido.total|default:"0,00" }}</span>
             </div>
-            <button class="w-full mt-4 fundo-app border border-suave texto-main py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black/5 transition-colors">
-                Ver Detalhes
-            </button>
         </div>
         {% empty %}
         <div class="flex flex-col items-center justify-center py-16 text-center fundo-card border border-suave rounded-3xl">

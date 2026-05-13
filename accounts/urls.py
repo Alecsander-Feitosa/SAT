@@ -76,6 +76,7 @@ urlpatterns = [
     path('painel/planos/novo/', views.form_plano, name='novo_plano'),
     path('painel/planos/editar/<int:plano_id>/', views.form_plano, name='editar_plano'),
     path('painel/planos/excluir/<int:plano_id>/', views.excluir_plano, name='excluir_plano'),
+    path('assinar/<int:plano_id>/', views.assinar_plano, name='assinar_plano'),
 
     # EFÍ BANK (PIX)
     path('fatura/<int:fatura_id>/pix/', views.pagar_fatura_pix, name='pagar_fatura_pix'),
