@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth.models import User
-from .models import Post, Comentario
+from .models import Post, Comentario, PostMedia
 
 @login_required
 def mural_social(request):
@@ -21,20 +21,19 @@ def mural_social(request):
     # LÓGICA DE CRIAR NOVO POST
     if request.method == 'POST':
         texto = request.POST.get('texto', '')
-        imagem = request.FILES.get('imagem')
+        midias = request.FILES.getlist('midias')
         
         # NOVA LÓGICA: Captura a visibilidade escolhida
         visibilidade = request.POST.get('visibilidade', 'global')
         
-        if texto or imagem:
-            titulo_gerado = texto[:50] + "..." if texto else "Publicação com Imagem"
+        if texto or midias:
+            titulo_gerado = texto[:50] + "..." if texto else "Nova Publicação"
             
             try:
                 novo_post = Post(
                     autor_s=request.user, 
                     titulo=titulo_gerado,
-                    texto=texto, 
-                    imagem=imagem
+                    texto=texto,
                 )
                 
                 # Salva vinculado à torcida APENAS se ele selecionou a aba da torcida
@@ -45,6 +44,17 @@ def mural_social(request):
                     novo_post.torcida = None
                     
                 novo_post.save()
+
+                # Processa os arquivos enviados (imagens/vídeos)
+                for index, arquivo in enumerate(midias):
+                    is_video = arquivo.name.lower().endswith(('.mp4', '.mov', '.webm', '.avi', '.mkv'))
+                    PostMedia.objects.create(post=novo_post, arquivo=arquivo, is_video=is_video)
+                    
+                    # Salva a primeira imagem no campo antigo por compatibilidade (opcional)
+                    if index == 0 and not is_video:
+                        novo_post.imagem = arquivo
+                        novo_post.save()
+
                 messages.success(request, 'Publicação criada com sucesso!')
             except Exception as e:
                 messages.error(request, f'Erro ao salvar: {str(e)}')

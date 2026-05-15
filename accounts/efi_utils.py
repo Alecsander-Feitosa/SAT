@@ -30,9 +30,15 @@ def gerar_cobranca_pix(obj, tipo='fatura'):
         # Gera um txid único garantido
         txid = uuid.uuid4().hex[:35]
         
-        valor_obj = obj.valor if tipo == 'fatura' else obj.total
-        descricao = f'Fatura {obj.id} - {obj.assinatura.plano.nome}' if tipo == 'fatura' else f'Pedido Loja {obj.id}'
-        
+        if tipo == 'fatura':
+            valor_obj = obj.valor
+            descricao = f'Fatura {obj.id} - {obj.assinatura.plano.nome}'
+        elif tipo == 'inscricao':
+            valor_obj = obj.total
+            descricao = f'Inscrição #{obj.id} - {obj.item_titulo()}'
+        else:
+            valor_obj = obj.total
+            descricao = f'Pedido Loja {obj.id}'        
         # 1. Criar a cobrança PIX imediata
         body = {
             'calendario': {
@@ -106,10 +112,16 @@ def gerar_cobranca_boleto(pedido, cpf, nome, email):
         
         valor_centavos = int(float(pedido.total) * 100)
         
+        # Verifica se é InscricaoPagamento ou Pedido
+        if hasattr(pedido, 'tipo'):
+            nome_item = f'Inscrição #{pedido.id} - {pedido.item_titulo()}'
+        else:
+            nome_item = f'Pedido Loja #{pedido.id}'
+
         # 1. Criar a cobrança
         charge_body = {
             'items': [{
-                'name': f'Pedido Loja #{pedido.id}',
+                'name': nome_item,
                 'value': valor_centavos,
                 'amount': 1
             }]
@@ -180,10 +192,16 @@ def gerar_cobranca_cartao(pedido, payment_token, cpf, nome, email, nascimento, t
         
         valor_centavos = int(float(pedido.total) * 100)
         
+        # Verifica se é InscricaoPagamento ou Pedido
+        if hasattr(pedido, 'tipo'):
+            nome_item = f'Inscrição #{pedido.id} - {pedido.item_titulo()}'
+        else:
+            nome_item = f'Pedido Loja #{pedido.id}'
+
         # 1. Criar a cobrança
         charge_body = {
             'items': [{
-                'name': f'Pedido Loja #{pedido.id}',
+                'name': nome_item,
                 'value': valor_centavos,
                 'amount': 1
             }]

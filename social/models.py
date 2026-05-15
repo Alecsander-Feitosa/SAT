@@ -1,6 +1,7 @@
 # INICIO DA ATUALIZAÇÃO: Imports e Classe Post (Arquivo: social/models.py)
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.core.validators import FileExtensionValidator
 from organizadas.models import Torcida, Evento, Caravana, ConquistaTorcida, FotoGaleria
 User = get_user_model()
 
@@ -30,6 +31,12 @@ class Post(models.Model):
 
     def total_curtidas(self):
         return self.curtidas.count()
+
+class PostMedia(models.Model):
+    post = models.ForeignKey(Post, related_name='midias', on_delete=models.CASCADE)
+    arquivo = models.FileField(upload_to='posts/media/', validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'webm'])])
+    is_video = models.BooleanField(default=False)
+    data_criacao = models.DateTimeField(auto_now_add=True)
 
 class Comentario(models.Model):
     

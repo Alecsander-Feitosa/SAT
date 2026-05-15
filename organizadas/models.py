@@ -248,3 +248,51 @@ class Regra(models.Model):
     titulo = models.CharField("Título da Regra", max_length=150)
     descricao = models.TextField("Descrição da Regra")
     ordem = models.IntegerField("Número/Ordem", default=1)
+
+
+# --- NOVO: Inscrição com Pagamento (Eventos e Caravanas) ---
+class InscricaoPagamento(models.Model):
+    TIPO_CHOICES = [
+        ('evento', 'Evento'),
+        ('caravana', 'Caravana'),
+    ]
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('pago', 'Pago'),
+        ('cancelado', 'Cancelado'),
+    ]
+    PAGAMENTO_CHOICES = [
+        ('pix', 'PIX'),
+        ('boleto', 'Boleto Bancário'),
+        ('cartao', 'Cartão de Crédito'),
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inscricoes_pagamento')
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+
+    # FK — apenas um será preenchido
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, null=True, blank=True, related_name='inscricoes')
+    caravana = models.ForeignKey(Caravana, on_delete=models.CASCADE, null=True, blank=True, related_name='inscricoes')
+
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    metodo_pagamento = models.CharField(max_length=20, choices=PAGAMENTO_CHOICES, default='pix')
+    data_inscricao = models.DateTimeField(auto_now_add=True)
+
+    # Campos Efí Bank (PIX / Boleto / Cartão)
+    txid = models.CharField(max_length=35, blank=True, null=True)
+    loc_id = models.IntegerField(blank=True, null=True)
+    pix_copia_e_cola = models.TextField(blank=True, null=True)
+    pix_qrcode = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Inscrição com Pagamento"
+        verbose_name_plural = "Inscrições com Pagamento"
+
+    def __str__(self):
+        item = self.evento.titulo if self.evento else self.caravana.titulo
+        return f"{self.usuario.username} → {item} ({self.get_status_display()})"
+
+    def item_titulo(self):
+        return self.evento.titulo if self.evento else self.caravana.titulo

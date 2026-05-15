@@ -8,7 +8,7 @@ from .models import Produto, ItemCarrinho, Pedido, ItemPedido, Variacao
 from django.contrib import messages
 from django.http import HttpResponse
 from django.conf import settings
-from organizadas.models import Evento
+from organizadas.models import Evento, Caravana, InscricaoPagamento
 import json
 
 
@@ -382,10 +382,185 @@ def excluir_produto(request, produto_id):
         messages.success(request, 'Produto removido com sucesso.')
     return redirect('loja/painel_loja')
 
-def checkout_evento(request, evento_id):
+@login_required
+def checkout_evento_view(request, evento_id):
     evento = get_object_or_404(Evento, id=evento_id)
-    
-    # Por enquanto, apenas retorna uma mensagem simples na tela.
-    # Depois poderás criar o HTML real de pagamento aqui!
-    return HttpResponse(f"<h1>Área de Pagamento</h1><p>A comprar ingresso para: <b>{evento.titulo}</b> por R$ {evento.valor}</p>")
-# Force reload server
+    torcida = evento.torcida
+
+    return render(request, 'checkout_inscricao.html', {
+        'item': evento,
+        'tipo': 'evento',
+        'torcida': torcida,
+        'efi_conta_id': settings.EFI_CONTA_ID,
+        'efi_sandbox': settings.EFI_SANDBOX,
+    })
+
+@login_required
+def finalizar_checkout_evento(request, evento_id):
+    if request.method != 'POST':
+        return redirect('lista_eventos', slug=get_object_or_404(Evento, id=evento_id).torcida.slug)
+
+    evento = get_object_or_404(Evento, id=evento_id)
+    metodo_pagamento = request.POST.get('metodo_pagamento', 'pix')
+
+    # Dados pessoais
+    cpf = request.POST.get('cpf', '')
+    nome_completo = request.POST.get('nome_completo', request.user.get_full_name() or request.user.username)
+    email = request.POST.get('email', request.user.email)
+
+    try:
+        with transaction.atomic():
+            inscricao = InscricaoPagamento.objects.create(
+                usuario=request.user,
+                tipo='evento',
+                evento=evento,
+                valor=evento.valor,
+                total=evento.valor,
+                metodo_pagamento=metodo_pagamento,
+                status='pendente'
+            )
+
+            pix_data = None
+            boleto_data = None
+            cartao_data = None
+
+            # ===== PIX =====
+            if metodo_pagamento == 'pix':
+                from accounts.efi_utils import gerar_cobranca_pix
+                pix_data = gerar_cobranca_pix(inscricao, tipo='inscricao')
+
+                if not pix_data.get('sucesso'):
+                    raise Exception(pix_data.get('erro', 'Erro ao gerar PIX'))
+
+            # ===== BOLETO =====
+            elif metodo_pagamento == 'boleto':
+                from accounts.efi_utils import gerar_cobranca_boleto
+                boleto_data = gerar_cobranca_boleto(inscricao, cpf, nome_completo, email)
+
+                if not boleto_data.get('sucesso'):
+                    raise Exception(boleto_data.get('erro', 'Erro ao gerar boleto'))
+
+            # ===== CARTÃO DE CRÉDITO =====
+            elif metodo_pagamento == 'cartao':
+                from accounts.efi_utils import gerar_cobranca_cartao
+                payment_token = request.POST.get('payment_token', '')
+                nascimento = request.POST.get('nascimento', '')
+                telefone = request.POST.get('telefone', '')
+                endereco_dados = {}
+
+                if not payment_token:
+                    raise Exception('Token do cartão não recebido.')
+
+                cartao_data = gerar_cobranca_cartao(
+                    inscricao, payment_token, cpf, nome_completo,
+                    email, nascimento, telefone, endereco_dados
+                )
+
+                if not cartao_data.get('sucesso'):
+                    raise Exception(cartao_data.get('erro', 'Erro ao processar cartão'))
+
+        return render(request, 'sucesso_inscricao.html', {
+            'inscricao': inscricao,
+            'pix_data': pix_data,
+            'boleto_data': boleto_data,
+            'cartao_data': cartao_data,
+            'metodo_pagamento': metodo_pagamento,
+            'item_nome': evento.titulo,
+            'torcida': evento.torcida
+        })
+
+    except Exception as e:
+        messages.error(request, f"Erro ao processar pagamento: {str(e)}")
+        return redirect('checkout_evento', evento_id=evento.id)
+
+
+@login_required
+def checkout_caravana_view(request, caravana_id):
+    caravana = get_object_or_404(Caravana, id=caravana_id)
+    torcida = caravana.torcida
+
+    return render(request, 'checkout_inscricao.html', {
+        'item': caravana,
+        'tipo': 'caravana',
+        'torcida': torcida,
+        'efi_conta_id': settings.EFI_CONTA_ID,
+        'efi_sandbox': settings.EFI_SANDBOX,
+    })
+
+@login_required
+def finalizar_checkout_caravana(request, caravana_id):
+    if request.method != 'POST':
+        return redirect('viagens', slug=get_object_or_404(Caravana, id=caravana_id).torcida.slug)
+
+    caravana = get_object_or_404(Caravana, id=caravana_id)
+    metodo_pagamento = request.POST.get('metodo_pagamento', 'pix')
+
+    # Dados pessoais
+    cpf = request.POST.get('cpf', '')
+    nome_completo = request.POST.get('nome_completo', request.user.get_full_name() or request.user.username)
+    email = request.POST.get('email', request.user.email)
+
+    try:
+        with transaction.atomic():
+            inscricao = InscricaoPagamento.objects.create(
+                usuario=request.user,
+                tipo='caravana',
+                caravana=caravana,
+                valor=caravana.valor,
+                total=caravana.valor,
+                metodo_pagamento=metodo_pagamento,
+                status='pendente'
+            )
+
+            pix_data = None
+            boleto_data = None
+            cartao_data = None
+
+            # ===== PIX =====
+            if metodo_pagamento == 'pix':
+                from accounts.efi_utils import gerar_cobranca_pix
+                pix_data = gerar_cobranca_pix(inscricao, tipo='inscricao')
+
+                if not pix_data.get('sucesso'):
+                    raise Exception(pix_data.get('erro', 'Erro ao gerar PIX'))
+
+            # ===== BOLETO =====
+            elif metodo_pagamento == 'boleto':
+                from accounts.efi_utils import gerar_cobranca_boleto
+                boleto_data = gerar_cobranca_boleto(inscricao, cpf, nome_completo, email)
+
+                if not boleto_data.get('sucesso'):
+                    raise Exception(boleto_data.get('erro', 'Erro ao gerar boleto'))
+
+            # ===== CARTÃO DE CRÉDITO =====
+            elif metodo_pagamento == 'cartao':
+                from accounts.efi_utils import gerar_cobranca_cartao
+                payment_token = request.POST.get('payment_token', '')
+                nascimento = request.POST.get('nascimento', '')
+                telefone = request.POST.get('telefone', '')
+                endereco_dados = {}
+
+                if not payment_token:
+                    raise Exception('Token do cartão não recebido.')
+
+                cartao_data = gerar_cobranca_cartao(
+                    inscricao, payment_token, cpf, nome_completo,
+                    email, nascimento, telefone, endereco_dados
+                )
+
+                if not cartao_data.get('sucesso'):
+                    raise Exception(cartao_data.get('erro', 'Erro ao processar cartão'))
+
+        return render(request, 'sucesso_inscricao.html', {
+            'inscricao': inscricao,
+            'pix_data': pix_data,
+            'boleto_data': boleto_data,
+            'cartao_data': cartao_data,
+            'metodo_pagamento': metodo_pagamento,
+            'item_nome': caravana.titulo,
+            'torcida': caravana.torcida
+        })
+
+    except Exception as e:
+        messages.error(request, f"Erro ao processar pagamento: {str(e)}")
+        return redirect('checkout_caravana', caravana_id=caravana.id)

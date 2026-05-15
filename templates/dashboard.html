@@ -381,52 +381,57 @@
             <a href="{% url 'mural' %}" class="text-[10px] font-black text-dinamico uppercase tracking-wider hover:underline">Ver Feed</a>
         </div>
 
-        {% for post in posts_sociais|slice:":2" %}
-        <div class="w-full fundo-card border border-suave rounded-[20px] shadow-sm p-4 relative overflow-hidden mb-4">
-            <div class="flex justify-between items-start mb-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-black/5 border border-suave overflow-hidden flex items-center justify-center">
-                        {% if post.autor.perfil.foto %}
-                            <img src="{{ post.autor.perfil.foto.url }}" class="w-full h-full object-cover">
-                        {% else %}
-                            <i class="bi bi-person-fill texto-main opacity-30 text-xl"></i>
-                        {% endif %}
+        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
+            {% for post in posts_sociais|slice:":5" %}
+            <div class="snap-center-item shrink-0 w-[85%] max-w-[320px] fundo-card border border-suave rounded-[20px] shadow-sm p-4 relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-black/5 border border-suave overflow-hidden flex items-center justify-center shrink-0">
+                                {% if post.autor.perfil.foto %}
+                                    <img src="{{ post.autor.perfil.foto.url }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    <i class="bi bi-person-fill texto-main opacity-30 text-xl"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black texto-main leading-none line-clamp-1">{{ post.autor.first_name|default:post.autor.username }}</h4>
+                                <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-widest mt-1">
+                                    {{ post.data_criacao|timesince }} atrás
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h4 class="text-sm font-black texto-main leading-none">{{ post.autor.first_name|default:post.autor.username }}</h4>
-                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-widest mt-1">
-                            {{ post.data_criacao|timesince }} atrás
-                        </p>
+
+                    <p class="text-sm texto-main mb-3 leading-snug line-clamp-3">{{ post.texto }}</p>
+
+                    {% if post.imagem %}
+                    <div class="w-full h-40 bg-black/5 rounded-xl overflow-hidden mb-4 border border-suave shrink-0">
+                        <img src="{{ post.imagem.url }}" alt="Post Media" class="w-full h-full object-cover">
                     </div>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center gap-4 border-t border-suave pt-3 mt-auto">
+                    <span class="flex items-center gap-1.5 texto-main opacity-60">
+                        <i class="bi bi-heart-fill text-dinamico"></i>
+                        <span class="text-xs font-bold">{{ post.curtidas.count }}</span>
+                    </span>
+
+                    <button onclick="compartilharPost('{{ post.autor.first_name|default:post.autor.username|escapejs }}', '{{ post.texto|truncatechars:30|escapejs }}')" class="flex items-center gap-1.5 texto-main opacity-60 hover:text-dinamico hover:opacity-100 transition-colors ml-auto cursor-pointer">
+                        <i class="bi bi-share-fill"></i>
+                        <span class="text-xs font-bold uppercase tracking-wider"></span>
+                    </button>
                 </div>
             </div>
-
-            <p class="text-sm texto-main mb-3 leading-snug">{{ post.texto }}</p>
-
-            {% if post.imagem %}
-            <div class="w-full h-40 bg-black/5 rounded-xl overflow-hidden mb-4 border border-suave">
-                <img src="{{ post.imagem.url }}" alt="Post Media" class="w-full h-full object-cover">
+            {% empty %}
+            <div class="w-full text-center py-6 fundo-card border border-suave rounded-[20px]">
+                <i class="bi bi-chat-square-dots text-3xl texto-main opacity-20 mb-2 block"></i>
+                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest">Feed vazio no momento.</p>
             </div>
-            {% endif %}
-
-            <div class="flex items-center gap-4 border-t border-suave pt-3">
-                <span class="flex items-center gap-1.5 texto-main opacity-60">
-                    <i class="bi bi-heart-fill text-dinamico"></i>
-                    <span class="text-xs font-bold">{{ post.curtidas.count }}</span>
-                </span>
-
-                <button onclick="compartilharPost('{{ post.autor.first_name|default:post.autor.username|escapejs }}', '{{ post.texto|truncatechars:30|escapejs }}')" class="flex items-center gap-1.5 texto-main opacity-60 hover:text-dinamico hover:opacity-100 transition-colors ml-auto cursor-pointer">
-                    <i class="bi bi-share-fill"></i>
-                    <span class="text-xs font-bold uppercase tracking-wider"></span>
-                </button>
-            </div>
+            {% endfor %}
+            <div class="shrink-0 w-2"></div>
         </div>
-        {% empty %}
-        <div class="w-full text-center py-6 fundo-card border border-suave rounded-[20px]">
-            <i class="bi bi-chat-square-dots text-3xl texto-main opacity-20 mb-2 block"></i>
-            <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest">Feed vazio no momento.</p>
-        </div>
-        {% endfor %}
     </div>
 
     

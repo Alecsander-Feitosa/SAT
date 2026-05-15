@@ -178,9 +178,29 @@
             </p>
             {% endif %}
 
-            {% if post.imagem %}
-            <div class="mb-3 relative group">
-                <img src="{{ post.imagem.url }}" class="post-image border border-suave" loading="lazy">
+            {% if post.midias.all %}
+            <div class="mb-3 relative group overflow-hidden rounded-2xl border border-suave shadow-sm">
+                <div class="flex gap-1 overflow-x-auto snap-x-mandatory no-scrollbar bg-black/5" style="scroll-snap-type: x mandatory;">
+                    {% for media in post.midias.all %}
+                    <div class="min-w-full snap-center-item flex items-center justify-center bg-black/90 relative">
+                        {% if media.is_video %}
+                            <video src="{{ media.arquivo.url }}" controls class="w-full max-h-[450px] object-contain"></video>
+                        {% else %}
+                            <img src="{{ media.arquivo.url }}" class="w-full max-h-[450px] object-contain" loading="lazy">
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if post.midias.count > 1 %}
+                <div class="absolute top-3 right-3 flex gap-1.5 bg-black/50 backdrop-blur px-2.5 py-1 rounded-full pointer-events-none z-10 shadow-sm border border-white/10">
+                    <i class="bi bi-images text-white/90 text-[10px] mt-0.5"></i>
+                    <span class="text-white/90 text-[9px] font-black tracking-widest">{{ post.midias.count }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% elif post.imagem %}
+            <div class="mb-3 relative group overflow-hidden rounded-2xl border border-suave shadow-sm">
+                <img src="{{ post.imagem.url }}" class="w-full max-h-[450px] object-contain" loading="lazy">
             </div>
             {% endif %}
 
@@ -361,17 +381,21 @@
             </div>
 
             <div id="imagePreviewContainer" class="hidden relative w-full mb-2 mt-4">
-                <img id="imagePreview" src="" class="w-full h-48 object-cover rounded-2xl shadow-sm border border-suave">
-                <button type="button" onclick="removerImagem()" class="absolute top-2 right-2 w-8 h-8 bg-black/50 backdrop-blur text-white rounded-full flex items-center justify-center hover:bg-black/70 transition-colors border-none outline-none cursor-pointer">
-                    <i class="bi bi-x-lg text-xs"></i>
-                </button>
+                <div id="imagePreviewList" class="flex gap-2 overflow-x-auto pb-2 snap-x-mandatory no-scrollbar p-1"></div>
             </div>
 
             <div class="flex items-center justify-between pt-4 border-t border-suave mt-4">
-                <label for="imagemPost" class="w-10 h-10 fundo-app texto-main rounded-full flex items-center justify-center cursor-pointer border border-suave hover:bg-tema hover:text-white transition-all shadow-sm group">
-                    <i class="bi bi-image text-lg group-hover:scale-110 transition-transform"></i>
-                </label>
-                <input type="file" id="imagemPost" name="imagem" accept="image/*" class="hidden" onchange="mostrarPreview(this)">
+                <div class="flex gap-3">
+                    <label for="imagemPost" class="w-10 h-10 fundo-app texto-main rounded-full flex items-center justify-center cursor-pointer border border-suave hover:bg-tema hover:text-white transition-all shadow-sm group" title="Escolher Galeria (Fotos ou Vídeos)">
+                        <i class="bi bi-images text-lg group-hover:scale-110 transition-transform"></i>
+                    </label>
+                    <input type="file" id="imagemPost" name="midias" accept="image/*,video/*" multiple class="hidden" onchange="mostrarPreview(this)">
+                    
+                    <label for="cameraPost" class="w-10 h-10 fundo-app texto-main rounded-full flex items-center justify-center cursor-pointer border border-suave hover:bg-tema hover:text-white transition-all shadow-sm group" title="Câmera">
+                        <i class="bi bi-camera-fill text-lg group-hover:scale-110 transition-transform"></i>
+                    </label>
+                    <input type="file" id="cameraPost" name="midias" accept="image/*,video/*" capture="environment" class="hidden" onchange="mostrarPreview(this)">
+                </div>
                 
                 <button type="submit" class="fundo-tema texto-claro font-black text-[11px] uppercase tracking-widest px-8 py-3.5 rounded-full shadow-lg shadow-tema/30 active:scale-95 transition-all border-none outline-none cursor-pointer flex items-center gap-2">
                     <i class="bi bi-send-fill text-xs"></i> Publicar
@@ -463,20 +487,42 @@
     };
 
     window.mostrarPreview = function(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('imagePreview').src = e.target.result;
-                document.getElementById('imagePreviewContainer').classList.remove('hidden');
-            };
-            reader.readAsDataURL(input.files[0]);
+        if (input.files && input.files.length > 0) {
+            var container = document.getElementById('imagePreviewContainer');
+            var list = document.getElementById('imagePreviewList');
+            container.classList.remove('hidden');
+            
+            Array.from(input.files).forEach((file, index) => {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var isVideo = file.type.startsWith('video/');
+                    var mediaHtml = '';
+                    if (isVideo) {
+                        mediaHtml = `<video src="${e.target.result}" class="w-40 h-40 object-cover rounded-2xl shadow-sm border border-suave shrink-0 snap-center-item" muted autoplay loop></video>`;
+                    } else {
+                        mediaHtml = `<img src="${e.target.result}" class="w-40 h-40 object-cover rounded-2xl shadow-sm border border-suave shrink-0 snap-center-item">`;
+                    }
+                    
+                    var wrapper = document.createElement('div');
+                    wrapper.className = 'relative shrink-0 snap-center-item group';
+                    wrapper.innerHTML = `
+                        ${mediaHtml}
+                        <button type="button" onclick="this.parentElement.remove(); if(document.getElementById('imagePreviewList').children.length === 0) { document.getElementById('imagePreviewContainer').classList.add('hidden'); document.getElementById('imagemPost').value = ''; document.getElementById('cameraPost').value = ''; }" class="absolute top-2 right-2 w-7 h-7 bg-black/60 backdrop-blur text-white rounded-full flex items-center justify-center hover:bg-red-500 transition-colors border-none outline-none cursor-pointer md:opacity-0 md:group-hover:opacity-100">
+                            <i class="bi bi-trash3 text-[10px]"></i>
+                        </button>
+                    `;
+                    list.appendChild(wrapper);
+                };
+                reader.readAsDataURL(file);
+            });
         }
     };
 
     window.removerImagem = function() {
         document.getElementById('imagemPost').value = "";
+        document.getElementById('cameraPost').value = "";
         document.getElementById('imagePreviewContainer').classList.add('hidden');
-        document.getElementById('imagePreview').src = "";
+        document.getElementById('imagePreviewList').innerHTML = "";
     };
 
     window.compartilharPost = function(url, titulo) {

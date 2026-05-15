@@ -15,5 +15,8 @@ urlpatterns = [
     path('painel/novo/', views.form_produto, name='novo_produto'),
     path('painel/editar/<int:produto_id>/', views.form_produto, name='editar_produto'),
     path('painel/excluir/<int:produto_id>/', views.excluir_produto, name='excluir_produto'),
-    path('checkout-evento/<int:evento_id>/', views.checkout_evento, name='checkout_evento'),
+    path('checkout-evento/<int:evento_id>/', views.checkout_evento_view, name='checkout_evento'),
+    path('checkout-evento/<int:evento_id>/finalizar/', views.finalizar_checkout_evento, name='finalizar_checkout_evento'),
+    path('checkout-caravana/<int:caravana_id>/', views.checkout_caravana_view, name='checkout_caravana'),
+    path('checkout-caravana/<int:caravana_id>/finalizar/', views.finalizar_checkout_caravana, name='finalizar_checkout_caravana'),
 ]

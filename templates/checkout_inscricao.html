@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    :root { --cor-primaria: {{ torcida.cor_primaria|default:"#D37129" }}; }
+    
+    /* Radio Cards */
+    .radio-card { position: absolute; opacity: 0; pointer-events: none; }
+    .radio-card:checked + label .card-option {
+        border-color: var(--cor-primaria) !important;
+        background: rgba(211, 113, 41, 0.06) !important;
+        box-shadow: 0 0 0 2px var(--cor-primaria) inset !important;
+    }
+    .radio-card:checked + label .card-check {
+        opacity: 1 !important;
+        transform: scale(1) !important;
+    }
+    .card-option { transition: all 0.25s ease; }
+    .card-check { opacity: 0; transform: scale(0.5); transition: all 0.2s ease; }
+    
+    /* Slide animation */
+    .slide-section { 
+        max-height: 0; overflow: hidden; opacity: 0;
+        transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease; 
+        margin-top: 0; 
+    }
+    .slide-section.open { max-height: 1200px; opacity: 1; margin-top: 2rem; }
+</style>
+
+<div class="min-h-screen fundo-app pb-40">
+    <div class="px-5 pt-10 mb-6 flex items-center">
+        <a href="javascript:history.back()" class="texto-main mr-4 w-10 h-10 fundo-card rounded-2xl flex items-center justify-center border border-suave shadow-sm">
+            <i class="bi bi-arrow-left text-lg font-bold"></i>
+        </a>
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main">
+            CONFIRMAR <span style="color: var(--cor-primaria)">{% if tipo == 'evento' %}INGRESSO{% else %}VAGA{% endif %}</span>
+        </h1>
+    </div>
+
+    {% if messages %}
+    <div class="px-5 mb-6">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl border font-bold text-xs uppercase shadow-sm {% if message.tags == 'error' %}bg-red-500/10 text-red-600 border-red-500/20{% else %}bg-green-500/10 text-green-600 border-green-500/20{% endif %}">
+            <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle-fill{% else %}bi-check-circle-fill{% endif %} mr-1"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form action="{% if tipo == 'evento' %}{% url 'finalizar_checkout_evento' item.id %}{% else %}{% url 'finalizar_checkout_caravana' item.id %}{% endif %}" method="POST" id="form-checkout">
+        {% csrf_token %}
+
+        <!-- ======================== -->
+        <!-- 1. RESUMO DA INSCRIÇÃO   -->
+        <!-- ======================== -->
+        <div class="px-5 mt-8 mb-8">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-receipt"></i> Resumo
+            </h2>
+            <div class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave space-y-3">
+                <div class="flex justify-between items-center pb-3 border-b border-suave/50">
+                    <div class="flex flex-col">
+                        <span class="text-xs font-black uppercase texto-main">{{ item.titulo }}</span>
+                        {% if tipo == 'evento' %}
+                        <span class="text-[10px] font-bold uppercase texto-main opacity-60 mt-1"><i class="bi bi-calendar-event"></i> {{ item.data|date:"d/m/Y H:i" }}</span>
+                        {% else %}
+                        <span class="text-[10px] font-bold uppercase texto-main opacity-60 mt-1"><i class="bi bi-bus-front"></i> Saída: {{ item.saida_horario|date:"d/m/Y H:i" }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="text-sm font-black texto-main text-right shrink-0">R$ {{ item.valor }}</span>
+                </div>
+                
+                <div class="pt-2 flex justify-between items-center">
+                    <span class="text-sm font-black uppercase italic texto-main">Total a Pagar</span>
+                    <span class="text-xl font-black" style="color: var(--cor-primaria)">R$ <span id="total_final">{{ item.valor }}</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== -->
+        <!-- 2. MÉTODO DE PAGAMENTO   -->
+        <!-- ======================== -->
+        <div class="px-5 mb-8">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-credit-card"></i> Método de Pagamento
+            </h2>
+            <div class="space-y-3">
+                <!-- PIX -->
+                <div>
+                    <input type="radio" name="metodo_pagamento" id="pag_pix" value="pix" class="radio-card" checked>
+                    <label for="pag_pix" class="cursor-pointer block">
+                        <div class="card-option flex items-center justify-between p-4 fundo-card border border-suave rounded-2xl shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(211,113,41,0.1)">
+                                    <i class="bi bi-qr-code text-lg" style="color: var(--cor-primaria)"></i>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold texto-main block">PIX</span>
+                                    <span class="text-[9px] font-bold texto-main opacity-40 uppercase">Aprovação instantânea</span>
+                                </div>
+                            </div>
+                            <i class="bi bi-check-circle-fill text-lg card-check" style="color: var(--cor-primaria)"></i>
+                        </div>
+                    </label>
+                </div>
+                <!-- Boleto -->
+                <div>
+                    <input type="radio" name="metodo_pagamento" id="pag_boleto" value="boleto" class="radio-card">
+                    <label for="pag_boleto" class="cursor-pointer block">
+                        <div class="card-option flex items-center justify-between p-4 fundo-card border border-suave rounded-2xl shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                                    <i class="bi bi-upc-scan text-lg text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold texto-main block">Boleto Bancário</span>
+                                    <span class="text-[9px] font-bold texto-main opacity-40 uppercase">Vence em 5 dias úteis</span>
+                                </div>
+                            </div>
+                            <i class="bi bi-check-circle-fill text-lg text-blue-600 card-check"></i>
+                        </div>
+                    </label>
+                </div>
+                <!-- Cartão de Crédito -->
+                <div>
+                    <input type="radio" name="metodo_pagamento" id="pag_cartao" value="cartao" class="radio-card">
+                    <label for="pag_cartao" class="cursor-pointer block">
+                        <div class="card-option flex items-center justify-between p-4 fundo-card border border-suave rounded-2xl shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                                    <i class="bi bi-credit-card-2-front text-lg text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold texto-main block">Cartão de Crédito</span>
+                                    <span class="text-[9px] font-bold texto-main opacity-40 uppercase">Aprovação na hora</span>
+                                </div>
+                            </div>
+                            <i class="bi bi-check-circle-fill text-lg text-purple-600 card-check"></i>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== -->
+        <!-- 3. DADOS PESSOAIS        -->
+        <!-- (boleto e cartão)        -->
+        <!-- ======================== -->
+        <div class="px-5 slide-section" id="secao_dados_pessoais">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-person-vcard"></i> Dados do Pagador
+            </h2>
+            <div class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave space-y-4">
+                <div>
+                    <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Nome Completo</label>
+                    <input type="text" name="nome_completo" value="{{ user.get_full_name }}" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">CPF</label>
+                        <input type="text" name="cpf" id="cpf_input" maxlength="14" placeholder="000.000.000-00" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">E-mail</label>
+                        <input type="email" name="email" value="{{ user.email }}" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== -->
+        <!-- 4. DADOS DO CARTÃO       -->
+        <!-- ======================== -->
+        <div class="px-5 slide-section" id="secao_cartao">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-4 flex items-center gap-2">
+                <i class="bi bi-credit-card-2-front"></i> Dados do Cartão
+            </h2>
+            <div class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave space-y-4">
+                <div>
+                    <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Número do Cartão</label>
+                    <input type="text" id="card_number" maxlength="19" placeholder="0000 0000 0000 0000" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none tracking-widest">
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Validade</label>
+                        <input type="text" id="card_expiry" maxlength="5" placeholder="MM/AA" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none text-center">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">CVV</label>
+                        <input type="text" id="card_cvv" maxlength="4" placeholder="000" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none text-center">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Bandeira</label>
+                        <select id="card_brand" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                            <option value="visa">Visa</option>
+                            <option value="mastercard">Master</option>
+                            <option value="elo">Elo</option>
+                            <option value="amex">Amex</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Nascimento</label>
+                        <input type="date" name="nascimento" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase texto-main opacity-60 mb-1 block">Telefone</label>
+                        <input type="text" name="telefone" maxlength="15" placeholder="(00) 00000-0000" class="w-full bg-transparent border border-suave rounded-xl p-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    </div>
+                </div>
+                <input type="hidden" name="payment_token" id="payment_token">
+                <p id="card_error" class="text-red-500 text-[10px] font-bold hidden"></p>
+            </div>
+        </div>
+
+        <!-- ======================== -->
+        <!-- 5. BOTÃO CONFIRMAR       -->
+        <!-- ======================== -->
+        <div class="px-5 mt-6 mb-24">
+            <button type="submit" id="btn_confirmar" class="w-full py-5 text-white rounded-2xl font-black italic uppercase tracking-widest shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3" style="background-color: var(--cor-primaria)">
+                <span id="btn_texto">Confirmar e Pagar</span>
+                <i class="bi bi-arrow-right text-white"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script type='text/javascript' src='https://cdn.efipay.com.br/js/payment/v1/payment.min.js'></script>
+<script>
+    // ========================
+    // PAGAMENTO
+    // ========================
+    const pagRadios = document.querySelectorAll('input[name="metodo_pagamento"]');
+    const secaoDados = document.getElementById('secao_dados_pessoais');
+    const secaoCartao = document.getElementById('secao_cartao');
+
+    function atualizarPagamento() {
+        const metodo = document.querySelector('input[name="metodo_pagamento"]:checked').value;
+        const btnTexto = document.getElementById('btn_texto');
+        
+        // Mostra/esconde seções extras
+        const precisaDados = (metodo === 'boleto' || metodo === 'cartao');
+        const precisaCartao = (metodo === 'cartao');
+        
+        if (precisaDados) { secaoDados.classList.add('open'); } else { secaoDados.classList.remove('open'); }
+        if (precisaCartao) { secaoCartao.classList.add('open'); } else { secaoCartao.classList.remove('open'); }
+        
+        // Texto do botão
+        if (metodo === 'cartao') { btnTexto.innerText = 'Pagar com Cartão'; }
+        else if (metodo === 'boleto') { btnTexto.innerText = 'Gerar Boleto'; }
+        else { btnTexto.innerText = 'Confirmar e Pagar'; }
+    }
+    pagRadios.forEach(r => r.addEventListener('change', atualizarPagamento));
+
+    // ========================
+    // MASKS
+    // ========================
+    document.getElementById('cpf_input').addEventListener('input', function (e) {
+        let v = e.target.value.replace(/\D/g, '');
+        v = v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        e.target.value = v;
+    });
+    document.getElementById('card_number').addEventListener('input', function(e) {
+        let v = e.target.value.replace(/\D/g, '').substring(0, 16);
+        e.target.value = v.replace(/(\d{4})/g, '$1 ').trim();
+    });
+    document.getElementById('card_expiry').addEventListener('input', function(e) {
+        let v = e.target.value.replace(/\D/g, '');
+        if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2,4);
+        e.target.value = v;
+    });
+
+    // ========================
+    // CARTÃO: Tokenização Efí
+    // ========================
+    const EFI_CONTA_ID = '{{ efi_conta_id }}';
+    const EFI_SANDBOX = {{ efi_sandbox|yesno:"true,false" }};
+
+    document.getElementById('form-checkout').addEventListener('submit', function(e) {
+        const metodo = document.querySelector('input[name="metodo_pagamento"]:checked').value;
+        
+        if (metodo !== 'cartao') return true; // Submete normal
+        
+        e.preventDefault();
+        const btn = document.getElementById('btn_confirmar');
+        const btnTexto = document.getElementById('btn_texto');
+        const cardError = document.getElementById('card_error');
+        
+        btn.disabled = true;
+        btnTexto.innerText = 'Processando...';
+        cardError.classList.add('hidden');
+        
+        const cardNumber = document.getElementById('card_number').value.replace(/\s/g, '');
+        const expiry = document.getElementById('card_expiry').value.split('/');
+        const cvv = document.getElementById('card_cvv').value;
+        const brand = document.getElementById('card_brand').value;
+        
+        if (!EFI_CONTA_ID) {
+            cardError.innerText = 'Pagamento com cartão não configurado. Use PIX ou Boleto.';
+            cardError.classList.remove('hidden');
+            btn.disabled = false;
+            btnTexto.innerText = 'Pagar com Cartão';
+            return;
+        }
+        
+        try {
+            EfiJs.CreditCard
+                .setAccount(EFI_CONTA_ID)
+                .setEnvironment(EFI_SANDBOX ? 'sandbox' : 'production')
+                .setCreditCardData({
+                    brand: brand,
+                    number: cardNumber,
+                    cvv: cvv,
+                    expirationMonth: expiry[0] || '',
+                    expirationYear: '20' + (expiry[1] || '')
+                })
+                .getPaymentToken()
+                .then(function(result) {
+                    document.getElementById('payment_token').value = result.payment_token;
+                    document.getElementById('form-checkout').submit();
+                })
+                .catch(function(err) {
+                    cardError.innerText = 'Erro ao processar cartão: ' + (err.error_description || err.message || 'Verifique os dados.');
+                    cardError.classList.remove('hidden');
+                    btn.disabled = false;
+                    btnTexto.innerText = 'Pagar com Cartão';
+                });
+        } catch(err) {
+            cardError.innerText = 'Erro: ' + err.message;
+            cardError.classList.remove('hidden');
+            btn.disabled = false;
+            btnTexto.innerText = 'Pagar com Cartão';
+        }
+    });
+    
+    // Inicialização
+    atualizarPagamento();
+</script>
+{% endblock %}
