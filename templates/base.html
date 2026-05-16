@@ -125,7 +125,7 @@
             </a>
             <hr class="border-suave my-4">
             
-            {% if request.user.is_staff and not request.user.is_superuser %}
+            {% if request.user.is_staff %}
                 <p class="px-4 text-[9px] font-black texto-main opacity-40 uppercase tracking-widest my-4">Administração</p>
                 <a href="{% url 'painel_moderador' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl bg-orange-500/10 hover:bg-orange-500 text-orange-600 no-underline group transition-all border border-orange-500/20">
                     <i class="bi bi-shield-lock-fill text-lg group-hover:scale-110 transition-transform"></i>
@@ -143,6 +143,18 @@
     {% endif %}
 
     <main class="{% if user.is_authenticated and "/moderacao/" not in request.path %}pt-[140px] pb-28{% endif %} w-full min-h-screen">
+        {% if user.is_authenticated and not user.perfil.is_completo and "/perfil/" not in request.path and "/cadastro" not in request.path %}
+        <div class="mx-4 mb-4 bg-orange-600/20 border border-orange-500 rounded-xl p-3 flex items-start gap-3 shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill text-orange-500 text-lg mt-0.5"></i>
+            <div>
+                <p class="text-sm font-bold text-orange-500 mb-1">Perfil Incompleto!</p>
+                <p class="text-xs texto-main opacity-80 mb-2">Para liberar todos os benefícios do SAT, você precisa preencher <b>todos</b> os dados da aba de edição do seu perfil (Documentos, Endereço e Foto).</p>
+                <a href="{% url 'editar_perfil' %}" class="inline-block bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg hover:bg-orange-600 transition-colors">
+                    Completar Perfil
+                </a>
+            </div>
+        </div>
+        {% endif %}
         {% block content %}{% endblock %}
 
         {# Botão flutuante do carrinho — aparece em todas as páginas da loja #}

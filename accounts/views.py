@@ -230,18 +230,65 @@ class CadastroForm(forms.ModelForm):
             raise forms.ValidationError("Este e-mail já está cadastrado.")
         return email
 
+    def clean_cpf(self):
+        cpf = self.cleaned_data.get('cpf', '')
+        import re
+        cpf_limpo = re.sub(r'[^0-9]', '', cpf)
+        
+        if len(cpf_limpo) != 11:
+            raise forms.ValidationError("CPF deve conter 11 dígitos.")
+            
+        if cpf_limpo == cpf_limpo[0] * 11:
+            raise forms.ValidationError("CPF inválido.")
+            
+        # Cálculo 1º dígito
+        soma = sum(int(cpf_limpo[i]) * (10 - i) for i in range(9))
+        resto = (soma * 10) % 11
+        if resto >= 10: resto = 0
+        if resto != int(cpf_limpo[9]):
+            raise forms.ValidationError("CPF inválido.")
+            
+        # Cálculo 2º dígito
+        soma = sum(int(cpf_limpo[i]) * (11 - i) for i in range(10))
+        resto = (soma * 10) % 11
+        if resto >= 10: resto = 0
+        if resto != int(cpf_limpo[10]):
+            raise forms.ValidationError("CPF inválido.")
+            
+        # Verificar se já existe (ignorando a máscara, buscando pelo cpf limpo)
+        if Perfil.objects.filter(cpf=cpf_limpo).exists():
+            raise forms.ValidationError("Este CPF já está cadastrado.")
+            
+        return cpf_limpo
+
     def save(self, commit=True):
         email_limpo = self.cleaned_data["email"]
+        nome_completo = self.cleaned_data.get("nome", "")
         
         user = super().save(commit=False)
-        user.username = email_limpo 
         user.email = email_limpo
         
         # 1. Separar o Nome Completo em Nome e Sobrenome
-        nome_completo = self.cleaned_data.get("nome", "")
         partes_nome = nome_completo.split(' ', 1)
         user.first_name = partes_nome[0]
         user.last_name = partes_nome[1] if len(partes_nome) > 1 else ''
+        
+        # 2. Gerar um username único a partir do nome
+        import unicodedata
+        import re
+        import random
+        # Tira acentos e caracteres especiais
+        base = unicodedata.normalize('NFKD', nome_completo).encode('ASCII', 'ignore').decode('utf-8')
+        base = re.sub(r'[^a-zA-Z0-9]', '', base).lower()
+        if not base:
+            base = "usuario"
+            
+        username = base
+        # Garante que seja único
+        while User.objects.filter(username=username).exists():
+            username = f"{base}{random.randint(100, 9999)}"
+            
+        user.username = username
         
         user.set_password(self.cleaned_data["senha"])
         

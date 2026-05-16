@@ -49,6 +49,17 @@ class Perfil(models.Model):
     eventos_salvos = models.ManyToManyField('organizadas.Evento', related_name='salvo_por', blank=True)
     caravanas_salvas = models.ManyToManyField('organizadas.Caravana', related_name='salvo_por', blank=True)
 
+    @property
+    def is_completo(self):
+        # Todos os campos da aba de edição precisam estar preenchidos
+        campos_obrigatorios = [
+            self.cpf, self.whatsapp, self.data_nascimento,
+            self.rg_cnh, self.orgao_expedidor, self.cep, 
+            self.rua, self.numero, self.bairro, self.cidade, self.uf,
+            self.doc_frente, self.doc_verso, self.doc_selfie, self.foto
+        ]
+        return all(bool(campo) for campo in campos_obrigatorios)
+
     def __str__(self):
         return f"Perfil de {self.user.username}"
 

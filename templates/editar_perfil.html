@@ -131,27 +131,27 @@
             <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em] mb-2">Documentos de Verificação</h4>
             <div class="space-y-3">
                 <div class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
-                    <input type="file" name="doc_frente" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqFrente')">
+                    <input type="file" name="doc_frente" accept="image/*" capture="environment" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqFrente')">
                     <i class="bi bi-front texto-main text-2xl mb-1 block"></i>
                     <p class="text-[10px] font-black texto-main uppercase tracking-widest">RG/CNH - Foto Frente</p>
                     <p id="nomeArqFrente" class="text-[8px] mt-1 truncate {% if user.perfil.doc_frente %}text-green-500 font-bold{% else %}texto-main opacity-50{% endif %}">
                         {% if user.perfil.doc_frente %}
                             ✅ Documento já anexado (Clique p/ alterar)
                         {% else %}
-                            Clique para enviar
+                            Clique para abrir a câmera traseira
                         {% endif %}
                     </p>
                 </div>
 
                 <div class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
-                    <input type="file" name="doc_verso" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqVerso')">
+                    <input type="file" name="doc_verso" accept="image/*" capture="environment" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqVerso')">
                     <i class="bi bi-back texto-main text-2xl mb-1 block"></i>
                     <p class="text-[10px] font-black texto-main uppercase tracking-widest">RG/CNH - Foto Verso</p>
                     <p id="nomeArqVerso" class="text-[8px] mt-1 truncate {% if user.perfil.doc_verso %}text-green-500 font-bold{% else %}texto-main opacity-50{% endif %}">
                         {% if user.perfil.doc_verso %}
                             ✅ Documento já anexado (Clique p/ alterar)
                         {% else %}
-                            Clique para enviar
+                            Clique para abrir a câmera traseira
                         {% endif %}
                     </p>
                 </div>
