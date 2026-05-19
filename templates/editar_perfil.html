@@ -68,8 +68,8 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">WhatsApp</label>
-                    <input type="text" name="whatsapp" value="{{ user.perfil.whatsapp|default:'' }}" class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">WhatsApp *</label>
+                    <input type="text" name="whatsapp" value="{{ user.perfil.whatsapp|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
                 </div>
             </div>
 
@@ -95,8 +95,8 @@
             </div>
 
             <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Rua / Logradouro</label>
-                <input type="text" name="rua" value="{{ user.perfil.rua|default:'' }}" class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Rua / Logradouro *</label>
+                <input type="text" name="rua" value="{{ user.perfil.rua|default:'' }}" required class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors" py-3 text-sm font-bold texto-main focus:border-tema outline-none">
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -126,7 +126,7 @@
             </div>
         </div>
 
-        {% if user.perfil.torcida and user.perfil.aprovado %}
+        {% if user.perfil.torcida %}
         <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
             <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em] mb-2">Documentos de Verificação</h4>
             <div class="space-y-3">

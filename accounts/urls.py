@@ -27,7 +27,7 @@ urlpatterns = [
     path('mural/', views.mural_social, name='mural_social'),
     
     # MODERAÇÃO
-    path('moderacao/', views.moderacao_torcida, name='moderacao_torcida'),
+    path('moderacao/', organizadas_views.painel_moderador, name='moderacao_torcida'),
     path('moderacao/exportar/<str:tipo>/<int:item_id>/', views.exportar_csv_moderacao, name='exportar_csv_moderacao'),
     path('aprovar/<int:perfil_id>/', views.aprovar_membro, name='aprovar_membro'),
     path('torcida/', views.area_torcida, name='torcida'),
