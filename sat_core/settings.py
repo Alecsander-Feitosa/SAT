@@ -126,9 +126,9 @@ WSGI_APPLICATION = 'sat_core.wsgi.application'
 # O Render vai injetar a URL do PostgreSQL automaticamente
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
-        conn_max_age=0,
-        ssl_require=True
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=True # Essencial para o Supabase
     )
 }
 
