@@ -123,14 +123,30 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sat_core.wsgi.application'
 
-# O Render vai injetar a URL do PostgreSQL automaticamente
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True # Essencial para o Supabase
-    )
-}
+# Configuração do Banco de Dados (Suporta DATABASE_URL ou variáveis individuais)
+if os.getenv('DB_HOST'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'postgres'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT', '6543'),
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+            'CONN_MAX_AGE': 600,
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True # Essencial para o Supabase
+        )
+    }
 
 # --- Configuração da API REST ---
 REST_FRAMEWORK = {
