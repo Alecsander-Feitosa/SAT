@@ -626,7 +626,6 @@ def seja_socio(request):
         {"nome": "São Paulo", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/sao-paulo.svg"},
         {"nome": "Vasco", "escudo": "https://s.sde.globo.com/media/organizations/2021/09/04/vasco_SVG.svg"},
         {"nome": "Vitória", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/vitoria.svg"},
-
         # ==========================================
         # SÉRIE B (2026)
         # ==========================================
