@@ -8,6 +8,8 @@ from .models import Torcida, Evento, MembroDiretoria, Regra, FotoGaleria
 from organizadas.models import Torcida, Evento, MembroDiretoria, Regra, FotoGaleria, Parceiro, Publicidade, CategoriaDiretoria, ConquistaTorcida, Caravana
 from loja.models import Produto, CategoriaProduto, Variacao
 from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 
 # --- VIEWS PÚBLICAS E GERAIS ---
 
@@ -700,3 +702,11 @@ def confirmar_evento(request, evento_id):
             messages.error(request, "Este evento já atingiu o limite de participantes.")
 
     return redirect('lista_eventos', slug=evento.torcida.slug)
+
+@login_required
+def cancelar_vinculo(request):
+    perfil = request.user.perfil
+    perfil.torcida = None
+    perfil.aprovado = False
+    perfil.save()
+    return redirect('torcidas')

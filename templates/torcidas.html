@@ -5,54 +5,34 @@
 <div class="w-full min-h-screen fundo-app pt-6 pb-24 px-4">
 
     {% if status == 'pendente' %}
-        <div class="flex flex-col items-center justify-center mt-20 p-8 fundo-card rounded-3xl shadow-lg border border-suave text-center relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-2 fundo-tema"></div>
+        <div class="flex flex-col items-center justify-center mb-8 p-6 fundo-card rounded-3xl border border-suave text-center">
+            <i class="bi bi-shield-lock-fill text-4xl texto-main mb-2"></i>
+            <h2 class="font-black text-lg text-white uppercase">Aguardando Aprovação</h2>
+            <p class="text-xs text-white opacity-70 mb-4">Solicitação para {{ torcida.nome }} enviada.</p>
             
-            <i class="bi bi-shield-lock-fill text-6xl texto-main mb-4 drop-shadow-md"></i>
-            <h2 class="font-black text-2xl texto-main uppercase tracking-tight mb-2">Acesso Restrito</h2>
-            
-            <p class="texto-main opacity-70 font-medium text-sm mb-8">
-                Esta área é exclusiva para membros oficiais. A sua solicitação para a <strong>{{ torcida.nome }}</strong> está a aguardar aprovação da diretoria.
-            </p>
-            
-            <a href="{% url 'dashboard' %}" class="w-full fundo-tema texto-claro font-black uppercase text-sm px-6 py-4 rounded-xl shadow-md transition-transform active:scale-95">
-                Voltar ao Início
+            <a href="{% url 'cancelar_vinculo' %}" class="bg-red-600 text-white px-6 py-2 rounded-xl text-sm font-bold uppercase">
+                Cancelar Solicitação
             </a>
         </div>
-
-    {% else %}
-        
-        <div class="mb-6">
-            <h2 class="font-black text-xl texto-main uppercase tracking-tight flex items-center gap-2">
-                <i class="bi bi-flag-fill texto-main"></i> Escolha o seu Time
-            </h2>
-            <p class="texto-main opacity-50 text-xs font-medium mt-1">Selecione uma torcida para enviar a sua solicitação.</p>
-        </div>
-        
-        <div class="flex flex-col gap-4">
-            {% for t in torcidas %}
-                <div class="fundo-card p-4 rounded-2xl border border-suave flex items-center gap-4 shadow-sm">
-                    {% if t.logo %}
-                        <img src="{{ t.logo.url }}" class="w-12 h-12 object-contain">
-                    {% else %}
-                        <div class="w-12 h-12 rounded-full fundo-app flex items-center justify-center">
-                            <i class="bi bi-shield-fill texto-main text-xl"></i>
-                        </div>
-                    {% endif %}
-                    <div class="flex-1">
-                        <h3 class="font-black texto-main text-sm uppercase">{{ t.nome }}</h3>
-                        <p class="text-[10px] texto-main opacity-50 font-bold uppercase">{{ t.clube }}</p>
-                    </div>
-                    <a href="{% url 'vincular_torcida' t.id %}" class="fundo-tema texto-claro px-4 py-2 rounded-xl text-xs font-black uppercase shadow-sm active:scale-95 transition-transform">
-                        Entrar
-                    </a>
-                </div>
-            {% empty %}
-                <p class="texto-main opacity-60 text-sm font-medium">Nenhuma torcida disponível no momento.</p>
-            {% endfor %}
-        </div>
-        
     {% endif %}
+
+    <div class="mb-6">
+        <h2 class="font-black text-xl texto-main uppercase">Escolha a sua Torcida</h2>
+    </div>
+    
+    <div class="flex flex-col gap-4">
+        {% for t in torcidas %}
+            <div class="fundo-card p-4 rounded-2xl border border-suave flex items-center gap-4">
+                <div class="flex-1">
+                    <h3 class="font-black texto-main text-sm uppercase">{{ t.nome }}</h3>
+                </div>
+                
+                <a href="{% url 'vincular_torcida' t.id %}" class="fundo-tema texto-claro px-4 py-2 rounded-xl text-xs font-black uppercase shadow-sm">
+                    Entrar
+                </a>
+            </div>
+        {% endfor %}
+    </div>
 
 </div>
 {% endblock %}

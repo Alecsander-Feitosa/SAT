@@ -4,7 +4,12 @@
 {% block content %}
 <style>
     /* NOVO CÓDIGO SEJA SÓCIO */
-    .radio-escondido { display: none; }
+    /* O SEGREDO PARA FUNCIONAR O POST: Esconder sem usar "display: none" */
+    .radio-escondido { 
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
     
     .radio-escondido:checked + label .cartao-opcao {
         border-color: var(--cor-primaria);
@@ -40,7 +45,7 @@
             <div class="flex items-center gap-2 mb-4">
                 <i class="bi bi-star-fill text-dinamico"></i>
                 <h2 class="text-sm font-black texto-main uppercase tracking-widest leading-none mt-1">
-                    Planos {% if user.perfil.torcida %}{{ user.perfil.torcida.nome }}{% else %}SAT Oficiais{% endif %}
+                    Planos {% if perfil.torcida %}{{ perfil.torcida.nome }}{% else %}SAT Oficiais{% endif %}
                 </h2>
             </div>
             
@@ -86,15 +91,15 @@
 
         <hr class="border-suave mb-8">
 
-        {% if user.perfil.torcida %}
+        {% if perfil.torcida %}
             
-            {% if not user.perfil.aprovado %}
+            {% if not perfil.aprovado %}
                 <div class="mb-6 p-5 border border-yellow-500/30 bg-yellow-500/10 rounded-[20px] flex items-start gap-4 shadow-sm">
                     <i class="bi bi-hourglass-split text-yellow-500 text-2xl mt-1 animate-pulse"></i>
                     <div>
                         <h3 class="text-xs font-black text-yellow-500 uppercase tracking-widest mb-1">Status: Em Análise</h3>
                         <p class="text-[10px] font-bold texto-main opacity-70 uppercase tracking-widest leading-relaxed">
-                            A sua entrada na <span class="font-black">{{ user.perfil.torcida.nome }}</span> aguarda aprovação da diretoria.
+                            A sua entrada na <span class="font-black">{{ perfil.torcida.nome }}</span> aguarda aprovação da diretoria.
                         </p>
                     </div>
                 </div>
@@ -112,7 +117,7 @@
                                 </div>
                                 <div>
                                     <h3 class="text-xs font-black texto-main uppercase tracking-widest leading-none">
-                                        {% if user.perfil.time_coracao %}Meu Time: {{ user.perfil.time_coracao }}{% else %}Escolher Time do Coração{% endif %}
+                                        {% if perfil.time_coracao %}Meu Time: {{ perfil.time_coracao }}{% else %}Escolher Time do Coração{% endif %}
                                     </h3>
                                     <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Toque para ver os clubes</p>
                                 </div>
@@ -124,7 +129,7 @@
                             <div class="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto scroll-suave p-1">
                                 {% for time in times_brasil %}
                                 <div>
-                                    <input type="radio" name="time_coracao" id="time_aprovado_{{ time.nome }}" value="{{ time.nome }}" class="radio-escondido" {% if user.perfil.time_coracao == time.nome %}checked{% endif %}>
+                                    <input type="radio" name="time_coracao" id="time_aprovado_{{ time.nome }}" value="{{ time.nome }}" class="radio-escondido" {% if perfil.time_coracao == time.nome %}checked{% endif %}>
                                     <label for="time_aprovado_{{ time.nome }}" class="cursor-pointer block h-full">
                                         <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-2 flex flex-col items-center justify-center gap-2 h-24 transition-all relative">
                                             <i class="bi bi-check-circle-fill texto-main absolute top-1.5 right-1.5 text-xs opacity-0 transform scale-50 transition-all check-icon"></i>
@@ -146,20 +151,20 @@
 
             <div class="mt-12 text-center p-6 border border-red-500/20 bg-red-500/5 rounded-[30px] mb-8">
                 <h3 class="text-xs font-black text-red-500 uppercase tracking-widest mb-2">
-                    {% if user.perfil.aprovado %}Zona de Perigo{% else %}Cancelar Pedido{% endif %}
+                    {% if perfil.aprovado %}Zona de Perigo{% else %}Cancelar Pedido{% endif %}
                 </h3>
                 <p class="text-[9px] font-bold texto-main opacity-60 uppercase tracking-widest mb-4">
-                    {% if user.perfil.aprovado %}
-                        Ao sair da {{ user.perfil.torcida.nome }}, você perderá acesso ao Hub, aos eventos e à sua carteirinha premium.
+                    {% if perfil.aprovado %}
+                        Ao sair da {{ perfil.torcida.nome }}, você perderá acesso ao Hub, aos eventos e à sua carteirinha premium.
                     {% else %}
-                        Deseja retirar a sua solicitação para entrar na {{ user.perfil.torcida.nome }}? Você voltará a ser Público Geral.
+                        Deseja retirar a sua solicitação para entrar na {{ perfil.torcida.nome }}? Você voltará a ser Público Geral.
                     {% endif %}
                 </p>
                 <form method="POST" action="{% url 'seja_socio' %}" onsubmit="return confirm('Tem certeza absoluta que deseja sair?');">
                     {% csrf_token %}
                     <input type="hidden" name="torcida_id" value="neutro">
                     <button type="submit" class="w-full py-3 border border-red-500 text-red-500 rounded-full font-black uppercase text-xs tracking-widest hover:bg-red-500 hover:text-white transition-colors">
-                        {% if user.perfil.aprovado %}Sair da Torcida{% else %}Cancelar Solicitação{% endif %}
+                        {% if perfil.aprovado %}Sair da Torcida{% else %}Cancelar Solicitação{% endif %}
                     </button>
                 </form>
             </div>
@@ -178,7 +183,7 @@
                                 </div>
                                 <div>
                                     <h3 class="text-xs font-black texto-main uppercase tracking-widest leading-none">
-                                        {% if user.perfil.time_coracao %}1. Meu Time: {{ user.perfil.time_coracao }}{% else %}1. Escolher Time do Coração{% endif %}
+                                        {% if perfil.time_coracao %}1. Meu Time: {{ perfil.time_coracao }}{% else %}1. Escolher Time do Coração{% endif %}
                                     </h3>
                                     <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Toque para expandir a lista</p>
                                 </div>
@@ -190,7 +195,7 @@
                             <div class="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto scroll-suave p-1">
                                 {% for time in times_brasil %}
                                 <div>
-                                    <input type="radio" name="time_coracao" id="time_{{ time.nome }}" value="{{ time.nome }}" class="radio-escondido" {% if user.perfil.time_coracao == time.nome %}checked{% endif %}>
+                                    <input type="radio" name="time_coracao" id="time_{{ time.nome }}" value="{{ time.nome }}" class="radio-escondido" {% if perfil.time_coracao == time.nome %}checked{% endif %}>
                                     <label for="time_{{ time.nome }}" class="cursor-pointer block h-full">
                                         <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-2 flex flex-col items-center justify-center gap-2 h-24 transition-all relative">
                                             <i class="bi bi-check-circle-fill texto-main absolute top-1.5 right-1.5 text-xs opacity-0 transform scale-50 transition-all check-icon"></i>
@@ -212,7 +217,7 @@
                     
                     <div class="grid grid-cols-2 gap-3">
                         <div class="torcida-card" data-time="Neutro">
-                            <input type="radio" name="torcida_id" id="torcida_neutra" value="neutro" class="radio-escondido" {% if not user.perfil.torcida %}checked{% endif %}>
+                            <input type="radio" name="torcida_id" id="torcida_neutra" value="neutro" class="radio-escondido" {% if not perfil.torcida %}checked{% endif %}>
                             <label for="torcida_neutra" class="cursor-pointer block h-full">
                                 <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center gap-2 h-28 transition-all relative">
                                     <i class="bi bi-check-circle-fill texto-main absolute top-2 right-2 text-sm opacity-0 transform scale-50 transition-all check-icon"></i>
@@ -224,7 +229,7 @@
 
                         {% for torcida in torcidas %}
                         <div class="torcida-card" data-time="{{ torcida.time_relacionado }}">
-                            <input type="radio" name="torcida_id" id="torcida_{{ torcida.id }}" value="{{ torcida.id }}" class="radio-escondido" {% if user.perfil.torcida.id == torcida.id %}checked{% endif %}>
+                            <input type="radio" name="torcida_id" id="torcida_{{ torcida.id }}" value="{{ torcida.id }}" class="radio-escondido" {% if perfil.torcida.id == torcida.id %}checked{% endif %}>
                             <label for="torcida_{{ torcida.id }}" class="cursor-pointer block h-full">
                                 <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center gap-2 h-28 transition-all relative">
                                     <i class="bi bi-check-circle-fill texto-main absolute top-2 right-2 text-sm opacity-0 transform scale-50 transition-all check-icon"></i>

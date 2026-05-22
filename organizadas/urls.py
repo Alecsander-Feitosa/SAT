@@ -21,6 +21,8 @@ urlpatterns = [
     # CORREÇÃO AQUI: Renomeado de name='hub' para name='hub_organizadas' para não dar conflito
     path('hub/<slug:slug>/', views.hub_view, name='hub_organizadas'),
     
+    path('torcidas/cancelar/', views.cancelar_vinculo, name='cancelar_vinculo'),
+
     path('hub/<slug:slug>/diretoria/', views.diretoria, name='diretoria'),
     path('hub/<slug:slug>/conquistas/', views.mural_conquistas, name='mural_conquistas'),
     path('hub/<slug:slug>/eventos/', views.lista_eventos, name='lista_eventos'),

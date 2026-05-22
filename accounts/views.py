@@ -124,8 +124,15 @@ def cadastro(request):
             # Redireciona para a Etapa 2 SEM fazer login ainda
             return redirect('cadastro_etapa2') 
         else:
-            # Caso o e-mail já exista ou o formulário seja inválido
-            messages.error(request, "Erro no cadastro. Verifique se o e-mail já está registado.")
+            # Exibe os erros reais do formulário
+            for field, errors in form.errors.items():
+                for error in errors:
+                    # Se for um erro num campo específico, exibe o nome do campo
+                    nome_campo = form.fields[field].label if field in form.fields and form.fields[field].label else field.capitalize()
+                    if field == '__all__':
+                        messages.error(request, error)
+                    else:
+                        messages.error(request, f"{nome_campo}: {error}")
     else:
         form = CadastroForm()
         
@@ -664,16 +671,22 @@ def seja_socio(request):
 def torcidas(request):
     perfil = request.user.perfil
     
-    # 1. Se já tem torcida e está APROVADO, vai pro Hub com sucesso.
+    # 1. Correção do nome da URL (de 'hub_organizadas' para 'hub')
     if perfil.torcida and perfil.aprovado:
-        return redirect('hub_organizadas') # <--- NOME CORRIGIDO AQUI!
+        return redirect('hub')
     
-    # 2. Se tem torcida mas NÃO está aprovado, ele fica na página a ver a mensagem "Pendente"
-    if perfil.torcida and not perfil.aprovado:
-        return render(request, 'torcidas.html', {'status': 'pendente', 'torcida': perfil.torcida})
-    
-    # 3. Se não tem torcida nenhuma, mostramos a lista para ele escolher
+    # Carrega a lista de torcidas SEMPRE, para não travar a tela
     lista_de_torcidas = Torcida.objects.all()
+    
+    # 2. Se está pendente, enviamos a lista junto para permitir que ele mude de ideia
+    if perfil.torcida and not perfil.aprovado:
+        return render(request, 'torcidas.html', {
+            'status': 'pendente', 
+            'torcida': perfil.torcida,
+            'torcidas': lista_de_torcidas # Faltava isso aqui!
+        })
+    
+    # 3. Se não tem torcida nenhuma
     return render(request, 'torcidas.html', {
         'torcidas': lista_de_torcidas,
         'neutro': True 
@@ -1156,11 +1169,14 @@ def cartao_socio_view(request):
 @login_required
 def area_torcida(request):
     perfil = request.user.perfil
-    if perfil.torcida and not perfil.aprovado:
-        # Se já escolheu e espera aprovação, mostra uma mensagem específica
-        return render(request, 'torcidas.html', {'status': 'pendente'})
-        
     lista_de_torcidas = Torcida.objects.all()
+
+    if perfil.torcida and not perfil.aprovado:
+        return render(request, 'torcidas.html', {
+            'status': 'pendente',
+            'torcidas': lista_de_torcidas # Garantindo que a lista apareça aqui também
+        })
+        
     return render(request, 'torcidas.html', {'torcidas': lista_de_torcidas})
 
 @login_required
@@ -1857,3 +1873,12 @@ def excluir_plano(request, plano_id):
         plano.delete()
         messages.success(request, 'Plano removido com sucesso.')
     return redirect('painel_planos')
+
+@login_required
+def cancelar_vinculo(request):
+    perfil = request.user.perfil
+    perfil.torcida = None
+    perfil.aprovado = False
+    perfil.save()
+    messages.success(request, "Vínculo cancelado. Você agora é um membro neutro.")
+    return redirect('torcidas')

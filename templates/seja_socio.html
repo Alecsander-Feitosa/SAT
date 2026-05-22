@@ -79,12 +79,17 @@
         <hr class="border-suave mb-8">
 
         {% if perfil.torcida and not perfil.aprovado %}
-        <div class="mb-8 p-5 border-2 border-dashed border-yellow-500 bg-yellow-500/10 rounded-[20px] text-center animate-pulse">
-            <i class="bi bi-clock-history text-3xl text-yellow-600 mb-2 block"></i>
+        <div class="mb-8 p-5 border-2 border-dashed border-yellow-500 bg-yellow-500/10 rounded-[20px] text-center">
+            <i class="bi bi-clock-history text-3xl text-yellow-600 mb-2 block animate-pulse"></i>
             <h3 class="text-xs font-black text-yellow-700 uppercase tracking-widest">Aguardando Aprovação</h3>
-            <p class="text-[10px] font-bold texto-main opacity-80 uppercase mt-1">
+            <p class="text-[10px] font-bold texto-main opacity-80 uppercase mt-1 mb-4">
                 A sua entrada na <b>{{ perfil.torcida.nome }}</b> está sendo analisada pela diretoria.
             </p>
+            <form method="POST" action="{% url 'seja_socio' %}" onsubmit="return confirm('Deseja retirar a sua solicitação?');">
+                {% csrf_token %}
+                <input type="hidden" name="torcida_id" value="neutro">
+                <button type="submit" class="w-full py-2 border border-yellow-600 text-yellow-700 rounded-xl text-[9px] font-black uppercase active:scale-95 transition-transform hover:bg-yellow-600 hover:text-white">Cancelar Solicitação</button>
+            </form>
         </div>
         {% endif %}
 
@@ -147,17 +152,18 @@
                     {% for t in torcidas %}
                         <div class="torcida-item" data-time="{{ t.time_relacionado }}">
                             <input type="radio" name="torcida_id" id="tor_{{ t.id }}" value="{{ t.id }}" class="radio-escondido" {% if perfil.torcida.id == t.id %}checked{% endif %}>
-                            <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center h-28 text-center relative">
-                                <i class="bi bi-check-circle-fill texto-main absolute top-2 right-2 text-sm opacity-0 check-icon"></i>
-                                {% if t.logo %}
-                                    <img src="{{ t.logo.url }}" class="h-10 w-10 object-contain mb-2 drop-shadow-md">
-                                {% else %}
-                                    <i class="bi bi-shield-shaded text-3xl mb-2 opacity-30"></i>
-                                {% endif %}
-                                <span class="text-[9px] font-black uppercase truncate w-full">{{ t.nome }}</span>
-                            </div>
-                        </label>
-                    </div>
+                            <label for="tor_{{ t.id }}" class="cursor-pointer block h-full">
+                                <div class="cartao-opcao fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center h-28 text-center relative">
+                                    <i class="bi bi-check-circle-fill texto-main absolute top-2 right-2 text-sm opacity-0 check-icon"></i>
+                                    {% if t.logo %}
+                                        <img src="{{ t.logo.url }}" class="h-10 w-10 object-contain mb-2 drop-shadow-md">
+                                    {% else %}
+                                        <i class="bi bi-shield-shaded text-3xl mb-2 opacity-30"></i>
+                                    {% endif %}
+                                    <span class="text-[9px] font-black uppercase truncate w-full">{{ t.nome }}</span>
+                                </div>
+                            </label>
+                        </div>
                     {% endfor %}
                 </div>
             </div>
@@ -213,7 +219,7 @@
         
         function filtrarTorcidas(timeSelecionado) {
             torcidaItems.forEach(item => {
-                if (item.dataset.time === timeSelecionado) {
+                if (item.dataset.time === timeSelecionado || item.dataset.time === "Neutro" || !item.dataset.time || item.dataset.time === "None") {
                     item.style.display = 'block';
                 } else {
                     item.style.display = 'none';

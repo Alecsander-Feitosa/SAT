@@ -57,6 +57,8 @@ urlpatterns = [
     path('curtir/<int:post_id>/', views.curtir_post, name='curtir_post'),
     path('beneficios/', views.beneficios_view, name='beneficios'),
     path('post/<int:post_id>/comentar/', views.adicionar_comentario, name='adicionar_comentario'),
+    path('torcidas/cancelar/', views.cancelar_vinculo, name='cancelar_vinculo'),
+
 
     path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
     path('perfil/pedidos/', views.meus_pedidos, name='meus_pedidos'),
