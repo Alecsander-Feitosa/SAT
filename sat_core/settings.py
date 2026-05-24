@@ -47,7 +47,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
     
     # 1. ESTE APP NATIVO É OBRIGATÓRIO PARA O ALLAUTH
     'django.contrib.sites', 
@@ -73,8 +75,6 @@ INSTALLED_APPS = [
     'organizadas',   # Torcidas
     'social',
     'loja',
-    'cloudinary',
-    'cloudinary_storage',
 ]
 
 SITE_ID = 1
@@ -181,12 +181,19 @@ STATICFILES_DIRS = [
 # Diz ao Django para onde enviar os ficheiros quando fazes o deploy no Render
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Ativa a compressão e o cache do WhiteNoise (opcional mas muito recomendado)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-
 # --- Arquivos de Mídia (Uploads de Notícias/Produtos/Avatar) ---
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuração de Armazenamento (STORAGES) - Obrigatório para Django 4.2+ e 5.0+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 # --- Cloudinary: Armazenamento permanente de imagens (Render apaga arquivos locais a cada deploy) ---
 CLOUDINARY_STORAGE = {
@@ -197,7 +204,7 @@ CLOUDINARY_STORAGE = {
 
 # Só usa Cloudinary se as credenciais estiverem configuradas (produção)
 if os.getenv('CLOUDINARY_CLOUD_NAME'):
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES["default"]["BACKEND"] = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # --- CORS (Permite que o App Android acesse a API) ---
 CORS_ALLOW_ALL_ORIGINS = True # Em produção, mudaremos para domínios específicos
