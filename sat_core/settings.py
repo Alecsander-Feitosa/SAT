@@ -181,6 +181,9 @@ STATICFILES_DIRS = [
 # Diz ao Django para onde enviar os ficheiros quando fazes o deploy no Render
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+# Variável antiga mantida EXCLUSIVAMENTE para evitar crash da biblioteca django-cloudinary-storage no Django 5
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
 # --- Arquivos de Mídia (Uploads de Notícias/Produtos/Avatar) ---
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
