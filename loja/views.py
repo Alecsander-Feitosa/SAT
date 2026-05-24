@@ -380,7 +380,7 @@ def excluir_produto(request, produto_id):
         produto = get_object_or_404(Produto, id=produto_id, torcida=request.user.perfil.torcida)
         produto.delete()
         messages.success(request, 'Produto removido com sucesso.')
-    return redirect('loja/painel_loja')
+    return redirect('painel_loja')
 
 @login_required
 def checkout_evento_view(request, evento_id):
