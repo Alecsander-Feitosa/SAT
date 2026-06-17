@@ -174,6 +174,17 @@
             <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em] mb-2">Identidade na Torcida</h4>
             
 
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Vulgo</label>
+                    <input type="text" name="vulgo" value="{{ user.perfil.vulgo|default:'' }}" class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">{{ user.perfil.torcida.nome_pelotao|default:"Pelotão" }}</label>
+                    <input type="text" name="pelotao" value="{{ user.perfil.pelotao|default:'' }}" class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
+                </div>
+            </div>
+
             <div>
                 <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Rede Social *</label>
                 <div class="relative">

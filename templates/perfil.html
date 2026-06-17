@@ -47,6 +47,16 @@
                 </div>
             </div>
             <h2 class="text-lg font-black texto-main uppercase leading-none">{{ user.get_full_name|default:user.username }}</h2>
+            {% if user.perfil.vulgo or user.perfil.pelotao %}
+            <div class="flex gap-2 mt-2">
+                {% if user.perfil.vulgo %}
+                    <span class="bg-black/5 px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase texto-main">{{ user.perfil.vulgo }}</span>
+                {% endif %}
+                {% if user.perfil.pelotao %}
+                    <span class="bg-black/5 px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase texto-main">{{ user.perfil.torcida.nome_pelotao|default:"Pelotão" }}: {{ user.perfil.pelotao }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
             <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mt-1">
                 {% if user.perfil.torcida %}{{ user.perfil.torcida.nome }}{% else %}Membro SAT{% endif %}
             </p>

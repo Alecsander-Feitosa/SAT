@@ -348,6 +348,7 @@ def painel_moderador(request):
             minha_torcida.sigla = request.POST.get('sigla', minha_torcida.sigla)
             minha_torcida.lema = request.POST.get('lema', minha_torcida.lema)
             minha_torcida.historia = request.POST.get('historia', minha_torcida.historia)
+            minha_torcida.nome_pelotao = request.POST.get('nome_pelotao', minha_torcida.nome_pelotao) or "Pelotão"
             
             # ATUALIZAÇÃO DAS 4 CORES (Obrigatório estarem todas aqui!)
             minha_torcida.cor_primaria = request.POST.get('cor_primaria', minha_torcida.cor_primaria)

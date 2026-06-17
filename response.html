@@ -1,0 +1,705 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TORCIDA JOVEM DO FLAMENGO  - SAT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/static/css/carteirinha.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --cor-primaria: #000000;
+            --cor-secundaria: #831100;
+            --cor-terciaria: #ffffff;
+            --cor-fundo: #000000;
+        }
+        
+        body { font-family: 'Inter', sans-serif; background-color: var(--cor-fundo) !important; color: var(--cor-terciaria); margin: 0; }
+        
+        /* Classes Utilitárias SAT */
+        .fundo-app { background-color: var(--cor-fundo) !important; }
+        .fundo-card { background-color: var(--cor-secundaria) !important; }
+        .fundo-tema { background-color: var(--cor-primaria) !important; }
+        
+        .texto-main { color: var(--cor-terciaria) !important; text-shadow: 
+            0px 1px 2px rgba(0, 0, 0, 0.6), 
+            0px -1px 1px rgba(255, 255, 255, 0.2);
+        }
+        .texto-tema { color: var(--cor-primaria) !important; }
+        .texto-claro { color: var(--cor-secundaria) !important; }
+        
+        .border-suave { border-color: rgba(150, 150, 150, 0.2) !important; }
+        .border-tema { border-color: var(--cor-primaria) !important; }
+
+        /* ========== COMPONENTE: CARTEIRINHA PREMIUM SAT ========== */
+        .cartao-socio { background: linear-gradient(135deg, #1a1a1a 0%, #050505 100%); box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.5); position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); aspect-ratio: 1.586 / 1; }
+        .cartao-glow { position: absolute; top: -30%; right: -10%; width: 150%; height: 150%; background: radial-gradient(circle at top right, var(--cor-primaria) 0%, transparent 60%); opacity: 0.25; pointer-events: none; }
+        .cartao-watermark { position: absolute; right: -10%; bottom: -20%; width: 80%; height: 80%; opacity: 0.08; filter: grayscale(100%) brightness(200%); background-size: contain; background-repeat: no-repeat; background-position: bottom right; pointer-events: none; z-index: 1; }
+        .cartao-chip { width: 42px; height: 30px; background: linear-gradient(135deg, #ffd700 0%, #daa520 100%); border-radius: 6px; position: relative; box-shadow: inset 0 0 4px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2); overflow: hidden; }
+        .cartao-chip::before, .cartao-chip::after { content: ''; position: absolute; background: rgba(0,0,0,0.2); }
+        .cartao-chip::before { width: 100%; height: 1px; top: 50%; left: 0; }
+        .cartao-chip::after { width: 1px; height: 100%; top: 0; left: 50%; }
+        .texto-emboss { text-shadow: 0px 1px 1px rgba(255,255,255,0.3), 0px -1px 1px rgba(0,0,0,0.8); letter-spacing: 2px; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="fundo-app">
+    
+   
+    <div class="fixed top-0 left-0 w-full fundo-card pt-6 shadow-md z-[90] border-b border-suave transition-colors duration-500">
+        
+        <div class="flex justify-between items-center px-4 mb-4 relative min-h-[40px]">
+            <button onclick="toggleSearch()" class="flex items-center gap-2 texto-main hover:opacity-70 transition-opacity relative z-10">
+                <i class="bi bi-search text-xl font-bold"></i>
+                <span class="font-bold text-sm hidden sm:inline">Buscar</span>
+            </button>
+            <div class="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center h-full z-0">
+                
+                    <img src="https://res.cloudinary.com/dnd5yddxt/image/upload/v1/media/logos_torcida/IMG_0777_qmwjmf" alt="Logo" class="h-20 object-contain drop-shadow-lg scale-100">
+                
+            </div>
+            <button onclick="toggleSidebar()" class="texto-main hover:opacity-70 transition-opacity relative z-10">
+                <i class="bi bi-list text-3xl"></i>
+            </button>
+        </div>
+        
+        <div id="searchBar" class="hidden px-4 pb-4 w-full transition-all duration-300">
+            <form action="#" method="GET" class="relative">
+                <input type="text" name="q" placeholder="Pesquisar..." class="w-full fundo-app border border-suave text-sm rounded-xl py-3 pl-4 pr-10 texto-main font-medium focus:outline-none shadow-inner transition-all">
+                <button type="submit" class="absolute right-3 top-3 texto-main opacity-50 hover:opacity-100 transition-opacity"><i class="bi bi-search text-lg font-bold"></i></button>
+            </form>
+        </div>
+        
+        <div class="flex justify-between items-center w-full px-2 mt-6 pb-1 gap-2"> <a href="/gamification/dashboard/" class="flex-1 text-center pb-2 border-b-[3px] border-tema texto-main font-bold text-xs sm:text-sm transition-all whitespace-nowrap">
+                Seu time
+            </a>
+            
+            <a href="/social/mural/" class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main opacity-50 hover:opacity-100 font-medium text-xs sm:text-sm transition-all whitespace-nowrap">
+                SAT social
+            </a>
+            
+            
+                <a href="/gamification/hub/" class="flex-1 text-center pb-2 border-b-[3px] border-transparent texto-main font-bold text-xs sm:text-sm transition-all whitespace-nowrap overflow-hidden text-ellipsis">
+                    <span>TORCIDA JOVEM DO FLAMENGO </span>
+                </a>
+            
+        </div>
+    </div>
+  
+
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden transition-opacity" onclick="toggleSidebar()"></div>
+    <div id="satSidebar" class="fixed inset-y-0 left-0 w-72 fundo-card z-[101] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out border-r border-suave overflow-y-auto no-scrollbar">
+        <div class="flex flex-col items-center py-6">
+            <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-tema mb-2">
+                
+                    <img src="https://res.cloudinary.com/dnd5yddxt/image/upload/v1/media/perfil_fotos/8F2A6FA5-22C1-4669-B2EE-80B26AFF7447_za5jqe" class="w-full h-full object-cover">
+                
+            </div>
+            
+            <p class="text-[10px] font-black texto-main uppercase tracking-widest">
+                Membro TORCIDA JOVEM DO FLAMENGO 
+            </p>
+        </div>
+        <div class="p-4 space-y-2">
+            <p class="px-4 text-[9px] font-black texto-main opacity-40 uppercase tracking-widest my-4">Menu Principal</p>
+            <a href="/gamification/dashboard/" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
+                <i class="bi bi-grid-1x2-fill texto-main text-lg"></i><span class="text-sm font-bold texto-main">Dashboard</span>
+            </a>
+            <a href="/loja/" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
+                <i class="bi bi-cart3 texto-main text-lg"></i><span class="text-sm font-bold texto-main">Loja Oficial</span>
+            </a>
+            <hr class="border-suave my-4">
+            
+            
+                <p class="px-4 text-[9px] font-black texto-main opacity-40 uppercase tracking-widest my-4">Administração</p>
+                <a href="/organizadas/moderacao/" class="flex items-center gap-4 px-4 py-4 rounded-2xl bg-orange-500/10 hover:bg-orange-500 text-orange-600 no-underline group transition-all border border-orange-500/20">
+                    <i class="bi bi-shield-lock-fill text-lg group-hover:scale-110 transition-transform"></i>
+                    <span class="text-main font-black uppercase tracking-widest">Painel do Moderador</span>
+                </a>
+                <hr class="border-suave my-4">
+            
+
+            <a href="/gamification/logout/" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-red-50 no-underline text-main">
+                <i class="bi bi-door-open-fill text-lg"></i>
+                <span class="text-main font-bold">Sair</span>
+            </a>
+        </div>
+    </div>
+    
+
+    <main class="pt-[140px] pb-28 w-full min-h-screen">
+        
+        
+<style>
+    
+
+    /* ========== SAT CORE - DASHBOARD DINÂMICO ========== */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); filter: blur(3px); }
+        to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+    .animate-fade { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .delay-100 { animation-delay: 0.1s; opacity: 0; }
+    .delay-200 { animation-delay: 0.2s; opacity: 0; }
+    .delay-300 { animation-delay: 0.3s; opacity: 0; }
+    .delay-400 { animation-delay: 0.4s; opacity: 0; }
+    .delay-500 { animation-delay: 0.5s; opacity: 0; }
+
+    /* Classes Dinâmicas de Torcida */
+    .text-dinamico { color: var(--cor-primaria) !important; }
+    .bg-dinamico { background-color: var(--cor-primaria) !important; }
+    .border-dinamico { border-color: var(--cor-primaria) !important; }
+    
+
+    .banner-bet {
+        background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .snap-x-mandatory { scroll-snap-type: x mandatory; }
+    .snap-center-item { scroll-snap-align: center; }
+</style>
+
+<div id="dashboard-container" class="w-full fundo-app px-5 pt-4 flex flex-col gap-6 overflow-x-hidden pb-6">
+
+    <div class="flex justify-between items-center w-full animate-fade">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full border-2 border-dinamico p-[2px] overflow-hidden fundo-card shadow-sm">
+                
+                    <img src="https://res.cloudinary.com/dnd5yddxt/image/upload/v1/media/perfil_fotos/8F2A6FA5-22C1-4669-B2EE-80B26AFF7447_za5jqe" alt="Perfil" class="w-full h-full object-cover rounded-full">
+                
+            </div>
+            <div>
+                <p class="text-[12px] texto-main opacity-50 font-bold leading-none mb-1">Olá,</p>
+                <h1 class="text-xl font-black texto-main leading-none uppercase tracking-tighter" style="font-family: 'Montserrat', sans-serif;">
+                    micro
+                </h1>
+            </div>
+        </div>
+        <a href="/gamification/perfil/" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main shadow-sm border border-suave transition-colors">
+            <i class="bi bi-gear-fill text-lg opacity-60"></i>
+        </a>
+    </div>
+
+    <div class="banner-bet w-full p-6 rounded-[20px] flex justify-between items-center animate-fade delay-100 relative overflow-hidden">
+        <div class="z-10 relative">
+            <h2 class="text-white font-black text-2xl italic tracking-tight" style="font-family: 'Montserrat', sans-serif;">SAT <span class="text-dinamico">BET</span></h2>
+            <p class="text-gray-400 text-xs font-medium mb-4">Faça sua fezinha</p>
+           <a href="https://www.betano.bet.br/" class="bg-dinamico text-white text-[10px] font-black uppercase tracking-wider px-6 py-2.5 rounded-full inline-block shadow-lg transition-transform hover:scale-105">
+                Acessar
+            </a>
+        </div>
+        <div class="z-10 relative">
+            <i class="bi bi-dice-5-fill text-[50px] text-white opacity-90 drop-shadow-md"></i>
+        </div>
+        <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-dinamico opacity-20 blur-[30px] rounded-full pointer-events-none"></div>
+    </div>
+
+    <div class="w-full max-w-sm aspect-[1.586/1] h-auto mx-auto cartao-socio rounded-3xl p-4 sm:p-5 text-white flex flex-col justify-between relative z-10 shadow-2xl transition-all duration-300 active:scale-[0.98]"
+            style="--cor-primaria: #000000; background: linear-gradient(135deg, var(--cor-primaria) 0%, rgba(15,15,15,0.95) 100%);">
+            
+            <div class="cartao-glow"></div>
+            
+                <div class="cartao-watermark opacity-20" style="background-image: url('https://res.cloudinary.com/dnd5yddxt/image/upload/v1/media/logos_torcida/IMG_0777_qmwjmf');"></div>
+            
+            
+            <div class="flex justify-between items-start relative z-10 gap-2">
+                <div class="flex items-center gap-3 w-full">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 p-1.5 overflow-hidden">
+                        
+                            <img src="https://res.cloudinary.com/dnd5yddxt/image/upload/v1/media/logos_torcida/IMG_0777_qmwjmf" class="w-full h-full object-contain">
+                        
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="font-black text-xs sm:text-base md:text-lg tracking-tighter uppercase leading-tight w-full line-clamp-2 break-words">
+                            TORCIDA JOVEM DO FLAMENGO 
+                        </h2>
+                        <p class="text-[7px] sm:text-[8px] text-white/70 font-bold uppercase tracking-[0.2em] mt-0.5 break-words">
+                            Sócio Oficial Autorizado
+                        </p>
+                    </div>
+                </div>
+                <button onclick="toggleCensura(event)" class="w-8 h-8 shrink-0 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors border border-white/10">
+                    <i id="icone-censura" class="bi bi-eye-fill text-sm"></i>
+                </button>
+            </div>
+
+            <div class="relative z-10 flex items-center justify-between mt-2">
+                <div class="cartao-chip scale-75 sm:scale-100 origin-left shrink-0"></div>
+                <div class="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
+                    <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full flex items-center gap-1.5 shadow-md max-w-full">
+                        <i class="bi bi-gem text-white/70 text-[8px] sm:text-[10px] shrink-0"></i>
+                        <span class="text-[8px] sm:text-[10px] font-black uppercase text-white tracking-widest line-clamp-1 break-all">
+                            GRATUITO
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative z-10 flex justify-between items-end mt-2 pt-1 border-t border-white/10">
+                <div class="flex-1 pr-2">
+                    <p class="text-[7px] sm:text-[8px] text-white/50 font-black uppercase tracking-widest mb-0.5">Membro Titular</p>
+                    <p class="text-[10px] sm:text-xs md:text-sm font-black uppercase texto-emboss text-white line-clamp-2 break-words leading-tight mb-1 sm:mb-2">
+                        micro
+                    </p>
+                    
+                    <p class="text-[7px] sm:text-[8px] text-white/50 font-black uppercase tracking-widest mb-0.5">Nº Matrícula</p>
+                    <p id="matricula-texto" class="text-[9px] sm:text-xs font-mono font-black tracking-[0.2em] text-white/90">
+                        <span class="dado-visivel hidden">00001-547</span>
+                        <span class="dado-censurado">•••••-•••</span>
+                    </p>
+                </div>
+                <div class="text-right shrink-0">
+                    <p class="text-[7px] sm:text-[8px] text-white/50 font-black uppercase tracking-widest mb-0.5">Desde</p>
+                    <p class="text-[10px] sm:text-xs md:text-sm font-black uppercase text-white texto-emboss">
+                        2026
+                    </p>
+                </div>
+            </div>
+    </div>
+
+    <div class="w-full animate-fade delay-300">
+        <div class="grid grid-cols-4 gap-3">
+            <a href="https://www.betano.bet.br/" class="flex flex-col items-center gap-2 group">
+                <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
+                    <i class="bi bi-dice-5 text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
+                </div>
+                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Bet</span>
+            </a>
+            
+            <a href="/gamification/seja-socio/" class="flex flex-col items-center gap-2 group">
+                <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
+                    <i class="bi bi-gem text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
+                </div>
+                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Benefícios</span>
+            </a>
+
+            <a href="/loja/" class="flex flex-col items-center gap-2 group">
+                <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
+                    <i class="bi bi-cart3 text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
+                </div>
+                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Loja</span>
+            </a>
+
+            <a href="/gamification/noticias/" class="flex flex-col items-center gap-2 group">
+                <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
+                    <i class="bi bi-newspaper text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
+                </div>
+                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Notícias</span>
+            </a>
+        </div>
+    </div>
+
+    
+    <div class="w-full animate-fade delay-400 mt-2">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 fundo-card border border-suave rounded-full flex items-center justify-center shadow-sm p-1">
+                    <i class="bi bi-shield-shaded texto-main opacity-30 text-lg"></i>
+                </div>
+                <h3 class="text-sm font-black texto-main uppercase tracking-widest mt-1" style="font-family: 'Montserrat', sans-serif;">
+                    Flamengo
+                </h3>
+            </div>
+        </div>
+
+        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
+            
+            <a href="https://www.nsctotal.com.br/noticias/flamengo-acerta-venda-de-destaque-da-libertadores-para-a-europa" target="_blank" class="snap-center-item shrink-0 w-[75%] max-w-[280px] fundo-card border border-suave rounded-[20px] shadow-sm overflow-hidden flex flex-col group">
+                <div class="w-full h-36 relative overflow-hidden bg-gray-900">
+                    
+                        <img src="https://img.nsctotal.com.br/wp-content/uploads/2026/06/Flamengo-acerta-venda-de-destaque-da-Libertadores-para-a-Europa.jpg" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <span class="absolute bottom-3 left-3 bg-dinamico text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-md">Clube</span>
+                </div>
+                <div class="p-4 flex flex-col flex-1 justify-between">
+                    <h4 class="text-sm font-bold texto-main leading-tight mb-2 line-clamp-2">Flamengo acerta venda de destaque da Libertadores para a Europa</h4>
+                </div>
+            </a>
+            
+            <a href="https://www.terra.com.br/esportes/flamengo/saiba-os-adversarios-do-flamengo-nos-amistosos-em-portugal,40b28c14ae54c85140476950e485e39evppoocum.html" target="_blank" class="snap-center-item shrink-0 w-[75%] max-w-[280px] fundo-card border border-suave rounded-[20px] shadow-sm overflow-hidden flex flex-col group">
+                <div class="w-full h-36 relative overflow-hidden bg-gray-900">
+                    
+                        <img src="https://p2.trrsf.com/image/fget/cf/1200/900/middle/images.terra.com/2026/06/16/524729333-leonardo-jardim-e-jose-boto-flamengo-2-610x400.jpg" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <span class="absolute bottom-3 left-3 bg-dinamico text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-md">Clube</span>
+                </div>
+                <div class="p-4 flex flex-col flex-1 justify-between">
+                    <h4 class="text-sm font-bold texto-main leading-tight mb-2 line-clamp-2">Saiba os adversários do Flamengo nos amistosos em Portugal</h4>
+                </div>
+            </a>
+            
+            <div class="shrink-0 w-2"></div>
+        </div>
+    </div>
+    
+
+
+    <div class="w-full animate-fade delay-400 mt-2">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 fundo-card border border-suave rounded-full flex items-center justify-center shadow-sm text-dinamico">
+                    <i class="bi bi-globe-americas text-lg"></i>
+                </div>
+                <h3 class="text-sm font-black texto-main uppercase tracking-widest mt-1" style="font-family: 'Montserrat', sans-serif;">
+                    Giro do Futebol
+                </h3>
+            </div>
+        </div>
+
+        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
+            
+            <a href="https://www.poder360.com.br/copa-2026/copa-2026-melhores-momentos-de-austria-3-x-1-jordania/" target="_blank" class="snap-center-item shrink-0 w-[75%] max-w-[280px] fundo-card border border-suave rounded-[20px] shadow-sm overflow-hidden flex flex-col group">
+                <div class="w-full h-36 relative overflow-hidden bg-gray-900">
+                    
+                        <img src="https://static.poder360.com.br/uploads/2026/06/resultado-jogo-copa-capa-austria-jordania-17-jun-2026-848x477.png" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <span class="absolute bottom-3 left-3 bg-gray-600/80 backdrop-blur text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-md">poder360_br</span>
+                </div>
+                <div class="p-4 flex flex-col flex-1 justify-between">
+                    <h4 class="text-sm font-bold texto-main leading-tight line-clamp-2">Copa 2026: melhores momentos de Áustria 3 x 1 Jordânia</h4>
+                </div>
+            </a>
+            
+            <a href="https://www.mixvale.com.br/2026/06/17/xbox-game-pass-anuncia-chegada-de-ea-sports-fc-26-call-of-duty-vanguard-e-mais-novidades/" target="_blank" class="snap-center-item shrink-0 w-[75%] max-w-[280px] fundo-card border border-suave rounded-[20px] shadow-sm overflow-hidden flex flex-col group">
+                <div class="w-full h-36 relative overflow-hidden bg-gray-900">
+                    
+                        <img src="https://www.mixvale.com.br/wp-content/uploads/2026/06/XBOX_GamePass_Announcement_16x9_06.16.2026_PT-BR-1512c80905b21cb902c1-600x340.jpg" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <span class="absolute bottom-3 left-3 bg-gray-600/80 backdrop-blur text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-md">mixvale</span>
+                </div>
+                <div class="p-4 flex flex-col flex-1 justify-between">
+                    <h4 class="text-sm font-bold texto-main leading-tight line-clamp-2">Xbox Game Pass Anuncia Chegada de EA Sports FC 26, Call of Duty Vanguard e Mais Novidades</h4>
+                </div>
+            </a>
+            
+            <a href="https://www.lance.com.br/copa-do-mundo/balanco-do-dia-messi-mbappe-e-haaland-brilham-no-sexto-dia-de-copa-do-mundo.html" target="_blank" class="snap-center-item shrink-0 w-[75%] max-w-[280px] fundo-card border border-suave rounded-[20px] shadow-sm overflow-hidden flex flex-col group">
+                <div class="w-full h-36 relative overflow-hidden bg-gray-900">
+                    
+                        <img src="https://lncimg.lance.com.br/cdn-cgi/image/width=1280,height=720,quality=75,format=webp/uploads/2026/06/AFP__20260617__B7CA3KG__v1__MidRes__FblWc2026Match19ArgAlg-aspect-ratio-512-320.jpg" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <span class="absolute bottom-3 left-3 bg-gray-600/80 backdrop-blur text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-md">lance</span>
+                </div>
+                <div class="p-4 flex flex-col flex-1 justify-between">
+                    <h4 class="text-sm font-bold texto-main leading-tight line-clamp-2">AFP__20260617__B7CA3KG__v1__MidRes__FblWc2026Match19ArgAlg-aspect-ratio-512-320</h4>
+                </div>
+            </a>
+            
+            <a href="https://www.terra.com.br/esportes/argelia/tecnico-da-argelia-exalta-categoria-de-messi-mas-queria-expulsao-todo-mundo-viu,7c89a58379e1344d2b7e676528c12286vexrigf3.html" target="_blank" class="snap-center-item shrink-0 w-[75%] max-w-[280px] fundo-card border border-suave rounded-[20px] shadow-sm overflow-hidden flex flex-col group">
+                <div class="w-full h-36 relative overflow-hidden bg-gray-900">
+                    
+                        <img src="https://p2.trrsf.com/image/fget/cf/1200/900/middle/images.terra.com/2026/06/17/1968713496-argentina-v-algeria-group-j-fifa-world-cup-2026-2-610x400.jpg" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <span class="absolute bottom-3 left-3 bg-gray-600/80 backdrop-blur text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-md">terra</span>
+                </div>
+                <div class="p-4 flex flex-col flex-1 justify-between">
+                    <h4 class="text-sm font-bold texto-main leading-tight line-clamp-2">Técnico da Argélia exalta categoria de Messi, mas queria expulsão: &quot;Todo mundo viu&quot;</h4>
+                </div>
+            </a>
+            
+            <a href="https://www.terra.com.br/esportes/futebol/jordania-marca-seu-1-gol-na-historia-das-copas-mas-perde-da-austria-no-grupo-da-argentina,3ac641f27395802bfd4ade4e78adb9165z6ael7y.html" target="_blank" class="snap-center-item shrink-0 w-[75%] max-w-[280px] fundo-card border border-suave rounded-[20px] shadow-sm overflow-hidden flex flex-col group">
+                <div class="w-full h-36 relative overflow-hidden bg-gray-900">
+                    
+                        <img src="https://s1.trrsf.com/update-1698692222/fe/zaz-mod-t360-icons/svg/logos/terra-16x9-borda.png" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <span class="absolute bottom-3 left-3 bg-gray-600/80 backdrop-blur text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-md">terra</span>
+                </div>
+                <div class="p-4 flex flex-col flex-1 justify-between">
+                    <h4 class="text-sm font-bold texto-main leading-tight line-clamp-2">Jordânia marca seu 1o gol na história das Copas, mas perde da Áustria no Grupo da Argentina</h4>
+                </div>
+            </a>
+            
+            <div class="shrink-0 w-2"></div>
+        </div>
+    </div>
+    
+    <div class="w-full animate-fade delay-400 mt-2">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-dinamico/10 border border-dinamico/20 rounded-full flex items-center justify-center shadow-sm p-1">
+                    <i class="bi bi-bag-check-fill text-dinamico text-lg"></i>
+                </div>
+                <h3 class="text-sm font-black texto-main uppercase tracking-widest mt-1" style="font-family: 'Montserrat', sans-serif;">
+                    Loja Oficial
+                </h3>
+            </div>
+            <a href="/loja/" class="text-[10px] font-black text-dinamico uppercase tracking-wider hover:underline">Ver tudo</a>
+        </div>
+
+        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
+            
+            <div class="w-full text-center py-6 fundo-card border border-suave rounded-[20px]">
+                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest">Novidades a chegar em breve.</p>
+            </div>
+            
+            <div class="shrink-0 w-2"></div>
+        </div>
+    </div>
+
+    <div class="w-full animate-fade delay-500 mt-4 mb-2">
+        <a href="#" class="block w-full h-28 bg-gray-900 rounded-[20px] shadow-sm overflow-hidden relative group border border-suave">
+            <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                <span class="text-white/50 text-[10px] font-black tracking-[0.2em] uppercase mb-1">Espaço Reservado</span>
+                <span class="text-white font-black italic text-lg tracking-tighter uppercase">Patrocínio Máster</span>
+            </div>
+            <div class="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors duration-500"></div>
+            <span class="absolute top-2 right-2 bg-dinamico/90 backdrop-blur-sm text-white text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">Patrocinador</span>
+        </a>
+    </div>
+
+    
+
+
+    
+    <div class="w-full animate-fade delay-500 mt-2">
+        <h3 class="text-[10px] font-black texto-main opacity-40 uppercase tracking-widest mb-3">Clube de Vantagens</h3>
+        
+        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
+            
+
+            
+            <a href="#" class="snap-center-item shrink-0 w-[80%] max-w-[300px] h-28 bg-dinamico rounded-2xl shadow-sm overflow-hidden relative group">
+                <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
+                <span class="absolute top-2 right-2 bg-black/20 backdrop-blur-sm text-white/90 text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm border border-white/10">Parceiro Oficial</span>
+                <div class="absolute inset-0 flex flex-col justify-center p-4">
+                    
+                        <img src="https://res.cloudinary.com/dnd5yddxt/image/upload/v1/media/parceiros/download.png" class="absolute right-4 bottom-2 h-12 w-auto opacity-50 filter brightness-0 invert transform -rotate-12">
+                    
+                    <h4 class="text-white text-sm font-black uppercase tracking-tight leading-none mb-1 relative z-10">PArceiro 1</h4>
+                    <p class="text-white/90 text-[9px] font-medium leading-tight w-2/3 relative z-10"></p>
+                </div>
+            </a>
+            
+            <div class="shrink-0 w-2"></div>
+        </div>
+    </div>
+    
+
+
+
+    <div class="w-full animate-fade delay-500 mt-2">
+        <div class="flex justify-between items-end mb-4">
+            <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest">Acontecendo no Social</h3>
+            <a href="/social/mural/" class="text-[10px] font-black text-dinamico uppercase tracking-wider hover:underline">Ver Feed</a>
+        </div>
+
+        <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
+            
+            <div class="w-full text-center py-6 fundo-card border border-suave rounded-[20px]">
+                <i class="bi bi-chat-square-dots text-3xl texto-main opacity-20 mb-2 block"></i>
+                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest">Feed vazio no momento.</p>
+            </div>
+            
+            <div class="shrink-0 w-2"></div>
+        </div>
+    </div>
+
+    
+
+    
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // =========================================================
+        // 1. LÓGICA DOS CARROSSEIS HORIZONTAIS
+        // =========================================================
+        function iniciarCarrosseis(container) {
+            const carrosseis = container.querySelectorAll('.snap-x-mandatory');
+            carrosseis.forEach(carrossel => {
+                let intervalo = setInterval(() => {
+                    const scrollMaximo = carrossel.scrollWidth - carrossel.clientWidth;
+                    if (carrossel.scrollLeft >= scrollMaximo - 10) {
+                        carrossel.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        carrossel.scrollBy({ left: 280, behavior: 'smooth' });
+                    }
+                }, 3500);
+
+                // Para se o utilizador colocar o dedo/rato
+                carrossel.addEventListener('touchstart', () => clearInterval(intervalo), { passive: true });
+                carrossel.addEventListener('mouseenter', () => clearInterval(intervalo));
+            });
+        }
+
+        // =========================================================
+        // 2. O VERDADEIRO CARROSSEL VERTICAL INFINITO (Seamless Loop)
+        // =========================================================
+        const mainContainer = document.getElementById('dashboard-container');
+        
+        // Remove o espaçamento gigante (pb-32) do final para a emenda ficar colada e perfeita
+        // (Isso já foi ajustado no HTML, mas garantimos aqui por precaução)
+        mainContainer.classList.remove('pb-32');
+        mainContainer.classList.add('pb-6');
+        
+        // 2.1 Separa apenas os elementos visuais (ignora a própria tag script)
+        const elementosOriginais = Array.from(mainContainer.children).filter(el => el.tagName !== 'SCRIPT');
+        
+        // 2.2 Cria a caixa "Original" e move tudo lá para dentro
+        const caixaOriginal = document.createElement('div');
+        caixaOriginal.className = 'w-full flex flex-col gap-6'; 
+        elementosOriginais.forEach(el => caixaOriginal.appendChild(el));
+        mainContainer.insertBefore(caixaOriginal, mainContainer.firstChild);
+
+        // 2.3 Cria a caixa "Clone" (A mágica do infinito que fica em baixo)
+        const caixaClone = caixaOriginal.cloneNode(true);
+        mainContainer.insertBefore(caixaClone, caixaOriginal.nextSibling);
+
+        // 2.4 Ativa os carrosseis horizontais de notícias em ambas as caixas!
+        iniciarCarrosseis(caixaOriginal);
+        iniciarCarrosseis(caixaClone);
+
+        // 2.5 O Truque do Teletransporte Invisível
+        // Esperamos 1 segundo para as imagens carregarem e termos a altura exata do ecrã
+        setTimeout(() => {
+            // Calcula a distância exata em píxeis entre o original e o clone
+            const alturaParaPular = caixaClone.offsetTop - caixaOriginal.offsetTop;
+
+            window.addEventListener('scroll', () => {
+                // Se a tela rolou para baixo o suficiente para chegar ao clone...
+                if (window.scrollY >= alturaParaPular) {
+                    // ...teletransporta de volta para cima sem dar solavanco!
+                    window.scrollTo(0, window.scrollY - alturaParaPular);
+                }
+            }, { passive: true });
+
+            /* ========================================================
+               OPCIONAL: AUTO-SCROLL VERTICAL (COMO UM TOTEM SOZINHO)
+               Se quiser que a tela ande sozinha para baixo sem ninguém tocar, 
+               basta apagar os símbolos de comentário /* e */ /* abaixo:
+            ======================================================== */
+            
+            /*
+            let velocidade = 1; 
+            let autoScroll = setInterval(() => { window.scrollBy(0, velocidade); }, 30);
+            // Para o scroll automático se o usuário tocar na tela para ler algo
+            window.addEventListener('touchstart', () => clearInterval(autoScroll), { passive: true });
+            window.addEventListener('wheel', () => clearInterval(autoScroll), { passive: true });
+            */
+            
+        }, 1000);
+    });
+
+    function toggleCensura(event) {
+        // Impede que o clique no botão dispare links ou outras ações do card
+        event.preventDefault();
+        event.stopPropagation();
+
+        const icone = document.getElementById('icone-censura');
+        const visivel = document.querySelector('.dado-visivel');
+        const censurado = document.querySelector('.dado-censurado');
+
+        if (visivel.classList.contains('hidden')) {
+            // Mostrar dados
+            visivel.classList.remove('hidden');
+            censurado.classList.add('hidden');
+            icone.classList.remove('bi-eye-fill');
+            icone.classList.add('bi-eye-slash-fill');
+        } else {
+            // Censurar dados
+            visivel.classList.add('hidden');
+            censurado.classList.remove('hidden');
+            icone.classList.remove('bi-eye-slash-fill');
+            icone.classList.add('bi-eye-fill');
+        }
+    }
+
+</script>
+
+
+        
+        
+            
+            
+            
+        
+    </main>
+
+   
+    <nav class="fixed bottom-0 left-0 w-full fundo-card shadow-[0_-15px_30px_rgba(0,0,0,0.08)] rounded-t-[30px] z-[100] px-2 pt-1.5 pb-4 flex justify-between items-end border-t border-suave">
+        <a href="/gamification/dashboard/" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity texto-main">
+            <i class="bi bi-house-door-fill text-xl drop-shadow-sm"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Início</span>
+        </a>
+        <a href="/loja/" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity texto-main opacity-40 hover:opacity-100">
+            <i class="bi bi-cart3 text-xl font-bold"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Loja</span>
+        </a>
+        <a href="/gamification/seja-socio/" class="flex flex-col items-center relative -top-5 w-[24%] group">
+            <div class="w-12 h-12 fundo-card rounded-full p-1 shadow-[0_-4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center border border-suave">
+                <div class="w-full h-full fundo-tema rounded-full flex items-center justify-center texto-claro shadow-inner group-hover:scale-105 transition-transform duration-300">
+                    <i class="bi bi-gem"></i>
+                </div>
+            </div>
+            <span class="text-[9px] font-black texto-main uppercase tracking-wider mt-1">
+                Benefícios
+            </span>
+        </a>
+        <a href="https://www.betano.bet.br/" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity texto-main opacity-40 hover:opacity-100">
+            <i class="bi bi-dice-5 text-xl font-bold"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">BET</span>
+        </a>
+        <a href="/gamification/perfil/" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity texto-main opacity-40 hover:opacity-100">
+            <i class="bi bi-person-fill text-xl drop-shadow-sm"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Perfil</span>
+        </a>
+    </nav>
+    
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('satSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+        function toggleSearch() {
+            const searchBar = document.getElementById('searchBar');
+            if (searchBar.classList.contains('hidden')) {
+                searchBar.classList.remove('hidden');
+                setTimeout(() => searchBar.querySelector('input').focus(), 100); 
+            } else {
+                searchBar.classList.add('hidden');
+            }
+        }
+
+       
+        function compartilharPost(autor, textoResumo) {
+            const urlAtual = window.location.href;
+            const shareData = {
+                title: 'SAT - Post de ' + autor,
+                text: 'Olha este post do ' + autor + ' no SAT: "' + textoResumo + '"',
+                url: urlAtual
+            };
+
+            if (navigator.share) {
+                navigator.share(shareData)
+                    .catch((error) => console.log('Erro ao partilhar:', error));
+            } else {
+                navigator.clipboard.writeText(shareData.text + " " + shareData.url).then(() => {
+                    alert('Conteúdo copiado para a área de transferência!');
+                }).catch(err => {
+                    console.error('Erro ao copiar: ', err);
+                });
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        
+    </script>
+</body>
+</html>

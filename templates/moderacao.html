@@ -202,7 +202,7 @@
                             <div class="flex flex-wrap gap-2 mt-1">
                                 <span class="bg-black/5 px-2 py-0.5 rounded text-[9px] font-bold uppercase"><i class="bi bi-whatsapp text-green-500"></i> {{ socio.whatsapp|default:"S/ Contato" }}</span>
                                 <span class="bg-black/5 px-2 py-0.5 rounded text-[9px] font-bold uppercase">{{ socio.vulgo|default:"S/ Vulgo" }}</span>
-                                <span class="bg-black/5 px-2 py-0.5 rounded text-[9px] font-bold uppercase">{{ socio.pelotao|default:"S/ Pelotão" }}</span>
+                                <span class="bg-black/5 px-2 py-0.5 rounded text-[9px] font-bold uppercase">{% if socio.pelotao %}{{ socio.pelotao }}{% else %}Sem {{ torcida.nome_pelotao|default:"Pelotão" }}{% endif %}</span>
                             </div>
                         </div>
                     </div>
@@ -868,6 +868,13 @@
                                 <input type="text" name="lema" value="{{ torcida.lema }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none texto-main">
                             </div>
                         </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">Nome do Pelotão (Ex: Pelotão, Comando, Sub-sede)</label>
+                                <input type="text" name="nome_pelotao" value="{{ torcida.nome_pelotao|default:'Pelotão' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none texto-main" placeholder="Ex: Pelotão, Comando, Sub-sede">
+                            </div>
+                        </div>
 
                         <div>
                             <label class="text-[10px] font-black opacity-60 uppercase mb-1.5 block">História / Descrição</label>
@@ -1343,7 +1350,7 @@
                     <input type="text" name="vulgo" value="{{ socio.vulgo }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
                 </div>
                 <div>
-                    <label class="text-[9px] font-black opacity-50 uppercase block">Pelotão / Bonde</label>
+                    <label class="text-[9px] font-black opacity-50 uppercase block">{{ torcida.nome_pelotao|default:"Pelotão" }}</label>
                     <input type="text" name="pelotao" value="{{ socio.pelotao }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-2.5 text-xs font-bold outline-none">
                 </div>
             </div>
