@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
+        to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+    .animate-fade-up { animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
+            <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">
+                PERFIL <span class="texto-main">PÚBLICO</span>
+            </h1>
+        </div>
+    </div>
+
+    <div class="px-5 pt-6 animate-fade-up">
+        
+        <div class="flex flex-col items-center mb-6">
+            <div class="w-24 h-24 rounded-full overflow-hidden fundo-card border-[3px] border-tema shadow-lg relative mb-3 p-1">
+                <div class="w-full h-full rounded-full overflow-hidden bg-black/5 flex items-center justify-center">
+                    {% if usuario_alvo.perfil.foto %}
+                        <img src="{{ usuario_alvo.perfil.foto.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <i class="bi bi-person-fill texto-main opacity-30 text-4xl mt-2"></i>
+                    {% endif %}
+                </div>
+                <div class="absolute bottom-0 right-0 w-7 h-7 fundo-tema rounded-full flex items-center justify-center border-2 border-fundo-app shadow-sm">
+                    <i class="bi {% if usuario_alvo.perfil.aprovado %}bi-check-lg{% else %}bi-clock-history{% endif %} texto-claro text-[10px] font-black"></i>
+                </div>
+            </div>
+            <h2 class="text-lg font-black texto-main uppercase leading-none">{{ usuario_alvo.get_full_name|default:usuario_alvo.username }}</h2>
+            {% if usuario_alvo.perfil.vulgo or usuario_alvo.perfil.pelotao %}
+            <div class="flex gap-2 mt-2">
+                {% if usuario_alvo.perfil.vulgo %}
+                    <span class="bg-black/5 px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase texto-main">{{ usuario_alvo.perfil.vulgo }}</span>
+                {% endif %}
+                {% if usuario_alvo.perfil.pelotao %}
+                    <span class="bg-black/5 px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase texto-main">{{ usuario_alvo.perfil.torcida.nome_pelotao|default:"Pelotão" }}: {{ usuario_alvo.perfil.pelotao }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
+            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mt-1 mb-4">
+                {% if usuario_alvo.perfil.torcida %}{{ usuario_alvo.perfil.torcida.nome }}{% else %}Membro SAT{% endif %}
+            </p>
+            
+            {% if request.user != usuario_alvo %}
+            <form action="{% url 'seguir_usuario' usuario_alvo.id %}" method="POST" class="mb-2">
+                {% csrf_token %}
+                {% if request.user in usuario_alvo.perfil.seguidores.all %}
+                <button type="submit" class="fundo-app texto-main border border-suave text-xs font-black uppercase tracking-widest px-6 py-2.5 rounded-full shadow-sm hover:bg-black/5 transition-all cursor-pointer">
+                    Deixar de Seguir
+                </button>
+                {% else %}
+                <button type="submit" class="fundo-tema texto-claro border-none text-xs font-black uppercase tracking-widest px-6 py-2.5 rounded-full shadow-lg shadow-tema/30 active:scale-95 transition-all cursor-pointer">
+                    Seguir Perfil
+                </button>
+                {% endif %}
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-8">
+            <div class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center justify-center shadow-sm">
+                <span class="text-lg font-black texto-main leading-none mb-1">{{ usuario_alvo.perfil.seguidores.count|default:"0" }}</span>
+                <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Seguidores</span>
+            </div>
+            <div class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center justify-center shadow-sm">
+                <span class="text-lg font-black texto-main leading-none mb-1">{{ posts.count }}</span>
+                <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Publicações</span>
+            </div>
+        </div>
+
+        <div>
+            <h4 class="text-[10px] font-black texto-main opacity-40 uppercase tracking-widest mb-3 pl-2">Timeline de {{ usuario_alvo.get_full_name|default:usuario_alvo.username }}</h4>
+            
+            {% for post in posts %}
+            <div class="fundo-card border border-suave rounded-3xl p-4 mb-3 shadow-sm animate-fade-up" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-8 h-8 rounded-full overflow-hidden fundo-app border border-suave shrink-0 flex items-center justify-center">
+                        {% if usuario_alvo.perfil.foto %}
+                            <img src="{{ usuario_alvo.perfil.foto.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <i class="bi bi-person-fill texto-main opacity-30 text-lg mt-1"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-black texto-main leading-tight flex items-center gap-1">
+                            {{ usuario_alvo.get_full_name|default:usuario_alvo.username }}
+                            {% if usuario_alvo.perfil.aprovado %}
+                                <i class="bi bi-patch-check-fill texto-main text-[10px]" title="Sócio Oficial"></i>
+                            {% endif %}
+                        </h3>
+                        <p class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-wider mt-0.5">
+                            {% if post.torcida %}{{ post.torcida.sigla }} • {% endif %}{{ post.data_criacao|timesince }} atrás
+                        </p>
+                    </div>
+                </div>
+
+                {% if post.texto %}
+                <p class="text-sm texto-main opacity-90 leading-relaxed font-medium mb-3">
+                    {{ post.texto|linebreaksbr }}
+                </p>
+                {% endif %}
+
+                {% if post.midias.all %}
+                <div class="mb-3 relative group overflow-hidden rounded-2xl border border-suave shadow-sm">
+                    <div class="flex gap-1 overflow-x-auto snap-x-mandatory no-scrollbar bg-black/5" style="scroll-snap-type: x mandatory;">
+                        {% for media in post.midias.all %}
+                        <div class="min-w-full snap-center-item flex items-center justify-center bg-black/90 relative">
+                            {% if media.is_video %}
+                                <video src="{{ media.arquivo.url }}" controls class="w-full max-h-[450px] object-contain"></video>
+                            {% else %}
+                                <img src="{{ media.arquivo.url }}" class="w-full max-h-[450px] object-contain" loading="lazy">
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% elif post.imagem %}
+                <div class="mb-3 relative group overflow-hidden rounded-2xl border border-suave shadow-sm">
+                    <img src="{{ post.imagem.url }}" class="w-full max-h-[450px] object-cover" loading="lazy">
+                </div>
+                {% endif %}
+
+            </div>
+            {% empty %}
+            <div class="flex flex-col items-center justify-center py-10 text-center bg-black/5 dark:bg-white/5 rounded-3xl">
+                <i class="bi bi-chat-square-text text-2xl texto-main opacity-30 mb-2"></i>
+                <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-wider">Ainda sem publicações</p>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

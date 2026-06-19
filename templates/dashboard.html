@@ -161,11 +161,11 @@
                 <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Loja</span>
             </a>
 
-            <a href="{% url 'noticias' %}" class="flex flex-col items-center gap-2 group">
+            <a href="{% url 'games_menu' %}" class="flex flex-col items-center gap-2 group">
                 <div class="w-[60px] h-[60px] fundo-card border border-suave rounded-[20px] shadow-sm flex items-center justify-center transition-all duration-300 group-hover:bg-dinamico group-hover:border-transparent">
-                    <i class="bi bi-newspaper text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
+                    <i class="bi bi-controller text-xl texto-main opacity-70 group-hover:text-white group-hover:opacity-100"></i>
                 </div>
-                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Notícias</span>
+                <span class="text-[10px] font-bold texto-main uppercase tracking-wider">Games</span>
             </a>
         </div>
     </div>
@@ -388,14 +388,14 @@
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-black/5 border border-suave overflow-hidden flex items-center justify-center shrink-0">
-                                {% if post.autor.perfil.foto %}
-                                    <img src="{{ post.autor.perfil.foto.url }}" class="w-full h-full object-cover">
+                                {% if post.autor_s.perfil.foto %}
+                                    <img src="{{ post.autor_s.perfil.foto.url }}" class="w-full h-full object-cover">
                                 {% else %}
                                     <i class="bi bi-person-fill texto-main opacity-30 text-xl"></i>
                                 {% endif %}
                             </div>
                             <div>
-                                <h4 class="text-sm font-black texto-main leading-none line-clamp-1">{{ post.autor.first_name|default:post.autor.username }}</h4>
+                                <h4 class="text-sm font-black texto-main leading-none line-clamp-1">{{ post.autor_s.first_name|default:post.autor_s.username }}</h4>
                                 <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-widest mt-1">
                                     {{ post.data_criacao|timesince }} atrás
                                 </p>
@@ -418,7 +418,7 @@
                         <span class="text-xs font-bold">{{ post.curtidas.count }}</span>
                     </span>
 
-                    <button onclick="compartilharPost('{{ post.autor.first_name|default:post.autor.username|escapejs }}', '{{ post.texto|truncatechars:30|escapejs }}')" class="flex items-center gap-1.5 texto-main opacity-60 hover:text-dinamico hover:opacity-100 transition-colors ml-auto cursor-pointer">
+                    <button onclick="compartilharPost('{{ post.autor_s.first_name|default:post.autor_s.username|escapejs }}', '{{ post.texto|truncatechars:30|escapejs }}')" class="flex items-center gap-1.5 texto-main opacity-60 hover:text-dinamico hover:opacity-100 transition-colors ml-auto cursor-pointer">
                         <i class="bi bi-share-fill"></i>
                         <span class="text-xs font-bold uppercase tracking-wider"></span>
                     </button>

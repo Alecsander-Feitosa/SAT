@@ -22,9 +22,7 @@ urlpatterns = [
     path('noticias/', views.noticias, name='noticias'),
     
     # REDE SOCIAL (SAT Social - Fotos)
-    path('social/', views.mural_social, name='mural'),
     path('hub/', views.area_hub, name='hub'), # Link para o design antigo (cartão)
-    path('mural/', views.mural_social, name='mural_social'),
     
     # MODERAÇÃO
     path('moderacao/', organizadas_views.painel_moderador, name='moderacao_torcida'),

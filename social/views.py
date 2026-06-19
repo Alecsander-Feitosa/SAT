@@ -3,20 +3,33 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.utils import timezone
 from .models import Post, Comentario, PostMedia
+from organizadas.models import Evento, Caravana
 
 @login_required
 def mural_social(request):
     # LÓGICA DAS ABAS (Filtro do Feed)
     aba = request.GET.get('aba', 'global')
+    lembretes = []
     
     if aba == 'torcida' and hasattr(request.user, 'perfil') and request.user.perfil.torcida:
         # Mostra apenas posts direcionados à torcida do usuário
         posts = Post.objects.filter(torcida=request.user.perfil.torcida).order_by('-data_criacao')
+        
+        # LEMBRETES DE EVENTOS/CARAVANAS/REUNIÕES DA TORCIDA
+        agora = timezone.now()
+        torcida_usuario = request.user.perfil.torcida
+        eventos = list(Evento.objects.filter(torcida=torcida_usuario, data__gte=agora).order_by('data')[:5])
+        caravanas = list(Caravana.objects.filter(torcida=torcida_usuario, saida_horario__gte=agora).order_by('saida_horario')[:5])
+        
+        lembretes = eventos + caravanas
+        lembretes.sort(key=lambda x: getattr(x, 'data', getattr(x, 'saida_horario', agora)))
+        lembretes = lembretes[:5]
+        
     else:
-        # Mostra os posts globais (onde torcida é vazia) OU todos. 
-        # Aqui deixaremos exibir todos no global para a timeline ficar movimentada.
-        posts = Post.objects.all().order_by('-data_criacao')
+        # Mostra os posts globais (onde torcida é vazia).
+        posts = Post.objects.filter(torcida__isnull=True).order_by('-data_criacao')
     
     # LÓGICA DE CRIAR NOVO POST
     if request.method == 'POST':
@@ -63,7 +76,8 @@ def mural_social(request):
             
     context = {
         'posts': posts,
-        'aba_atual': aba 
+        'aba_atual': aba,
+        'lembretes': lembretes,
     }
     return render(request, 'mural.html', context)
 
@@ -191,3 +205,16 @@ def compartilhar_item(request, tipo_item, item_id):
         return redirect('mural') # Redireciona para o mural
         
     return redirect(request.META.get('HTTP_REFERER', 'mural'))
+
+@login_required
+def perfil_publico(request, user_id):
+    usuario_alvo = get_object_or_404(User, id=user_id)
+    
+    # Busca apenas os posts na timeline que esse usuário é o autor
+    posts = Post.objects.filter(autor_s=usuario_alvo).order_by('-data_criacao')
+    
+    context = {
+        'usuario_alvo': usuario_alvo,
+        'posts': posts,
+    }
+    return render(request, 'perfil_publico.html', context)

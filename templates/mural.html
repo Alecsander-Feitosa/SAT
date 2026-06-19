@@ -125,25 +125,60 @@
             </div>
         </div>
 
+        {% if lembretes %}
+        <div class="w-full animate-fade mt-1 mb-2">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <div class="flex items-center gap-2">
+                    <i class="bi bi-calendar-event-fill text-tema text-sm"></i>
+                    <h3 class="text-[10px] font-black texto-main opacity-60 uppercase tracking-widest mt-0.5">Agenda da Torcida</h3>
+                </div>
+            </div>
+
+            <div class="flex overflow-x-auto gap-3 pb-3 snap-x-mandatory no-scrollbar -mx-4 px-4">
+                {% for item in lembretes %}
+                <div class="snap-center-item shrink-0 w-[65%] max-w-[240px] fundo-card border border-tema/20 rounded-2xl shadow-sm overflow-hidden flex flex-col group relative">
+                    <div class="absolute inset-0 bg-gradient-to-br from-tema/5 to-transparent pointer-events-none"></div>
+                    <div class="p-3 flex flex-col flex-1 relative z-10">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-tema/10 px-2 py-0.5 rounded text-[8px] font-black uppercase text-tema tracking-wider">
+                                {% if item.saida_horario %}Caravana{% else %}{{ item.get_categoria_display|default:"Evento" }}{% endif %}
+                            </span>
+                            <span class="text-[9px] font-bold texto-main opacity-50 bg-black/5 px-1.5 py-0.5 rounded">
+                                {% if item.saida_horario %}{{ item.saida_horario|date:"d M - H:i" }}{% else %}{{ item.data|date:"d M - H:i" }}{% endif %}
+                            </span>
+                        </div>
+                        <h4 class="text-xs font-black texto-main leading-tight mb-2 line-clamp-2">{{ item.titulo }}</h4>
+                        <p class="text-[9px] font-bold texto-main opacity-60 flex items-center gap-1 mt-auto">
+                            <i class="bi bi-geo-alt-fill text-tema opacity-80"></i>
+                            <span class="truncate">{% if item.saida_local %}{{ item.saida_local }}{% else %}{{ item.local }}{% endif %}</span>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="shrink-0 w-1"></div>
+            </div>
+        </div>
+        {% endif %}
+
         {% for post in posts %}
         <div class="social-card fundo-card border border-suave p-4 animate-fade-up" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
             
             <div class="flex justify-between items-start mb-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 flex items-center justify-center">
+                    <a href="{% url 'perfil_publico' post.autor_s.id %}" class="w-10 h-10 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 flex items-center justify-center no-underline">
                         {% if post.autor_s.perfil.foto %}
                             <img src="{{ post.autor_s.perfil.foto.url }}" class="w-full h-full object-cover">
                         {% else %}
                             <i class="bi bi-person-fill texto-main opacity-30 text-2xl mt-1"></i>
                         {% endif %}
-                    </div>
+                    </a>
                     <div>
-                        <h3 class="text-sm font-black texto-main leading-tight flex items-center gap-1">
+                        <a href="{% url 'perfil_publico' post.autor_s.id %}" class="text-sm font-black texto-main leading-tight flex items-center gap-1 no-underline hover:text-tema transition-colors">
                             {{ post.autor_s.get_full_name|default:post.autor_s.username }}
                             {% if post.autor_s.perfil.aprovado %}
                                 <i class="bi bi-patch-check-fill texto-main text-[11px]" title="Sócio Oficial"></i>
                             {% endif %}
-                        </h3>
+                        </a>
                         <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider mt-0.5">
                             {% if post.torcida %}{{ post.torcida.sigla }} • {% endif %}{{ post.data_criacao|timesince }} atrás
                         </p>
@@ -360,13 +395,13 @@
                     {% if user.perfil.torcida %}
                     <div class="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl w-fit mb-3 border border-suave shadow-inner">
                         <label class="cursor-pointer relative m-0">
-                            <input type="radio" name="visibilidade" value="global" class="peer hidden" checked>
+                            <input type="radio" name="visibilidade" value="global" class="peer hidden" {% if aba_atual != 'torcida' %}checked{% endif %}>
                             <div class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 peer-checked:bg-white dark:peer-checked:bg-gray-800 peer-checked:text-tema peer-checked:shadow-sm transition-all flex items-center gap-1.5">
                                 <i class="bi bi-globe-americas"></i> Global
                             </div>
                         </label>
                         <label class="cursor-pointer relative m-0">
-                            <input type="radio" name="visibilidade" value="torcida" class="peer hidden">
+                            <input type="radio" name="visibilidade" value="torcida" class="peer hidden" {% if aba_atual == 'torcida' %}checked{% endif %}>
                             <div class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 peer-checked:bg-white dark:peer-checked:bg-gray-800 peer-checked:text-tema peer-checked:shadow-sm transition-all flex items-center gap-1.5">
                                 <i class="bi bi-shield-fill"></i> {{ user.perfil.torcida.sigla|default:"Torcida" }}
                             </div>

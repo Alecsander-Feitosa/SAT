@@ -68,11 +68,74 @@
             <div class="flex-grow">
                 <span class="text-gray-600 text-[9px] font-black uppercase italic">Em breve</span>
                 <h3 class="text-gray-400 text-lg font-black uppercase italic">Palpites SAT</h3>
-                <p class="text-gray-600 text-[10px] font-medium mt-1">Chute o placar e ganhe prêmios da Bonelaria.</p>
+                <p class="text-gray-600 text-[10px] font-medium mt-1">Chute o placar e ganhe prêmios.</p>
             </div>
+    </div>
+    
+    <div class="mt-8 mb-4">
+        <h2 class="text-xl font-black italic text-[#1A1A1A] uppercase">Passatempo <span class="text-[#CD7F32]">Grátis</span></h2>
+        <p class="text-[10px] text-gray-500 font-medium mt-1 mb-4">Relaxe e divirta-se com os melhores jogos clássicos.</p>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <button onclick="abrirJogo('https://www.crazygames.com/embed/2048')" class="fundo-card p-4 rounded-2xl shadow-sm border border-suave flex flex-col items-center gap-2 hover:scale-105 transition-transform w-full">
+                <div class="w-12 h-12 rounded-xl bg-orange-500 text-white flex items-center justify-center font-black text-xl shadow-inner">
+                    2048
+                </div>
+                <span class="text-xs font-bold texto-main">2048 Clássico</span>
+            </button>
+            
+            <button onclick="abrirJogo('https://www.crazygames.com/embed/solitaire-klondike')" class="fundo-card p-4 rounded-2xl shadow-sm border border-suave flex flex-col items-center gap-2 hover:scale-105 transition-transform w-full">
+                <div class="w-12 h-12 rounded-xl bg-blue-500 text-white flex items-center justify-center font-black text-xl shadow-inner">
+                    <i class="bi bi-suit-club-fill"></i>
+                </div>
+                <span class="text-xs font-bold texto-main">Paciência</span>
+            </button>
+
+            <button onclick="abrirJogo('https://www.crazygames.com/embed/uno-online')" class="fundo-card p-4 rounded-2xl shadow-sm border border-suave flex flex-col items-center gap-2 hover:scale-105 transition-transform w-full">
+                <div class="w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-xl shadow-inner">
+                    <i class="bi bi-suit-spade-fill"></i>
+                </div>
+                <span class="text-xs font-bold texto-main">UNO Online</span>
+            </button>
+            
+            <button onclick="abrirJogo('https://www.crazygames.com/embed/8-ball-billiards-classic')" class="fundo-card p-4 rounded-2xl shadow-sm border border-suave flex flex-col items-center gap-2 hover:scale-105 transition-transform w-full">
+                <div class="w-12 h-12 rounded-xl bg-green-700 text-white flex items-center justify-center font-black text-xl shadow-inner">
+                    <i class="bi bi-8-circle-fill"></i>
+                </div>
+                <span class="text-xs font-bold texto-main">Bilhar (8 Ball)</span>
+            </button>
+        </div>
     </div>
 
 
 </div>
-{% endblock %}
 
+<!-- Modal do Jogo -->
+<div id="gameModal" class="fixed inset-0 bg-black/90 z-[150] hidden flex-col items-center justify-center backdrop-blur-sm transition-opacity">
+    <div class="w-full max-w-3xl flex justify-between items-center p-4">
+        <h3 class="text-white font-black italic uppercase text-lg">SAT <span class="text-[#CD7F32]">GAMES</span></h3>
+        <button onclick="fecharJogo()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="w-full flex-grow relative bg-black">
+        <iframe id="gameIframe" src="" width="100%" height="100%" frameborder="0" scrolling="no" allowfullscreen class="absolute inset-0 w-full h-full"></iframe>
+    </div>
+</div>
+
+<script>
+    function abrirJogo(url) {
+        document.getElementById('gameIframe').src = url;
+        document.getElementById('gameModal').classList.remove('hidden');
+        document.getElementById('gameModal').classList.add('flex');
+        document.body.style.overflow = 'hidden'; // Evita rolagem da página de fundo
+    }
+    
+    function fecharJogo() {
+        document.getElementById('gameIframe').src = "";
+        document.getElementById('gameModal').classList.add('hidden');
+        document.getElementById('gameModal').classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+</script>
+{% endblock %}

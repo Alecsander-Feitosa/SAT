@@ -215,6 +215,11 @@ def painel_moderador(request):
                 obrigatorio=request.POST.get('obrigatorio') == 'on'
             )
             messages.success(request, "Campo personalizado adicionado ao formulário de sócios!")
+            
+        elif acao == 'deletar_campo_custom':
+            campo = get_object_or_404(CampoPersonalizado, id=request.POST.get('item_id'), torcida=minha_torcida)
+            campo.delete()
+            messages.success(request, "Campo personalizado removido com sucesso.")
 
         # 2. EVENTOS E CARAVANAS
         elif acao == 'novo_evento':
@@ -547,9 +552,9 @@ def painel_moderador(request):
     context = {
         'torcida': minha_torcida,
         # Sócios e KYC
-        'membros_ativos': Perfil.objects.filter(torcida=minha_torcida, aprovado=True).select_related('user'),
-        'membros_pendentes': Perfil.objects.filter(torcida=minha_torcida, aprovado=False).select_related('user'),
-        'campos_custom': CampoPersonalizado.objects.filter(torcida=minha_torcida),
+        'membros_ativos': Perfil.objects.filter(torcida=minha_torcida, aprovado=True).select_related('user').order_by('user__first_name', 'user__username'),
+        'membros_pendentes': Perfil.objects.filter(torcida=minha_torcida, aprovado=False).select_related('user').order_by('user__first_name', 'user__username'),
+        'campos_kyc': CampoPersonalizado.objects.filter(torcida=minha_torcida),
         
         # Eventos
         'eventos': Evento.objects.filter(torcida=minha_torcida).prefetch_related(

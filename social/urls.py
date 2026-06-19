@@ -8,4 +8,5 @@ urlpatterns = [
     path('usuario/<int:usuario_id>/seguir/', views.seguir_usuario, name='seguir_usuario'),
     path('excluir/<int:post_id>/', views.excluir_post, name='social_excluir_post'),
     path('compartilhar/<str:tipo_item>/<int:item_id>/', views.compartilhar_item, name='social_compartilhar'),
+    path('perfil/<int:user_id>/', views.perfil_publico, name='perfil_publico'),
 ]

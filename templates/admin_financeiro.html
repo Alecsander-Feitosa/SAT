@@ -4,34 +4,54 @@
 {% block content %}
 <style>
     :root {
-        /* Define a cor principal da claque ou usa o padrão da SAT */
-        --cor-primaria: {{ torcida.cor_primaria|default:"#D37129" }};
-    }
-    
-    .bg-dinamico { background-color: var(--cor-primaria) !important; }
-    .text-dinamico { color: var(--cor-primaria) !important; }
-    .border-dinamico { border-color: var(--cor-primaria) !important; }
 
-    .modal-backdrop { 
-        background-color: rgba(0, 0, 0, 0.7); 
-        backdrop-filter: blur(8px); 
+        /* Define a cor principal da claque ou usa o padrão da SAT */
+        --cor-primaria: {
+                {
+                torcida.cor_primaria|default: "#D37129"
+            }
+        }
+
+        ;
     }
-    
-    .no-scrollbar::-webkit-scrollbar { display: none; }
+
+    .bg-dinamico {
+        background-color: var(--cor-primaria) !important;
+    }
+
+    .text-dinamico {
+        color: var(--cor-primaria) !important;
+    }
+
+    .border-dinamico {
+        border-color: var(--cor-primaria) !important;
+    }
+
+    .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
 </style>
 
 <div class="w-full min-h-screen fundo-app px-5 pt-8 pb-32">
-    
+
     <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-3">
-            <a href="{% url 'moderacao_torcida' %}" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main shadow-sm border border-suave transition-transform hover:scale-105">
+            <a href="{% url 'moderacao_torcida' %}"
+                class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main shadow-sm border border-suave transition-transform hover:scale-105">
                 <i class="bi bi-arrow-left"></i>
             </a>
             <div>
-                <h1 class="text-2xl font-black italic texto-main uppercase" style="font-family: 'Montserrat', sans-serif;">
+                <h1 class="text-2xl font-black italic texto-main uppercase"
+                    style="font-family: 'Montserrat', sans-serif;">
                     GESTÃO <span class="text-dinamico">FINANCEIRA</span>
                 </h1>
-                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Painel: {{ torcida.nome }}</p>
+                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Painel: {{
+                    torcida.nome }}</p>
             </div>
         </div>
     </div>
@@ -51,20 +71,24 @@
                 <i class="bi bi-exclamation-triangle-fill"></i>
             </div>
             <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mb-1">Inadimplentes</p>
-            <h3 class="text-xl font-black texto-main">{{ qtd_inadimplentes }} <span class="text-xs font-medium opacity-50">sócios</span></h3>
+            <h3 class="text-xl font-black texto-main">{{ qtd_inadimplentes }} <span
+                    class="text-xs font-medium opacity-50">sócios</span></h3>
             <p class="text-[8px] text-red-500 font-bold mt-1">R$ {{ valor_receber|floatformat:2 }} a receber</p>
         </div>
     </div>
 
     <div class="grid grid-cols-2 gap-3 mb-8">
-        <button type="button" onclick="abrirModal('modalNovoPlano')" class="bg-dinamico text-white rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-md active:scale-95 transition-transform border-0">
+        <button type="button" onclick="abrirModal('modalNovoPlano')"
+            class="bg-dinamico text-white rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-md active:scale-95 transition-transform border-0">
             <i class="bi bi-plus-circle text-2xl mb-2"></i>
             <span class="text-[10px] font-black uppercase tracking-widest">Novo Plano</span>
         </button>
-        
-        <a href="{% url 'exportar_financeiro_csv' %}" class="fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm active:scale-95 transition-transform">
+
+        <a href="{% url 'exportar_financeiro_csv' %}"
+            class="fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm active:scale-95 transition-transform">
             <i class="bi bi-file-earmark-spreadsheet texto-main text-2xl mb-2 opacity-70"></i>
-            <span class="text-[10px] font-black texto-main opacity-70 uppercase tracking-widest">Exportar Relatório</span>
+            <span class="text-[10px] font-black texto-main opacity-70 uppercase tracking-widest">Exportar
+                Relatório</span>
         </a>
     </div>
 
@@ -79,11 +103,13 @@
                     </div>
                     <div>
                         <h4 class="text-sm font-black texto-main uppercase leading-none mb-1">{{ plano.nome }}</h4>
-                        <p class="text-[10px] font-bold text-dinamico uppercase tracking-wider">R$ {{ plano.preco|floatformat:2 }} / mês</p>
+                        <p class="text-[10px] font-bold text-dinamico uppercase tracking-wider">R$ {{
+                            plano.preco|floatformat:2 }} / mês</p>
                     </div>
                 </div>
                 {% if plano.destaque %}
-                <span class="bg-yellow-500/10 text-yellow-600 px-2 py-1 rounded text-[8px] font-black uppercase border border-yellow-500/20">Destaque</span>
+                <span
+                    class="bg-yellow-500/10 text-yellow-600 px-2 py-1 rounded text-[8px] font-black uppercase border border-yellow-500/20">Destaque</span>
                 {% endif %}
             </div>
             {% empty %}
@@ -95,26 +121,31 @@
     </div>
 
     <div class="mb-8">
-        <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest mb-4">Mensalidades em Atraso</h3>
+        <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest mb-4">Mensalidades em Atraso
+        </h3>
         <div class="space-y-3">
             {% for fatura in faturas_atrasadas %}
-            <div class="w-full fundo-card border border-red-500/20 rounded-[20px] p-4 flex justify-between items-center shadow-sm">
+            <div
+                class="w-full fundo-card border border-red-500/20 rounded-[20px] p-4 flex justify-between items-center shadow-sm">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-black/5 overflow-hidden">
                         {% if fatura.assinatura.perfil.foto %}
-                            <img src="{{ fatura.assinatura.perfil.foto.url }}" class="w-full h-full object-cover">
+                        <img src="{{ fatura.assinatura.perfil.foto.url }}" class="w-full h-full object-cover">
                         {% else %}
-                            <i class="bi bi-person-fill text-2xl texto-main opacity-20 relative top-1 left-2"></i>
+                        <i class="bi bi-person-fill text-2xl texto-main opacity-20 relative top-1 left-2"></i>
                         {% endif %}
                     </div>
                     <div>
                         <h4 class="text-sm font-bold texto-main leading-none mb-1">
-                            {{ fatura.assinatura.perfil.user.first_name|default:fatura.assinatura.perfil.user.username }}
+                            {{ fatura.assinatura.perfil.user.first_name|default:fatura.assinatura.perfil.user.username
+                            }}
                         </h4>
-                        <p class="text-[9px] text-red-500 font-bold uppercase tracking-wider">Venceu: {{ fatura.data_vencimento|date:"d/m/Y" }}</p>
+                        <p class="text-[9px] text-red-500 font-bold uppercase tracking-wider">Venceu: {{
+                            fatura.data_vencimento|date:"d/m/Y" }}</p>
                     </div>
                 </div>
-                <a href="https://wa.me/{{ fatura.assinatura.perfil.whatsapp|cut:' ' }}" target="_blank" class="w-8 h-8 rounded-full bg-green-500/20 text-green-600 flex items-center justify-center">
+                <a href="https://wa.me/{{ fatura.assinatura.perfil.whatsapp|cut:' ' }}" target="_blank"
+                    class="w-8 h-8 rounded-full bg-green-500/20 text-green-600 flex items-center justify-center">
                     <i class="bi bi-whatsapp"></i>
                 </a>
             </div>
@@ -127,17 +158,21 @@
     </div>
 
     <div>
-        <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest mb-4">Últimos Pagamentos (Hoje)</h3>
+        <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest mb-4">Últimos Pagamentos
+            (Hoje)</h3>
         <div class="space-y-3">
             {% for pagamento in ultimos_pagamentos %}
-            <div class="w-full fundo-card border border-suave rounded-[20px] p-4 flex justify-between items-center shadow-sm">
+            <div
+                class="w-full fundo-card border border-suave rounded-[20px] p-4 flex justify-between items-center shadow-sm">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
                         <i class="bi bi-check-lg"></i>
                     </div>
                     <div>
                         <h4 class="text-sm font-bold texto-main leading-none mb-1">
-                            {{ pagamento.assinatura.perfil.user.first_name|default:pagamento.assinatura.perfil.user.username }}
+                            {{
+                            pagamento.assinatura.perfil.user.first_name|default:pagamento.assinatura.perfil.user.username
+                            }}
                         </h4>
                         <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider">
                             {{ pagamento.assinatura.plano.nome }} • {{ pagamento.metodo_pagamento|default:"PIX" }}
@@ -154,40 +189,51 @@
 
 </div>
 
-<div id="modalNovoPlano" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
-    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
+<div id="modalNovoPlano"
+    class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
+    <div
+        class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
         <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
             <h3 class="font-black texto-main text-sm uppercase tracking-widest">Novo Plano de Sócio</h3>
-            <button type="button" onclick="fecharModal('modalNovoPlano')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i class="bi bi-x-lg"></i></button>
+            <button type="button" onclick="fecharModal('modalNovoPlano')"
+                class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i
+                    class="bi bi-x-lg"></i></button>
         </div>
-        
+
         <form method="POST" class="space-y-4">
             {% csrf_token %}
             <input type="hidden" name="acao" value="novo_plano">
 
             <div class="space-y-1">
                 <label class="text-[9px] font-black opacity-50 uppercase tracking-widest ml-1">Nome do Plano</label>
-                <input type="text" name="nome" required placeholder="Ex: Sócio Ouro" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+                <input type="text" name="nome" required placeholder="Ex: Sócio Ouro"
+                    class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
             </div>
 
             <div class="space-y-1">
                 <label class="text-[9px] font-black opacity-50 uppercase tracking-widest ml-1">Preço Mensal (R$)</label>
-                <input type="number" step="0.01" name="preco" required placeholder="0.00" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
+                <input type="number" step="0.01" name="preco" required placeholder="0.00"
+                    class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
             </div>
 
             <div class="space-y-1">
-                <label class="text-[9px] font-black opacity-50 uppercase tracking-widest ml-1">Benefícios (Um por linha)</label>
-                <textarea name="beneficios" rows="4" placeholder="Descontos em ingressos&#10;Prioridade na loja" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none"></textarea>
+                <label class="text-[9px] font-black opacity-50 uppercase tracking-widest ml-1">Benefícios (Um por
+                    linha)</label>
+                <textarea name="beneficios" rows="4" placeholder="Descontos em ingressos&#10;Prioridade na loja"
+                    class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none"></textarea>
             </div>
 
             <div class="flex items-center gap-3 p-4 bg-black/5 rounded-xl border border-suave">
-                <input type="checkbox" name="destaque" id="checkDestaque" class="w-5 h-5 rounded border-suave text-orange-500 focus:ring-orange-500 bg-transparent cursor-pointer">
-                <label for="checkDestaque" class="text-[10px] font-black uppercase opacity-70 cursor-pointer select-none">
+                <input type="checkbox" name="destaque" id="checkDestaque"
+                    class="w-5 h-5 rounded border-suave text-orange-500 focus:ring-orange-500 bg-transparent cursor-pointer">
+                <label for="checkDestaque"
+                    class="text-[10px] font-black uppercase opacity-70 cursor-pointer select-none">
                     Destacar este plano na adesão?
                 </label>
             </div>
-            
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg bg-dinamico active:scale-95 transition-transform">
+
+            <button type="submit"
+                class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg bg-dinamico active:scale-95 transition-transform">
                 Criar Plano
             </button>
         </form>

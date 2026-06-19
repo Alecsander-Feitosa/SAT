@@ -27,11 +27,12 @@ from .models import Evento
 from organizadas.models import Post, Caravana # Certifique-se de importar os modelos
 from django import forms
 from gamification.models import PerfilGamificacao
-from organizadas.models import Evento, Torcida, Post, Noticia # Verifique se é Post ou PostTorcida
+from organizadas.models import Evento, Torcida, Noticia # Removido o Post daqui para evitar confusão
+from social.models import Post as SocialPost
 from django.contrib.auth.models import User
 from organizadas.models import Parceiro
 from organizadas.models import Publicidade
-from django.db.models import Q
+from django.db.models import Q, Count
 from datetime import date
 from organizadas.models import Comentario
 from accounts.models import Perfil
@@ -393,7 +394,7 @@ def dashboard(request):
             params_gerais = {'apikey': api_key, 'country': 'br', 'category': 'sports', 'language': 'pt', 'q': 'futebol'}
             response_geral = requests.get(url_geral, params=params_gerais, timeout=5)
             if response_geral.status_code == 200:
-                noticias_gerais_api = response_geral.json().get('results', [])[:5]
+                noticias_gerais_api = response_geral.json().get('results', [])[:15]
                 cache.set('news_geral_v1', noticias_gerais_api, 900)
         except Exception:
             noticias_gerais_api = []
@@ -433,8 +434,8 @@ def dashboard(request):
                         if time_busca_lower in titulo or time_busca_lower in descricao:
                             noticias_time_api.append(art)
                             
-                        # Limita a 5 notícias rigorosamente validadas
-                        if len(noticias_time_api) == 5:
+                        # Limita a 15 notícias rigorosamente validadas
+                        if len(noticias_time_api) == 15:
                             break
                             
                     cache.set(cache_key_time, noticias_time_api, 900)
@@ -448,16 +449,17 @@ def dashboard(request):
 
     if torcida_selecionada:
         eventos = Evento.objects.filter(torcida=torcida_selecionada, data__gte=agora).order_by('data')[:3]
-        posts_sociais = Post.objects.filter(torcida=torcida_selecionada).order_by('-data_criacao')[:10]
+        # Trending topic: mostra os posts mais curtidos no geral
+        posts_sociais = SocialPost.objects.all().annotate(num_curtidas=Count('curtidas')).order_by('-num_curtidas', '-data_criacao')[:10]
         parceiros = Parceiro.objects.filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))
         publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora).filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))
         produtos_destaque = Produto.objects.filter(destaque=True).filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))[:4]
     else:
         eventos = Evento.objects.filter(data__gte=agora).order_by('data')[:3]
-        posts_sociais = Post.objects.all().order_by('-data_criacao')[:10]
+        posts_sociais = SocialPost.objects.all().annotate(num_curtidas=Count('curtidas')).order_by('-num_curtidas', '-data_criacao')[:10]
         parceiros = Parceiro.objects.filter(torcida__isnull=True)
         publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora, torcida__isnull=True)
-        produtos_destaque = Produto.objects.filter(destaque=True, torcida__isnull=True)[:4]
+        produtos_destaque = Produto.objects.filter(destaque=True)[:4]
 
     context = {
         'produtos_destaque': produtos_destaque,
@@ -503,13 +505,7 @@ def noticias(request):
     
     lista_final = []
     
-    lista_final.append({
-        'url': '#',
-        'title': 'NOVA COLEÇÃO DE BONÉS DA BONELARIA',
-        'description': 'Garanta o novo modelo oficial da SAT produzido na nossa fábrica.',
-        'image': 'https://placehold.co/600x400/D37129/white?text=BONELARIA+SAT',
-        'source': 'DIRETORIA'
-    })
+
 
     urls_vistas = set()
 
@@ -709,31 +705,7 @@ def logout_view(request):
     return redirect('login')
 
 
-@login_required
-@torcida_required
-def mural_social(request):
-    perfil = request.user.perfil
-    
-    if request.method == "POST":
-        texto = request.POST.get('texto')
-        imagem = request.FILES.get('imagem')
-        
-        # O print abaixo ajudará você a ver no terminal se os dados estão chegando
-        print(f"DEBUG: Texto recebido: {texto} | Imagem recebida: {imagem}")
 
-        if texto or imagem:
-            # USANDO O NOME CORRIGIDO: PostTorcida
-            PostTorcida.objects.create(
-                autor=request.user,
-                torcida=perfil.torcida,
-                texto=texto,
-                imagem=imagem
-            )
-            return redirect('mural.html') 
-
-    # Busca usando PostTorcida e o campo data_criacao (que está correto no seu models.py)
-    posts = PostTorcida.objects.filter(torcida=perfil.torcida).order_by('-data_criacao')
-    return render(request, 'mural.html', {'posts': posts})
 
 
 
