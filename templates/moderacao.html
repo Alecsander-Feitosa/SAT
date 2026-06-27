@@ -124,11 +124,37 @@
         </div>
 
         <div id="socios" class="secao-conteudo">
+            
+            <div class="flex justify-between items-center mb-6 fundo-card p-4 rounded-2xl border border-suave">
+                <div>
+                    <h3 class="text-[12px] font-black texto-main uppercase tracking-widest flex items-center gap-2"><i class="bi bi-robot text-orange-500 text-lg"></i> Aprovação Automática</h3>
+                    <p class="text-[9px] opacity-60 mt-1">Se ativado, os novos membros que escolherem esta torcida entrarão automaticamente sem precisar de aprovação manual KYC.</p>
+                </div>
+                <form method="POST" action="{% url 'moderacao_torcida' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="toggle_aprovacao_automatica">
+                    <button type="submit" class="{% if torcida.aprovacao_automatica %}bg-green-500 text-white{% else %}bg-black/10 texto-main{% endif %} px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-2 transition-colors shadow-sm">
+                        <i class="bi {% if torcida.aprovacao_automatica %}bi-toggle-on{% else %}bi-toggle-off{% endif %} text-lg"></i>
+                        {% if torcida.aprovacao_automatica %}Ativado{% else %}Desativado{% endif %}
+                    </button>
+                </form>
+            </div>
+
             {% if membros_pendentes %}
             <div class="mb-8">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3 border-orange-500">Aprovações Pendentes (KYC)</h3>
-                    <span class="bg-orange-500/10 text-orange-600 px-3 py-1 rounded-md text-[10px] font-black uppercase border border-orange-500/20 animate-pulse">{{ membros_pendentes.count }} Aguardando</span>
+                <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3 border-orange-500">Aprovações Pendentes (KYC)</h3>
+                        <span class="bg-orange-500/10 text-orange-600 px-3 py-1 rounded-md text-[10px] font-black uppercase border border-orange-500/20 animate-pulse">Aguardando</span>
+                    </div>
+                    
+                    <form method="POST" action="{% url 'moderacao_torcida' %}" onsubmit="return confirm('Tem certeza que deseja APROVAR TODOS os sócios pendentes de uma só vez?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="aprovar_todos">
+                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase shadow-md transition-colors flex items-center gap-1">
+                            <i class="bi bi-check-all text-sm"></i> Aprovar Todos
+                        </button>
+                    </form>
                 </div>
                 
                 <div class="space-y-3">
@@ -1874,7 +1900,15 @@
         document.getElementById(idSecao).classList.add('secao-ativa');
         document.getElementById('btn-' + idSecao).classList.remove('tab-inactive');
         document.getElementById('btn-' + idSecao).classList.add('tab-active');
+        sessionStorage.setItem('abaAtivaModeracao', idSecao);
     }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const abaSalva = sessionStorage.getItem('abaAtivaModeracao');
+        if (abaSalva && document.getElementById(abaSalva)) {
+            mudarAba(abaSalva);
+        }
+    });
 
     function abrirModal(modalId) {
         var modal = document.getElementById(modalId);

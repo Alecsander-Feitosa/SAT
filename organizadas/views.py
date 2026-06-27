@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.dateparse import parse_datetime
+from django.core.paginator import Paginator
 from accounts.models import Aliada, Fatura, Assinatura, PlanoSocio, Cancao, CampoPersonalizado, Perfil, HistoricoSocio
 from .models import Torcida, Evento, MembroDiretoria, Regra, FotoGaleria
 # IMPORTAÇÃO LOCAL CORRIGIDA (Separando o que é do Organizadas e o que é do Accounts)
@@ -40,7 +41,7 @@ def hub_view(request, slug):
         'publicidades': Publicidade.objects.filter(torcida=torcida),
         
         # Dados institucionais
-        'diretoria': MembroDiretoria.objects.filter(torcida=torcida).order_by('categoria__ordem', 'ordem'),
+        'diretoria': MembroDiretoria.objects.filter(torcida=torcida).select_related('categoria').order_by('categoria__ordem', 'ordem'),
         'regras': Regra.objects.filter(torcida=torcida).order_by('categoria', 'ordem'),
         'aliadas': Aliada.objects.filter(torcida=torcida),
         'conquistas': ConquistaTorcida.objects.filter(torcida=torcida),
@@ -71,7 +72,10 @@ def mural_conquistas(request, slug):
 @login_required
 def lista_eventos(request, slug):
     torcida = get_object_or_404(Torcida, slug=slug)
-    eventos = Evento.objects.filter(torcida=torcida).order_by('-data')
+    eventos_list = Evento.objects.filter(torcida=torcida).order_by('-data')
+    paginator = Paginator(eventos_list, 20)
+    page_num = request.GET.get('page')
+    eventos = paginator.get_page(page_num)
     # O template de eventos estava na raiz da pasta templates segundo a estrutura
     return render(request, 'eventos.html', {'torcida': torcida, 'eventos': eventos})
 
@@ -91,7 +95,10 @@ def aliadas(request, slug):
 @login_required
 def viagens(request, slug):
     torcida = get_object_or_404(Torcida, slug=slug)
-    caravanas = Caravana.objects.filter(torcida=torcida).order_by('-saida_horario')
+    caravanas_list = Caravana.objects.filter(torcida=torcida).order_by('-saida_horario')
+    paginator = Paginator(caravanas_list, 15)
+    page_num = request.GET.get('page')
+    caravanas = paginator.get_page(page_num)
     return render(request, 'torcida/viagens.html', {'torcida': torcida, 'caravanas': caravanas})
 
 
@@ -164,6 +171,23 @@ def painel_moderador(request):
             p.save()
             HistoricoSocio.objects.create(perfil=p, acao="Aprovado", moderador=request.user, observacao="Aprovado via Painel SAT")
             messages.success(request, f"Sócio {p.user.username} aprovado!")
+            
+        elif acao == 'aprovar_todos':
+            perfis = Perfil.objects.filter(torcida=minha_torcida, aprovado=False)
+            count = perfis.count()
+            if count > 0:
+                for p in perfis:
+                    HistoricoSocio.objects.create(perfil=p, acao="Aprovado", moderador=request.user, observacao="Aprovado em massa via Painel")
+                perfis.update(aprovado=True)
+                messages.success(request, f"{count} sócios aprovados com sucesso!")
+            else:
+                messages.info(request, "Nenhum sócio pendente para aprovar.")
+                
+        elif acao == 'toggle_aprovacao_automatica':
+            minha_torcida.aprovacao_automatica = not minha_torcida.aprovacao_automatica
+            minha_torcida.save()
+            estado = "ativada" if minha_torcida.aprovacao_automatica else "desativada"
+            messages.success(request, f"Aprovação automática {estado}!")
             
         elif acao == 'rejeitar_socio':
             # PRIMEIRO BUSCA O PERFIL
@@ -549,11 +573,24 @@ def painel_moderador(request):
     # ==========================================
     # RENDERIZAÇÃO DA PÁGINA (GET)
     # ==========================================
+    
+    # Paginação: Ativos e Pendentes
+    membros_ativos_list = Perfil.objects.filter(torcida=minha_torcida, aprovado=True).select_related('user').order_by('user__first_name', 'user__username')
+    paginator_ativos = Paginator(membros_ativos_list, 50)
+    page_ativos = request.GET.get('page_ativos')
+    membros_ativos = paginator_ativos.get_page(page_ativos)
+
+    membros_pendentes_list = Perfil.objects.filter(torcida=minha_torcida, aprovado=False).select_related('user').order_by('user__first_name', 'user__username')
+    paginator_pendentes = Paginator(membros_pendentes_list, 50)
+    page_pendentes = request.GET.get('page_pendentes')
+    membros_pendentes = paginator_pendentes.get_page(page_pendentes)
+    
+    # Otimização de queries com prefetch_related adicionais e select_related
     context = {
         'torcida': minha_torcida,
         # Sócios e KYC
-        'membros_ativos': Perfil.objects.filter(torcida=minha_torcida, aprovado=True).select_related('user').order_by('user__first_name', 'user__username'),
-        'membros_pendentes': Perfil.objects.filter(torcida=minha_torcida, aprovado=False).select_related('user').order_by('user__first_name', 'user__username'),
+        'membros_ativos': membros_ativos,
+        'membros_pendentes': membros_pendentes,
         'campos_kyc': CampoPersonalizado.objects.filter(torcida=minha_torcida),
         
         # Eventos
@@ -567,7 +604,7 @@ def painel_moderador(request):
         # Institucional e Marca
         'regras': Regra.objects.filter(torcida=minha_torcida).order_by('categoria', 'ordem'),
         'parceiros': Parceiro.objects.filter(torcida=minha_torcida),
-        'diretoria': MembroDiretoria.objects.filter(torcida=minha_torcida).order_by('categoria__ordem', 'ordem'),
+        'diretoria': MembroDiretoria.objects.filter(torcida=minha_torcida).select_related('categoria').order_by('categoria__ordem', 'ordem'),
         'categorias_diretoria': CategoriaDiretoria.objects.filter(torcida=minha_torcida).order_by('ordem'),
         
         # Cultura e Identidade
@@ -577,7 +614,7 @@ def painel_moderador(request):
         'aliadas': Aliada.objects.filter(torcida=minha_torcida),
         
         # Loja
-        'produtos': Produto.objects.filter(torcida=minha_torcida).order_by('-id'),
+        'produtos': Produto.objects.filter(torcida=minha_torcida).select_related('categoria').order_by('-id'),
         'categorias_loja': CategoriaProduto.objects.filter(torcida=minha_torcida),
     }
     

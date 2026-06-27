@@ -20,6 +20,7 @@ class Torcida(models.Model):
     cor_terciaria = models.CharField("Cor Terciária", max_length=7, default="#000000")
     cor_fundo = models.CharField("Cor de Fundo do App", max_length=7, default="#121212")
     nome_pelotao = models.CharField("Nome do Pelotão", max_length=50, default="Pelotão", blank=True, help_text="Como a torcida chama seus pelotões/comandos/sub-sedes (Ex: Comando, Sub-sede, Bonde, Distrito)")
+    aprovacao_automatica = models.BooleanField("Aprovação Automática", default=False, help_text="Se ativado, os novos sócios entram na torcida automaticamente sem precisar de aprovação manual.")
     
     def save(self, *args, **kwargs):
         # Se o slug estiver vazio, ele cria um automaticamente baseado no nome

@@ -9,13 +9,26 @@ from organizadas.models import Evento, Caravana
 
 @login_required
 def mural_social(request):
+    # LÓGICA DE BUSCA
+    query = request.GET.get('q', '').strip()
+    usuarios_encontrados = None
+    if query:
+        from django.db.models import Q
+        usuarios_encontrados = User.objects.filter(
+            Q(first_name__icontains=query) | Q(username__icontains=query)
+        ).exclude(id=request.user.id).select_related('perfil', 'perfil__torcida')[:30]
+
     # LÓGICA DAS ABAS (Filtro do Feed)
     aba = request.GET.get('aba', 'global')
     lembretes = []
     
     if aba == 'torcida' and hasattr(request.user, 'perfil') and request.user.perfil.torcida:
         # Mostra apenas posts direcionados à torcida do usuário
-        posts = Post.objects.filter(torcida=request.user.perfil.torcida).order_by('-data_criacao')
+        posts = Post.objects.filter(
+            torcida=request.user.perfil.torcida
+        ).select_related('autor_s', 'autor_s__perfil', 'evento_relacionado').prefetch_related(
+            'midias', 'curtidas', 'comentarios', 'comentarios__autor', 'comentarios__autor__perfil'
+        ).order_by('-data_criacao')[:30]
         
         # LEMBRETES DE EVENTOS/CARAVANAS/REUNIÕES DA TORCIDA
         agora = timezone.now()
@@ -29,7 +42,11 @@ def mural_social(request):
         
     else:
         # Mostra os posts globais (onde torcida é vazia).
-        posts = Post.objects.filter(torcida__isnull=True).order_by('-data_criacao')
+        posts = Post.objects.filter(
+            torcida__isnull=True
+        ).select_related('autor_s', 'autor_s__perfil', 'evento_relacionado').prefetch_related(
+            'midias', 'curtidas', 'comentarios', 'comentarios__autor', 'comentarios__autor__perfil'
+        ).order_by('-data_criacao')[:30]
     
     # LÓGICA DE CRIAR NOVO POST
     if request.method == 'POST':
@@ -78,6 +95,8 @@ def mural_social(request):
         'posts': posts,
         'aba_atual': aba,
         'lembretes': lembretes,
+        'query': query,
+        'usuarios_encontrados': usuarios_encontrados,
     }
     return render(request, 'mural.html', context)
 

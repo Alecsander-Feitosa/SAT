@@ -383,7 +383,7 @@
 
         <div class="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory no-scrollbar -mx-5 px-5">
             {% for post in posts_sociais|slice:":5" %}
-            <div class="snap-center-item shrink-0 w-[85%] max-w-[320px] fundo-card border border-suave rounded-[20px] shadow-sm p-4 relative overflow-hidden flex flex-col justify-between">
+            <a href="{% url 'mural' %}" class="block snap-center-item shrink-0 w-[85%] max-w-[320px] fundo-card border border-suave rounded-[20px] shadow-sm p-4 relative overflow-hidden flex flex-col justify-between hover:opacity-90 transition-opacity">
                 <div>
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center gap-3">
@@ -418,12 +418,12 @@
                         <span class="text-xs font-bold">{{ post.curtidas.count }}</span>
                     </span>
 
-                    <button onclick="compartilharPost('{{ post.autor_s.first_name|default:post.autor_s.username|escapejs }}', '{{ post.texto|truncatechars:30|escapejs }}')" class="flex items-center gap-1.5 texto-main opacity-60 hover:text-dinamico hover:opacity-100 transition-colors ml-auto cursor-pointer">
+                    <button type="button" onclick="event.preventDefault(); event.stopPropagation(); compartilharPost('{{ post.autor_s.first_name|default:post.autor_s.username|escapejs }}', '{{ post.texto|truncatechars:30|escapejs }}')" class="flex items-center gap-1.5 texto-main opacity-60 hover:text-dinamico hover:opacity-100 transition-colors ml-auto cursor-pointer relative z-20">
                         <i class="bi bi-share-fill"></i>
                         <span class="text-xs font-bold uppercase tracking-wider"></span>
                     </button>
                 </div>
-            </div>
+            </a>
             {% empty %}
             <div class="w-full text-center py-6 fundo-card border border-suave rounded-[20px]">
                 <i class="bi bi-chat-square-dots text-3xl texto-main opacity-20 mb-2 block"></i>

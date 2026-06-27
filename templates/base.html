@@ -70,8 +70,8 @@
         </div>
         
         <div id="searchBar" class="hidden px-4 pb-4 w-full transition-all duration-300">
-            <form action="#" method="GET" class="relative">
-                <input type="text" name="q" placeholder="Pesquisar..." class="w-full fundo-app border border-suave text-sm rounded-xl py-3 pl-4 pr-10 texto-main font-medium focus:outline-none shadow-inner transition-all">
+            <form action="{% url 'mural' %}" method="GET" class="relative">
+                <input type="text" name="q" placeholder="Pesquisar perfil..." class="w-full fundo-app border border-suave text-sm rounded-xl py-3 pl-4 pr-10 texto-main font-medium focus:outline-none shadow-inner transition-all">
                 <button type="submit" class="absolute right-3 top-3 texto-main opacity-50 hover:opacity-100 transition-opacity"><i class="bi bi-search text-lg font-bold"></i></button>
             </form>
         </div>

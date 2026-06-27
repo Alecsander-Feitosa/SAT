@@ -112,10 +112,10 @@ def cadastro(request):
             user = form.save()
             perfil = user.perfil
             
-            # Se ele já veio de um link de torcida, vincula logo como pendente
+            # Se ele já veio de um link de torcida, vincula logo
             if torcida_pre:
                 perfil.torcida = torcida_pre
-                perfil.aprovado = False 
+                perfil.aprovado = torcida_pre.aprovacao_automatica
                 perfil.save()
             
             # GUARDA O ID NA SESSÃO: Fundamental para a Etapa 2 saber quem é o utilizador
@@ -171,7 +171,7 @@ def cadastro_etapa2(request):
                 nova_torcida = Torcida.objects.filter(id=torcida_escolhida_id).first()
                 if nova_torcida:
                     perfil.torcida = nova_torcida
-                    perfil.aprovado = False 
+                    perfil.aprovado = nova_torcida.aprovacao_automatica 
         
         # SALVA TUDO NO BANCO DE DADOS ANTES DO LOGIN
         perfil.save()
@@ -386,61 +386,60 @@ def dashboard(request):
     time_busca = perfil.time_coracao
     api_key = "pub_629d163494fb4b3c9f19c706166a65e9"
     
-    # 1. GIRO DO FUTEBOL (Notícias Gerais)
-    noticias_gerais_api = cache.get('news_geral_v1')
-    if not noticias_gerais_api:
+    import threading
+
+    def fetch_and_cache_gerais():
         try:
             url_geral = 'https://newsdata.io/api/1/news'
             params_gerais = {'apikey': api_key, 'country': 'br', 'category': 'sports', 'language': 'pt', 'q': 'futebol'}
             response_geral = requests.get(url_geral, params=params_gerais, timeout=5)
             if response_geral.status_code == 200:
-                noticias_gerais_api = response_geral.json().get('results', [])[:15]
-                cache.set('news_geral_v1', noticias_gerais_api, 900)
+                noticias = response_geral.json().get('results', [])[:15]
+                cache.set('news_geral_v1', noticias, 900)
         except Exception:
-            noticias_gerais_api = []
+            pass
+
+    # 1. GIRO DO FUTEBOL (Notícias Gerais)
+    noticias_gerais_api = cache.get('news_geral_v1')
+    if noticias_gerais_api is None:
+        noticias_gerais_api = []
+        threading.Thread(target=fetch_and_cache_gerais).start()
+
+    def fetch_and_cache_time(time_busca, cache_key_time):
+        try:
+            url_time = 'https://newsdata.io/api/1/news'
+            params = {
+                'apikey': api_key, 
+                'country': 'br', 
+                'language': 'pt', 
+                'category': 'sports', 
+                'q': time_busca 
+            }
+            response_time = requests.get(url_time, params=params, timeout=5)
+            if response_time.status_code == 200:
+                resultados_brutos = response_time.json().get('results', [])
+                time_busca_lower = time_busca.lower()
+                noticias = []
+                for art in resultados_brutos:
+                    titulo = (art.get('title') or '').lower()
+                    descricao = (art.get('description') or '').lower()
+                    if time_busca_lower in titulo or time_busca_lower in descricao:
+                        noticias.append(art)
+                    if len(noticias) == 15:
+                        break
+                cache.set(cache_key_time, noticias, 900)
+        except Exception:
+            pass
 
     # 2. NOTÍCIAS DO TIME DO CORAÇÃO
     noticias_time_api = []
     if time_busca and time_busca != "Outro":
-        # Mudei a chave de cache para _v3 para forçar a atualização imediata
         cache_key_time = f'news_time_{time_busca.replace(" ", "_")}_v3' 
         noticias_time_api = cache.get(cache_key_time)
         
         if noticias_time_api is None:
-            try:
-                url_time = 'https://newsdata.io/api/1/news'
-                
-                params = {
-                    'apikey': api_key, 
-                    'country': 'br', 
-                    'language': 'pt', 
-                    'category': 'sports', 
-                    # Retiramos as aspas para a API não falhar com acentos
-                    'q': time_busca 
-                }
-                
-                response_time = requests.get(url_time, params=params, timeout=5)
-                if response_time.status_code == 200:
-                    resultados_brutos = response_time.json().get('results', [])
-                    
-                    # FILTRO RIGOROSO NO PYTHON: Só passa se o time estiver no título ou descrição
-                    time_busca_lower = time_busca.lower()
-                    noticias_time_api = []
-                    
-                    for art in resultados_brutos:
-                        titulo = (art.get('title') or '').lower()
-                        descricao = (art.get('description') or '').lower()
-                        
-                        if time_busca_lower in titulo or time_busca_lower in descricao:
-                            noticias_time_api.append(art)
-                            
-                        # Limita a 15 notícias rigorosamente validadas
-                        if len(noticias_time_api) == 15:
-                            break
-                            
-                    cache.set(cache_key_time, noticias_time_api, 900)
-            except Exception:
-                noticias_time_api = []
+            noticias_time_api = []
+            threading.Thread(target=fetch_and_cache_time, args=(time_busca, cache_key_time)).start()
 
     # 3. COMUNICADOS SAT (Base de Dados Local)
     noticias_sat = Noticia.objects.all().order_by('-data_publicacao')[:3]
@@ -450,13 +449,13 @@ def dashboard(request):
     if torcida_selecionada:
         eventos = Evento.objects.filter(torcida=torcida_selecionada, data__gte=agora).order_by('data')[:3]
         # Trending topic: mostra os posts mais curtidos no geral
-        posts_sociais = SocialPost.objects.all().annotate(num_curtidas=Count('curtidas')).order_by('-num_curtidas', '-data_criacao')[:10]
+        posts_sociais = SocialPost.objects.select_related('autor_s', 'autor_s__perfil').annotate(num_curtidas=Count('curtidas')).order_by('-num_curtidas', '-data_criacao')[:10]
         parceiros = Parceiro.objects.filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))
         publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora).filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))
         produtos_destaque = Produto.objects.filter(destaque=True).filter(Q(torcida=torcida_selecionada) | Q(torcida__isnull=True))[:4]
     else:
         eventos = Evento.objects.filter(data__gte=agora).order_by('data')[:3]
-        posts_sociais = SocialPost.objects.all().annotate(num_curtidas=Count('curtidas')).order_by('-num_curtidas', '-data_criacao')[:10]
+        posts_sociais = SocialPost.objects.select_related('autor_s', 'autor_s__perfil').annotate(num_curtidas=Count('curtidas')).order_by('-num_curtidas', '-data_criacao')[:10]
         parceiros = Parceiro.objects.filter(torcida__isnull=True)
         publicidades = Publicidade.objects.filter(ativo=True, data_inicio__lte=agora, data_fim__gte=agora, torcida__isnull=True)
         produtos_destaque = Produto.objects.filter(destaque=True)[:4]
@@ -588,7 +587,7 @@ def seja_socio(request):
                     # Se ele trocar de torcida ou entrar numa nova, volta para pendente
                     if perfil.torcida != nova_torcida:
                         perfil.torcida = nova_torcida
-                        perfil.aprovado = False
+                        perfil.aprovado = nova_torcida.aprovacao_automatica
                 except (Torcida.DoesNotExist, ValueError):
                     pass
                     

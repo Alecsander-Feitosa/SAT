@@ -68,8 +68,8 @@
             </div>
             
             <div class="flex gap-2 relative">
-                <form action="{% url 'dashboard' %}" method="GET" id="barraPesquisa" class="hidden absolute right-12 top-0 h-9 fundo-app border border-suave rounded-full flex items-center px-3 shadow-sm z-50">
-                    <input type="text" name="q" placeholder="Buscar perfil..." class="bg-transparent border-none outline-none text-xs w-32 texto-main focus:ring-0">
+                <form action="{% url 'mural' %}" method="GET" id="barraPesquisa" class="hidden absolute right-12 top-0 h-9 fundo-app border border-suave rounded-full flex items-center px-3 shadow-sm z-50">
+                    <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Buscar perfil..." class="bg-transparent border-none outline-none text-xs w-32 texto-main focus:ring-0">
                     <button type="button" onclick="togglePesquisa()" class="text-gray-400 hover:text-main ml-2">
                         <i class="bi bi-x-lg text-[10px]"></i>
                     </button>
@@ -108,6 +108,40 @@
     </div>
 
     <div class="px-4 pt-4 flex flex-col gap-3">
+        {% if query %}
+            <div class="mb-4 animate-fade-up">
+                <h3 class="text-sm font-black texto-main uppercase tracking-widest mb-3 border-l-4 pl-3 border-tema">Resultados para "{{ query }}"</h3>
+                {% if usuarios_encontrados %}
+                    <div class="space-y-2">
+                    {% for u in usuarios_encontrados %}
+                        <a href="{% url 'perfil_publico' u.id %}" class="flex items-center gap-3 p-3 fundo-card border border-suave rounded-2xl no-underline hover:bg-black/5 transition-colors shadow-sm">
+                            <div class="w-12 h-12 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 flex items-center justify-center">
+                                {% if u.perfil.foto %}
+                                    <img src="{{ u.perfil.foto.url }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    <i class="bi bi-person-fill texto-main opacity-30 text-2xl mt-1"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-black texto-main leading-none mb-1">{{ u.get_full_name|default:u.username }}</h4>
+                                {% if u.perfil.torcida %}
+                                    <span class="text-[9px] font-bold opacity-60 uppercase tracking-widest text-tema flex items-center gap-1"><i class="bi bi-shield-fill"></i> {{ u.perfil.torcida.sigla }}</span>
+                                {% endif %}
+                            </div>
+                        </a>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-10 opacity-40 border border-dashed border-suave rounded-2xl bg-black/5">
+                        <i class="bi bi-search text-3xl mb-2 block"></i>
+                        <p class="text-xs font-bold uppercase tracking-widest">Nenhum perfil encontrado.</p>
+                    </div>
+                {% endif %}
+                <div class="text-center mt-6">
+                    <a href="{% url 'mural' %}" class="inline-block px-6 py-2 fundo-app border border-suave rounded-full text-[10px] font-black uppercase texto-main hover:bg-black/5 transition-colors no-underline shadow-sm">← Voltar ao Mural</a>
+                </div>
+            </div>
+        {% else %}
         
         <div class="social-card fundo-card border border-suave p-4 flex gap-3 items-center cursor-pointer hover:bg-black/5 transition-colors" onclick="abrirModalPost()">
             <div class="w-10 h-10 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 flex items-center justify-center">
@@ -357,6 +391,7 @@
         </div>
         {% endfor %}
         
+        {% endif %}
     </div>
 </div>
 
