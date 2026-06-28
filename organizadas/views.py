@@ -575,15 +575,9 @@ def painel_moderador(request):
     # ==========================================
     
     # Paginação: Ativos e Pendentes
-    membros_ativos_list = Perfil.objects.filter(torcida=minha_torcida, aprovado=True).select_related('user').order_by('user__first_name', 'user__username')
-    paginator_ativos = Paginator(membros_ativos_list, 50)
-    page_ativos = request.GET.get('page_ativos')
-    membros_ativos = paginator_ativos.get_page(page_ativos)
+    membros_ativos = Perfil.objects.filter(torcida=minha_torcida, aprovado=True).select_related('user').order_by('user__first_name', 'user__username')
 
-    membros_pendentes_list = Perfil.objects.filter(torcida=minha_torcida, aprovado=False).select_related('user').order_by('user__first_name', 'user__username')
-    paginator_pendentes = Paginator(membros_pendentes_list, 50)
-    page_pendentes = request.GET.get('page_pendentes')
-    membros_pendentes = paginator_pendentes.get_page(page_pendentes)
+    membros_pendentes = Perfil.objects.filter(torcida=minha_torcida, aprovado=False).select_related('user').order_by('user__first_name', 'user__username')
     
     # Otimização de queries com prefetch_related adicionais e select_related
     context = {
