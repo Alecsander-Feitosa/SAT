@@ -2,6 +2,7 @@
 
 import django.db.models.deletion
 from django.conf import settings
+from sat_core.migracoes import AddFieldSeNaoExiste, CreateModelSeNaoExiste
 from django.db import migrations, models
 
 
@@ -13,7 +14,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
+        CreateModelSeNaoExiste(
             name='RegistroXP',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

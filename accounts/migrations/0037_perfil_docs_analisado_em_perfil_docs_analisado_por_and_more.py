@@ -2,6 +2,7 @@
 
 import django.db.models.deletion
 from django.conf import settings
+from sat_core.migracoes import AddFieldSeNaoExiste, CreateModelSeNaoExiste
 from django.db import migrations, models
 
 
@@ -13,27 +14,27 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='perfil',
             name='docs_analisado_em',
             field=models.DateTimeField(blank=True, null=True),
         ),
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='perfil',
             name='docs_analisado_por',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='documentos_analisados', to=settings.AUTH_USER_MODEL),
         ),
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='perfil',
             name='docs_motivo',
             field=models.CharField(blank=True, max_length=255, verbose_name='Motivo da recusa'),
         ),
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='perfil',
             name='docs_status',
             field=models.CharField(choices=[('pendente', 'Documentos pendentes'), ('em_analise', 'Em análise'), ('verificado', 'Verificado'), ('recusado', 'Recusado')], default='pendente', max_length=12, verbose_name='Verificação de documentos'),
         ),
-        migrations.CreateModel(
+        CreateModelSeNaoExiste(
             name='DispositivoSessao',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

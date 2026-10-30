@@ -3,6 +3,7 @@
 import django.db.models.deletion
 import django.utils.timezone
 from django.conf import settings
+from sat_core.migracoes import AddFieldSeNaoExiste, CreateModelSeNaoExiste
 from django.db import migrations, models
 
 
@@ -14,27 +15,27 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='comentario',
             name='oculto',
             field=models.BooleanField(default=False, help_text='Ocultado por um moderador'),
         ),
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='post',
             name='em_revisao',
             field=models.BooleanField(default=False, help_text='Muito denunciado: oculto até a revisão dos administradores'),
         ),
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='post',
             name='tipo',
             field=models.CharField(choices=[('normal', 'Normal'), ('convocacao', 'Convocação (Presidente)'), ('anuncio', 'Anúncio oficial (Desenvolvedor)')], default='normal', max_length=12),
         ),
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='post',
             name='visibilidade',
             field=models.CharField(choices=[('global', 'Global (todos)'), ('torcida', 'Só a minha torcida'), ('amigos', 'Só amigos')], default='global', max_length=10),
         ),
-        migrations.CreateModel(
+        CreateModelSeNaoExiste(
             name='CPFBloqueado',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -49,7 +50,7 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'CPFs bloqueados (lista negra)',
             },
         ),
-        migrations.CreateModel(
+        CreateModelSeNaoExiste(
             name='Notificacao',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -68,7 +69,7 @@ class Migration(migrations.Migration):
                 'ordering': ['-criada_em'],
             },
         ),
-        migrations.CreateModel(
+        CreateModelSeNaoExiste(
             name='Penalidade',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -85,7 +86,7 @@ class Migration(migrations.Migration):
                 'ordering': ['-inicio'],
             },
         ),
-        migrations.CreateModel(
+        CreateModelSeNaoExiste(
             name='DenunciaPost',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

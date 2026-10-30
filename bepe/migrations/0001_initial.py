@@ -4,6 +4,7 @@ import bepe.models
 import django.db.models.deletion
 import django.utils.timezone
 from django.conf import settings
+from sat_core.migracoes import AddFieldSeNaoExiste, CreateModelSeNaoExiste
 from django.db import migrations, models
 
 
@@ -18,7 +19,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
+        CreateModelSeNaoExiste(
             name='Conversa',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -33,7 +34,7 @@ class Migration(migrations.Migration):
                 'ordering': ['-atualizada_em'],
             },
         ),
-        migrations.CreateModel(
+        CreateModelSeNaoExiste(
             name='Denuncia',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -56,7 +57,7 @@ class Migration(migrations.Migration):
                 'ordering': ['-criada_em'],
             },
         ),
-        migrations.CreateModel(
+        CreateModelSeNaoExiste(
             name='Mensagem',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -72,7 +73,7 @@ class Migration(migrations.Migration):
                 'ordering': ['enviada_em'],
             },
         ),
-        migrations.CreateModel(
+        CreateModelSeNaoExiste(
             name='RegistroProntuario',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

@@ -2,6 +2,7 @@
 
 import django.db.models.deletion
 from django.conf import settings
+from sat_core.migracoes import AddFieldSeNaoExiste, CreateModelSeNaoExiste
 from django.db import migrations, models
 
 
@@ -13,22 +14,22 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='caravana',
             name='criado_por',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='caravanas_criadas', to=settings.AUTH_USER_MODEL),
         ),
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='caravana',
             name='epico',
             field=models.BooleanField(default=False, help_text='Equipe SAT (Desenvolvedor) presente: EXP em dobro para todos'),
         ),
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='evento',
             name='criado_por',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='eventos_criados', to=settings.AUTH_USER_MODEL),
         ),
-        migrations.AddField(
+        AddFieldSeNaoExiste(
             model_name='evento',
             name='epico',
             field=models.BooleanField(default=False, help_text='Equipe SAT (Desenvolvedor) presente: EXP em dobro para todos'),
