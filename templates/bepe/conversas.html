@@ -1,0 +1,39 @@
+{% extends template_base %}
+{% block bepe_content %}
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+    <div>
+        <h1 class="text-xl font-black texto-main">{% if lado_bepe %}Canal direto com as diretorias{% else %}Conversas com o BEPE{% endif %}</h1>
+        <p class="text-sm texto-main opacity-50">{% if lado_bepe %}Comunicação oficial entre o BEPE e a diretoria de cada torcida.{% else %}Canal oficial e privado entre a diretoria e o BEPE.{% endif %}</p>
+    </div>
+    <a href="{% if lado_bepe %}{% url 'bepe:nova_conversa' %}{% else %}{% url 'bepe:diretoria_nova_conversa' %}{% endif %}" class="btn-tema px-5 py-3 text-sm text-center"><i class="bi bi-plus-lg"></i> Nova conversa</a>
+</div>
+
+{% if lado_bepe %}
+<form method="get" class="mb-4">
+    <select name="torcida" onchange="this.form.submit()" class="fundo-card border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+        <option value="">Todas as torcidas</option>
+        {% for t in torcidas %}<option value="{{ t.id }}" {% if torcida_id == t.id|stringformat:"s" %}selected{% endif %}>{{ t.nome }}</option>{% endfor %}
+    </select>
+</form>
+{% endif %}
+
+<div class="card divide-suave">
+    {% for c in conversas %}
+    <a href="{% if lado_bepe %}{% url 'bepe:conversa' c.id %}{% else %}{% url 'bepe:diretoria_conversa' c.id %}{% endif %}" class="flex items-center gap-3 p-4 linha transition">
+        {% if lado_bepe %}
+        <div class="w-10 h-10 rounded-full overflow-hidden bg-black/5 flex-shrink-0 flex items-center justify-center">
+            {% if c.torcida.logo %}<img src="{{ c.torcida.logo.url }}" class="w-full h-full object-contain" alt="">{% else %}<i class="bi bi-people-fill texto-main opacity-30"></i>{% endif %}
+        </div>
+        {% endif %}
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold texto-main truncate">{{ c.assunto }}</p>
+            <p class="text-xs texto-main opacity-50">{% if lado_bepe %}{{ c.torcida.nome }} · {% endif %}{{ c.atualizada_em|date:"d/m/Y H:i" }}{% if c.encerrada %} · <span class="texto-main opacity-60">encerrada</span>{% endif %}</p>
+        </div>
+        {% if c.nao_lidas %}<span class="fundo-tema texto-claro text-[11px] font-black rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center">{{ c.nao_lidas }}</span>{% endif %}
+        <i class="bi bi-chevron-right texto-main opacity-30"></i>
+    </a>
+    {% empty %}
+    <p class="p-6 text-center text-sm texto-main opacity-50">Nenhuma conversa ainda.</p>
+    {% endfor %}
+</div>
+{% endblock %}

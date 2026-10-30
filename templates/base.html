@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{% static 'css/carteirinha.css' %}">
+    {% if mgid.site_id %}<script src="https://jsc.mgid.com/site/{{ mgid.site_id }}.js" async></script>{% endif %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
@@ -64,9 +65,17 @@
                     <img src="{% static 'img/logo_sat.png' %}" alt="SAT Oficial" class="h-16 object-contain drop-shadow-lg scale-110">
                 {% endif %}
             </div>
-            <button onclick="toggleSidebar()" class="texto-main hover:opacity-70 transition-opacity relative z-10">
-                <i class="bi bi-list text-3xl"></i>
-            </button>
+            <div class="flex items-center gap-3 relative z-10">
+                <a href="{% url 'notificacoes' %}" class="relative texto-main hover:opacity-70 transition-opacity" aria-label="Notificações">
+                    <i class="bi bi-bell{% if notificacoes_nao_lidas %}-fill{% endif %} text-2xl"></i>
+                    {% if notificacoes_nao_lidas %}
+                    <span class="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center border-2 border-white">{% if notificacoes_nao_lidas > 99 %}99+{% else %}{{ notificacoes_nao_lidas }}{% endif %}</span>
+                    {% endif %}
+                </a>
+                <button onclick="toggleSidebar()" class="texto-main hover:opacity-70 transition-opacity">
+                    <i class="bi bi-list text-3xl"></i>
+                </button>
+            </div>
         </div>
         
         <div id="searchBar" class="hidden px-4 pb-4 w-full transition-all duration-300">
@@ -120,6 +129,10 @@
             <a href="{% url 'dashboard' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
                 <i class="bi bi-grid-1x2-fill texto-main text-lg"></i><span class="text-sm font-bold texto-main">Dashboard</span>
             </a>
+            <a href="{% url 'carteirinha' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl {% if request.resolver_match.url_name == 'carteirinha' %}bg-black/5{% else %}hover:bg-black/5{% endif %} no-underline group transition-all">
+                <i class="bi bi-person-vcard-fill texto-main text-lg"></i><span class="text-sm font-bold texto-main">Minha Carteirinha</span>
+                <span class="ml-auto text-[8px] font-black uppercase tracking-widest texto-main opacity-50">{{ user.perfil.plano }}</span>
+            </a>
             <a href="{% url 'loja' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
                 <i class="bi bi-cart3 texto-main text-lg"></i><span class="text-sm font-bold texto-main">Loja Oficial</span>
             </a>
@@ -133,6 +146,56 @@
                 </a>
                 <hr class="border-suave my-4">
             {% endif %}
+
+            {% if request.user.is_superuser %}
+                <a href="{% url 'moderacao_social' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
+                    <i class="bi bi-flag-fill texto-main text-lg"></i><span class="text-sm font-bold texto-main">Moderação Social</span>
+                    {% if denuncias_pendentes %}<span class="ml-auto bg-red-500 text-white text-[10px] font-black rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center">{{ denuncias_pendentes }}</span>{% endif %}
+                </a>
+            {% endif %}
+            <p class="px-4 text-[9px] font-black texto-main opacity-40 uppercase tracking-widest my-4">Segurança</p>
+            {% if acesso_bepe %}
+                <a href="{% url 'bepe:painel' %}" class="relative block rounded-2xl p-4 no-underline overflow-hidden shadow-lg group transition-transform active:scale-[0.98]" style="background: linear-gradient(135deg, #0b1d3a 0%, #13315f 55%, #1d4ed8 100%);">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
+                    <i class="bi bi-shield-fill-check absolute -right-2 -bottom-4 text-[70px] text-white/10 pointer-events-none"></i>
+                    <div class="relative flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <i class="bi bi-shield-shaded text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-white font-black italic uppercase tracking-tighter text-base leading-none">Área BEPE</p>
+                            <p class="text-white/60 text-[9px] font-bold uppercase tracking-widest mt-1"><i class="bi bi-lock-fill"></i> Acesso restrito</p>
+                        </div>
+                        {% if bepe_pendencias %}
+                            <span class="bg-red-500 text-white text-[10px] font-black rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center shadow-md animate-pulse">{{ bepe_pendencias }}</span>
+                        {% else %}
+                            <i class="bi bi-chevron-right text-white/60"></i>
+                        {% endif %}
+                    </div>
+                </a>
+            {% endif %}
+            {% if acesso_canal_diretoria %}
+                <a href="{% url 'bepe:diretoria_conversas' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
+                    <i class="bi bi-chat-square-text texto-main text-lg"></i><span class="text-sm font-bold texto-main">Canal BEPE (Diretoria)</span>
+                </a>
+            {% endif %}
+            <a href="{% url 'bepe:fale_com_bepe' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
+                <i class="bi bi-megaphone texto-main text-lg"></i><span class="text-sm font-bold texto-main">Fale com o BEPE</span>
+            </a>
+            <form method="post" action="{% url 'bepe:localizacao' %}" class="px-4 py-3 rounded-2xl flex items-center gap-4">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <input type="hidden" name="acao" value="{% if localizacao_bepe == 'ativo' %}desativar{% else %}ativar{% endif %}">
+                <i class="bi bi-geo-alt{% if localizacao_bepe == 'ativo' %}-fill{% endif %} texto-main text-lg"></i>
+                <div class="flex-1">
+                    <p class="text-sm font-bold texto-main leading-none">Compartilhar localização</p>
+                    <p class="text-[10px] texto-main opacity-50 mt-1" {% if localizacao_bepe == 'ativo' %}id="bepe-loc-status"{% endif %}>Para a segurança nos eventos</p>
+                </div>
+                <button type="submit" aria-label="Alternar compartilhamento de localização" class="relative w-11 h-6 rounded-full transition-colors {% if localizacao_bepe == 'ativo' %}fundo-tema{% else %}bg-black/20{% endif %}">
+                    <span class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all {% if localizacao_bepe == 'ativo' %}left-[22px]{% else %}left-0.5{% endif %}"></span>
+                </button>
+            </form>
+            <hr class="border-suave my-4">
 
             <a href="{% url 'logout' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-red-50 no-underline text-main">
                 <i class="bi bi-door-open-fill text-lg"></i>
@@ -192,9 +255,9 @@
                 Benefícios
             </span>
         </a>
-        <a href="https://www.betano.bet.br/" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity {% if request.resolver_match.url_name == 'bet_manutencao' %}texto-main{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
-            <i class="bi bi-dice-5 text-xl font-bold"></i>
-            <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">BET</span>
+        <a href="{% url 'noticias' %}" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity {% if request.resolver_match.url_name == 'noticias' or request.resolver_match.url_name == 'noticia_ler' %}texto-main{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
+            <i class="bi bi-newspaper text-xl font-bold"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest mt-0.5">Notícias</span>
         </a>
         <a href="{% url 'perfil' %}" class="flex flex-col items-center gap-1 w-[18%] pb-1 transition-opacity {% if request.resolver_match.url_name == 'perfil' %}texto-main{% else %}texto-main opacity-40 hover:opacity-100{% endif %}">
             <i class="bi bi-person-fill text-xl drop-shadow-sm"></i>
@@ -266,5 +329,114 @@
             {% endfor %}
         {% endif %}
     </script>
+
+    {% if user.is_authenticated %}
+    {# ===== GEOLOCALIZAÇÃO BEPE: só com consentimento do torcedor ===== #}
+    <script>
+    (function () {
+        const URL_LOC = "{% url 'bepe:localizacao' %}";
+        const CSRF = "{{ csrf_token }}";
+        const INTERVALO = {{ bepe_intervalo_localizacao|default:60 }} * 1000; // intervalo mínimo entre envios (settings.BEPE_INTERVALO_LOCALIZACAO)
+
+        function post(dados) {
+            const body = new URLSearchParams(dados);
+            return fetch(URL_LOC, {
+                method: 'POST', body,
+                headers: { 'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest' }
+            });
+        }
+
+        function podeEnviar() {
+            let ultimo = 0;
+            try { ultimo = parseInt(localStorage.getItem('bepe_loc_ts') || '0', 10); } catch (e) {}
+            return Date.now() - ultimo >= INTERVALO;
+        }
+        function mostrarUltimoEnvio() {
+            const el = document.getElementById('bepe-loc-status');
+            if (!el) return;
+            let ts = 0;
+            try { ts = parseInt(localStorage.getItem('bepe_loc_ts') || '0', 10); } catch (e) {}
+            el.textContent = ts ? 'Último envio: ' + new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                                : 'Aguardando o GPS...';
+        }
+        function enviar(pos) {
+            post({
+                acao: 'enviar',
+                latitude: pos.coords.latitude,
+                longitude: pos.coords.longitude,
+                precisao: pos.coords.accuracy
+            });
+            try { localStorage.setItem('bepe_loc_ts', String(Date.now())); } catch (e) {}
+            mostrarUltimoEnvio();
+        }
+        // Avisa UMA vez por sessão quando não dá para pegar a localização (antes falhava em silêncio)
+        function avisarFalha(erro) {
+            const el = document.getElementById('bepe-loc-status');
+            const negado = erro && erro.code === 1;
+            const texto = !window.isSecureContext
+                ? 'O navegador só libera a localização em sites com HTTPS.'
+                : negado
+                    ? 'A localização está bloqueada para este site. Toque no cadeado ao lado do endereço e permita "Localização".'
+                    : 'Não foi possível obter sua posição. Ligue o GPS/localização do aparelho e o Wi-Fi.';
+            if (el) el.textContent = negado ? 'Bloqueada no navegador' : 'GPS indisponível';
+            try { if (sessionStorage.getItem('bepe_loc_aviso')) return; sessionStorage.setItem('bepe_loc_aviso', '1'); } catch (e) {}
+            if (window.Swal) Swal.fire({ toast: true, position: 'top', icon: 'warning', title: 'Localização não enviada', text: texto, showConfirmButton: false, timer: 7000 });
+        }
+        function obterPosicao(sucesso) {
+            // 1ª tentativa: alta precisão (GPS). Se falhar/demorar (comum em PC), tenta Wi-Fi/rede.
+            navigator.geolocation.getCurrentPosition(sucesso, function (erro) {
+                if (erro.code === 1) { avisarFalha(erro); return; }
+                navigator.geolocation.getCurrentPosition(sucesso, avisarFalha,
+                    { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 });
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 });
+        }
+        function enviarPosicao(forcar) {
+            if (!navigator.geolocation) { avisarFalha(null); return; }
+            if (!forcar && !podeEnviar()) return;
+            obterPosicao(enviar);
+        }
+
+        {% if localizacao_bepe == 'ativo' %}
+            mostrarUltimoEnvio();
+            enviarPosicao(false);
+            // Acompanha o movimento enquanto o app está aberto (o GPS avisa quando a pessoa se desloca)
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(function (pos) { if (podeEnviar()) enviar(pos); },
+                    function () {}, { enableHighAccuracy: true, maximumAge: 5000 });
+            }
+            setInterval(function () { enviarPosicao(false); }, INTERVALO);
+        {% elif localizacao_bepe is None and user.perfil.torcida and not messages %}
+        if (!location.pathname.startsWith('/bepe/') && navigator.geolocation) {
+            // Pergunta UMA vez. A resposta fica salva e pode ser mudada no menu lateral.
+            setTimeout(function () {
+                Swal.fire({
+                    title: 'Segurança nos eventos',
+                    html: 'Quer compartilhar sua localização com o <b>BEPE</b> enquanto usa o app?<br><br>' +
+                          '<small style="opacity:.7">Ela é usada só para a segurança da torcida. Você pode desligar quando quiser no menu lateral.</small>',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Permitir',
+                    cancelButtonText: 'Agora não',
+                    confirmButtonColor: '{{ user.perfil.torcida.cor_primaria|default:"#D37129" }}',
+                    background: '{{ user.perfil.torcida.cor_fundo|default:"#121212" }}',
+                    color: '#FFFFFF',
+                    customClass: {
+                        popup: 'rounded-[2rem] border border-suave shadow-2xl',
+                        confirmButton: 'rounded-xl px-6 py-3 font-black uppercase tracking-widest',
+                        cancelButton: 'rounded-xl px-6 py-3 font-black uppercase tracking-widest'
+                    }
+                }).then(function (r) {
+                    if (r.isConfirmed) {
+                        post({ acao: 'ativar' }).then(function () { enviarPosicao(true); });
+                    } else if (r.dismiss === Swal.DismissReason.cancel) {
+                        post({ acao: 'recusar' });
+                    }
+                });
+            }, 1500);
+        }
+        {% endif %}
+    })();
+    </script>
+    {% endif %}
 </body>
 </html>

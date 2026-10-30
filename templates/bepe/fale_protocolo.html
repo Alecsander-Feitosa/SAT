@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-10 text-center">
+    <div class="w-16 h-16 mx-auto rounded-full bg-green-500 flex items-center justify-center shadow-lg">
+        <i class="bi bi-check-lg text-3xl text-white"></i>
+    </div>
+    <h1 class="text-2xl font-black texto-main mt-4">Denúncia recebida</h1>
+    <p class="text-sm texto-main opacity-70 mt-2">Guarde o número abaixo. Ele é a <b>única forma</b> de acompanhar sua denúncia — não temos como recuperá-lo depois.</p>
+
+    <div class="fundo-card rounded-2xl p-6 mt-6 shadow-md border border-suave">
+        <p class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">Seu protocolo</p>
+        <p id="protocolo" class="text-3xl font-black tracking-widest texto-tema mt-2 select-all">{{ denuncia.protocolo }}</p>
+        <button type="button" onclick="navigator.clipboard.writeText('{{ denuncia.protocolo }}'); this.innerText='Copiado!'" class="mt-4 text-xs font-bold texto-main bg-black/5 px-4 py-2 rounded-full hover:bg-black/10">
+            <i class="bi bi-clipboard"></i> Copiar protocolo
+        </button>
+    </div>
+
+    <a href="{% url 'bepe:acompanhar_denuncia' %}?protocolo={{ denuncia.protocolo }}" class="block text-sm font-bold texto-main opacity-70 hover:opacity-100 mt-6">Acompanhar denúncia</a>
+</div>
+{% endblock %}

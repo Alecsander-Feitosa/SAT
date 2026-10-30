@@ -33,13 +33,18 @@ from django.contrib.auth.models import User
 from organizadas.models import Parceiro
 from organizadas.models import Publicidade
 from django.db.models import Q, Count
-from datetime import date
+from django.urls import reverse
+from datetime import date, timedelta
 from organizadas.models import Comentario
 from accounts.models import Perfil
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from .decorators import torcida_required
-from .models import Perfil, Presenca, Conquista, Evento, CheckIn, PlanoSocio, Assinatura, Fatura
+from .models import Perfil, Presenca, Conquista, Evento, CheckIn, PlanoSocio, Assinatura, Fatura, BeneficioTorcida, NIVEIS_PLANO, ORDEM_NIVEL
+from .planos import planos_oficiais, beneficios_por_nivel, nivel_libera, ativar_assinatura, confirmar_pagamento_fatura
+from django.conf import settings
+from .times import TIMES_BRASIL, escudo_do_time
+from . import noticias as noticias_svc
 from .forms import CadastroForm, PerfilCompletoForm
 from loja.models import Produto
 from .models import Presenca, PresencaCaravana
@@ -383,63 +388,9 @@ def dashboard(request):
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
     agora = timezone.now() 
     
-    time_busca = perfil.time_coracao
-    api_key = "pub_629d163494fb4b3c9f19c706166a65e9"
-    
-    import threading
-
-    def fetch_and_cache_gerais():
-        try:
-            url_geral = 'https://newsdata.io/api/1/news'
-            params_gerais = {'apikey': api_key, 'country': 'br', 'category': 'sports', 'language': 'pt', 'q': 'futebol'}
-            response_geral = requests.get(url_geral, params=params_gerais, timeout=5)
-            if response_geral.status_code == 200:
-                noticias = response_geral.json().get('results', [])[:15]
-                cache.set('news_geral_v1', noticias, 900)
-        except Exception:
-            pass
-
-    # 1. GIRO DO FUTEBOL (Notícias Gerais)
-    noticias_gerais_api = cache.get('news_geral_v1')
-    if noticias_gerais_api is None:
-        noticias_gerais_api = []
-        threading.Thread(target=fetch_and_cache_gerais).start()
-
-    def fetch_and_cache_time(time_busca, cache_key_time):
-        try:
-            url_time = 'https://newsdata.io/api/1/news'
-            params = {
-                'apikey': api_key, 
-                'country': 'br', 
-                'language': 'pt', 
-                'category': 'sports', 
-                'q': time_busca 
-            }
-            response_time = requests.get(url_time, params=params, timeout=5)
-            if response_time.status_code == 200:
-                resultados_brutos = response_time.json().get('results', [])
-                time_busca_lower = time_busca.lower()
-                noticias = []
-                for art in resultados_brutos:
-                    titulo = (art.get('title') or '').lower()
-                    descricao = (art.get('description') or '').lower()
-                    if time_busca_lower in titulo or time_busca_lower in descricao:
-                        noticias.append(art)
-                    if len(noticias) == 15:
-                        break
-                cache.set(cache_key_time, noticias, 900)
-        except Exception:
-            pass
-
-    # 2. NOTÍCIAS DO TIME DO CORAÇÃO
-    noticias_time_api = []
-    if time_busca and time_busca != "Outro":
-        cache_key_time = f'news_time_{time_busca.replace(" ", "_")}_v3' 
-        noticias_time_api = cache.get(cache_key_time)
-        
-        if noticias_time_api is None:
-            noticias_time_api = []
-            threading.Thread(target=fetch_and_cache_time, args=(time_busca, cache_key_time)).start()
+    # 1 e 2. NOTÍCIAS (feeds do ge, em cache por 15 min; abrem no leitor interno do app)
+    noticias_gerais_api = noticias_svc.noticias_gerais()[:10]
+    noticias_time_api = noticias_svc.noticias_do_time(perfil.time_coracao)[:10]
 
     # 3. COMUNICADOS SAT (Base de Dados Local)
     noticias_sat = Noticia.objects.all().order_by('-data_publicacao')[:3]
@@ -470,6 +421,7 @@ def dashboard(request):
         
         # --- AS TRÊS VARIÁVEIS EXATAS PARA O HTML ---
         'noticias_time_api': noticias_time_api, 
+        'escudo_time': escudo_do_time(perfil.time_coracao),
         'noticias_gerais_api': noticias_gerais_api,
         'noticias_sat': noticias_sat,
         
@@ -477,7 +429,9 @@ def dashboard(request):
         'parceiros': parceiros,
         'publicidades': publicidades,
     }
-    
+    # Cartão de sócio com frente e verso (toque vira para o verso)
+    context.update(contexto_carteirinha(perfil, request))
+
     return render(request, 'dashboard.html', context)
 
 
@@ -497,69 +451,39 @@ from django.shortcuts import render
 @login_required
 def noticias(request):
     perfil = request.user.perfil
-    time_busca = perfil.time_coracao
+    do_time = noticias_svc.noticias_do_time(perfil.time_coracao)
+    ids = {n['id'] for n in do_time}
+    gerais = [n for n in noticias_svc.noticias_gerais() if n['id'] not in ids]
+    return render(request, 'noticias.html', {
+        'noticias': do_time + gerais,
+        'time': perfil.time_coracao if do_time else None,
+        'escudo_time': escudo_do_time(perfil.time_coracao),
+    })
 
-    api_key = "pub_629d163494fb4b3c9f19c706166a65e9"
-    url_api = 'https://newsdata.io/api/1/news'
-    
-    lista_final = []
-    
+
+@login_required
+def noticia_ler(request, noticia_id):
+    """Leitor interno: o usuário lê o resumo sem sair do app."""
+    noticia = noticias_svc.obter(noticia_id)
+    if not noticia:
+        messages.info(request, 'Essa notícia não está mais disponível. Veja as mais recentes.')
+        return redirect('noticias')
+
+    perfil = request.user.perfil
+    if noticia['time']:
+        relacionadas = noticias_svc.noticias_do_time(noticia['time'])
+    else:
+        relacionadas = noticias_svc.noticias_do_time(perfil.time_coracao) or noticias_svc.noticias_gerais()
+    return render(request, 'noticia_ler.html', {
+        'noticia': noticia,
+        'relacionadas': [n for n in relacionadas if n['id'] != noticia_id][:6],
+    })
 
 
-    urls_vistas = set()
-
-    # Só pesquisa o time se ele não escolheu a opção "Outro"
-    if time_busca and time_busca != "Outro":
-        try:
-            params_time = {
-                'apikey': api_key, 
-                'country': 'br', 
-                'language': 'pt', 
-                'category': 'sports', 
-                'q': time_busca # Sem as aspas
-            }
-            resp_time = requests.get(url_api, params=params_time, timeout=5)
-            if resp_time.status_code == 200:
-                time_busca_lower = time_busca.lower()
-                
-                for art in resp_time.json().get('results', []):
-                    # FILTRO RIGOROSO AQUI
-                    titulo = (art.get('title') or '').lower()
-                    descricao = (art.get('description') or '').lower()
-                    
-                    if time_busca_lower in titulo or time_busca_lower in descricao:
-                        link = art.get('link') or '#'
-                        if link not in urls_vistas:
-                            urls_vistas.add(link)
-                            lista_final.append({
-                                'url': link,
-                                'title': art.get('title') or f'Notícia do {time_busca.title()}',
-                                'description': art.get('description') or '',
-                                'image': art.get('image_url') or f'https://placehold.co/600x400/D37129/white?text={time_busca.upper()}',
-                                'source': art.get('source_id') or time_busca.upper()
-                            })
-        except Exception as e:
-            print(f"Erro ao buscar time: {e}")
-
-    try:
-        params_gerais = {'apikey': api_key, 'country': 'br', 'category': 'sports', 'language': 'pt', 'q': 'futebol'}
-        resp_geral = requests.get(url_api, params=params_gerais, timeout=5)
-        if resp_geral.status_code == 200:
-            for art in resp_geral.json().get('results', []):
-                link = art.get('link') or '#'
-                if link not in urls_vistas:
-                    urls_vistas.add(link)
-                    lista_final.append({
-                        'url': link,
-                        'title': art.get('title') or 'Futebol Nacional',
-                        'description': art.get('description') or '',
-                        'image': art.get('image_url') or 'https://placehold.co/600x400/4A4D4E/white?text=FUTEBOL+SAT',
-                        'source': art.get('source_id') or 'FUTEBOL GERAL'
-                    })
-    except Exception as e:
-        print(f"Erro ao buscar futebol geral: {e}")
-
-    return render(request, 'noticias.html', {'noticias': lista_final})
+def ads_txt(request):
+    """/ads.txt exigido pelas redes de anúncio (MGID) para aprovar o site."""
+    linhas = [l.strip() for l in settings.ADS_TXT.split('|') if l.strip()]
+    return HttpResponse('\n'.join(linhas) + '\n', content_type='text/plain')
 
 # accounts/views.py
 
@@ -595,69 +519,21 @@ def seja_socio(request):
         messages.success(request, 'Perfil e preferências atualizados com sucesso!')
         return redirect('seja_socio')
 
-    # Busca planos e torcidas para o contexto
-    if perfil.torcida:
-        planos = PlanoSocio.objects.filter(torcida=perfil.torcida).order_by('preco')
-    else:
-        planos = PlanoSocio.objects.filter(torcida__isnull=True).order_by('preco')
-        
+    # Planos oficiais SAT (Grátis, Bronze, Prata, Ouro) + benefícios extras da torcida
+    planos = planos_oficiais()
+    niveis = beneficios_por_nivel(perfil.torcida)
     torcidas = Torcida.objects.all()
 
-    # 2. Lista de times com os links dos escudos
-    times_brasil = [
-        # ==========================================
-        # SÉRIE A (2026)
-        # ==========================================
-        {"nome": "Athletico-PR", "escudo": "https://s.sde.globo.com/media/organizations/2019/09/09/Athletico-PR.svg"},
-        {"nome": "Atlético-MG", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/10/atletico-mg.svg"},
-        {"nome": "Bahia", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/bahia.svg"},
-        {"nome": "Botafogo", "escudo": "https://s.sde.globo.com/media/organizations/2019/02/04/botafogo-svg.svg"},
-        {"nome": "Chapecoense", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/chapecoense.svg"},
-        {"nome": "Corinthians", "escudo": "https://upload.wikimedia.org/wikipedia/pt/b/b4/Corinthians_simbolo.png"},
-        {"nome": "Coritiba", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/coritiba.svg"},
-        {"nome": "Cruzeiro", "escudo": "https://s.sde.globo.com/media/organizations/2021/02/13/cruzeiro_2021.svg"},
-        {"nome": "Flamengo", "escudo": "https://s.sde.globo.com/media/organizations/2018/04/10/Flamengo-2018.svg"},
-        {"nome": "Fluminense", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/fluminense.svg"},
-        {"nome": "Grêmio", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/12/gremio.svg"},
-        {"nome": "Internacional", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/internacional.svg"},
-        {"nome": "Mirassol", "escudo": "https://upload.wikimedia.org/wikipedia/commons/a/ac/Mirassol_escudo_antigo.png"},
-        {"nome": "Palmeiras", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/palmeiras.svg"},
-        {"nome": "Red Bull Bragantino", "escudo": "https://s.sde.globo.com/media/organizations/2021/06/28/bragantino.svg"},
-        {"nome": "Remo", "escudo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Clube_do_Remo.svg/960px-Clube_do_Remo.svg.png"},
-        {"nome": "Santos", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/12/santos.svg"},
-        {"nome": "São Paulo", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/sao-paulo.svg"},
-        {"nome": "Vasco", "escudo": "https://s.sde.globo.com/media/organizations/2021/09/04/vasco_SVG.svg"},
-        {"nome": "Vitória", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/vitoria.svg"},
-        # ==========================================
-        # SÉRIE B (2026)
-        # ==========================================
-        {"nome": "América-MG", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/america-mg.svg"},
-        {"nome": "Athletic Club", "escudo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAQAAAAAYLlVAAAGK0lEQVR4Ab3ZA3QlZgKG4W+9h3u8ts3atm3bdidFOrV7ahszxdiobXtsB1Wevf85N5NmJh68T8wvub43PWilHJqrMyivZHxmVUzJmxmZG3JUVs0y7Tc5J+9FJ95Or/w0S719My5a7OtS9xtilDFGeNi1jpSv+zD7Zal1ZL6KFGo9bbbm6s0yV73mFnjBRdLi5CxxG6cuiv28COo842a3usMDBhrrNFHs7jrPWABedZhI8Vm2S4/7VkZHcZIpqPOgWgNMxxRv+xAMkFY2MEAjpjlDCnkq308PWiOKzU3AeGe52zx8pFaqVkc/aUNv0zHRVlLI2ulmp0QxCHOdYRBYYG9p5RMDpW1qNWCwFHJGutGdUUzFA24C1LX8m20nhZEGSweGYqbfSnF3utgjEQeg0VGmoq/g6pYfihT6GiId2sMXOFyKfulCN0X0wjin4VlR8DsRR6EJfxBxm4F6udDFLqm42EUudIHzK3pX1drdeJwrxf3ppJOaf/1rrsPpUtXyN9OEKK7VR5POusOrqJXi7HTQCs3//Nfcpsn/ZLEBg9GEaaaaYoG7fYamDnGPV3CgFOum3RSMc60vpRWiGFT9dc3d6XM0dYJbfYxfSfH9tNkTEdN85jR8WxSXtz2giju6MKCgl3ozpHgpbbRF848/CjuKYp5hS20Ax9D883bKYn0WW+Mh09wiivcxqNMBX+lqM9yHnaRYpCMiJpnvFuNFcS8Y2MmAu0w23TTF9MXMWGhmxXwXmWuSFKelVaIGvfFrEWvRpQF9pVtOw9lSpKV9I6aZbISRUhgHGNDmybDnA1L+Y1IcmIV9FAfjEqRQo7n+S31ALxwh8nGq/SziJY0e9pQUprQ7YMgiA/pIt9V7XYpfJaWaCB72ufVF7KGlfm0PAHo4oB+tzpbfilpcZpYUxmppcNtnxdVjfoOHpdvWwmUiHyQl8ZQGAw2SwgkurLioPNt1kQH9W10YXa+/f9nFZlaxkhWt4H/+69/+5Z/+4W/+6i/+7E/+4Pd+57d+49d+IxZ4QYokK0fM9ozpDpZ2kcKdrQYMdK/uN91odVKsWT0L4kakA5wqYjXwihTedZfPdb8rkeK45LrYF9eZLYVHzTO7YlbFXPdIgael6lCp4tYeDbgWR4vclPSLy3Gz96TwIm2eCthUWnkKt/hM97sT14oMTp6LB/CQN2xjL1sbh6YqBvu91awKvnDiIr+em3s0YKivPCzyZjIhhmowWNdq8JZXTdTcHXrS8+YaKTI3qYtR6vzLyU6sOKni5MIpFacWTiucXqhR6zznOLNwlk3Ly8LZVedUnVuorTiv0Lvi/IoLXGQncz0pUlcdUC/L2XxPiSxIZsZQX8pyVm9UdcBr8QCynNFP5K1kWFyBLGfcVD0ZXhv74UhZjnbB8dUzosMjuFOWo2uQ4viFF0avyHJULn1TrLHw4rjOEMumpkUwwgyvSJHSO3EurkDTUtVel+EqkfdTytkR9FWHpmWMRrchRW1K+XnECxr0WS4D+pjlHSl+lWofxj64aLkMOB2niIzLwvaJmFwxdBlPYKwPzJXioLQUcTLOs6w7ARdL0aqjI8ZpECtY0UpWtmrF6tawprUq1qlY13rWr9jAhjZSbGyTik0Vm1VsvtAWbdhSzDZDil5ZpPrYCENlGeqDvaRYrE0i+uNAWUa2w2gp9k4bjYyY5itZRhrNkeK1tNk3I36EqbIMTMAKUvwg7bRmxP74QJayt3G0FBulg86OOBPvL/Vff54UNV26p7gGk+xqTsXMLpnRpllm28ME1ErxYLrQiIiD0OgEUyxJ05yiAYdJMSxd7P6I35uJe9wGmroJ7nIvZvqzFH3SjU6OYihmO8NwujwDGKnGHAwRRU5JN1sniu1NxqfO9qC6TmYA9R7W27jWD9mslR703TwdxblmYJ579DbQZO01xWAXutd8TNNLFHkl30mP2yFfRnGU18EcY1ztSle72wAjjTLAPa5xlauNMQe84mBptleWuNOj2SVesEBzdWabpeX9eZ51gbSoyVLrkIyLFke61sNGGGuMEfq62iHydR/lwCz1fpvafBCdeDs1+UWWaavnqNyQ4XkzEzOzYkJez5Bcm8OzUrrd/wEcYUcXqyjGkAAAAABJRU5ErkJggg=="},
-        {"nome": "Atlético-GO", "escudo": "https://s.sde.globo.com/media/organizations/2020/07/02/atletico-go-2020.svg"},
-        {"nome": "Avaí", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/avai.svg"},
-        {"nome": "Botafogo-SP", "escudo": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Botafogo_Ribeirao_Preto_SP.png/960px-Botafogo_Ribeirao_Preto_SP.png"},
-        {"nome": "Ceará", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/ceara.svg"},
-        {"nome": "CRB", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/crb.svg"},
-        {"nome": "Criciúma", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/criciuma.svg"},
-        {"nome": "Cuiabá", "escudo": "https://s.sde.globo.com/media/organizations/2018/12/26/Cuiaba_EC.svg"},
-        {"nome": "Fortaleza", "escudo": "data:image/png;base64,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"},
-        {"nome": "Goiás", "escudo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Goi%C3%A1s_Esporte_Clube_logo.svg/960px-Goi%C3%A1s_Esporte_Clube_logo.svg.png"},
-        {"nome": "Juventude", "escudo": "https://s.sde.globo.com/media/organizations/2021/04/29/Juventude-2021-01.svg"},
-        {"nome": "Londrina", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/londrina.svg"},
-        {"nome": "Náutico", "escudo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/N%C3%A1utico_Logo_%282006-2008%29.png/960px-N%C3%A1utico_Logo_%282006-2008%29.png"},
-        {"nome": "Novorizontino", "escudo": "data:image/png;base64,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"},
-        {"nome": "Operário-PR", "escudo": "data:image/png;base64,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"},
-        {"nome": "Ponte Preta", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/ponte-preta.svg"},
-        {"nome": "São Bernardo", "escudo": "data:image/png;base64,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"},
-        {"nome": "Sport", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/sport.svg"},
-        {"nome": "Vila Nova", "escudo": "data:image/png;base64,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"}
-    ]
+    times_brasil = TIMES_BRASIL
 
     context = {
         'perfil': perfil,
         'torcidas': torcidas,
         'times_brasil': times_brasil,
         'planos': planos,
+        'niveis': niveis,
+        'nivel_atual': perfil.nivel_plano,
+        'assinatura_vigente': perfil.assinatura_vigente,
     }
     return render(request, 'seja_socio.html', context)
 
@@ -725,6 +601,7 @@ def area_hub(request):
         'perfil_game': perfil_game,
         'torcida': perfil.torcida,
     }
+    context.update(contexto_carteirinha(perfil, request))  # cartão de sócio com frente e verso
     return render(request, 'hub.html', context)
 
 
@@ -732,34 +609,40 @@ def socio_view(request):
     # Explica os planos e benefícios de ser sócio
     return render(request, 'seja_socio.html')
 
+def contexto_carteirinha(perfil, request=None):
+    """Dados do cartão de sócio (templates/includes/cartao_socio.html), usados na Carteirinha e no Início."""
+    from gamification.models import BadgeUsuario
+
+    # QR Code abre a página de validação da matrícula (funciona com a câmera do celular)
+    url_validacao = request.build_absolute_uri(reverse('validar_matricula', args=[perfil.matricula])) if request else f"SAT:{perfil.matricula}"
+    img = qrcode.make(url_validacao)
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+
+    return {
+        'perfil': perfil,
+        'qr_code': base64.b64encode(buffer.getvalue()).decode(),
+        'badges_conquistadas': BadgeUsuario.objects.filter(user=perfil.user).select_related('badge').order_by('-data_ganha'),
+        'passagens': perfil.passagens_torcida.select_related('torcida'),
+        'nivel_plano': perfil.nivel_plano,
+        'assinatura_vigente': perfil.assinatura_vigente,
+    }
+
+
 @torcida_required
 @login_required
 def carteirinha(request):
-    # 1. Busca o perfil básico do usuário (onde está a torcida)
     perfil = get_object_or_404(Perfil, user=request.user)
-    
-    # 2. Busca o perfil de gamificação (onde estão o nível e o XP)
-    from gamification.models import PerfilGamificacao, BadgeUsuario # Certifique-se dos imports
+    from gamification.models import PerfilGamificacao
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
-    
-    # 3. Busca as medalhas para exibir no destaque da carteirinha
-    badges = BadgeUsuario.objects.filter(user=request.user).select_related('badge')
 
-    # 4. Lógica de geração do QR Code (sua lógica original preservada)
-    img = qrcode.make(f"SAT-{request.user.id}")
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
-    
-    # 5. Organiza o contexto com TODOS os dados para o template
-    context = {
-        'perfil': perfil,
+    context = contexto_carteirinha(perfil, request)
+    context.update({
         'perfil_game': perfil_game,
-        'qr_code': qr_base64,
         'torcida': perfil.torcida,
-        'badges_conquistadas': badges
-    }
-    
+        # Planos acima do atual, para mostrar como a carteirinha fica em cada um
+        'niveis_preview': [(n, nome) for n, nome in NIVEIS_PLANO if ORDEM_NIVEL[n] > ORDEM_NIVEL[perfil.nivel_plano]],
+    })
     return render(request, 'carteirinha.html', context)
 
 @login_required
@@ -788,7 +671,9 @@ def confirmar_presenca(request, evento_id):
                 foto=foto,
                 validado=True
             )
-            messages.success(request, f"Presença confirmada no {evento.titulo}! +50 XP")
+            from gamification.xp import xp_participacao_evento
+            ganho = xp_participacao_evento(request.user, evento)
+            messages.success(request, f"Presença confirmada no {evento.titulo}!" + (f" +{ganho} EXP" if ganho else ""))
         
         # ATUALIZADO: Em vez de mandar para o Dashboard, devolve para o evento
         # para que o utilizador veja logo a tela verde de sucesso e a barra atualizada!
@@ -820,83 +705,29 @@ def detalhe_evento(request, evento_id):
     return render(request, 'detalhe_evento.html', context)
 
 @login_required
-def bet_manutencao(request):
-    perfil = request.user.perfil
-    
-    # 1. Verifica se a data de nascimento está preenchida
-    if not perfil.data_nascimento:
-        messages.error(request, "Para acessar as Apostas, preencha sua data de nascimento no seu Perfil.")
-        return redirect('perfil')
-        
-    # 2. Calcula a idade
-    hoje = date.today()
-    idade = hoje.year - perfil.data_nascimento.year - ((hoje.month, hoje.day) < (perfil.data_nascimento.month, perfil.data_nascimento.day))
-    
-    # 3. Bloqueia menores de 18
-    if idade < 18:
-        messages.error(request, "Acesso Negado: A área de BET é permitida apenas para maiores de 18 anos.")
-        return redirect('dashboard')
-        
-    return render(request, 'bet_manutencao.html', {'cor_tema': '#D37129'})
-
-@login_required
 def beneficios_view(request):
     perfil = request.user.perfil
     perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
-    cor_tema = perfil_game.nivel.cor_tema if perfil_game.nivel else "#ff6b00"
-    
-    # Verifica se o usuário tem algum plano ativo (ajuste conforme seu campo de sócio)
-    is_socio = hasattr(perfil, 'socio') and perfil.socio 
+    nivel_atual = perfil.nivel_plano
+    niveis = beneficios_por_nivel(perfil.torcida)
+    for n in niveis:
+        n['liberado'] = nivel_libera(nivel_atual, n['nivel'])
 
     context = {
-        'cor_tema': cor_tema,
-        'is_socio': is_socio,
-        'xp_atual': perfil_game.xp_total
+        'niveis': niveis,
+        'nivel_atual': nivel_atual,
+        'assinatura_vigente': perfil.assinatura_vigente,
+        'clube_ben_url': getattr(settings, 'CLUBE_BEN_PORTAL_URL', ''),
+        'xp_atual': perfil_game.xp_total,
     }
     return render(request, 'beneficios.html', context)
 
 
 @login_required
 def perfil_view(request):
-    perfil = request.user.perfil
-    perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
-    
-    if request.method == 'POST':
-        # O request.FILES é quem captura a foto enviada pelo input type="file"
-        form = PerfilCompletoForm(request.POST, request.FILES, instance=perfil)
-        
-        if form.is_valid():
-            # 1. Salva os dados do formulário (Foto, CPF, Telefone, etc)
-            form.save()
-            
-            # 2. Salva o Nome e Sobrenome na tabela base do Django (User), se estiverem no form
-            user = request.user
-            nome_alterado = False
-            if 'first_name' in request.POST:
-                user.first_name = request.POST.get('first_name')
-                nome_alterado = True
-            if 'last_name' in request.POST:
-                user.last_name = request.POST.get('last_name')
-                nome_alterado = True
-                
-            if nome_alterado:
-                user.save()
-
-            messages.success(request, "Perfil atualizado com sucesso!")
-            return redirect('perfil')
-    else:
-        form = PerfilCompletoForm(instance=perfil)
-        
-    seguindo_count = request.user.seguindo.count() if hasattr(request.user, 'seguindo') else 0
-
-    context = {
-        'form': form, 
-        'perfil': perfil,
-        'perfil_game': perfil_game,
-        'seguindo_count': seguindo_count
-    }
-    
-    return render(request, 'perfil.html', context)
+    """Meu Perfil = a mesma tela do Perfil Público, com carteirinha e configurações da conta."""
+    from social.views import render_perfil
+    return render_perfil(request, request.user)
 
 @login_required
 def ranking_torcida(request):
@@ -1260,11 +1091,6 @@ def realizar_checkin(request, evento_id):
             validado=True
         )
 
-        # 4. Motor de Gamificação: +50 XP por presença [cite: 68, 82]
-        perfil_game, _ = PerfilGamificacao.objects.get_or_create(user=request.user)
-        perfil_game.xp_total += 50
-        perfil_game.save()
-
         # 5. Publicação automática no Feed [cite: 77, 95, 97]
         PostTorcida.objects.create(
             autor=request.user,
@@ -1272,7 +1098,7 @@ def realizar_checkin(request, evento_id):
             texto=f"Presença confirmada no evento: {evento.titulo}! 🏟️🔥"
         )
 
-        messages.success(request, f"Check-in realizado! +50 XP na conta.")
+        messages.success(request, "Check-in realizado! EXP de participação creditado.")
         return redirect('mural')
 
     return redirect('detalhe_evento', evento_id=evento.id)
@@ -1333,19 +1159,11 @@ def pre_login(request):
     return render(request, 'pre_login.html')
 
 @login_required
-def beneficios_view(request):
-    # ... aqui depois faremos a integração com a API do Lecupon ...
-    return render(request, 'beneficios.html', context)
-
-@login_required
 def hub_socio(request):
     perfil = request.user.perfil
     
-    # Verifica de forma segura se o utilizador tem o plano de sócio ativo
-    # (Usando a mesma lógica que você já tem na sua beneficios_view)
-    is_socio = hasattr(perfil, 'socio') and perfil.socio 
-    
-    if is_socio:
+    # Sócio = qualquer plano pago vigente (Bronze, Prata ou Ouro)
+    if perfil.nivel_plano != 'gratis':
         return redirect('beneficios') # Vai para a página de benefícios
     else:
         return redirect('seja_socio')
@@ -1414,26 +1232,42 @@ def editar_perfil(request):
             # Dados da Torcida 
             perfil.vulgo = request.POST.get('vulgo', perfil.vulgo)
             perfil.pelotao = request.POST.get('pelotao', perfil.pelotao)
-            perfil.rede_social = request.POST.get('rede_social', perfil.rede_social)
 
             # 3. TRATANDO OS UPLOADS DE IMAGEM (request.FILES)
             if 'foto' in request.FILES:
                 perfil.foto = request.FILES['foto']
-            
-            if 'doc_frente' in request.FILES:
-                perfil.doc_frente = request.FILES['doc_frente']
-                
-            if 'doc_verso' in request.FILES:
-                perfil.doc_verso = request.FILES['doc_verso']
-                
-            if 'doc_selfie' in request.FILES:
-                perfil.doc_selfie = request.FILES['doc_selfie']
+
+            docs_novos = False
+            for campo in ('doc_frente', 'doc_verso', 'doc_selfie'):
+                if campo in request.FILES:
+                    setattr(perfil, campo, request.FILES[campo])
+                    docs_novos = True
+
+            # Verificação: documento novo (ou trocado) com os 3 completos -> volta para análise da moderação
+            if docs_novos and perfil.docs_completos:
+                perfil.docs_status = 'em_analise'
+                perfil.docs_motivo = ''
 
             # 4. SALVANDO TUDO
             perfil.save()
-            
-            messages.success(request, 'Seu perfil e documentos foram atualizados com sucesso!')
-            return redirect('perfil') 
+
+            if docs_novos and perfil.docs_status == 'em_analise':
+                from social.notificacoes import notificar_muitos
+                moderadores = User.objects.filter(is_superuser=True)
+                if perfil.torcida_id:
+                    moderadores = User.objects.filter(
+                        Q(is_superuser=True) | Q(is_staff=True, perfil__torcida=perfil.torcida) |
+                        Q(perfil__cargo_especial='presidente', perfil__torcida=perfil.torcida)
+                    ).distinct()
+                notificar_muitos(moderadores, 'moderacao',
+                                 f'Documentos de {usuario.get_full_name() or usuario.username} aguardando verificação.',
+                                 ator=usuario, link=reverse('moderacao_torcida') + '#documentos')
+                messages.success(request, 'Perfil atualizado! Seus documentos foram enviados para verificação.')
+            elif docs_novos:
+                messages.success(request, 'Perfil atualizado! Envie os 3 documentos (frente, verso e selfie) para a verificação.')
+            else:
+                messages.success(request, 'Perfil atualizado com sucesso!')
+            return redirect('perfil')
 
         except Exception as e:
             messages.error(request, f'Ocorreu um erro ao atualizar o perfil: {str(e)}')
@@ -1455,29 +1289,102 @@ def meus_pedidos(request):
     # CORREÇÃO 3: O template está na raiz da pasta templates, então tiramos o 'loja/'
     return render(request, 'meus_pedidos.html', {'pedidos': pedidos})
 
+
+@login_required
+def detalhe_pedido(request, pedido_id):
+    from loja.models import Pedido
+    pedido = get_object_or_404(Pedido.objects.prefetch_related('itens__produto'), id=pedido_id, usuario=request.user)
+    return render(request, 'pedido_detalhe.html', {'pedido': pedido})
+
 @login_required
 def seguranca(request):
+    from django.contrib.auth.password_validation import validate_password
+    from django.core.exceptions import ValidationError
+    from .dispositivos import dispositivos_ativos, encerrar
+
     if request.method == 'POST':
-        senha_atual = request.POST.get('senha_atual')
-        nova_senha = request.POST.get('nova_senha')
-        confirmar_senha = request.POST.get('confirmar_senha')
-        
-        # 1. Verifica se a senha antiga está certa
-        if not request.user.check_password(senha_atual):
-            messages.error(request, 'A senha atual está incorreta.')
-        # 2. Verifica se as senhas novas coincidem
-        elif nova_senha != confirmar_senha:
-            messages.error(request, 'As novas senhas não coincidem.')
-        # 3. Se estiver tudo OK, guarda a nova senha
+        acao = request.POST.get('acao', 'senha')
+
+        if acao == 'senha':
+            senha_atual = request.POST.get('senha_atual')
+            nova_senha = request.POST.get('nova_senha', '')
+            confirmar_senha = request.POST.get('confirmar_senha')
+            if not request.user.check_password(senha_atual):
+                messages.error(request, 'A senha atual está incorreta.')
+            elif nova_senha != confirmar_senha:
+                messages.error(request, 'As novas senhas não coincidem.')
+            else:
+                try:
+                    validate_password(nova_senha, request.user)
+                except ValidationError as e:
+                    messages.error(request, ' '.join(e.messages))
+                else:
+                    request.user.set_password(nova_senha)
+                    request.user.save()
+                    update_session_auth_hash(request, request.user)  # não desloga este aparelho
+                    messages.success(request, 'Senha atualizada com sucesso!')
+                    return redirect('seguranca')
+
+        elif acao == 'encerrar_dispositivo':
+            chave = request.POST.get('session_key', '')
+            if chave and chave != request.session.session_key:
+                encerrar(request.user, [chave])
+                messages.success(request, 'Aparelho desconectado.')
+
+        elif acao == 'encerrar_outros':
+            outros = [d.session_key for d in dispositivos_ativos(request.user) if d.session_key != request.session.session_key]
+            encerrar(request.user, outros)
+            messages.success(request, f'{len(outros)} aparelho(s) desconectado(s).')
+        return redirect('seguranca')
+
+    return render(request, 'seguranca.html', {
+        'dispositivos': dispositivos_ativos(request.user),
+        'sessao_atual': request.session.session_key,
+    })
+
+
+def politica_privacidade(request):
+    return render(request, 'politica_privacidade.html')
+
+
+@login_required
+def deletar_conta(request):
+    """
+    Exclui a conta (exige a senha). Os dados pessoais e as publicações são apagados;
+    pedidos e faturas ficam guardados SEM identificação, porque a lei obriga a manter registros fiscais.
+    """
+    if request.method == 'POST':
+        if request.POST.get('confirmacao', '').strip().upper() != 'EXCLUIR':
+            messages.error(request, 'Digite EXCLUIR para confirmar.')
+        elif not request.user.check_password(request.POST.get('senha', '')):
+            messages.error(request, 'Senha incorreta.')
         else:
-            request.user.set_password(nova_senha)
-            request.user.save()
-            # Esta linha garante que o utilizador não é deslogado ao mudar a senha:
-            update_session_auth_hash(request, request.user) 
-            messages.success(request, 'Senha atualizada com sucesso e segurança!')
-            return redirect('perfil')
-            
-    return render(request, 'seguranca.html')
+            from social.models import Post
+            user = request.user
+            perfil = user.perfil
+            Post.objects.filter(autor_s=user).delete()
+            for campo in ('foto', 'doc_frente', 'doc_verso', 'doc_selfie'):
+                arquivo = getattr(perfil, campo)
+                if arquivo:
+                    arquivo.delete(save=False)
+            Perfil.objects.filter(id=perfil.id).update(
+                cpf=None, whatsapp='', telefone='', data_nascimento=None, nome_mae='', nome_pai='', rg_cnh='',
+                orgao_expedidor='', cep='', rua='', numero='', complemento='', bairro='', cidade='', uf='',
+                vulgo='', pelotao='', rede_social='', torcida=None, aprovado=False, docs_status='pendente',
+                foto=None, doc_frente=None, doc_verso=None, doc_selfie=None,
+            )
+            perfil.seguidores.clear()
+            user.username = f'excluido_{user.id}'
+            user.first_name, user.last_name, user.email = 'Conta', 'excluída', ''
+            user.is_active = False
+            user.set_unusable_password()
+            user.save()
+            from .dispositivos import dispositivos_ativos, encerrar
+            encerrar(user, [d.session_key for d in dispositivos_ativos(user)])
+            logout(request)
+            messages.success(request, 'Sua conta foi excluída.')
+            return redirect('pre_login')
+    return render(request, 'deletar_conta.html')
 
 @login_required
 def admin_editar_utilizador(request, perfil_id):
@@ -1570,6 +1477,8 @@ def toggle_presenca_caravana(request, caravana_id):
         messages.warning(request, "Nome retirado da caravana.")
     else:
         PresencaCaravana.objects.create(user=request.user, caravana=caravana)
+        from gamification.xp import xp_participacao_caravana
+        xp_participacao_caravana(request.user, caravana)
         messages.success(request, "Nome adicionado à caravana!")
         
     return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
@@ -1700,19 +1609,14 @@ def webhook_efi(request):
                         if pedido:
                             pedido.status = 'pago'
                             pedido.save()
+                            from gamification.xp import conceder_xp
+                            conceder_xp(pedido.usuario, 'compra', referencia=pedido.id)
                             continue
                             
-                        # Tenta encontrar e atualizar nos Planos
+                        # Tenta encontrar e atualizar nos Planos (ativa/renova e sincroniza com o club_ben)
                         fatura = Fatura.objects.filter(txid=txid).first()
                         if fatura:
-                            fatura.status = 'pago'
-                            fatura.data_pagamento = timezone.now()
-                            fatura.save()
-                            
-                            # Ativa a assinatura vinculada
-                            if not fatura.assinatura.ativa:
-                                fatura.assinatura.ativa = True
-                                fatura.assinatura.save()
+                            confirmar_pagamento_fatura(fatura)
                             
             return JsonResponse({'status': 'ok'})
         except Exception as e:
@@ -1728,45 +1632,42 @@ def webhook_efi(request):
 @login_required
 def assinar_plano(request, plano_id):
     """
-    Cria a Assinatura + primeira Fatura para o plano escolhido,
-    gera a cobrança PIX e redireciona para o checkout.
+    Grátis: ativa na hora.
+    Pago: cria (ou reaproveita, na renovação) a assinatura + fatura PIX. O plano atual
+    só é trocado quando o pagamento for confirmado (webhook da Efí).
     """
     if request.method != 'POST':
         return redirect('seja_socio')
-    
+
     perfil = request.user.perfil
-    plano = get_object_or_404(PlanoSocio, id=plano_id, ativo=True)
-    
-    # Verifica se o usuário já tem uma assinatura ativa para esse plano
-    assinatura_existente = Assinatura.objects.filter(perfil=perfil, plano=plano, ativa=True).first()
-    if assinatura_existente:
-        # Se já tem assinatura, verifica se há fatura pendente
-        fatura_pendente = Fatura.objects.filter(assinatura=assinatura_existente, status='pendente').first()
+    plano = get_object_or_404(PlanoSocio, id=plano_id, ativo=True, torcida__isnull=True, nivel__isnull=False)
+    vigente = perfil.assinatura_vigente
+
+    if plano.gratuito:
+        if vigente and not vigente.plano.gratuito:
+            messages.info(request, f'Seu plano {vigente.plano.nome} continua valendo até {vigente.valida_ate:%d/%m/%Y}.')
+            return redirect('seja_socio')
+        assinatura, _ = Assinatura.objects.get_or_create(perfil=perfil, plano=plano, defaults={'ativa': False})
+        ativar_assinatura(assinatura)
+        messages.success(request, 'Plano Grátis ativado!')
+        return redirect('beneficios')
+
+    # Reaproveita a assinatura deste plano (renovação soma os dias que ainda restam)
+    assinatura = Assinatura.objects.filter(perfil=perfil, plano=plano).order_by('-id').first()
+    if assinatura:
+        fatura_pendente = assinatura.faturas.filter(status='pendente').order_by('-id').first()
         if fatura_pendente:
             return redirect('pagar_fatura_pix', fatura_id=fatura_pendente.id)
-        messages.info(request, 'Você já possui este plano ativo!')
-        return redirect('financeiro')
-    
-    # Desativa assinaturas anteriores (troca de plano)
-    Assinatura.objects.filter(perfil=perfil, ativa=True).update(ativa=False)
-    
-    # Cria a nova assinatura
-    assinatura = Assinatura.objects.create(
-        perfil=perfil,
-        plano=plano,
-        ativa=False  # Só ativa depois de pagar
-    )
-    
-    # Cria a primeira fatura
-    from datetime import timedelta
+    else:
+        assinatura = Assinatura.objects.create(perfil=perfil, plano=plano, ativa=False)
+
     fatura = Fatura.objects.create(
         assinatura=assinatura,
         valor=plano.preco,
         data_vencimento=timezone.now().date() + timedelta(days=3),
         status='pendente'
     )
-    
-    # Gera a cobrança PIX
+
     try:
         resultado = gerar_cobranca_pix(fatura, tipo='fatura')
         if not resultado.get('sucesso'):
@@ -1775,74 +1676,73 @@ def assinar_plano(request, plano_id):
     except Exception as e:
         messages.error(request, f"Erro ao gerar PIX: {str(e)}")
         return redirect('financeiro')
-    
+
     return redirect('pagar_fatura_pix', fatura_id=fatura.id)
 
 
 # ==========================================
-# PAINEL DO MODERADOR DE PLANOS
+# PAINEL DO MODERADOR: BENEFÍCIOS EXTRAS DA TORCIDA POR PLANO
+# (Os 4 planos e preços são oficiais da SAT; cada torcida só acrescenta benefícios)
 # ==========================================
+
+def _torcida_moderada(request):
+    if request.user.is_staff and hasattr(request.user, 'perfil') and request.user.perfil.torcida:
+        return request.user.perfil.torcida
+    return None
+
 
 @login_required
 def painel_planos(request):
-    if not request.user.is_staff or not hasattr(request.user, 'perfil') or not request.user.perfil.torcida:
+    torcida = _torcida_moderada(request)
+    if not torcida:
         messages.error(request, "Acesso negado. Apenas moderadores autorizados.")
         return redirect('dashboard')
 
-    planos = PlanoSocio.objects.filter(torcida=request.user.perfil.torcida).order_by('-id')
     context = {
-        'planos': planos,
-        'torcida': request.user.perfil.torcida
+        'niveis': beneficios_por_nivel(torcida),
+        'torcida': torcida,
+        'inativos': BeneficioTorcida.objects.filter(torcida=torcida, ativo=False),
     }
     return render(request, 'painel_planos.html', context)
 
-@login_required
-def form_plano(request, plano_id=None):
-    if not (request.user.is_staff and hasattr(request.user, 'perfil') and request.user.perfil.torcida):
-        return redirect('dashboard')
-        
-    plano = get_object_or_404(PlanoSocio, id=plano_id, torcida=request.user.perfil.torcida) if plano_id else None
-    
-    if request.method == 'POST':
-        nome = request.POST.get('nome')
-        preco = request.POST.get('preco').replace(',', '.')
-        beneficios = request.POST.get('beneficios')
-        destaque = request.POST.get('destaque') == 'on'
-        ativo = request.POST.get('ativo') == 'on'
-        
-        if plano:
-            plano.nome = nome
-            plano.preco = preco
-            plano.beneficios = beneficios
-            plano.destaque = destaque
-            plano.ativo = ativo
-            plano.save()
-            messages.success(request, 'Plano atualizado!')
-        else:
-            PlanoSocio.objects.create(
-                nome=nome,
-                preco=preco,
-                beneficios=beneficios,
-                destaque=destaque,
-                ativo=ativo,
-                torcida=request.user.perfil.torcida
-            )
-            messages.success(request, 'Plano criado com sucesso!')
-            
-        return redirect('painel_planos')
-        
-    context = {
-        'plano': plano,
-        'torcida': request.user.perfil.torcida
-    }
-    return render(request, 'form_plano.html', context)
 
 @login_required
-def excluir_plano(request, plano_id):
-    if request.user.is_staff and hasattr(request.user, 'perfil') and request.user.perfil.torcida:
-        plano = get_object_or_404(PlanoSocio, id=plano_id, torcida=request.user.perfil.torcida)
-        plano.delete()
-        messages.success(request, 'Plano removido com sucesso.')
+def form_beneficio(request, beneficio_id=None):
+    torcida = _torcida_moderada(request)
+    if not torcida:
+        return redirect('dashboard')
+
+    beneficio = get_object_or_404(BeneficioTorcida, id=beneficio_id, torcida=torcida) if beneficio_id else None
+
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo', '').strip()
+        nivel = request.POST.get('nivel_minimo')
+        if not titulo or nivel not in dict(NIVEIS_PLANO):
+            messages.error(request, 'Preencha o benefício e escolha o plano.')
+        else:
+            beneficio = beneficio or BeneficioTorcida(torcida=torcida)
+            beneficio.titulo = titulo
+            beneficio.descricao = request.POST.get('descricao', '').strip()
+            beneficio.nivel_minimo = nivel
+            beneficio.ativo = request.POST.get('ativo') == 'on'
+            beneficio.save()
+            messages.success(request, 'Benefício salvo!')
+            return redirect('painel_planos')
+
+    return render(request, 'form_beneficio.html', {
+        'beneficio': beneficio,
+        'torcida': torcida,
+        'niveis': NIVEIS_PLANO,
+        'nivel_inicial': request.GET.get('nivel', 'bronze'),
+    })
+
+
+@login_required
+def excluir_beneficio(request, beneficio_id):
+    torcida = _torcida_moderada(request)
+    if torcida and request.method == 'POST':
+        get_object_or_404(BeneficioTorcida, id=beneficio_id, torcida=torcida).delete()
+        messages.success(request, 'Benefício removido.')
     return redirect('painel_planos')
 
 @login_required
@@ -1853,3 +1753,21 @@ def cancelar_vinculo(request):
     perfil.save()
     messages.success(request, "Vínculo cancelado. Você agora é um membro neutro.")
     return redirect('torcidas')
+
+
+@login_required
+def validar_matricula(request, matricula=''):
+    """
+    Identificação do sócio pela matrícula (é o destino do QR da carteirinha).
+    Moderadores, BEPE e admins veem os dados completos; os demais, só o essencial.
+    """
+    from bepe.permissions import is_bepe
+    codigo = matricula or request.GET.get('m', '').strip()
+    perfil = Perfil.por_matricula(codigo) if codigo else None
+    autoridade = request.user.is_superuser or request.user.is_staff or is_bepe(request.user)
+    return render(request, 'validar_matricula.html', {
+        'codigo': codigo,
+        'socio': perfil,
+        'autoridade': autoridade,
+        'assinatura': perfil.assinatura_vigente if perfil else None,
+    })

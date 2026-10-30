@@ -20,6 +20,8 @@ urlpatterns = [
     path('cadastro/', views.cadastro, name='cadastro'),
     path('cadastro_etapa2/', views.cadastro_etapa2, name='cadastro_etapa2'),
     path('noticias/', views.noticias, name='noticias'),
+    path('noticias/ler/<str:noticia_id>/', views.noticia_ler, name='noticia_ler'),
+    path('ads.txt', views.ads_txt, name='ads_txt'),
     
     # REDE SOCIAL (SAT Social - Fotos)
     path('hub/', views.area_hub, name='hub'), # Link para o design antigo (cartão)
@@ -33,8 +35,8 @@ urlpatterns = [
     # EVENTOS
     path('eventos/', views.lista_eventos, name='lista_eventos'),
     path('carteirinha/', views.carteirinha, name='carteirinha'),
-    # MANUTENÇÃO BET
-    path('bet/manutencao/', views.bet_manutencao, name='bet_manutencao'),
+    path('carteirinha/validar/', views.validar_matricula, name='buscar_matricula'),
+    path('carteirinha/validar/<str:matricula>/', views.validar_matricula, name='validar_matricula'),
 
     # SUB-PÁGINAS
     path('torcida/galeria/', views.galeria_fotos, name='galeria_fotos'),
@@ -49,7 +51,6 @@ urlpatterns = [
     # LINKS DE SEGURANÇA
     path('store', views.dashboard, name='loja'),
     path('games/', views.hub_games_view, name='games_hub'),
-    path('bet/', views.dashboard, name='bet_view'),
     path('seja-socio/', views.seja_socio, name='seja_socio'),
     path('vincular/<int:torcida_id>/', views.vincular_torcida, name='vincular_torcida'),
     path('curtir/<int:post_id>/', views.curtir_post, name='curtir_post'),
@@ -60,7 +61,10 @@ urlpatterns = [
 
     path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
     path('perfil/pedidos/', views.meus_pedidos, name='meus_pedidos'),
+    path('perfil/pedidos/<int:pedido_id>/', views.detalhe_pedido, name='detalhe_pedido'),
     path('perfil/seguranca/', views.seguranca, name='seguranca'),
+    path('perfil/deletar-conta/', views.deletar_conta, name='deletar_conta'),
+    path('privacidade/', views.politica_privacidade, name='politica_privacidade'),
     
     path('perfil/', views.perfil_view, name='perfil'),
     path('cancoes/excluir/<int:cancao_id>/', organizadas_views.excluir_cancao, name='excluir_cancao'),
@@ -73,9 +77,9 @@ urlpatterns = [
     
     # PAINEL DE PLANOS
     path('painel/planos/', views.painel_planos, name='painel_planos'),
-    path('painel/planos/novo/', views.form_plano, name='novo_plano'),
-    path('painel/planos/editar/<int:plano_id>/', views.form_plano, name='editar_plano'),
-    path('painel/planos/excluir/<int:plano_id>/', views.excluir_plano, name='excluir_plano'),
+    path('painel/planos/beneficio/novo/', views.form_beneficio, name='novo_beneficio'),
+    path('painel/planos/beneficio/<int:beneficio_id>/', views.form_beneficio, name='editar_beneficio'),
+    path('painel/planos/beneficio/<int:beneficio_id>/excluir/', views.excluir_beneficio, name='excluir_beneficio'),
     path('assinar/<int:plano_id>/', views.assinar_plano, name='assinar_plano'),
 
     # EFÍ BANK (PIX)

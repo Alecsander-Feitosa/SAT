@@ -1,13 +1,20 @@
 from django.contrib import admin
-from .models import Perfil, Evento, CheckIn, Conquista, Cancao, Aliada, Presenca, PlanoSocio
+from .models import Perfil, Evento, CheckIn, Conquista, Cancao, Aliada, Presenca, PlanoSocio, BeneficioTorcida, Assinatura, PassagemTorcida
 
 
 
 @admin.register(Perfil)
 class PerfilAdmin(admin.ModelAdmin):
-    list_display = ('user', 'torcida', 'aprovado', 'time_coracao')
-    list_filter = ('aprovado',)
+    list_display = ('user', 'torcida', 'aprovado', 'docs_status', 'cargo_especial', 'time_coracao')
+    list_filter = ('aprovado', 'docs_status', 'cargo_especial')
     search_fields = ('user__username', 'user__first_name', 'cpf')
+
+    def get_readonly_fields(self, request, obj=None):
+        # Só administradores da SAT promovem alguém a Presidente/Desenvolvedor
+        campos = list(super().get_readonly_fields(request, obj))
+        if not request.user.is_superuser:
+            campos.append('cargo_especial')
+        return campos
 
     # 1. Oculta todos os perfis de outras claques da tabela
     def get_queryset(self, request):
@@ -89,10 +96,30 @@ class PresencaAdmin(admin.ModelAdmin):
 @admin.register(PlanoSocio)
 class PlanoSocioAdmin(admin.ModelAdmin):
     # Quais colunas vão aparecer na lista do painel
-    list_display = ('nome', 'preco', 'torcida', 'destaque')
+    list_display = ('nome', 'nivel', 'preco', 'torcida', 'ativo', 'destaque')
     
     # Adiciona um filtro lateral para achar planos por torcida
-    list_filter = ('torcida', 'destaque')
+    list_filter = ('nivel', 'ativo', 'torcida', 'destaque')
     
     # Adiciona uma barra de pesquisa
     search_fields = ('nome', 'descricao', 'beneficios')
+
+@admin.register(BeneficioTorcida)
+class BeneficioTorcidaAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'torcida', 'nivel_minimo', 'ativo')
+    list_filter = ('nivel_minimo', 'ativo', 'torcida')
+    search_fields = ('titulo',)
+
+
+@admin.register(Assinatura)
+class AssinaturaAdmin(admin.ModelAdmin):
+    list_display = ('perfil', 'plano', 'ativa', 'valida_ate', 'data_inicio')
+    list_filter = ('ativa', 'plano')
+    search_fields = ('perfil__user__username', 'perfil__cpf')
+
+
+@admin.register(PassagemTorcida)
+class PassagemTorcidaAdmin(admin.ModelAdmin):
+    list_display = ('perfil', 'torcida_nome', 'entrada', 'saida')
+    list_filter = ('torcida',)
+    search_fields = ('perfil__user__username', 'torcida_nome')

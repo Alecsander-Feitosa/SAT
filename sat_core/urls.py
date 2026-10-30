@@ -15,6 +15,7 @@ urlpatterns = [
     
     path('social/', include('social.urls')),
     path('organizadas/', include('organizadas.urls')), 
+    path('bepe/', include('bepe.urls')),
     
     path('ranking/', views.ranking_torcida, name='ranking'),
     path('eventos/', views.lista_eventos, name='lista_eventos'),

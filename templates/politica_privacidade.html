@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex items-center gap-4">
+        <a href="javascript:history.back()" class="texto-main text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">Privacidade <span class="texto-tema">e segurança</span></h1>
+    </div>
+
+    <article class="px-5 pt-6 max-w-2xl w-full mx-auto space-y-5 texto-main">
+        <div class="p-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 text-[11px] font-bold">
+            <i class="bi bi-info-circle-fill"></i> Texto-modelo: revise com o jurídico da SAT antes da publicação oficial.
+        </div>
+
+        <section class="fundo-card border border-suave rounded-[24px] p-5 space-y-2">
+            <h2 class="text-sm font-black uppercase tracking-widest">1. Quais dados coletamos</h2>
+            <p class="text-[13px] opacity-80 leading-relaxed">Cadastro (nome, e-mail, CPF, data de nascimento, telefone, endereço), documentos de identificação e selfie para verificação, foto de perfil, vínculo com a torcida, publicações e interações na SAT Social, pedidos da loja e pagamentos, e — <b>somente se você ativar</b> — sua localização enquanto usa o app.</p>
+        </section>
+        <section class="fundo-card border border-suave rounded-[24px] p-5 space-y-2">
+            <h2 class="text-sm font-black uppercase tracking-widest">2. Para que usamos</h2>
+            <p class="text-[13px] opacity-80 leading-relaxed">Identificar você como sócio (carteirinha e matrícula), confirmar sua identidade, processar planos e compras, entregar pedidos, operar a rede social e a gamificação, e colaborar com a segurança em eventos. Dados cadastrais podem ser compartilhados com as autoridades de segurança pública (BEPE) para a segurança dos torcedores.</p>
+        </section>
+        <section class="fundo-card border border-suave rounded-[24px] p-5 space-y-2">
+            <h2 class="text-sm font-black uppercase tracking-widest">3. Localização</h2>
+            <p class="text-[13px] opacity-80 leading-relaxed">O compartilhamento é opcional e pode ser desligado a qualquer momento no menu lateral. Ao desligar, sua última posição é apagada imediatamente.</p>
+        </section>
+        <section class="fundo-card border border-suave rounded-[24px] p-5 space-y-2">
+            <h2 class="text-sm font-black uppercase tracking-widest">4. Segurança</h2>
+            <p class="text-[13px] opacity-80 leading-relaxed">Senhas são armazenadas criptografadas. Você pode ver e desconectar os aparelhos com sessão aberta em Segurança e senha. Documentos só são vistos pela moderação da sua torcida e pela administração.</p>
+        </section>
+        <section class="fundo-card border border-suave rounded-[24px] p-5 space-y-2">
+            <h2 class="text-sm font-black uppercase tracking-widest">5. Seus direitos (LGPD)</h2>
+            <p class="text-[13px] opacity-80 leading-relaxed">Você pode acessar, corrigir e excluir seus dados. A exclusão da conta está em Perfil &gt; Sistema &gt; Deletar conta. Registros de pedidos e pagamentos são mantidos de forma anônima pelo prazo exigido em lei.</p>
+        </section>
+    </article>
+</div>
+{% endblock %}

@@ -59,75 +59,58 @@ class PerfilGamificacao(models.Model):
 
 
     def progresso_nivel(self):
-        from .models import Nivel
-        
-        # 1. Pega o nível atual do usuário (se não tiver, assume o menor nível do sistema)
-        nivel_atual = self.nivel
-        if not nivel_atual:
-            nivel_atual = Nivel.objects.order_by('xp_minimo').first()
-        
-        # 2. Pega o PRÓXIMO nível (o primeiro que tem XP estritamente maior que o atual)
-        proximo_nivel = Nivel.objects.filter(xp_minimo__gt=self.xp_total).order_by('xp_minimo').first()
-        
-        # Se não existe próximo nível, ele é nível máximo (Lenda) -> Barra 100%
-        if not proximo_nivel:
+        """Percentual (0-100) do caminho entre o nível atual e o próximo."""
+        from .xp import xp_para_nivel
+        inicio = xp_para_nivel(self.nivel_numero)
+        fim = xp_para_nivel(self.nivel_numero + 1)
+        if fim <= inicio:
             return 100
+        return min(max((self.xp_total - inicio) / (fim - inicio) * 100, 0), 100)
 
-        # 3. Cálculo matemático do progresso
-        xp_inicio = nivel_atual.xp_minimo if nivel_atual else 0
-        xp_objetivo = proximo_nivel.xp_minimo
-        
-        # Quanto XP ele precisa ganhar NO TOTAL para atravessar este nível específico
-        largura_do_nivel = xp_objetivo - xp_inicio
-        
-        # Quanto XP ele já ganhou ALÉM do mínimo do nível atual
-        xp_ganho_neste_nivel = self.xp_total - xp_inicio
-        
-        if largura_do_nivel > 0:
-            progresso = (xp_ganho_neste_nivel / largura_do_nivel) * 100
-            # Garante que a barra não fique negativa nem passe de 100
-            return min(max(progresso, 0), 100)
-        
-        return 0
+    # --- Níveis numéricos (1 a 100+) com títulos: ver gamification/xp.py ---
+    @property
+    def nivel_numero(self):
+        from .xp import nivel_por_xp
+        return nivel_por_xp(self.xp_total)
+
+    @property
+    def titulo(self):
+        from .xp import titulo_do_usuario
+        return titulo_do_usuario(self.user, self.nivel_numero)
+
+    @property
+    def xp_proximo_nivel(self):
+        from .xp import xp_para_nivel
+        return xp_para_nivel(self.nivel_numero + 1)
 
     def __str__(self):
         return f"XP de {self.user.username}"
 
-@receiver(post_save, sender=CheckIn)
-def atribuir_xp_checkin(sender, instance, created, **kwargs):
-    if created and instance.user:
-        # Busca ou cria o perfil de gamificação do usuário
-        perfil, _ = PerfilGamificacao.objects.get_or_create(user=instance.user)
-        
-        # Atribui 50 XP por check-in
-        perfil.xp_total += 50
-        
-        # Lógica automática para subir de nível
-        novo_nivel = Nivel.objects.filter(xp_minimo__lte=perfil.xp_total).order_by('-xp_minimo').first()
-        if novo_nivel:
-            perfil.nivel = novo_nivel
-            
-        perfil.save()
 
+class RegistroXP(models.Model):
+    """Histórico de cada ganho de XP. A combinação (usuário, ação, referência) só rende XP uma vez."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='registros_xp')
+    acao = models.CharField(max_length=30)
+    referencia = models.CharField(max_length=60, blank=True, help_text="Ex: id do post, data do check-in diário")
+    xp = models.IntegerField()
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-criado_em']
+        constraints = [models.UniqueConstraint(fields=['user', 'acao', 'referencia'], name='xp_unico_por_acao')]
+
+    def __str__(self):
+        return f"{self.user.username} +{self.xp} ({self.acao})"
 
 @receiver(post_save, sender=CheckIn)
 def processar_gamificacao_estadio(sender, instance, created, **kwargs):
     if created and instance.user:
-        # 1. Credita o XP (50 pontos por presença no estádio)
-        perfil, _ = PerfilGamificacao.objects.get_or_create(user=instance.user)
-        perfil.xp_total += 50
-        
-        # 2. Lógica de Level Up: Busca o maior nível que o XP atual alcança
-        novo_nivel = Nivel.objects.filter(xp_minimo__lte=perfil.xp_total).order_by('-xp_minimo').first()
-        if novo_nivel:
-            perfil.nivel = novo_nivel
-        
-        perfil.save()
+        # EXP de participação no evento (tabela, plano, bônus do Presidente e evento épico) — gamification/xp.py
+        from .xp import xp_participacao_evento
+        xp_participacao_evento(instance.user, instance.evento)
 
-        # 3. Verificação de Medalhas (Badges) por recorrência
+        # Medalhas (Badges) por recorrência
         total_checkins = CheckIn.objects.filter(user=instance.user).count()
-        
-        # Exemplo: Se completou 5 check-ins, ganha a medalha "Fiel Escudeiro"
         badge_fiel = Badge.objects.filter(requisito_checkins=5).first()
         if badge_fiel and total_checkins >= 5:
             BadgeUsuario.objects.get_or_create(user=instance.user, badge=badge_fiel)
@@ -142,3 +125,16 @@ class Conquista(models.Model):
 
     def __str__(self):
         return self.titulo
+
+class MedalhaUsuario(models.Model):
+    """Medalha conquistada (o catálogo e as regras ficam em gamification/medalhas.py)."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='medalhas')
+    codigo = models.CharField(max_length=30)
+    conquistada_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['conquistada_em']
+        constraints = [models.UniqueConstraint(fields=['user', 'codigo'], name='medalha_unica')]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.codigo}"

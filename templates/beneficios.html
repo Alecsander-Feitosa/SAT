@@ -1,53 +1,79 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="mb-5">
-        <h1 class="fw-black display-5">CLUBE DE BENEFÍCIOS</h1>
-        <p class="text-[#1A1A1A]-50">Vantagens exclusivas para quem fecha com a torcida.</p>
+<style>
+    .plano-gratis { background: linear-gradient(135deg, #e5e7eb, #9ca3af); color: #111827; }
+    .plano-bronze { background: linear-gradient(135deg, #e0a36b, #8c4a1c); color: #fff; }
+    .plano-prata  { background: linear-gradient(135deg, #f3f4f6, #8e9aa8); color: #111827; }
+    .plano-ouro   { background: linear-gradient(135deg, #fde68a, #b8860b); color: #1f1300; }
+</style>
+
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex items-center gap-4">
+        <a href="{% url 'dashboard' %}" class="texto-main text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">Clube de <span class="texto-tema">Benefícios</span></h1>
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="sat-card h-100">
-                <h5 class="fw-bold"><i class="bi bi-bag-fill me-2"></i> LOJA OFICIAL</h5>
-                <p class="text-[#1A1A1A]-50">Acesso liberado para todos os torcedores. Compre mantos e acessórios.</p>
-                <a href="{% url 'loja' %}" class="btn btn-sm w-100 mt-3" style="background: {{ cor_tema }}; color: #000;">IR PARA LOJA</a>
-            </div>
-        </div>
+    <div class="px-5 pt-6 space-y-6">
 
-        <div class="col-md-6">
-            <div class="sat-card h-100 {% if not is_socio %}opacity-50{% endif %}" style="position: relative;">
-                {% if not is_socio %}
-                    <div class="lock-overlay text-center d-flex md:flex-row align-items-center justify-content-center" 
-                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 5; border-radius: 20px;">
-                        <i class="bi bi-lock-fill display-4 mb-2" style="color: {{ cor_tema }};"></i>
-                        <h6 class="fw-bold">EXCLUSIVO PARA SÓCIOS</h6>
-                        <a href="{% url 'seja_socio' %}" class="btn btn-xs mt-2 fw-bold" style="background: {{ cor_tema }}; color: #000; font-size: 0.7rem;">ASSINAR AGORA</a>
-                    </div>
+        {# ---------- PLANO ATUAL ---------- #}
+        <div class="plano-{{ nivel_atual }} rounded-[25px] p-5 shadow-lg relative overflow-hidden">
+            <i class="bi bi-award-fill absolute -right-3 -bottom-5 text-[100px] opacity-15 pointer-events-none"></i>
+            <p class="text-[9px] font-black uppercase tracking-widest opacity-70">Seu plano</p>
+            <h2 class="text-3xl font-black italic uppercase tracking-tighter leading-none mt-1">{{ user.perfil.plano }}</h2>
+            <p class="text-[10px] font-bold uppercase tracking-widest opacity-80 mt-2">
+                {% if assinatura_vigente.valida_ate %}Válido até {{ assinatura_vigente.valida_ate|date:"d/m/Y" }}{% elif nivel_atual == 'gratis' %}Faça upgrade e libere mais vantagens{% else %}Sem vencimento{% endif %}
+            </p>
+            <div class="flex gap-2 mt-4 relative">
+                <a href="{% url 'seja_socio' %}" class="bg-black/80 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-full shadow-md active:scale-95 transition-transform">
+                    {% if nivel_atual == 'ouro' %}Renovar{% else %}Fazer upgrade{% endif %}
+                </a>
+                {% if clube_ben_url and nivel_atual != 'gratis' %}
+                <a href="{{ clube_ben_url }}" target="_blank" rel="noopener" class="bg-white/90 text-black text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-full shadow-md active:scale-95 transition-transform">
+                    <i class="bi bi-box-arrow-up-right"></i> Acessar club_ben
+                </a>
                 {% endif %}
-                
-                <h5 class="fw-bold"><i class="bi bi-percent me-2"></i> REDE PARCEIRA</h5>
-                <p class="text-[#1A1A1A]-50">Descontos em farmácias, cinemas e lanchonetes parceiras da torcida.</p>
-                <button class="btn btn-sm btn-outline-light w-100 mt-3 disabled">VER PARCEIROS</button>
             </div>
         </div>
-    </div>
 
-        <div class="col-md-4">
-            <div class="sat-card h-100 border-0" style="background: linear-gradient(145deg, #111827, #1f2937);">
-                <div class="d-flex align-items-center mb-4">
-                    <div class="p-3 rounded-3 me-3" style="background: rgba(255, 107, 0, 0.1);">
-                        <i class="bi bi-star-fill fs-3" style="color: {{ cor_tema }};"></i>
-                    </div>
-                    <h5 class="m-0 fw-bold">RESGATE XP</h5>
+        {# ---------- BENEFÍCIOS POR NÍVEL ---------- #}
+        {% for n in niveis %}{% if n.oficiais or n.torcida %}
+        <section class="fundo-card border border-suave rounded-[20px] overflow-hidden shadow-sm {% if not n.liberado %}opacity-60{% endif %}">
+            <div class="flex items-center justify-between px-5 py-3 border-b border-suave">
+                <div class="flex items-center gap-2">
+                    <span class="plano-{{ n.nivel }} w-7 h-7 rounded-full flex items-center justify-center text-xs"><i class="bi bi-award-fill"></i></span>
+                    <h3 class="text-xs font-black texto-main uppercase tracking-widest">{{ n.nome }}</h3>
                 </div>
-                <p class="text-[#1A1A1A]-50">Troque seu XP acumulado por experiências exclusivas com o time.</p>
-                <div class="mt-4 text-center">
-                    <small class="text-muted">Seu XP Atual: <strong>{{ perfil_game.xp_total }}</strong></small>
-                </div>
+                {% if n.liberado %}
+                <span class="text-[8px] font-black uppercase tracking-widest text-green-600 bg-green-500/10 px-2 py-1 rounded-full"><i class="bi bi-unlock-fill"></i> Liberado</span>
+                {% else %}
+                <a href="{% url 'seja_socio' %}" class="text-[8px] font-black uppercase tracking-widest texto-main bg-black/5 px-2 py-1 rounded-full"><i class="bi bi-lock-fill"></i> {% if n.plano %}R$ {{ n.plano.preco|floatformat:2 }}/mês{% else %}Bloqueado{% endif %}</a>
+                {% endif %}
             </div>
-        </div>
+            <ul class="px-5 py-3 space-y-2">
+                {% for b in n.oficiais %}
+                <li class="flex items-start gap-2 text-[11px] font-bold texto-main opacity-80"><i class="bi bi-check2"></i> {{ b }}</li>
+                {% endfor %}
+                {% for b in n.torcida %}
+                <li class="flex items-start gap-2 text-[11px] font-bold texto-main">
+                    <i class="bi bi-star-fill texto-tema"></i>
+                    <span>{{ b.titulo }}{% if b.descricao %} <span class="opacity-60 font-medium">— {{ b.descricao }}</span>{% endif %}
+                    <span class="block text-[8px] uppercase tracking-widest opacity-50">Exclusivo {{ user.perfil.torcida.nome }}</span></span>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}{% endfor %}
+
+        <a href="{% url 'loja' %}" class="flex items-center gap-4 fundo-card border border-suave rounded-[20px] p-4 shadow-sm">
+            <div class="w-11 h-11 rounded-full fundo-tema flex items-center justify-center"><i class="bi bi-bag-fill texto-claro"></i></div>
+            <div class="flex-1">
+                <p class="text-xs font-black texto-main uppercase tracking-widest">Loja Oficial</p>
+                <p class="text-[10px] texto-main opacity-60">Liberada para todos os torcedores</p>
+            </div>
+            <i class="bi bi-chevron-right texto-main opacity-40"></i>
+        </a>
     </div>
 </div>
 {% endblock %}

@@ -24,8 +24,8 @@
                     <div class="flex items-center justify-center h-full text-gray-400"><i class="bi bi-camera text-2xl"></i></div>
                 {% endif %}
                 <div class="absolute bottom-2 left-2">
-                    <span class="user-badge" style="background-color: {{ checkin.user.perfil_game.nivel.cor_tema|default:'#D37129' }};">
-                        {{ checkin.user.perfil_game.nivel.nome|default:"TORCEDOR" }}
+                    <span class="user-badge" style="background-color: #D37129;">
+                        {{ checkin.user.perfil_game.titulo|default:"TORCEDOR" }}
                     </span>
                 </div>
             </div>

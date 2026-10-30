@@ -1,0 +1,31 @@
+{% extends 'bepe/base_bepe.html' %}
+{% block bepe_content %}
+<a href="{% url 'bepe:denuncias' %}" class="text-xs texto-main opacity-60 hover:opacity-100"><i class="bi bi-arrow-left"></i> Voltar</a>
+
+<div class="grid lg:grid-cols-3 gap-4 mt-3">
+    <section class="card p-5 lg:col-span-2">
+        <p class="rotulo">Protocolo {{ denuncia.protocolo }}</p>
+        <h1 class="text-xl font-black texto-main mt-1">{{ denuncia.get_categoria_display }}</h1>
+        <dl class="grid sm:grid-cols-3 gap-3 text-sm mt-4">
+            <div><dt class="rotulo">Torcida</dt><dd>{{ denuncia.torcida.nome|default:"Não informada" }}</dd></div>
+            <div><dt class="rotulo">Local</dt><dd>{{ denuncia.local|default:"Não informado" }}</dd></div>
+            <div><dt class="rotulo">Data do fato</dt><dd>{{ denuncia.data_fato|date:"d/m/Y H:i"|default:"Não informada" }}</dd></div>
+        </dl>
+        <p class="rotulo mt-5">Relato</p>
+        <p class="text-sm whitespace-pre-line mt-1 fundo-app rounded-xl p-4 border border-suave">{{ denuncia.descricao }}</p>
+        {% if denuncia.anexo %}
+        <a href="{{ denuncia.anexo.url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 mt-3 text-sm texto-tema"><i class="bi bi-paperclip"></i> Abrir anexo</a>
+        {% endif %}
+        <p class="text-xs texto-main opacity-50 mt-5">Recebida em {{ denuncia.criada_em|date:"d/m/Y H:i" }} · atualizada em {{ denuncia.atualizada_em|date:"d/m/Y H:i" }}{% if denuncia.responsavel %} · responsável: {{ denuncia.responsavel.get_full_name|default:denuncia.responsavel.username }}{% endif %}</p>
+    </section>
+
+    <form method="post" class="card p-5 space-y-3 h-fit">
+        {% csrf_token %}
+        <h2 class="font-black texto-main">Tratamento</h2>
+        <div><label class="rotulo">Status</label>{{ form.status }}</div>
+        <div><label class="rotulo">Resposta ao denunciante</label>{{ form.resposta_publica }}<p class="text-[11px] texto-main opacity-50 mt-1">Aparece para quem consultar o protocolo.</p></div>
+        <div><label class="rotulo">Nota interna</label>{{ form.nota_interna }}<p class="text-[11px] texto-main opacity-50 mt-1">Visível só para o BEPE.</p></div>
+        <button class="w-full btn-tema py-3 text-sm">Salvar</button>
+    </form>
+</div>
+{% endblock %}

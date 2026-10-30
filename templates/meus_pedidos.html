@@ -10,22 +10,15 @@
 
     <div class="space-y-4">
         {% for pedido in pedidos %}
-        <div class="fundo-card border border-suave p-5 rounded-3xl shadow-sm">
+        <a href="{% url 'detalhe_pedido' pedido.id %}" class="block fundo-card border border-suave p-5 rounded-3xl shadow-sm no-underline hover:border-tema transition-colors">
             <div class="flex justify-between items-start mb-3 border-b border-suave pb-3">
                 <div>
                     <h4 class="texto-main font-black uppercase text-sm">Pedido #{{ pedido.id|stringformat:"04d" }}</h4>
                     <p class="text-[10px] font-bold texto-main opacity-50 uppercase mt-0.5">{{ pedido.data_pedido|date:"d M Y" }}</p>
                 </div>
-                <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full 
-                    {% if pedido.status == 'concluido' %}bg-green-500/10 text-green-500
-                    {% elif pedido.status == 'pago' %}bg-green-500/10 text-green-500
-                    {% elif pedido.status == 'pendente' %}bg-yellow-500/10 text-yellow-500
-                    {% elif pedido.status == 'aguardando_retirada' %}bg-blue-500/10 text-blue-500
-                    {% elif pedido.status == 'enviado' %}bg-purple-500/10 text-purple-500
-                    {% elif pedido.status == 'cancelado' %}bg-red-500/10 text-red-500
-                    {% else %}bg-blue-500/10 text-blue-500{% endif %}">
-                    {{ pedido.get_status_display|default:"Em Processamento" }}
-                </span>
+                {% with pg=pedido.status_pagamento %}
+                <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-{{ pg.1 }}-500/10 text-{{ pg.1 }}-600"><i class="bi bi-credit-card"></i> {{ pg.0 }}</span>
+                {% endwith %}
             </div>
             
             <!-- Info de entrega e pagamento -->
@@ -51,11 +44,20 @@
                 {% endif %}
             </div>
 
-            <div class="flex items-center justify-between mt-3">
-                <span class="text-xs font-bold texto-main opacity-70">{{ pedido.itens.count|default:"1" }} iten(s)</span>
-                <span class="text-sm font-black texto-main">R$ {{ pedido.total|default:"0,00" }}</span>
+            {% if pedido.status != 'cancelado' %}
+            <div class="flex items-center gap-1 mb-3">
+                {% for etapa, feita in pedido.etapas_entrega %}
+                <div class="flex-1 h-1.5 rounded-full {% if feita %}fundo-tema{% else %}bg-black/10{% endif %}" title="{{ etapa }}"></div>
+                {% endfor %}
             </div>
-        </div>
+            <p class="text-[10px] font-bold texto-main opacity-60 -mt-1 mb-2">{{ pedido.get_status_display }}{% if pedido.codigo_rastreio %} · rastreio {{ pedido.codigo_rastreio }}{% endif %}</p>
+            {% endif %}
+
+            <div class="flex items-center justify-between mt-3">
+                <span class="text-xs font-bold texto-main opacity-70">{{ pedido.itens.count|default:"1" }} iten(s){% if pedido.nota_fiscal %} · <i class="bi bi-file-earmark-pdf text-red-500"></i> NF{% endif %}</span>
+                <span class="text-sm font-black texto-main">R$ {{ pedido.total|default:"0,00" }} <i class="bi bi-chevron-right opacity-40"></i></span>
+            </div>
+        </a>
         {% empty %}
         <div class="flex flex-col items-center justify-center py-16 text-center fundo-card border border-suave rounded-3xl">
             <div class="w-16 h-16 fundo-app rounded-full flex items-center justify-center mb-4 border border-suave shadow-inner">

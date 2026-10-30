@@ -72,3 +72,13 @@ def torcida_branding(request):
             'cor_terciaria': "#FFFFFF",
         }
     }
+
+
+def monetizacao(request):
+    """IDs da MGID (notícias patrocinadas pagas por clique). Vazios = espaços desligados."""
+    from django.conf import settings
+    return {'mgid': {
+        'site_id': getattr(settings, 'MGID_SITE_ID', ''),
+        'widget_id': getattr(settings, 'MGID_WIDGET_ID', ''),
+        'debug': settings.DEBUG,
+    }}

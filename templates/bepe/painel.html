@@ -1,0 +1,60 @@
+{% extends 'bepe/base_bepe.html' %}
+{% block bepe_content %}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <a href="{% url 'bepe:cadastrados' %}" class="card p-4 flex flex-col gap-2 no-underline active:scale-[0.98] transition-transform">
+        <div class="w-9 h-9 rounded-xl fundo-tema flex items-center justify-center"><i class="bi bi-people-fill texto-claro"></i></div>
+        <span class="text-2xl font-black texto-main leading-none">{{ total_cadastrados }}</span>
+        <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Cadastrados</span>
+    </a>
+    <a href="{% url 'bepe:cadastrados' %}?com_registro=1" class="card p-4 flex flex-col gap-2 no-underline active:scale-[0.98] transition-transform">
+        <div class="w-9 h-9 rounded-xl bg-yellow-500 flex items-center justify-center"><i class="bi bi-journal-text text-white"></i></div>
+        <span class="text-2xl font-black texto-main leading-none">{{ total_registros }}</span>
+        <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Registros em prontuário</span>
+    </a>
+    <a href="{% url 'bepe:denuncias' %}?status=nova" class="card p-4 flex flex-col gap-2 no-underline active:scale-[0.98] transition-transform">
+        <div class="w-9 h-9 rounded-xl bg-red-500 flex items-center justify-center"><i class="bi bi-megaphone-fill text-white"></i></div>
+        <span class="text-2xl font-black leading-none {% if denuncias_novas %}text-red-600{% else %}texto-main{% endif %}">{{ denuncias_novas }}</span>
+        <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Denúncias novas</span>
+    </a>
+    <a href="{% url 'bepe:conversas' %}" class="card p-4 flex flex-col gap-2 no-underline active:scale-[0.98] transition-transform">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center"><i class="bi bi-chat-dots-fill text-white"></i></div>
+        <span class="text-2xl font-black leading-none {% if mensagens_nao_lidas %}text-blue-600{% else %}texto-main{% endif %}">{{ mensagens_nao_lidas }}</span>
+        <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Mensagens não lidas</span>
+    </a>
+</div>
+
+<div class="grid md:grid-cols-2 gap-4">
+    <section class="card overflow-hidden">
+        <div class="flex justify-between items-center px-5 pt-4 pb-3">
+            <h2 class="text-sm font-black italic uppercase tracking-tighter texto-main">Últimas denúncias</h2>
+            <a href="{% url 'bepe:denuncias' %}" class="text-[10px] font-black uppercase tracking-widest texto-tema">Ver todas</a>
+        </div>
+        <div class="divide-suave border-t border-suave">
+        {% for d in ultimas_denuncias %}
+        <a href="{% url 'bepe:denuncia_detalhe' d.id %}" class="flex justify-between items-center gap-3 px-5 py-3 linha">
+            <div class="min-w-0">
+                <p class="text-sm font-bold texto-main truncate">{{ d.get_categoria_display }}</p>
+                <p class="text-[11px] texto-main opacity-50">{{ d.protocolo }} · {{ d.torcida.nome|default:"Sem torcida" }} · {{ d.criada_em|date:"d/m H:i" }}</p>
+            </div>
+            <span class="text-[9px] font-black uppercase px-2 py-1 rounded-lg whitespace-nowrap {% if d.status == 'nova' %}bg-red-500/15 text-red-600{% else %}bg-black/5 texto-main opacity-60{% endif %}">{{ d.get_status_display }}</span>
+        </a>
+        {% empty %}<p class="px-5 py-6 text-sm texto-main opacity-50 text-center">Nenhuma denúncia.</p>{% endfor %}
+        </div>
+    </section>
+
+    <section class="card overflow-hidden">
+        <div class="flex justify-between items-center px-5 pt-4 pb-3">
+            <h2 class="text-sm font-black italic uppercase tracking-tighter texto-main">Últimos registros</h2>
+            <a href="{% url 'bepe:cadastrados' %}?com_registro=1" class="text-[10px] font-black uppercase tracking-widest texto-tema">Ver todos</a>
+        </div>
+        <div class="divide-suave border-t border-suave">
+        {% for r in ultimos_registros %}
+        <a href="{% url 'bepe:cadastrado_detalhe' r.perfil_id %}" class="block px-5 py-3 linha">
+            <p class="text-sm font-bold texto-main truncate">{{ r.perfil.user.get_full_name|default:r.perfil.user.username }} — {{ r.titulo }}</p>
+            <p class="text-[11px] texto-main opacity-50">{{ r.get_tipo_display }} · {{ r.data_fato|date:"d/m/Y" }} · por {{ r.autor.username|default:"—" }}</p>
+        </a>
+        {% empty %}<p class="px-5 py-6 text-sm texto-main opacity-50 text-center">Nenhum registro.</p>{% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

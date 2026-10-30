@@ -183,6 +183,27 @@ def painel_moderador(request):
             else:
                 messages.info(request, "Nenhum sócio pendente para aprovar.")
                 
+        elif acao in ('verificar_docs', 'recusar_docs'):
+            p = get_object_or_404(Perfil, id=request.POST.get('perfil_id'), torcida=minha_torcida)
+            from social.notificacoes import notificar
+            p.docs_analisado_em = timezone.now()
+            p.docs_analisado_por = request.user
+            if acao == 'verificar_docs':
+                p.docs_status, p.docs_motivo = 'verificado', ''
+                p.save()
+                HistoricoSocio.objects.create(perfil=p, acao="Documentos verificados", moderador=request.user)
+                from gamification.medalhas import verificar_medalhas
+                verificar_medalhas(p.user)
+                notificar(p.user, 'moderacao', 'Seus documentos foram verificados! Identidade confirmada. ✅', link='/perfil/')
+                messages.success(request, f"Documentos de {p.user.username} verificados.")
+            else:
+                motivo = request.POST.get('motivo', '').strip() or 'Fotos ilegíveis ou documento inválido.'
+                p.docs_status, p.docs_motivo = 'recusado', motivo[:255]
+                p.save()
+                HistoricoSocio.objects.create(perfil=p, acao="Documentos recusados", observacao=motivo, moderador=request.user)
+                notificar(p.user, 'moderacao', f'Seus documentos foram recusados: {motivo} Envie novamente em Editar perfil.', link='/perfil/editar/')
+                messages.warning(request, f"Documentos de {p.user.username} recusados.")
+
         elif acao == 'toggle_aprovacao_automatica':
             minha_torcida.aprovacao_automatica = not minha_torcida.aprovacao_automatica
             minha_torcida.save()
@@ -250,6 +271,7 @@ def painel_moderador(request):
             valor_str = request.POST.get('valor', '0')
             Evento.objects.create(
                 torcida=minha_torcida,
+                criado_por=request.user,
                 categoria=request.POST.get('categoria', 'evento_social'),
                 titulo=request.POST.get('titulo'),
                 data=parse_datetime(request.POST.get('data')),
@@ -289,6 +311,7 @@ def painel_moderador(request):
         elif acao == 'nova_caravana':
             Caravana.objects.create(
                 torcida=minha_torcida,
+                criado_por=request.user,
                 titulo=request.POST.get('titulo'),
                 saida_local=request.POST.get('saida_local'),
                 saida_horario=parse_datetime(request.POST.get('saida_horario')),
@@ -378,6 +401,10 @@ def painel_moderador(request):
             minha_torcida.lema = request.POST.get('lema', minha_torcida.lema)
             minha_torcida.historia = request.POST.get('historia', minha_torcida.historia)
             minha_torcida.nome_pelotao = request.POST.get('nome_pelotao', minha_torcida.nome_pelotao) or "Pelotão"
+            if 'whatsapp_suporte' in request.POST:
+                numeros = ''.join(c for c in request.POST['whatsapp_suporte'] if c.isdigit())
+                # wa.me precisa do código do país (55 = Brasil)
+                minha_torcida.whatsapp_suporte = ('55' + numeros if numeros and not numeros.startswith('55') else numeros)[:20]
             
             # ATUALIZAÇÃO DAS 4 CORES (Obrigatório estarem todas aqui!)
             minha_torcida.cor_primaria = request.POST.get('cor_primaria', minha_torcida.cor_primaria)
@@ -585,6 +612,7 @@ def painel_moderador(request):
         # Sócios e KYC
         'membros_ativos': membros_ativos,
         'membros_pendentes': membros_pendentes,
+        'docs_para_verificar': Perfil.objects.filter(torcida=minha_torcida, docs_status='em_analise').select_related('user'),
         'campos_kyc': CampoPersonalizado.objects.filter(torcida=minha_torcida),
         
         # Eventos
@@ -640,8 +668,11 @@ def reservar_caravana(request, caravana_id):
 from django.utils import timezone # Adicionamos o import do timezone aqui por segurança
 
 # SAT/organizadas/views.py
+import csv
 from django.db.models import Sum
 from accounts.models import Fatura, Assinatura # Certifique-se de importar os novos modelos
+from accounts.planos import planos_oficiais
+from django.db.models import Q
 
 @login_required
 def admin_financeiro(request):
@@ -649,24 +680,17 @@ def admin_financeiro(request):
     torcida_mod = perfil_moderador.torcida
     hoje = timezone.now()
 
-    # --- LÓGICA DE CRIAÇÃO DE NOVO PLANO ---
-    if request.method == 'POST' and request.POST.get('acao') == 'novo_plano':
-        PlanoSocio.objects.create(
-            torcida=torcida_mod,
-            nome=request.POST.get('nome'),
-            preco=request.POST.get('preco'),
-            beneficios=request.POST.get('beneficios'),
-            destaque=request.POST.get('destaque') == 'on',
-            ativo=True
-        )
-        messages.success(request, "Novo plano criado com sucesso!")
-        return redirect('admin_financeiro')
-
     # --- BUSCA DE DADOS ---
-    faturas_query = Fatura.objects.filter(assinatura__plano__torcida=torcida_mod)
-    
-    # Planos da torcida
-    planos = PlanoSocio.objects.filter(torcida=torcida_mod).order_by('-ativo', 'preco')
+    # Os planos são oficiais SAT; a torcida vê as faturas dos SEUS sócios
+    faturas_query = Fatura.objects.filter(assinatura__perfil__torcida=torcida_mod)
+
+    # Planos oficiais com a quantidade de sócios da torcida em cada um
+    hoje_data = hoje.date()
+    planos = list(planos_oficiais())
+    for plano in planos:
+        plano.qtd_socios = Assinatura.objects.filter(
+            plano=plano, perfil__torcida=torcida_mod, ativa=True
+        ).filter(Q(valida_ate__isnull=True) | Q(valida_ate__gte=hoje_data)).count()
 
     receita_mensal = faturas_query.filter(
         status='pago', 
@@ -705,11 +729,11 @@ def exportar_financeiro_csv(request):
     writer.writerow(['Sócio', 'Plano', 'Valor', 'Vencimento', 'Data Pagamento', 'Status', 'Método'])
     
     # Busca todas as faturas da torcida
-    faturas = Fatura.objects.filter(assinatura__plano__torcida=torcida_mod).select_related('assinatura__perfil__user', 'assinatura__plano')
+    faturas = Fatura.objects.filter(assinatura__perfil__torcida=torcida_mod).select_related('assinatura__perfil__user', 'assinatura__plano')
     
     for f in faturas:
         writer.writerow([
-            f.perfil.user.get_full_name() or f.perfil.user.username,
+            f.assinatura.perfil.user.get_full_name() or f.assinatura.perfil.user.username,
             f.assinatura.plano.nome,
             f.valor,
             f.data_vencimento,

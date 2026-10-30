@@ -1,146 +1,224 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load social_tags %}
 
 {% block content %}
+{% with p=usuario_alvo.perfil t=usuario_alvo.perfil.torcida %}
 <style>
-    @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
-        to { opacity: 1; transform: translateY(0); filter: blur(0); }
-    }
+    @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
     .animate-fade-up { animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .capa-torcida { background: linear-gradient(135deg, {{ t.cor_primaria|default:'#D37129' }} 0%, {{ t.cor_fundo|default:'#121212' }} 120%); }
+    .medalha { width: 30px; height: 30px; border-radius: 999px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.2), 0 2px 6px rgba(0,0,0,.2); }
+    .item-config { display: flex; align-items: center; gap: 14px; padding: 14px 16px; text-decoration: none; }
+    .item-config:hover { background: rgba(0,0,0,.04); }
+    .item-config .icone { width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.05); flex-shrink: 0; }
 </style>
 
 <div class="w-full min-h-screen fundo-app flex flex-col pb-32">
 
-    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex justify-between items-center">
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex items-center justify-between gap-4">
         <div class="flex items-center gap-4">
-            <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70 transition-opacity"><i class="bi bi-arrow-left"></i></a>
-            <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">
-                PERFIL <span class="texto-main">PÚBLICO</span>
-            </h1>
+            <a href="javascript:history.back()" class="texto-main text-2xl no-underline hover:opacity-70"><i class="bi bi-arrow-left"></i></a>
+            <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">{% if eh_dono %}MEU <span class="texto-tema">PERFIL</span>{% else %}PERFIL <span class="texto-tema">PÚBLICO</span>{% endif %}</h1>
+        </div>
+        {% if eh_dono %}<a href="{% url 'perfil_publico' usuario_alvo.id %}?visitante=1" class="text-[9px] font-black uppercase tracking-widest texto-main opacity-50 hover:opacity-100"><i class="bi bi-eye"></i> Como os outros veem</a>{% endif %}
+    </div>
+
+    {# ---------- CAPA COM A IDENTIDADE DA TORCIDA ---------- #}
+    <div class="capa-torcida relative h-32 overflow-hidden">
+        {% if t.logo %}<img src="{{ t.logo.url }}" alt="" class="absolute -right-6 -bottom-8 w-44 h-44 object-contain opacity-20">{% endif %}
+        <div class="absolute left-5 top-4 flex items-center gap-2">
+            {% if t.logo %}<span class="w-9 h-9 bg-white/90 rounded-full p-1 flex items-center justify-center shadow"><img src="{{ t.logo.url }}" alt="" class="w-full h-full object-contain"></span>{% endif %}
+            <div>
+                <p class="text-white font-black uppercase tracking-tight text-sm leading-none drop-shadow">{% if t %}{{ t.nome }}{% else %}Membro SAT{% endif %}</p>
+                {% if t %}<p class="text-white/70 text-[9px] font-bold uppercase tracking-widest mt-1">{% if t.sigla %}{{ t.sigla }} · {% endif %}{{ t.time_relacionado|default:"" }}</p>{% endif %}
+            </div>
         </div>
     </div>
 
-    <div class="px-5 pt-6 animate-fade-up">
-        
-        <div class="flex flex-col items-center mb-6">
-            <div class="w-24 h-24 rounded-full overflow-hidden fundo-card border-[3px] border-tema shadow-lg relative mb-3 p-1">
+    <div class="px-5 -mt-12 animate-fade-up">
+        <div class="flex items-end justify-between">
+            <div class="w-24 h-24 rounded-full overflow-hidden fundo-card border-4 shadow-lg p-0.5" style="border-color: {{ t.cor_primaria|default:'#D37129' }}">
                 <div class="w-full h-full rounded-full overflow-hidden bg-black/5 flex items-center justify-center">
-                    {% if usuario_alvo.perfil.foto %}
-                        <img src="{{ usuario_alvo.perfil.foto.url }}" class="w-full h-full object-cover">
-                    {% else %}
-                        <i class="bi bi-person-fill texto-main opacity-30 text-4xl mt-2"></i>
-                    {% endif %}
-                </div>
-                <div class="absolute bottom-0 right-0 w-7 h-7 fundo-tema rounded-full flex items-center justify-center border-2 border-fundo-app shadow-sm">
-                    <i class="bi {% if usuario_alvo.perfil.aprovado %}bi-check-lg{% else %}bi-clock-history{% endif %} texto-claro text-[10px] font-black"></i>
+                    {% if p.foto %}<img src="{{ p.foto.url }}" class="w-full h-full object-cover" alt="">{% else %}<i class="bi bi-person-fill texto-main opacity-30 text-4xl mt-2"></i>{% endif %}
                 </div>
             </div>
-            <h2 class="text-lg font-black texto-main uppercase leading-none">{{ usuario_alvo.get_full_name|default:usuario_alvo.username }}</h2>
-            {% if usuario_alvo.perfil.vulgo or usuario_alvo.perfil.pelotao %}
-            <div class="flex gap-2 mt-2">
-                {% if usuario_alvo.perfil.vulgo %}
-                    <span class="bg-black/5 px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase texto-main">{{ usuario_alvo.perfil.vulgo }}</span>
-                {% endif %}
-                {% if usuario_alvo.perfil.pelotao %}
-                    <span class="bg-black/5 px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase texto-main">{{ usuario_alvo.perfil.torcida.nome_pelotao|default:"Pelotão" }}: {{ usuario_alvo.perfil.pelotao }}</span>
-                {% endif %}
+
+            {% if eh_dono %}
+            <a href="{% url 'editar_perfil' %}" class="mb-2 fundo-card border border-suave texto-main text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-full shadow-sm"><i class="bi bi-pencil-fill"></i> Editar perfil</a>
+            {% else %}
+            <div class="flex items-center gap-2 mb-2">
+                {% if amigos %}<span class="text-[9px] font-black uppercase tracking-widest text-green-600 bg-green-500/10 px-2 py-1 rounded-full"><i class="bi bi-people-fill"></i> Amigos</span>
+                {% elif me_segue %}<span class="text-[9px] font-black uppercase tracking-widest texto-main opacity-60 bg-black/5 px-2 py-1 rounded-full">Segue você</span>{% endif %}
+                <form action="{% url 'seguir_usuario' usuario_alvo.id %}" method="POST" class="m-0" onsubmit="return seguirAjax(event, this)">
+                    {% csrf_token %}
+                    <button type="submit" id="btn-seguir" title="{% if eu_sigo %}Deixar de seguir{% else %}Seguir{% endif %}"
+                            class="w-12 h-12 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all border-none cursor-pointer {% if eu_sigo %}fundo-card texto-main border border-suave{% else %}fundo-tema texto-claro{% endif %}">
+                        <i id="icone-seguir" class="bi {% if eu_sigo %}bi-person-check-fill{% else %}bi-person-plus-fill{% endif %} text-xl"></i>
+                    </button>
+                </form>
             </div>
-            {% endif %}
-            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mt-1 mb-4">
-                {% if usuario_alvo.perfil.torcida %}{{ usuario_alvo.perfil.torcida.nome }}{% else %}Membro SAT{% endif %}
-            </p>
-            
-            {% if request.user != usuario_alvo %}
-            <form action="{% url 'seguir_usuario' usuario_alvo.id %}" method="POST" class="mb-2">
-                {% csrf_token %}
-                {% if request.user in usuario_alvo.perfil.seguidores.all %}
-                <button type="submit" class="fundo-app texto-main border border-suave text-xs font-black uppercase tracking-widest px-6 py-2.5 rounded-full shadow-sm hover:bg-black/5 transition-all cursor-pointer">
-                    Deixar de Seguir
-                </button>
-                {% else %}
-                <button type="submit" class="fundo-tema texto-claro border-none text-xs font-black uppercase tracking-widest px-6 py-2.5 rounded-full shadow-lg shadow-tema/30 active:scale-95 transition-all cursor-pointer">
-                    Seguir Perfil
-                </button>
-                {% endif %}
-            </form>
             {% endif %}
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-8">
-            <div class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center justify-center shadow-sm">
-                <span class="text-lg font-black texto-main leading-none mb-1">{{ usuario_alvo.perfil.seguidores.count|default:"0" }}</span>
-                <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Seguidores</span>
+        {# ---------- NOME, VULGO, ÁREA DA TORCIDA ---------- #}
+        <div class="mt-3">
+            <h2 class="text-lg texto-main uppercase leading-tight">{% selo_autor usuario_alvo %}</h2>
+            {% if p.vulgo %}<p class="text-[11px] font-bold texto-main opacity-60 mt-0.5">{{ usuario_alvo.get_full_name|default:usuario_alvo.username }}</p>{% endif %}
+            <div class="flex flex-wrap gap-1.5 mt-2">
+                {% if p.pelotao %}<span class="bg-black/5 px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase texto-main"><i class="bi bi-geo-alt-fill"></i> {{ t.nome_pelotao|default:"Pelotão" }}: {{ p.pelotao }}</span>{% endif %}
+                {% if p.docs_status == 'verificado' %}<span class="bg-sky-500/10 text-sky-600 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase"><i class="bi bi-patch-check-fill"></i> Identidade verificada</span>{% endif %}
+                <span class="bg-black/5 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold texto-main" title="Matrícula SAT"><i class="bi bi-person-vcard"></i> {{ p.matricula }}</span>
             </div>
-            <div class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center justify-center shadow-sm">
-                <span class="text-lg font-black texto-main leading-none mb-1">{{ posts.count }}</span>
-                <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Publicações</span>
+
+            {# ---------- MEDALHAS (embaixo do nome) ---------- #}
+            {% if medalhas %}
+            <div class="flex flex-wrap gap-1.5 mt-3">
+                {% for m in medalhas %}
+                <span class="medalha" style="background: {{ m.cor }}" title="{{ m.nome }} — {{ m.descricao }}"><i class="bi {{ m.icone }}"></i></span>
+                {% endfor %}
+            </div>
+            {% elif eh_dono %}
+            <p class="text-[10px] texto-main opacity-40 font-bold mt-3"><i class="bi bi-award"></i> Interaja, vá a eventos e caravanas para ganhar medalhas.</p>
+            {% endif %}
+        </div>
+
+        {# ---------- NÍVEL (1 a 100) E TÍTULO ---------- #}
+        <div class="fundo-card border border-suave rounded-2xl p-4 mt-4 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+                <div>
+                    <p class="text-[8px] font-black uppercase tracking-widest texto-main opacity-50">Título</p>
+                    <p class="text-sm font-black italic uppercase texto-main leading-none mt-0.5">{{ perfil_game.titulo }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[8px] font-black uppercase tracking-widest texto-main opacity-50">Nível</p>
+                    <p class="text-2xl font-black texto-tema leading-none">{% if perfil_game.titulo == 'Desenvolvedor' %}∞{% else %}{{ perfil_game.nivel_numero }}<span class="text-xs opacity-50">/100</span>{% endif %}</p>
+                </div>
+            </div>
+            <div class="w-full h-2 bg-black/5 rounded-full overflow-hidden"><div class="h-full fundo-tema rounded-full" style="width: {{ perfil_game.progresso_nivel|floatformat:0 }}%"></div></div>
+            <p class="text-[9px] font-bold texto-main opacity-50 mt-1.5 text-right">{% if perfil_game.nivel_numero >= 100 %}Nível máximo · {{ perfil_game.xp_total }} EXP{% else %}{{ perfil_game.xp_total }} / {{ perfil_game.xp_proximo_nivel }} EXP{% endif %}</p>
+        </div>
+
+        {# ---------- NÚMEROS (clique para ver as listas) ---------- #}
+        <div class="grid grid-cols-4 gap-2 mt-3">
+            <a href="{% url 'conexoes' usuario_alvo.id %}?aba=seguidores" class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center shadow-sm no-underline">
+                <span id="total-seguidores" class="text-lg font-black texto-main leading-none mb-1">{{ total_seguidores }}</span>
+                <span class="text-[7px] texto-main opacity-50 font-bold uppercase tracking-widest">Seguidores</span>
+            </a>
+            <a href="{% url 'conexoes' usuario_alvo.id %}?aba=seguindo" class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center shadow-sm no-underline">
+                <span class="text-lg font-black texto-main leading-none mb-1">{{ total_seguindo }}</span>
+                <span class="text-[7px] texto-main opacity-50 font-bold uppercase tracking-widest">Seguindo</span>
+            </a>
+            <a href="{% url 'conexoes' usuario_alvo.id %}?aba=amigos" class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center shadow-sm no-underline">
+                <span class="text-lg font-black texto-main leading-none mb-1">{{ total_amigos }}</span>
+                <span class="text-[7px] texto-main opacity-50 font-bold uppercase tracking-widest">Amigos</span>
+            </a>
+            <div class="fundo-card border border-suave rounded-2xl py-3 flex flex-col items-center shadow-sm">
+                <span class="text-lg font-black texto-main leading-none mb-1">{{ total_posts }}</span>
+                <span class="text-[7px] texto-main opacity-50 font-bold uppercase tracking-widest">Posts</span>
             </div>
         </div>
 
-        <div>
-            <h4 class="text-[10px] font-black texto-main opacity-40 uppercase tracking-widest mb-3 pl-2">Timeline de {{ usuario_alvo.get_full_name|default:usuario_alvo.username }}</h4>
-            
+        {% if eh_dono and not request.GET.visitante %}
+        {# ======================= SÓ PARA O DONO ======================= #}
+        <div class="w-full flex flex-col items-center mt-6">
+            {% include "includes/cartao_socio.html" %}
+            <div class="w-full max-w-sm flex items-center justify-between mt-2 px-1">
+                <span class="text-[9px] font-black uppercase tracking-widest texto-main opacity-40"><i class="bi bi-hand-index-thumb"></i> Toque para ver o verso</span>
+                <a href="{% url 'carteirinha' %}" class="text-[10px] font-black uppercase tracking-wider texto-tema hover:underline">Abrir carteirinha <i class="bi bi-chevron-right"></i></a>
+            </div>
+        </div>
+
+        <h4 class="text-[10px] font-black texto-main opacity-40 uppercase tracking-widest mt-8 mb-3 pl-2">Configurações da conta</h4>
+        <div class="fundo-card border border-suave rounded-3xl overflow-hidden shadow-sm divide-y divide-black/5">
+            <a href="{% url 'editar_perfil' %}" class="item-config">
+                <span class="icone texto-main"><i class="bi bi-person-gear"></i></span>
+                <div class="flex-1"><p class="text-sm font-black texto-main leading-none">Editar perfil</p><p class="text-[10px] texto-main opacity-50 mt-1">Dados, documentos e identidade da torcida</p></div>
+                {% if p.docs_status == 'verificado' %}<span class="text-[8px] font-black uppercase px-2 py-1 rounded-full bg-sky-500/10 text-sky-600">Verificado</span>
+                {% elif p.docs_status == 'em_analise' %}<span class="text-[8px] font-black uppercase px-2 py-1 rounded-full bg-yellow-500/15 text-yellow-700">Em análise</span>
+                {% elif p.docs_status == 'recusado' %}<span class="text-[8px] font-black uppercase px-2 py-1 rounded-full bg-red-500/10 text-red-600">Recusado</span>
+                {% else %}<span class="text-[8px] font-black uppercase px-2 py-1 rounded-full bg-black/5 texto-main opacity-60">Enviar docs</span>{% endif %}
+            </a>
+            <a href="{% url 'meus_pedidos' %}" class="item-config">
+                <span class="icone texto-main"><i class="bi bi-bag-check"></i></span>
+                <div class="flex-1"><p class="text-sm font-black texto-main leading-none">Meus pedidos</p><p class="text-[10px] texto-main opacity-50 mt-1">Pagamento, entrega e nota fiscal</p></div>
+                <i class="bi bi-chevron-right texto-main opacity-30"></i>
+            </a>
+            <a href="{% url 'seguranca' %}" class="item-config">
+                <span class="icone texto-main"><i class="bi bi-shield-lock"></i></span>
+                <div class="flex-1"><p class="text-sm font-black texto-main leading-none">Segurança e senha</p><p class="text-[10px] texto-main opacity-50 mt-1">Senha, dispositivos conectados e privacidade</p></div>
+                <i class="bi bi-chevron-right texto-main opacity-30"></i>
+            </a>
+            {% if request.user.is_superuser %}
+            <a href="{% url 'admin_master' %}" class="item-config">
+                <span class="icone text-red-600"><i class="bi bi-shield-fill-exclamation"></i></span>
+                <div class="flex-1"><p class="text-sm font-black text-red-600 leading-none">Painel Master</p><p class="text-[10px] texto-main opacity-50 mt-1">Administração geral da SAT</p></div>
+                <i class="bi bi-chevron-right texto-main opacity-30"></i>
+            </a>
+            {% endif %}
+        </div>
+
+        <h4 class="text-[10px] font-black texto-main opacity-40 uppercase tracking-widest mt-6 mb-3 pl-2">Sistema</h4>
+        <div class="fundo-card border border-suave rounded-3xl overflow-hidden shadow-sm divide-y divide-black/5">
+            {% if whatsapp_suporte %}
+            <a href="https://wa.me/{{ whatsapp_suporte }}?text={{ 'Olá! Preciso de ajuda no app SAT. Matrícula '|urlencode }}{{ p.matricula|urlencode }}" target="_blank" rel="noopener" class="item-config">
+                <span class="icone text-green-600"><i class="bi bi-whatsapp"></i></span>
+                <div class="flex-1"><p class="text-sm font-black texto-main leading-none">Suporte via WhatsApp</p><p class="text-[10px] texto-main opacity-50 mt-1">{% if t.whatsapp_suporte %}Atendimento da {{ t.nome }}{% else %}Atendimento SAT{% endif %}</p></div>
+                <i class="bi bi-box-arrow-up-right texto-main opacity-30"></i>
+            </a>
+            {% else %}
+            <div class="item-config opacity-60">
+                <span class="icone text-green-600"><i class="bi bi-whatsapp"></i></span>
+                <div class="flex-1"><p class="text-sm font-black texto-main leading-none">Suporte via WhatsApp</p><p class="text-[10px] texto-main opacity-50 mt-1">Sua torcida ainda não cadastrou o número de suporte</p></div>
+            </div>
+            {% endif %}
+            <a href="{% url 'politica_privacidade' %}" class="item-config">
+                <span class="icone texto-main"><i class="bi bi-file-earmark-lock"></i></span>
+                <div class="flex-1"><p class="text-sm font-black texto-main leading-none">Política de privacidade</p></div>
+                <i class="bi bi-chevron-right texto-main opacity-30"></i>
+            </a>
+            <a href="{% url 'logout' %}" class="item-config">
+                <span class="icone texto-main"><i class="bi bi-box-arrow-right"></i></span>
+                <div class="flex-1"><p class="text-sm font-black texto-main leading-none">Encerrar sessão</p></div>
+            </a>
+            <a href="{% url 'deletar_conta' %}" class="item-config">
+                <span class="icone text-red-600"><i class="bi bi-trash3"></i></span>
+                <div class="flex-1"><p class="text-sm font-black text-red-600 leading-none">Deletar conta</p><p class="text-[10px] texto-main opacity-50 mt-1">Exige a sua senha</p></div>
+            </a>
+        </div>
+        {% endif %}
+
+        <h4 class="text-[10px] font-black texto-main opacity-40 uppercase tracking-widest mt-8 mb-3 pl-2">Publicações</h4>
+        <div class="space-y-4">
             {% for post in posts %}
-            <div class="fundo-card border border-suave rounded-3xl p-4 mb-3 shadow-sm animate-fade-up" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-8 h-8 rounded-full overflow-hidden fundo-app border border-suave shrink-0 flex items-center justify-center">
-                        {% if usuario_alvo.perfil.foto %}
-                            <img src="{{ usuario_alvo.perfil.foto.url }}" class="w-full h-full object-cover">
-                        {% else %}
-                            <i class="bi bi-person-fill texto-main opacity-30 text-lg mt-1"></i>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <h3 class="text-xs font-black texto-main leading-tight flex items-center gap-1">
-                            {{ usuario_alvo.get_full_name|default:usuario_alvo.username }}
-                            {% if usuario_alvo.perfil.aprovado %}
-                                <i class="bi bi-patch-check-fill texto-main text-[10px]" title="Sócio Oficial"></i>
-                            {% endif %}
-                        </h3>
-                        <p class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-wider mt-0.5">
-                            {% if post.torcida %}{{ post.torcida.sigla }} • {% endif %}{{ post.data_criacao|timesince }} atrás
-                        </p>
-                    </div>
-                </div>
-
-                {% if post.texto %}
-                <p class="text-sm texto-main opacity-90 leading-relaxed font-medium mb-3">
-                    {{ post.texto|linebreaksbr }}
-                </p>
-                {% endif %}
-
-                {% if post.midias.all %}
-                <div class="mb-3 relative group overflow-hidden rounded-2xl border border-suave shadow-sm">
-                    <div class="flex gap-1 overflow-x-auto snap-x-mandatory no-scrollbar bg-black/5" style="scroll-snap-type: x mandatory;">
-                        {% for media in post.midias.all %}
-                        <div class="min-w-full snap-center-item flex items-center justify-center bg-black/90 relative">
-                            {% if media.is_video %}
-                                <video src="{{ media.arquivo.url }}" controls class="w-full max-h-[450px] object-contain"></video>
-                            {% else %}
-                                <img src="{{ media.arquivo.url }}" class="w-full max-h-[450px] object-contain" loading="lazy">
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% elif post.imagem %}
-                <div class="mb-3 relative group overflow-hidden rounded-2xl border border-suave shadow-sm">
-                    <img src="{{ post.imagem.url }}" class="w-full max-h-[450px] object-cover" loading="lazy">
-                </div>
-                {% endif %}
-
-            </div>
+                {% include "social/_post_card.html" %}
             {% empty %}
-            <div class="flex flex-col items-center justify-center py-10 text-center bg-black/5 dark:bg-white/5 rounded-3xl">
+            <div class="flex flex-col items-center justify-center py-10 text-center bg-black/5 rounded-3xl">
                 <i class="bi bi-chat-square-text text-2xl texto-main opacity-30 mb-2"></i>
-                <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-wider">Ainda sem publicações</p>
+                <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-wider">{% if eh_dono %}Você ainda não publicou nada{% else %}Nenhuma publicação visível para você{% endif %}</p>
             </div>
             {% endfor %}
         </div>
-
     </div>
 </div>
+
+{% include "social/_post_js.html" %}
+<script>
+    function seguirAjax(event, form) {
+        event.preventDefault();
+        fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(d => {
+                const btn = document.getElementById('btn-seguir'), ic = document.getElementById('icone-seguir');
+                ic.className = 'bi text-xl ' + (d.seguindo ? 'bi-person-check-fill' : 'bi-person-plus-fill');
+                btn.className = 'w-12 h-12 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all border-none cursor-pointer '
+                    + (d.seguindo ? 'fundo-card texto-main border border-suave' : 'fundo-tema texto-claro');
+                btn.title = d.seguindo ? 'Deixar de seguir' : 'Seguir';
+                document.getElementById('total-seguidores').innerText = d.seguidores;
+            }).catch(() => form.submit());
+        return false;
+    }
+</script>
+{% endwith %}
 {% endblock %}

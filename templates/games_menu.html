@@ -33,7 +33,7 @@
         
         <div class="mt-6 p-4 bg-[#F8F9FA] rounded-3xl border border-gray-100">
             <div class="flex justify-between items-center mb-2">
-                <span class="text-[10px] font-bold text-gray-400 uppercase">Seu Nível: {{ perfil_game.nivel.nome|upper }}</span>
+                <span class="text-[10px] font-bold text-gray-400 uppercase">Nível {{ perfil_game.nivel_numero }} · {{ perfil_game.titulo|upper }}</span>
                 <span class="text-[10px] font-black text-[#CD7F32]">{{ perfil_game.xp_total }} XP</span>
             </div>
             <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -64,7 +64,7 @@
     </div>
 
     <div class="game-card opacity-50">
-            <div class="icon-box"><i class="bi bi-dice-5-fill"></i></div>
+            <div class="icon-box"><i class="bi bi-bullseye"></i></div>
             <div class="flex-grow">
                 <span class="text-gray-600 text-[9px] font-black uppercase italic">Em breve</span>
                 <h3 class="text-gray-400 text-lg font-black uppercase italic">Palpites SAT</h3>

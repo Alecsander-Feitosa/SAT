@@ -1,0 +1,21 @@
+{# Nome do autor com os selos: Desenvolvedor (neon), Presidente (cores e brasão da torcida), sócio e nível #}
+<span class="inline-flex items-center gap-1 min-w-0">
+    {% if dev %}
+        <span class="font-black truncate selo-dev-nome">{{ nome }}</span>
+        <span class="selo-dev" title="Desenvolvedor — equipe SAT"><i class="bi bi-code-slash"></i></span>
+    {% elif presidente %}
+        {% if perfil.torcida.logo %}<img src="{{ perfil.torcida.logo.url }}" alt="" class="w-4 h-4 object-contain shrink-0">{% endif %}
+        <span class="font-black truncate" style="color: {{ perfil.torcida.cor_primaria }}">{{ nome }}</span>
+        <span class="selo-presidente" style="background: {{ perfil.torcida.cor_primaria }}" title="Presidente — líder oficial da {{ perfil.torcida.nome }}"><i class="bi bi-megaphone-fill"></i></span>
+    {% else %}
+        <span class="font-black truncate">{{ nome }}</span>
+        {% if perfil.aprovado %}<i class="bi bi-patch-check-fill texto-tema text-[11px] shrink-0" title="Sócio oficial"></i>{% endif %}
+    {% endif %}
+    {% if tamanho != 'mini' %}
+        {% if dev %}
+        <span class="text-[8px] font-black px-1.5 py-0.5 rounded-md shrink-0 selo-dev-nivel">∞</span>
+        {% else %}
+        <span class="text-[8px] font-black px-1.5 py-0.5 rounded-md bg-black/5 texto-main opacity-70 shrink-0" title="Nível {{ nivel }}">Nv {{ nivel }}</span>
+        {% endif %}
+    {% endif %}
+</span>

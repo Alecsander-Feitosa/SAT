@@ -1,0 +1,12 @@
+{% extends template_base %}
+{% block bepe_content %}
+<a href="{% if lado_bepe %}{% url 'bepe:conversas' %}{% else %}{% url 'bepe:diretoria_conversas' %}{% endif %}" class="text-xs texto-main opacity-60 hover:opacity-100"><i class="bi bi-arrow-left"></i> Voltar</a>
+<form method="post" class="card p-5 mt-3 max-w-2xl space-y-3">
+    {% csrf_token %}
+    <h1 class="text-lg font-black texto-main">{% if lado_bepe %}Nova conversa com uma diretoria{% else %}Nova mensagem para o BEPE{% endif %}</h1>
+    {% if form.torcida %}<div><label class="rotulo">Torcida</label>{{ form.torcida }}{{ form.torcida.errors }}</div>{% endif %}
+    <div><label class="rotulo">Assunto</label>{{ form.assunto }}{{ form.assunto.errors }}</div>
+    <div><label class="rotulo">Mensagem</label>{{ form.texto }}{{ form.texto.errors }}</div>
+    <button class="w-full btn-tema py-3 text-sm"><i class="bi bi-send"></i> Enviar</button>
+</form>
+{% endblock %}

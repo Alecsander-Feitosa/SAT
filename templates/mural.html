@@ -194,190 +194,12 @@
         </div>
         {% endif %}
 
+        {% for post in anuncios %}
+            {% include "social/_post_card.html" %}
+        {% endfor %}
+
         {% for post in posts %}
-        <div class="social-card fundo-card border border-suave p-4 animate-fade-up" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
-            
-            <div class="flex justify-between items-start mb-3">
-                <div class="flex items-center gap-3">
-                    <a href="{% url 'perfil_publico' post.autor_s.id %}" class="w-10 h-10 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 flex items-center justify-center no-underline">
-                        {% if post.autor_s.perfil.foto %}
-                            <img src="{{ post.autor_s.perfil.foto.url }}" class="w-full h-full object-cover">
-                        {% else %}
-                            <i class="bi bi-person-fill texto-main opacity-30 text-2xl mt-1"></i>
-                        {% endif %}
-                    </a>
-                    <div>
-                        <a href="{% url 'perfil_publico' post.autor_s.id %}" class="text-sm font-black texto-main leading-tight flex items-center gap-1 no-underline hover:text-tema transition-colors">
-                            {{ post.autor_s.get_full_name|default:post.autor_s.username }}
-                            {% if post.autor_s.perfil.aprovado %}
-                                <i class="bi bi-patch-check-fill texto-main text-[11px]" title="Sócio Oficial"></i>
-                            {% endif %}
-                        </a>
-                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider mt-0.5">
-                            {% if post.torcida %}{{ post.torcida.sigla }} • {% endif %}{{ post.data_criacao|timesince }} atrás
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="relative group/menu">
-                    <button class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 texto-main opacity-40 transition-colors focus:outline-none border-none bg-transparent cursor-pointer">
-                        <i class="bi bi-three-dots-vertical"></i>
-                    </button>
-                    
-                    <div class="absolute right-0 top-full mt-1 w-32 fundo-card border border-suave rounded-xl shadow-lg opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-10 overflow-hidden">
-                        {% if request.user == post.autor_s or request.user.is_staff %}
-                        <form action="{% url 'social_excluir_post' post.id %}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta publicação?');" class="m-0">
-                            {% csrf_token %}
-                            <button type="submit" class="w-full text-left px-4 py-2.5 text-xs font-bold text-main hover:bg-main/10 flex items-center gap-2 transition-colors border-none bg-transparent cursor-pointer">
-                                <i class="bi bi-trash3"></i> Excluir
-                            </button>
-                        </form>
-                        {% else %}
-                        <button class="w-full text-left px-4 py-2.5 text-xs font-bold texto-main opacity-70 hover:bg-black/5 flex items-center gap-2 transition-colors border-none bg-transparent cursor-pointer">
-                            <i class="bi bi-flag"></i> Reportar
-                        </button>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            {% if post.texto %}
-            <p class="text-sm texto-main opacity-90 leading-relaxed font-medium mb-3">
-                {{ post.texto|linebreaksbr }}
-            </p>
-            {% endif %}
-
-            {% if post.midias.all %}
-            <div class="mb-3 relative group overflow-hidden rounded-2xl border border-suave shadow-sm">
-                <div class="flex gap-1 overflow-x-auto snap-x-mandatory no-scrollbar bg-black/5" style="scroll-snap-type: x mandatory;">
-                    {% for media in post.midias.all %}
-                    <div class="min-w-full snap-center-item flex items-center justify-center bg-black/90 relative">
-                        {% if media.is_video %}
-                            <video src="{{ media.arquivo.url }}" controls class="w-full max-h-[450px] object-contain"></video>
-                        {% else %}
-                            <img src="{{ media.arquivo.url }}" class="w-full max-h-[450px] object-contain" loading="lazy">
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-                {% if post.midias.count > 1 %}
-                <div class="absolute top-3 right-3 flex gap-1.5 bg-black/50 backdrop-blur px-2.5 py-1 rounded-full pointer-events-none z-10 shadow-sm border border-white/10">
-                    <i class="bi bi-images text-white/90 text-[10px] mt-0.5"></i>
-                    <span class="text-white/90 text-[9px] font-black tracking-widest">{{ post.midias.count }}</span>
-                </div>
-                {% endif %}
-            </div>
-            {% elif post.imagem %}
-            <div class="mb-3 relative group overflow-hidden rounded-2xl border border-suave shadow-sm">
-                <img src="{{ post.imagem.url }}" class="w-full max-h-[450px] object-contain" loading="lazy">
-            </div>
-            {% endif %}
-
-            {% if post.evento_relacionado %}
-            <div class="mb-3 fundo-app border border-suave rounded-2xl overflow-hidden shadow-sm hover:border-tema transition-colors">
-                <a href="{% url 'detalhe_evento' post.evento_relacionado.id %}" class="block no-underline">
-                    {% if post.evento_relacionado.imagem_capa %}
-                        <img src="{{ post.evento_relacionado.imagem_capa.url }}" class="w-full h-32 object-cover">
-                    {% endif %}
-                    <div class="p-4">
-                        <h5 class="text-sm font-black italic uppercase texto-main mb-1">📅 Evento: {{ post.evento_relacionado.titulo }}</h5>
-                        <p class="text-[11px] font-bold uppercase tracking-widest texto-main opacity-50 mb-2">📍 {{ post.evento_relacionado.local }}</p>
-                        <p class="text-xs texto-main opacity-80 leading-relaxed">{{ post.evento_relacionado.informativo|truncatechars:100 }}</p>
-                    </div>
-                </a>
-            </div>
-            {% endif %}
-
-            {% if post.foto_relacionada %}
-            <div class="mb-3 fundo-app border border-suave rounded-2xl overflow-hidden shadow-sm">
-                <img src="{{ post.foto_relacionada.imagem.url }}" class="w-full object-cover">
-                <div class="p-3 bg-black/5 dark:bg-white/5">
-                    <h6 class="text-[11px] font-black uppercase tracking-widest texto-main">📸 {{ post.foto_relacionada.titulo }}</h6>
-                    {% if post.foto_relacionada.legenda %}
-                        <p class="text-xs texto-main opacity-60 mt-1">{{ post.foto_relacionada.legenda }}</p>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if post.caravana_relacionada %}
-            <div class="mb-3 p-4 fundo-app border border-tema/50 rounded-2xl shadow-sm border-l-4 border-l-tema">
-                <h5 class="text-sm font-black italic uppercase texto-main mb-2">🚌 Caravana: {{ post.caravana_relacionada.titulo }}</h5>
-                <div class="grid grid-cols-2 gap-2 mt-2">
-                    <div>
-                        <span class="text-[9px] font-bold uppercase tracking-widest texto-main opacity-50 block">Saída</span>
-                        <span class="text-xs texto-main">{{ post.caravana_relacionada.saida_local }}</span>
-                    </div>
-                    <div>
-                        <span class="text-[9px] font-bold uppercase tracking-widest texto-main opacity-50 block">Valor</span>
-                        <span class="text-xs font-black text-green-500">R$ {{ post.caravana_relacionada.valor }}</span>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="w-full h-[1px] bg-gray-200 dark:bg-gray-800 opacity-50 my-3"></div>
-
-            <div class="flex justify-between items-center px-1">
-                <form action="{% url 'social_curtir_post' post.id %}" method="POST" class="m-0" onsubmit="return curtirPostAjax(event, this, {{ post.id }})">
-                    {% csrf_token %}
-                    <button type="submit" class="action-btn flex items-center gap-1.5 group outline-none bg-transparent border-none p-0 cursor-pointer">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-main/10 transition-colors">
-                            <i id="icone-coracao-{{ post.id }}" class="bi {% if request.user in post.curtidas.all %}bi-heart-fill text-main{% else %}bi-heart texto-main opacity-40{% endif %} text-lg group-hover:text-main transition-colors"></i>
-                        </div>
-                        <span id="contador-curtidas-{{ post.id }}" class="text-[11px] font-black uppercase tracking-widest texto-main opacity-60 group-hover:text-main">{{ post.curtidas.count|default:"0" }}</span>
-                    </button>
-                </form>
-
-                <button type="button" onclick="toggleComentarios({{ post.id }})" class="action-btn flex items-center gap-1.5 group outline-none bg-transparent border-none p-0 cursor-pointer">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-blue-500/10 transition-colors">
-                        <i class="bi bi-chat texto-main opacity-40 text-lg group-hover:text-blue-500"></i>
-                    </div>
-                    <span id="contador-comentarios-{{ post.id }}" class="text-[11px] font-black uppercase tracking-widest texto-main opacity-60 group-hover:text-blue-500">{{ post.comentarios.count|default:"0" }}</span>
-                </button>
-
-                <button type="button" onclick="compartilharPost('{{ request.build_absolute_uri }}', '{{ post.titulo }}')" class="action-btn flex items-center gap-1.5 group outline-none bg-transparent border-none p-0 cursor-pointer">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-green-500/10 transition-colors">
-                        <i class="bi bi-share texto-main opacity-40 text-lg group-hover:text-green-500"></i>
-                    </div>
-                </button>
-            </div>
-
-            <div id="secao-comentarios-{{ post.id }}" class="hidden mt-3 pt-3 border-t border-suave transition-all">
-                
-                <div id="lista-comentarios-{{ post.id }}" class="space-y-3 mb-4 max-h-48 overflow-y-auto no-scrollbar">
-                    {% for comentario in post.comentarios.all %}
-                    <div class="flex gap-2 items-start">
-                        <div class="w-6 h-6 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 mt-0.5 flex items-center justify-center">
-                            {% if comentario.autor.perfil.foto %}
-                            <img src="{{ comentario.autor.perfil.foto.url }}" class="w-full h-full object-cover">
-                            {% else %}
-                            <i class="bi bi-person-fill texto-main opacity-30 text-xs"></i>
-                            {% endif %}
-                        </div>
-                        <div class="fundo-app border border-suave rounded-2xl rounded-tl-none px-3 py-2 flex-1 relative group">
-                            <span class="text-[10px] font-black texto-main block mb-0.5">{{ comentario.autor.get_full_name|default:comentario.autor.username }}</span>
-                            <span class="text-xs texto-main opacity-80 leading-relaxed font-medium">{{ comentario.texto }}</span>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <p class="no-comments-msg text-[9px] text-center texto-main opacity-40 font-bold uppercase tracking-widest py-2">Sem comentários. Seja o primeiro!</p>
-                    {% endfor %}
-                </div>
-                
-                <form action="{% url 'social_comentar_post' post.id %}" method="POST" class="flex gap-2 items-center" onsubmit="return comentarPostAjax(event, this, {{ post.id }})">
-                    {% csrf_token %}
-                    <div class="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 border border-suave">
-                        {% if user.perfil.foto %}<img src="{{ user.perfil.foto.url }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full bg-black/5 flex items-center justify-center"><i class="bi bi-person-fill texto-main opacity-30 text-[10px]"></i></div>{% endif %}
-                    </div>
-                    <input type="text" name="comentario" placeholder="Adicione um comentário..." class="flex-1 fundo-app border border-suave rounded-full px-4 py-2 text-xs font-medium texto-main focus:outline-none focus:border-tema transition-colors" required autocomplete="off">
-                    <button type="submit" class="w-8 h-8 fundo-tema texto-claro rounded-full flex items-center justify-center flex-shrink-0 shadow-md active:scale-95 transition-transform border-none outline-none cursor-pointer">
-                        <i class="bi bi-send-fill text-[10px] ml-0.5"></i>
-                    </button>
-                </form>
-            </div>
-
-        </div>
+            {% include "social/_post_card.html" %}
         {% empty %}
         <div class="flex flex-col items-center justify-center py-20 text-center animate-fade-up bg-black/5 dark:bg-white/5 rounded-3xl mt-4">
             <div class="w-16 h-16 fundo-card rounded-full flex items-center justify-center mb-4 border-2 border-dashed border-suave">
@@ -427,23 +249,37 @@
                 <div class="flex-1 pt-1">
                     <span class="text-[11px] font-black texto-main uppercase tracking-widest block mb-1">{{ user.get_full_name|default:user.username }}</span>
                     
-                    {% if user.perfil.torcida %}
-                    <div class="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl w-fit mb-3 border border-suave shadow-inner">
+                    <div class="flex flex-wrap bg-black/5 p-1 rounded-xl w-fit mb-2 border border-suave shadow-inner">
                         <label class="cursor-pointer relative m-0">
                             <input type="radio" name="visibilidade" value="global" class="peer hidden" {% if aba_atual != 'torcida' %}checked{% endif %}>
-                            <div class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 peer-checked:bg-white dark:peer-checked:bg-gray-800 peer-checked:text-tema peer-checked:shadow-sm transition-all flex items-center gap-1.5">
+                            <div class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 peer-checked:bg-white peer-checked:text-tema peer-checked:shadow-sm transition-all flex items-center gap-1.5">
                                 <i class="bi bi-globe-americas"></i> Global
                             </div>
                         </label>
+                        {% if user.perfil.torcida %}
                         <label class="cursor-pointer relative m-0">
                             <input type="radio" name="visibilidade" value="torcida" class="peer hidden" {% if aba_atual == 'torcida' %}checked{% endif %}>
-                            <div class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 peer-checked:bg-white dark:peer-checked:bg-gray-800 peer-checked:text-tema peer-checked:shadow-sm transition-all flex items-center gap-1.5">
+                            <div class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 peer-checked:bg-white peer-checked:text-tema peer-checked:shadow-sm transition-all flex items-center gap-1.5">
                                 <i class="bi bi-shield-fill"></i> {{ user.perfil.torcida.sigla|default:"Torcida" }}
                             </div>
                         </label>
+                        {% endif %}
+                        <label class="cursor-pointer relative m-0">
+                            <input type="radio" name="visibilidade" value="amigos" class="peer hidden" >
+                            <div class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-400 peer-checked:bg-white peer-checked:text-tema peer-checked:shadow-sm transition-all flex items-center gap-1.5">
+                                <i class="bi bi-people-fill"></i> Amigos
+                            </div>
+                        </label>
                     </div>
-                    {% else %}
-                        <input type="hidden" name="visibilidade" value="global">
+                    <p class="text-[9px] texto-main opacity-40 font-bold mb-2">Global: todos · Torcida: só membros · Amigos: aparece no global só para amigos</p>
+                    {% if eh_desenvolvedor %}
+                    <label class="flex items-center gap-2 mb-2 text-[10px] font-black uppercase tracking-widest selo-dev-nome cursor-pointer">
+                        <input type="checkbox" name="tipo" value="anuncio"> <i class="bi bi-pin-angle-fill"></i> Anúncio oficial (fixa no topo de todos)
+                    </label>
+                    {% elif eh_presidente %}
+                    <label class="flex items-center gap-2 mb-2 text-[10px] font-black uppercase tracking-widest cursor-pointer" style="color: {{ user.perfil.torcida.cor_primaria }}">
+                        <input type="checkbox" name="tipo" value="convocacao"> <i class="bi bi-megaphone-fill"></i> Convocação (avisa toda a torcida)
+                    </label>
                     {% endif %}
 
                     <textarea name="texto" rows="3" placeholder="O que está acontecendo nas arquibancadas?" class="w-full bg-transparent border-none focus:ring-0 text-sm font-medium texto-main placeholder-gray-400 resize-none outline-none p-0 mt-1" required></textarea>
@@ -475,65 +311,8 @@
     </div>
 </div>
 
+{% include "social/_post_js.html" %}
 <script>
-    window.curtirPostAjax = function(event, formElement, postId) {
-        event.preventDefault();
-        var url = formElement.action; 
-        var formData = new FormData(formElement);
-        var csrfToken = formElement.querySelector('[name=csrfmiddlewaretoken]').value;
-
-        fetch(url, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken } })
-        .then(response => response.json())
-        .then(data => {
-            var icone = document.getElementById('icone-coracao-' + postId);
-            var contador = document.getElementById('contador-curtidas-' + postId);
-            if(contador) contador.innerText = data.likes_count;
-            if(icone) {
-                icone.className = data.liked ? "bi bi-heart-fill text-main text-lg group-hover:text-main transition-colors" : "bi bi-heart texto-main opacity-40 text-lg group-hover:text-main transition-colors";
-            }
-        }).catch(console.error);
-        return false;
-    };
-
-    window.comentarPostAjax = function(event, formElement, postId) {
-        event.preventDefault();
-        var url = formElement.action;
-        var formData = new FormData(formElement);
-        var csrfToken = formElement.querySelector('[name=csrfmiddlewaretoken]').value;
-
-        fetch(url, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken } })
-        .then(response => response.json())
-        .then(data => {
-            if(data.sucesso) {
-                var input = formElement.querySelector('input[name="comentario"]');
-                if(input) input.value = '';
-                var countSpan = document.getElementById('contador-comentarios-' + postId);
-                if(countSpan) countSpan.innerText = data.total_comentarios;
-                var lista = document.getElementById('lista-comentarios-' + postId);
-                var msgVazia = lista.querySelector('.no-comments-msg');
-                if(msgVazia) msgVazia.remove();
-
-                var img = data.foto_autor ? `<img src="${data.foto_autor}" class="w-full h-full object-cover">` : `<i class="bi bi-person-fill texto-main opacity-30 text-xs"></i>`;
-                var novoHtml = `
-                <div class="flex gap-2 items-start animate-fade-up">
-                    <div class="w-6 h-6 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 mt-0.5 flex items-center justify-center">${img}</div>
-                    <div class="fundo-app border border-suave rounded-2xl rounded-tl-none px-3 py-2 flex-1">
-                        <span class="text-[10px] font-black texto-main block mb-0.5">${data.nome_autor}</span>
-                        <span class="text-xs texto-main opacity-80 leading-relaxed font-medium">${data.texto}</span>
-                    </div>
-                </div>`;
-                lista.insertAdjacentHTML('beforeend', novoHtml);
-                lista.scrollTop = lista.scrollHeight;
-            }
-        }).catch(console.error);
-        return false;
-    };
-
-    window.toggleComentarios = function(postId) {
-        var div = document.getElementById('secao-comentarios-' + postId);
-        if (div) { div.classList.toggle('hidden'); div.classList.toggle('block'); }
-    };
-
     window.abrirModalPost = function() {
         var modal = document.getElementById('modalNovoPost');
         var content = document.getElementById('modalPostContent');

@@ -29,6 +29,12 @@
     }
 
     .scroll-custom::-webkit-scrollbar { display: none; }
+
+    /* Cores dos níveis dos planos SAT */
+    .plano-gratis { background: linear-gradient(135deg, #e5e7eb, #9ca3af); color: #111827; }
+    .plano-bronze { background: linear-gradient(135deg, #e0a36b, #8c4a1c); color: #fff; }
+    .plano-prata  { background: linear-gradient(135deg, #f3f4f6, #8e9aa8); color: #111827; }
+    .plano-ouro   { background: linear-gradient(135deg, #fde68a, #b8860b); color: #1f1300; }
 </style>
 
 <div class="w-full min-h-screen fundo-app flex flex-col pb-32">
@@ -44,36 +50,73 @@
     <div class="px-5 pt-6">
         
         <div class="mb-10">
-            <h2 class="text-xs font-black texto-main uppercase tracking-widest mb-4 flex items-center gap-2">
-                <i class="bi bi-gem texto-main"></i> Planos Disponíveis
-            </h2>
-            <div class="flex overflow-x-auto gap-4 pb-4 scroll-custom -mx-5 px-5">
-                {% for plano in planos %}
-                <div class="shrink-0 w-[260px] fundo-card rounded-[25px] p-6 border {% if plano.destaque %}border-tema shadow-lg{% else %}border-suave{% endif %}">
-                    <h3 class="text-lg font-black texto-main uppercase mb-1">{{ plano.nome }}</h3>
-                    <div class="flex items-baseline gap-1 mb-4">
-                        <span class="text-2xl font-black texto-main">R$ {{ plano.preco }}</span>
-                        <span class="text-[9px] opacity-40 uppercase">/mês</span>
+            <div class="flex items-end justify-between mb-4">
+                <h2 class="text-xs font-black texto-main uppercase tracking-widest flex items-center gap-2">
+                    <i class="bi bi-gem texto-main"></i> Planos SAT
+                </h2>
+                {% if assinatura_vigente %}
+                <span class="text-[9px] font-black uppercase tracking-widest texto-main opacity-60">
+                    Seu plano: {{ assinatura_vigente.plano.nome }}{% if assinatura_vigente.valida_ate %} · até {{ assinatura_vigente.valida_ate|date:"d/m" }}{% endif %}
+                </span>
+                {% endif %}
+            </div>
+            <div class="flex overflow-x-auto gap-4 pb-4 scroll-custom -mx-5 px-5 snap-x">
+                {% for n in niveis %}{% if n.plano %}
+                {% with plano=n.plano %}
+                <div class="snap-start shrink-0 w-[270px] fundo-card rounded-[25px] border {% if nivel_atual == n.nivel %}border-tema shadow-lg{% elif plano.destaque %}border-tema{% else %}border-suave{% endif %} overflow-hidden flex flex-col">
+                    <div class="plano-topo plano-{{ n.nivel }} px-6 pt-5 pb-4 relative">
+                        {% if plano.destaque and nivel_atual != n.nivel %}<span class="absolute top-4 right-4 bg-white/90 text-black text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full">Mais escolhido</span>{% endif %}
+                        {% if nivel_atual == n.nivel %}<span class="absolute top-4 right-4 bg-black/70 text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full"><i class="bi bi-check-lg"></i> Seu plano</span>{% endif %}
+                        <i class="bi {% if n.nivel == 'gratis' %}bi-person-badge{% else %}bi-award-fill{% endif %} text-2xl"></i>
+                        <h3 class="text-xl font-black italic uppercase tracking-tighter leading-none mt-1">{{ plano.nome }}</h3>
+                        <div class="flex items-baseline gap-1 mt-2">
+                            {% if plano.gratuito %}
+                            <span class="text-2xl font-black">Grátis</span>
+                            {% else %}
+                            <span class="text-[11px] font-bold opacity-70">R$</span>
+                            <span class="text-2xl font-black">{{ plano.preco|floatformat:2 }}</span>
+                            <span class="text-[9px] opacity-70 uppercase font-bold">/mês</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    <ul class="space-y-2 mb-6">
-                        {% for b in plano.get_beneficios_lista %}
-                        <li class="flex items-center gap-2 text-[10px] font-bold opacity-80">
-                            <i class="bi bi-check2 texto-main"></i> {{ b }}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    <form method="POST" action="{% url 'assinar_plano' plano.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="w-full py-3 rounded-xl fundo-tema texto-claro font-black uppercase text-[10px] transition-transform active:scale-95">Assinar</button>
-                    </form>
+                    <div class="p-6 pt-4 flex-1 flex flex-col">
+                        <ul class="space-y-2 mb-4 flex-1">
+                            {% for b in n.oficiais %}
+                            <li class="flex items-start gap-2 text-[10px] font-bold texto-main opacity-80">
+                                <i class="bi bi-check2 texto-main"></i> {{ b }}
+                            </li>
+                            {% endfor %}
+                            {% for b in n.torcida %}
+                            <li class="flex items-start gap-2 text-[10px] font-bold texto-main">
+                                <i class="bi bi-star-fill texto-tema"></i>
+                                <span>{{ b.titulo }}{% if b.descricao %} <span class="opacity-60 font-medium">— {{ b.descricao }}</span>{% endif %}
+                                <span class="block text-[8px] uppercase tracking-widest opacity-50">Exclusivo {{ perfil.torcida.nome }}</span></span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <form method="POST" action="{% url 'assinar_plano' plano.id %}">
+                            {% csrf_token %}
+                            {% if nivel_atual == n.nivel and plano.gratuito %}
+                            <button type="button" disabled class="w-full py-3 rounded-xl bg-black/5 texto-main font-black uppercase text-[10px] opacity-60">Plano atual</button>
+                            {% elif nivel_atual == n.nivel %}
+                            <button type="submit" class="w-full py-3 rounded-xl fundo-tema texto-claro font-black uppercase text-[10px] transition-transform active:scale-95">Renovar +30 dias</button>
+                            {% elif plano.gratuito %}
+                            <button type="submit" class="w-full py-3 rounded-xl bg-black/5 border border-suave texto-main font-black uppercase text-[10px] transition-transform active:scale-95">Ativar grátis</button>
+                            {% else %}
+                            <button type="submit" class="w-full py-3 rounded-xl fundo-tema texto-claro font-black uppercase text-[10px] transition-transform active:scale-95"><i class="bi bi-qr-code"></i> Assinar com PIX</button>
+                            {% endif %}
+                        </form>
+                    </div>
                 </div>
-                {% empty %}
+                {% endwith %}
+                {% endif %}{% empty %}
                 <div class="w-full text-center py-8 fundo-card border border-suave rounded-[30px] opacity-70">
                     <i class="bi bi-tools text-3xl texto-main opacity-30 mb-2 block"></i>
                     <h4 class="text-[10px] font-black texto-main uppercase tracking-widest">Planos em Breve</h4>
                 </div>
                 {% endfor %}
             </div>
+            <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-widest text-center mt-1">Pagamento mensal via PIX · o plano ativa assim que o PIX é confirmado</p>
         </div>
 
         <hr class="border-suave mb-8">

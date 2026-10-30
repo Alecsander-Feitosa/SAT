@@ -45,6 +45,26 @@ class Perfil(models.Model):
     rede_social = models.CharField(max_length=100, blank=True)
     seguidores = models.ManyToManyField(User, related_name='seguindo', blank=True)
     
+    # Verificação dos documentos (frente, verso e selfie) pela moderação
+    STATUS_DOCUMENTOS = [
+        ('pendente', 'Documentos pendentes'),
+        ('em_analise', 'Em análise'),
+        ('verificado', 'Verificado'),
+        ('recusado', 'Recusado'),
+    ]
+    docs_status = models.CharField("Verificação de documentos", max_length=12, choices=STATUS_DOCUMENTOS, default='pendente')
+    docs_motivo = models.CharField("Motivo da recusa", max_length=255, blank=True)
+    docs_analisado_em = models.DateTimeField(null=True, blank=True)
+    docs_analisado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='documentos_analisados')
+
+    # Cargo especial na rede social (atribuído manualmente no /admin)
+    CARGOS_ESPECIAIS = [
+        ('', 'Nenhum'),
+        ('presidente', 'Presidente (líder oficial da torcida)'),
+        ('desenvolvedor', 'Desenvolvedor (equipe SAT)'),
+    ]
+    cargo_especial = models.CharField("Cargo especial", max_length=20, choices=CARGOS_ESPECIAIS, blank=True, default='')
+
     # NOVOS CAMPOS PARA FAVORITAR (SALVAR)
     eventos_salvos = models.ManyToManyField('organizadas.Evento', related_name='salvo_por', blank=True)
     caravanas_salvas = models.ManyToManyField('organizadas.Caravana', related_name='salvo_por', blank=True)
@@ -60,6 +80,74 @@ class Perfil(models.Model):
         ]
         return all(bool(campo) for campo in campos_obrigatorios)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._torcida_original = self.torcida_id
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Registra no histórico sempre que o torcedor entra/sai/troca de torcida
+        if self.torcida_id != self._torcida_original:
+            agora = timezone.now()
+            PassagemTorcida.objects.filter(perfil=self, saida__isnull=True).update(saida=agora)
+            if self.torcida_id:
+                PassagemTorcida.objects.create(
+                    perfil=self, torcida_id=self.torcida_id,
+                    torcida_nome=self.torcida.nome, entrada=agora,
+                )
+            self._torcida_original = self.torcida_id
+
+    @property
+    def docs_completos(self):
+        return bool(self.doc_frente and self.doc_verso and self.doc_selfie)
+
+    @classmethod
+    def por_matricula(cls, codigo):
+        """Encontra o sócio pela matrícula (ex: 2026.000046-9), conferindo o dígito verificador."""
+        import re
+        m = re.fullmatch(r'\s*(\d{4})\.?(\d{6})-?(\d)\s*', codigo or '')
+        if not m:
+            return None
+        perfil = cls.objects.select_related('user', 'torcida').filter(user_id=int(m.group(2))).first()
+        if perfil and perfil.matricula.replace('.', '').replace('-', '') == ''.join(m.groups()):
+            return perfil
+        return None
+
+    @property
+    def matricula(self):
+        """
+        Matrícula SAT padronizada e fixa: ANO DE CADASTRO + ID com 6 dígitos + dígito verificador (módulo 11).
+        Ex: 2026.000034-7. Não muda se o sócio trocar de torcida ou de plano.
+        """
+        ano = self.user.date_joined.year if self.user_id else timezone.now().year
+        base = f"{ano}{self.user_id or 0:06d}"
+        soma = sum(int(d) * peso for d, peso in zip(reversed(base), range(2, 2 + len(base))))
+        dv = 11 - (soma % 11)
+        dv = 0 if dv >= 10 else dv
+        return f"{ano}.{self.user_id or 0:06d}-{dv}"
+
+    @property
+    def assinatura_vigente(self):
+        """Assinatura ativa e dentro da validade (cacheada por requisição)."""
+        if not hasattr(self, '_assinatura_vigente'):
+            hoje = timezone.localdate()
+            self._assinatura_vigente = (
+                self.assinaturas.filter(ativa=True)
+                .filter(models.Q(valida_ate__isnull=True) | models.Q(valida_ate__gte=hoje))
+                .select_related('plano').order_by('-id').first()
+            )
+        return self._assinatura_vigente
+
+    @property
+    def nivel_plano(self):
+        assinatura = self.assinatura_vigente
+        return (assinatura.plano.nivel if assinatura and assinatura.plano.nivel else 'gratis')
+
+    @property
+    def plano(self):
+        """Nome do nível exibido nos cartões de sócio (ex: OURO)."""
+        return dict(NIVEIS_PLANO)[self.nivel_plano].upper()
+
     def __str__(self):
         return f"Perfil de {self.user.username}"
 
@@ -73,6 +161,27 @@ class PresencaCaravana(models.Model):
         unique_together = ('user', 'caravana') # Impede que o usuário confirme 2 vezes na mesma caravana
 
 
+
+
+# --- Histórico de torcidas do sócio (selos no verso da carteirinha) ---
+class PassagemTorcida(models.Model):
+    perfil = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='passagens_torcida')
+    torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.SET_NULL, null=True, blank=True, related_name='passagens')
+    torcida_nome = models.CharField(max_length=200, help_text="Guardado para o histórico não sumir se a torcida for excluída")
+    entrada = models.DateTimeField()
+    saida = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-entrada']
+        verbose_name = 'Passagem por Torcida'
+        verbose_name_plural = 'Histórico de Torcidas'
+
+    @property
+    def atual(self):
+        return self.saida is None
+
+    def __str__(self):
+        return f"{self.perfil.user.username} - {self.torcida_nome}"
 
 
 # --- NOVO: Histórico KYC (Veiculação/Aprovações) ---
@@ -181,21 +290,53 @@ class Evento(models.Model):
 
 # accounts/models.py
 
+# Níveis oficiais da SAT (valem para todas as torcidas), do menor para o maior
+NIVEIS_PLANO = [
+    ('gratis', 'Grátis'),
+    ('bronze', 'Bronze'),
+    ('prata', 'Prata'),
+    ('ouro', 'Ouro'),
+]
+ORDEM_NIVEL = {valor: i for i, (valor, _) in enumerate(NIVEIS_PLANO)}
+
+
 class PlanoSocio(models.Model):
     ativo = models.BooleanField("Plano Ativo?", default=True)
     nome = models.CharField("Nome do Plano", max_length=100)
     preco = models.DecimalField("Preço Mensal", max_digits=7, decimal_places=2)
     beneficios = models.TextField("Benefícios (um por linha)")
     destaque = models.BooleanField("Plano Destaque?", default=False)
-    
+    nivel = models.CharField("Nível", max_length=10, choices=NIVEIS_PLANO, null=True, blank=True,
+                             help_text="Nível oficial SAT (Grátis, Bronze, Prata, Ouro). Vazio = plano antigo.")
+
     # Se torcida for NULL, é um plano geral da SAT
     torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.CASCADE, null=True, blank=True, related_name='planos_socio')
 
+    @property
+    def gratuito(self):
+        return self.preco == 0
+
     def get_beneficios_lista(self):
-        return self.beneficios.split('\n')
+        return [b.strip() for b in self.beneficios.split('\n') if b.strip()]
 
     def __str__(self):
         return f"{self.nome} - {self.torcida.nome if self.torcida else 'SAT'}"
+
+
+class BeneficioTorcida(models.Model):
+    """Benefício extra que cada torcida oferece além dos benefícios oficiais do plano."""
+    torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.CASCADE, related_name='beneficios_extras')
+    nivel_minimo = models.CharField("Liberado a partir do plano", max_length=10, choices=NIVEIS_PLANO, default='bronze')
+    titulo = models.CharField("Benefício", max_length=120, help_text="Ex: 10% de desconto na sede")
+    descricao = models.CharField("Detalhes", max_length=255, blank=True)
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Benefício da Torcida'
+        verbose_name_plural = 'Benefícios das Torcidas'
+
+    def __str__(self):
+        return f"{self.titulo} ({self.get_nivel_minimo_display()}+) - {self.torcida.nome}"
 
 # SAT/accounts/models.py
 
@@ -204,6 +345,11 @@ class Assinatura(models.Model):
     plano = models.ForeignKey(PlanoSocio, on_delete=models.RESTRICT)
     data_inicio = models.DateField(auto_now_add=True)
     ativa = models.BooleanField(default=True)
+    valida_ate = models.DateField("Válida até", null=True, blank=True, help_text="Vazio = sem vencimento (plano grátis)")
+
+    @property
+    def vigente(self):
+        return self.ativa and (self.valida_ate is None or self.valida_ate >= timezone.localdate())
 
     def __str__(self):
         return f"{self.perfil.user.username} - {self.plano.nome}"
@@ -230,3 +376,29 @@ class Fatura(models.Model):
 
     def __str__(self):
         return f"Fatura {self.id} - {self.status}"
+
+class DispositivoSessao(models.Model):
+    """Aparelhos com sessão aberta (Segurança > Dispositivos conectados)."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='dispositivos')
+    session_key = models.CharField(max_length=40, unique=True)
+    user_agent = models.CharField(max_length=300, blank=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    ultimo_acesso = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-ultimo_acesso']
+
+    @property
+    def descricao(self):
+        """Ex: 'Chrome no Android'."""
+        ua = self.user_agent.lower()
+        sistema = next((n for chave, n in [('android', 'Android'), ('iphone', 'iPhone'), ('ipad', 'iPad'),
+                                           ('windows', 'Windows'), ('mac os', 'Mac'), ('linux', 'Linux')] if chave in ua), 'Dispositivo')
+        navegador = next((n for chave, n in [('edg', 'Edge'), ('opr', 'Opera'), ('samsungbrowser', 'Samsung Internet'),
+                                             ('chrome', 'Chrome'), ('firefox', 'Firefox'), ('safari', 'Safari')] if chave in ua), 'Navegador')
+        return f"{navegador} no {sistema}"
+
+    @property
+    def movel(self):
+        return any(x in self.user_agent.lower() for x in ('android', 'iphone', 'ipad', 'mobile'))

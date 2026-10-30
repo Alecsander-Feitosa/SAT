@@ -1,0 +1,36 @@
+{% extends 'bepe/base_bepe.html' %}
+{% block bepe_content %}
+<div class="flex items-center justify-between gap-3 mb-4">
+    <div>
+        <h2 class="text-lg font-black italic uppercase tracking-tighter texto-main leading-none">Rotas das torcidas</h2>
+        <p class="text-[11px] texto-main opacity-60 mt-1">Trace o trajeto da torcida A e da torcida B até o estádio e evite que se cruzem.</p>
+    </div>
+    <a href="{% url 'bepe:rota_nova' %}" class="btn-tema px-4 py-3 whitespace-nowrap"><i class="bi bi-plus-lg"></i> Novo plano</a>
+</div>
+
+<div class="card divide-suave">
+    {% for p in planos %}
+    <a href="{% url 'bepe:rota_editar' p.id %}" class="flex items-center gap-3 p-4 linha">
+        <div class="flex -space-x-2 shrink-0">
+            <span class="w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black text-white" style="background: {{ p.torcida_a.cor_primaria|default:'#2563eb' }}">A</span>
+            <span class="w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black text-white" style="background: {{ p.torcida_b.cor_primaria|default:'#dc2626' }}">B</span>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-black texto-main truncate">{{ p.titulo }}</p>
+            <p class="text-[11px] texto-main opacity-60 truncate">{{ p.torcida_a.nome|default:"Torcida A" }} × {{ p.torcida_b.nome|default:"Torcida B" }} · {{ p.destino_nome }}{% if p.data_jogo %} · {{ p.data_jogo|date:"d/m H:i" }}{% endif %}</p>
+        </div>
+        {% if p.pontos_risco %}
+        <span class="text-[9px] font-black uppercase px-2 py-1 rounded-lg bg-red-500/15 text-red-600 whitespace-nowrap"><i class="bi bi-exclamation-triangle-fill"></i> {{ p.pontos_risco|length }} risco{{ p.pontos_risco|length|pluralize }}</span>
+        {% else %}
+        <span class="text-[9px] font-black uppercase px-2 py-1 rounded-lg bg-green-500/15 text-green-600 whitespace-nowrap"><i class="bi bi-check-lg"></i> Sem cruzamento</span>
+        {% endif %}
+    </a>
+    {% empty %}
+    <div class="p-8 text-center">
+        <i class="bi bi-signpost-split texto-main opacity-30 text-3xl"></i>
+        <p class="text-sm font-black texto-main mt-2">Nenhum plano de rota ainda</p>
+        <p class="text-[11px] texto-main opacity-60 mt-1">Crie um aqui ou direto pela aba <a href="{% url 'bepe:jogos' %}" class="texto-tema font-bold">Jogos RJ</a>.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -77,6 +77,29 @@ class Pedido(models.Model):
     
     # --- Tipo de Entrega ---
     retirada_sede = models.BooleanField("Retirar na Sede?", default=False)
+
+    # --- Acompanhamento pelo cliente (Perfil > Meus pedidos) ---
+    codigo_rastreio = models.CharField("Código de rastreio", max_length=40, blank=True)
+    nota_fiscal = models.FileField("Nota fiscal (PDF)", upload_to='notas_fiscais/', blank=True, null=True)
+
+    # --- Status separados para o cliente: pagamento x entrega ---
+    @property
+    def status_pagamento(self):
+        """(rótulo, cor)"""
+        if self.status == 'cancelado':
+            return ('Cancelado', 'red')
+        if self.status == 'pendente':
+            return ('Pagar na sede', 'blue') if self.metodo_pagamento == 'sede' else ('Aguardando pagamento', 'yellow')
+        return ('Pago', 'green')
+
+    @property
+    def etapas_entrega(self):
+        """Linha do tempo: lista de (rótulo, concluída?)."""
+        final = 'Retirado na sede' if self.retirada_sede else 'Entregue'
+        meio = 'Pronto para retirada' if self.retirada_sede else 'Enviado'
+        etapas = ['Pedido realizado', 'Pagamento confirmado', meio, final]
+        atual = {'pendente': 0, 'pago': 1, 'enviado': 2, 'aguardando_retirada': 2, 'concluido': 3}.get(self.status, -1)
+        return [(rotulo, i <= atual) for i, rotulo in enumerate(etapas)]
     
     # --- Dados de Entrega e Frete (só para envio) ---
     cep = models.CharField(max_length=9, blank=True, null=True)
@@ -104,3 +127,7 @@ class ItemPedido(models.Model):
     produto = models.ForeignKey(Produto, on_delete=models.SET_NULL, null=True)
     quantidade = models.PositiveIntegerField()
     preco_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+
+    @property
+    def subtotal(self):
+        return self.quantidade * self.preco_unitario

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-6">
+    <h1 class="text-2xl font-black texto-main text-center">Acompanhar denúncia</h1>
+
+    <form method="get" class="flex gap-2 mt-5">
+        <input type="text" name="protocolo" value="{{ protocolo }}" placeholder="BP-XXXXXXXX" class="flex-1 fundo-card border border-suave rounded-xl px-4 py-3 text-sm texto-main uppercase tracking-widest focus:outline-none">
+        <button class="fundo-tema text-white font-bold rounded-xl px-5 text-sm"><i class="bi bi-search"></i></button>
+    </form>
+
+    {% if denuncia %}
+    <div class="fundo-card rounded-2xl p-5 mt-5 shadow-md border border-suave space-y-3">
+        <div class="flex justify-between items-center">
+            <p class="font-black texto-main">{{ denuncia.protocolo }}</p>
+            <span class="text-[10px] font-black uppercase px-2 py-1 rounded-lg fundo-tema text-white">{{ denuncia.get_status_display }}</span>
+        </div>
+        <p class="text-xs texto-main opacity-60">{{ denuncia.get_categoria_display }} · enviada em {{ denuncia.criada_em|date:"d/m/Y" }}</p>
+        <div>
+            <p class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">Resposta do BEPE</p>
+            <p class="text-sm texto-main whitespace-pre-line mt-1">{{ denuncia.resposta_publica|default:"Ainda sem resposta. Volte mais tarde." }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'bepe:fale_com_bepe' %}" class="block text-center text-sm font-bold texto-main opacity-70 hover:opacity-100 mt-6">Fazer nova denúncia</a>
+</div>
+{% endblock %}

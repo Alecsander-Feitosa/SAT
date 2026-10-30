@@ -1,0 +1,8 @@
+{# Notícias patrocinadas da MGID (pagas por clique). Só aparece com MGID_SITE_ID e MGID_WIDGET_ID no .env. #}
+{% if mgid.widget_id %}
+<div class="w-full my-2">
+    <p class="text-[8px] font-black texto-main opacity-40 uppercase tracking-widest mb-2">Patrocinado</p>
+    <div data-type="_mgwidget" data-widget-id="{{ mgid.widget_id }}"></div>
+    <script>(function(w,q){w[q]=w[q]||[];w[q].push(["_mgc.load"])})(window,"_mgq");</script>
+</div>
+{% endif %}

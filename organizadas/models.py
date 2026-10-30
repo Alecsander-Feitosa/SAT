@@ -20,6 +20,7 @@ class Torcida(models.Model):
     cor_terciaria = models.CharField("Cor Terciária", max_length=7, default="#000000")
     cor_fundo = models.CharField("Cor de Fundo do App", max_length=7, default="#121212")
     nome_pelotao = models.CharField("Nome do Pelotão", max_length=50, default="Pelotão", blank=True, help_text="Como a torcida chama seus pelotões/comandos/sub-sedes (Ex: Comando, Sub-sede, Bonde, Distrito)")
+    whatsapp_suporte = models.CharField("WhatsApp de suporte da torcida", max_length=20, blank=True, help_text="Com DDD. Aparece no Perfil > Suporte")
     aprovacao_automatica = models.BooleanField("Aprovação Automática", default=False, help_text="Se ativado, os novos sócios entram na torcida automaticamente sem precisar de aprovação manual.")
     
     def save(self, *args, **kwargs):
@@ -43,6 +44,8 @@ class Caravana(models.Model):
     vagas_totais = models.IntegerField()
     
     passageiros = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='caravanas_inscritas', blank=True)
+    criado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='caravanas_criadas')
+    epico = models.BooleanField(default=False, help_text="Equipe SAT (Desenvolvedor) presente: EXP em dobro para todos")
 
     def vagas_restantes(self):
         return self.vagas_totais - self.passageiros.count()
@@ -78,6 +81,8 @@ class Evento(models.Model):
     longitude = models.FloatField(blank=True, null=True)
     raio_checkin = models.IntegerField(default=500)
     xp_recompensa = models.IntegerField(default=50)
+    criado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='eventos_criados')
+    epico = models.BooleanField(default=False, help_text="Equipe SAT (Desenvolvedor) presente: EXP em dobro para todos")
 
     def vagas_esgotadas(self):
         if not self.max_participantes:

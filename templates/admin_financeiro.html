@@ -78,11 +78,11 @@
     </div>
 
     <div class="grid grid-cols-2 gap-3 mb-8">
-        <button type="button" onclick="abrirModal('modalNovoPlano')"
+        <a href="{% url 'painel_planos' %}"
             class="bg-dinamico text-white rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-md active:scale-95 transition-transform border-0">
-            <i class="bi bi-plus-circle text-2xl mb-2"></i>
-            <span class="text-[10px] font-black uppercase tracking-widest">Novo Plano</span>
-        </button>
+            <i class="bi bi-gift-fill text-2xl mb-2"></i>
+            <span class="text-[10px] font-black uppercase tracking-widest">Benefícios por Plano</span>
+        </a>
 
         <a href="{% url 'exportar_financeiro_csv' %}"
             class="fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm active:scale-95 transition-transform">
@@ -107,10 +107,10 @@
                             plano.preco|floatformat:2 }} / mês</p>
                     </div>
                 </div>
-                {% if plano.destaque %}
-                <span
-                    class="bg-yellow-500/10 text-yellow-600 px-2 py-1 rounded text-[8px] font-black uppercase border border-yellow-500/20">Destaque</span>
-                {% endif %}
+                <div class="text-right">
+                    <p class="text-lg font-black texto-main leading-none">{{ plano.qtd_socios }}</p>
+                    <p class="text-[8px] font-bold texto-main opacity-50 uppercase tracking-widest">sócios</p>
+                </div>
             </div>
             {% empty %}
             <div class="text-center py-6 border border-dashed border-suave rounded-2xl opacity-40">
@@ -187,57 +187,6 @@
         </div>
     </div>
 
-</div>
-
-<div id="modalNovoPlano"
-    class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
-    <div
-        class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
-        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
-            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Novo Plano de Sócio</h3>
-            <button type="button" onclick="fecharModal('modalNovoPlano')"
-                class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5"><i
-                    class="bi bi-x-lg"></i></button>
-        </div>
-
-        <form method="POST" class="space-y-4">
-            {% csrf_token %}
-            <input type="hidden" name="acao" value="novo_plano">
-
-            <div class="space-y-1">
-                <label class="text-[9px] font-black opacity-50 uppercase tracking-widest ml-1">Nome do Plano</label>
-                <input type="text" name="nome" required placeholder="Ex: Sócio Ouro"
-                    class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-            </div>
-
-            <div class="space-y-1">
-                <label class="text-[9px] font-black opacity-50 uppercase tracking-widest ml-1">Preço Mensal (R$)</label>
-                <input type="number" step="0.01" name="preco" required placeholder="0.00"
-                    class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-            </div>
-
-            <div class="space-y-1">
-                <label class="text-[9px] font-black opacity-50 uppercase tracking-widest ml-1">Benefícios (Um por
-                    linha)</label>
-                <textarea name="beneficios" rows="4" placeholder="Descontos em ingressos&#10;Prioridade na loja"
-                    class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none"></textarea>
-            </div>
-
-            <div class="flex items-center gap-3 p-4 bg-black/5 rounded-xl border border-suave">
-                <input type="checkbox" name="destaque" id="checkDestaque"
-                    class="w-5 h-5 rounded border-suave text-orange-500 focus:ring-orange-500 bg-transparent cursor-pointer">
-                <label for="checkDestaque"
-                    class="text-[10px] font-black uppercase opacity-70 cursor-pointer select-none">
-                    Destacar este plano na adesão?
-                </label>
-            </div>
-
-            <button type="submit"
-                class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg bg-dinamico active:scale-95 transition-transform">
-                Criar Plano
-            </button>
-        </form>
-    </div>
 </div>
 
 <script>

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex items-center gap-4">
+        <a href="{% url 'meus_pedidos' %}" class="texto-main text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">Pedido <span class="texto-tema">#{{ pedido.id|stringformat:"04d" }}</span></h1>
+            <p class="text-[9px] font-bold uppercase tracking-widest texto-main opacity-50 mt-1">{{ pedido.data_pedido|date:"d/m/Y \à\s H:i" }}</p>
+        </div>
+    </div>
+
+    <div class="px-5 pt-5 max-w-xl w-full mx-auto space-y-4">
+
+        {# ---------- PAGAMENTO ---------- #}
+        {% with pg=pedido.status_pagamento %}
+        <div class="fundo-card border border-suave rounded-[24px] p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+                <p class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60"><i class="bi bi-credit-card"></i> Pagamento</p>
+                <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-{{ pg.1 }}-500/10 text-{{ pg.1 }}-600">{{ pg.0 }}</span>
+            </div>
+            <p class="text-sm font-bold texto-main mt-2">{{ pedido.get_metodo_pagamento_display }} · R$ {{ pedido.total }}</p>
+            {% if pedido.status == 'pendente' and pedido.metodo_pagamento == 'pix' and pedido.pix_copia_e_cola %}
+            <div class="mt-3 p-3 rounded-2xl fundo-app border border-suave">
+                <p class="text-[9px] font-black uppercase tracking-widest texto-main opacity-60 mb-1">PIX copia e cola</p>
+                <p id="pix" class="text-[10px] font-mono texto-main break-all line-clamp-2">{{ pedido.pix_copia_e_cola }}</p>
+                <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('pix').innerText); this.innerText='Copiado!'" class="mt-2 w-full fundo-tema texto-claro text-[10px] font-black uppercase tracking-widest py-2.5 rounded-xl border-none">Copiar código PIX</button>
+            </div>
+            {% elif pedido.status == 'pendente' and pedido.metodo_pagamento == 'sede' %}
+            <p class="text-[11px] texto-main opacity-60 mt-2">Pague na sede da torcida ao retirar o pedido.</p>
+            {% endif %}
+        </div>
+        {% endwith %}
+
+        {# ---------- ENTREGA ---------- #}
+        <div class="fundo-card border border-suave rounded-[24px] p-5 shadow-sm">
+            <p class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60 mb-3"><i class="bi bi-{% if pedido.retirada_sede %}shop{% else %}truck{% endif %}"></i> {% if pedido.retirada_sede %}Retirada na sede{% else %}Entrega · {{ pedido.modalidade_frete|default:"Envio" }}{% endif %}</p>
+            {% if pedido.status == 'cancelado' %}
+            <p class="text-sm font-black text-red-600"><i class="bi bi-x-circle-fill"></i> Pedido cancelado</p>
+            {% else %}
+            <ol class="relative border-l-2 border-suave ml-2 space-y-4">
+                {% for etapa, feita in pedido.etapas_entrega %}
+                <li class="ml-5 relative">
+                    <span class="absolute -left-[29px] top-0.5 w-4 h-4 rounded-full border-2 border-white {% if feita %}fundo-tema{% else %}bg-black/15{% endif %}"></span>
+                    <p class="text-sm {% if feita %}font-black texto-main{% else %}font-bold texto-main opacity-40{% endif %}">{{ etapa }}</p>
+                </li>
+                {% endfor %}
+            </ol>
+            {% endif %}
+            {% if pedido.codigo_rastreio %}
+            <div class="mt-4 p-3 rounded-2xl fundo-app border border-suave flex items-center justify-between gap-3">
+                <div><p class="text-[9px] font-black uppercase tracking-widest texto-main opacity-60">Código de rastreio</p><p class="text-sm font-mono font-black texto-main">{{ pedido.codigo_rastreio }}</p></div>
+                <a href="https://www.linkcorreios.com.br/?id={{ pedido.codigo_rastreio|urlencode }}" target="_blank" rel="noopener" class="fundo-tema texto-claro text-[9px] font-black uppercase tracking-widest px-3 py-2 rounded-xl">Rastrear</a>
+            </div>
+            {% endif %}
+            {% if not pedido.retirada_sede and pedido.endereco %}
+            <p class="text-[11px] texto-main opacity-70 mt-3"><i class="bi bi-geo-alt"></i> {{ pedido.endereco }}, {{ pedido.numero }}{% if pedido.complemento %} - {{ pedido.complemento }}{% endif %} · {{ pedido.bairro }} · {{ pedido.cidade }}/{{ pedido.estado }} · {{ pedido.cep }}</p>
+            {% endif %}
+        </div>
+
+        {# ---------- NOTA FISCAL ---------- #}
+        <div class="fundo-card border border-suave rounded-[24px] p-5 shadow-sm flex items-center gap-4">
+            <span class="w-11 h-11 rounded-xl {% if pedido.nota_fiscal %}bg-red-500/10{% else %}bg-black/5{% endif %} flex items-center justify-center"><i class="bi bi-file-earmark-pdf-fill text-xl {% if pedido.nota_fiscal %}text-red-500{% else %}texto-main opacity-30{% endif %}"></i></span>
+            <div class="flex-1">
+                <p class="text-sm font-black texto-main leading-none">Nota fiscal</p>
+                <p class="text-[10px] texto-main opacity-50 mt-1">{% if pedido.nota_fiscal %}Disponível para download{% elif pedido.status == 'pendente' %}Emitida após o pagamento{% else %}Ainda não emitida pela loja{% endif %}</p>
+            </div>
+            {% if pedido.nota_fiscal %}<a href="{{ pedido.nota_fiscal.url }}" target="_blank" rel="noopener" class="fundo-tema texto-claro text-[9px] font-black uppercase tracking-widest px-3 py-2 rounded-xl">Baixar</a>{% endif %}
+        </div>
+
+        {# ---------- DETALHES DA COMPRA ---------- #}
+        <div class="fundo-card border border-suave rounded-[24px] p-5 shadow-sm">
+            <p class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60 mb-3"><i class="bi bi-receipt"></i> Detalhes da compra</p>
+            <div class="divide-y divide-black/5">
+                {% for item in pedido.itens.all %}
+                <div class="flex items-center gap-3 py-2.5">
+                    <div class="w-12 h-12 rounded-xl overflow-hidden bg-black/5 shrink-0 flex items-center justify-center">
+                        {% if item.produto.imagem %}<img src="{{ item.produto.imagem.url }}" class="w-full h-full object-cover" alt="">{% else %}<i class="bi bi-bag texto-main opacity-30"></i>{% endif %}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold texto-main truncate">{{ item.produto.nome|default:"Produto removido" }}</p>
+                        <p class="text-[10px] texto-main opacity-50">{{ item.quantidade }} × R$ {{ item.preco_unitario }}</p>
+                    </div>
+                    <p class="text-sm font-black texto-main">R$ {{ item.subtotal|floatformat:2 }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="border-t border-suave mt-2 pt-3 space-y-1 text-sm">
+                {% if pedido.valor_frete %}<div class="flex justify-between texto-main opacity-70"><span>Frete</span><span>R$ {{ pedido.valor_frete }}</span></div>{% endif %}
+                <div class="flex justify-between font-black texto-main"><span>Total</span><span>R$ {{ pedido.total }}</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

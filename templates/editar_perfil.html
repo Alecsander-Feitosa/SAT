@@ -178,93 +178,87 @@
             </div>
         </div>
 
-        {% if user.perfil.torcida %}
+        {# ---------- VERIFICAÇÃO DE DOCUMENTOS ---------- #}
         <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
-            <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em] mb-2">Documentos de Verificação</h4>
-            <div class="space-y-3">
-                <div
-                    class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
-                    <input type="file" name="doc_frente" accept="image/*" capture="environment"
-                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        onchange="previewFileName(this, 'nomeArqFrente')">
-                    <i class="bi bi-front texto-main text-2xl mb-1 block"></i>
-                    <p class="text-[10px] font-black texto-main uppercase tracking-widest">RG/CNH - Foto Frente</p>
-                    <p id="nomeArqFrente"
-                        class="text-[8px] mt-1 truncate {% if user.perfil.doc_frente %}text-green-500 font-bold{% else %}texto-main opacity-50{% endif %}">
-                        {% if user.perfil.doc_frente %}
-                        ✅ Documento já anexado (Clique p/ alterar)
-                        {% else %}
-                        Clique para abrir a câmera traseira
-                        {% endif %}
-                    </p>
-                </div>
-
-                <div
-                    class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
-                    <input type="file" name="doc_verso" accept="image/*" capture="environment"
-                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        onchange="previewFileName(this, 'nomeArqVerso')">
-                    <i class="bi bi-back texto-main text-2xl mb-1 block"></i>
-                    <p class="text-[10px] font-black texto-main uppercase tracking-widest">RG/CNH - Foto Verso</p>
-                    <p id="nomeArqVerso"
-                        class="text-[8px] mt-1 truncate {% if user.perfil.doc_verso %}text-green-500 font-bold{% else %}texto-main opacity-50{% endif %}">
-                        {% if user.perfil.doc_verso %}
-                        ✅ Documento já anexado (Clique p/ alterar)
-                        {% else %}
-                        Clique para abrir a câmera traseira
-                        {% endif %}
-                    </p>
-                </div>
-
-                <div
-                    class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
-                    <input type="file" name="doc_selfie" accept="image/*" capture="user"
-                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        onchange="previewFileName(this, 'nomeArqSelfie')">
-                    <i class="bi bi-person-bounding-box texto-main text-2xl mb-1 block"></i>
-                    <p class="text-[10px] font-black texto-main uppercase tracking-widest">Verificação Facial (Selfie)
-                    </p>
-                    <p id="nomeArqSelfie"
-                        class="text-[8px] mt-1 truncate {% if user.perfil.doc_selfie %}text-green-500 font-bold{% else %}texto-main opacity-50{% endif %}">
-                        {% if user.perfil.doc_selfie %}
-                        ✅ Selfie já anexada (Clique p/ alterar)
-                        {% else %}
-                        Tire uma selfie nítida
-                        {% endif %}
-                    </p>
-                </div>
+            <div class="flex items-center justify-between gap-2">
+                <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em]">Verificação de documentos</h4>
+                {% with st=user.perfil.docs_status %}
+                <span class="text-[8px] font-black uppercase px-2 py-1 rounded-full
+                    {% if st == 'verificado' %}bg-sky-500/10 text-sky-600{% elif st == 'em_analise' %}bg-yellow-500/15 text-yellow-700{% elif st == 'recusado' %}bg-red-500/10 text-red-600{% else %}bg-black/5 texto-main opacity-60{% endif %}">
+                    {{ user.perfil.get_docs_status_display }}
+                </span>
+                {% endwith %}
             </div>
 
-            <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
-                <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em] mb-2">Identidade na Torcida</h4>
-
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label
-                            class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Vulgo</label>
-                        <input type="text" name="vulgo" value="{{ user.perfil.vulgo|default:'' }}"
-                            class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">{{
-                            user.perfil.torcida.nome_pelotao|default:"Pelotão" }}</label>
-                        <input type="text" name="pelotao" value="{{ user.perfil.pelotao|default:'' }}"
-                            class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Rede Social
-                        *</label>
-                    <div class="relative">
-                        <span class="absolute left-4 top-3.5 texto-main opacity-30 text-sm">@</span>
-                        <input type="text" name="rede_social" value="{{ user.perfil.rede_social|default:'' }}" required
-                            class="w-full fundo-app border border-suave rounded-2xl pl-9 pr-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none">
-                    </div>
-                </div>
+            {% if user.perfil.docs_status == 'verificado' %}
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-sky-500/10">
+                <i class="bi bi-patch-check-fill text-sky-600 text-xl"></i>
+                <p class="text-[11px] texto-main leading-relaxed">Sua identidade foi verificada{% if user.perfil.docs_analisado_em %} em {{ user.perfil.docs_analisado_em|date:"d/m/Y" }}{% endif %}. Se trocar algum documento, ele volta para análise.</p>
             </div>
+            {% elif user.perfil.docs_status == 'em_analise' %}
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-yellow-500/10">
+                <i class="bi bi-hourglass-split text-yellow-600 text-xl"></i>
+                <p class="text-[11px] texto-main leading-relaxed">Recebemos seus documentos. A moderação {% if user.perfil.torcida %}da {{ user.perfil.torcida.nome }} {% endif %}vai conferir e você será avisado pelo sininho.</p>
+            </div>
+            {% elif user.perfil.docs_status == 'recusado' %}
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-red-500/10">
+                <i class="bi bi-x-octagon-fill text-red-600 text-xl"></i>
+                <p class="text-[11px] texto-main leading-relaxed"><b>Documentos recusados.</b> {{ user.perfil.docs_motivo|default:"Envie fotos mais nítidas." }} Envie novamente abaixo.</p>
+            </div>
+            {% else %}
+            <p class="text-[11px] texto-main opacity-60 leading-relaxed">Envie a frente e o verso do RG ou da CNH e uma selfie. Com os três, seus documentos vão para análise.</p>
             {% endif %}
+
+            <div class="space-y-3">
+                <div class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
+                    <input type="file" name="doc_frente" accept="image/*" capture="environment"
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqFrente')">
+                    <i class="bi bi-front texto-main text-2xl mb-1 block"></i>
+                    <p class="text-[10px] font-black texto-main uppercase tracking-widest">RG/CNH — Frente</p>
+                    <p id="nomeArqFrente" class="text-[8px] mt-1 truncate {% if user.perfil.doc_frente %}text-green-500 font-bold{% else %}texto-main opacity-50{% endif %}">
+                        {% if user.perfil.doc_frente %}✅ Já anexado (toque para trocar){% else %}Toque para fotografar{% endif %}
+                    </p>
+                </div>
+                <div class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
+                    <input type="file" name="doc_verso" accept="image/*" capture="environment"
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqVerso')">
+                    <i class="bi bi-back texto-main text-2xl mb-1 block"></i>
+                    <p class="text-[10px] font-black texto-main uppercase tracking-widest">RG/CNH — Verso</p>
+                    <p id="nomeArqVerso" class="text-[8px] mt-1 truncate {% if user.perfil.doc_verso %}text-green-500 font-bold{% else %}texto-main opacity-50{% endif %}">
+                        {% if user.perfil.doc_verso %}✅ Já anexado (toque para trocar){% else %}Toque para fotografar{% endif %}
+                    </p>
+                </div>
+                <div class="relative w-full fundo-app border-2 border-dashed border-suave rounded-2xl p-4 text-center hover:border-tema transition-colors">
+                    <input type="file" name="doc_selfie" accept="image/*" capture="user"
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewFileName(this, 'nomeArqSelfie')">
+                    <i class="bi bi-person-bounding-box texto-main text-2xl mb-1 block"></i>
+                    <p class="text-[10px] font-black texto-main uppercase tracking-widest">Selfie (verificação facial)</p>
+                    <p id="nomeArqSelfie" class="text-[8px] mt-1 truncate {% if user.perfil.doc_selfie %}text-green-500 font-bold{% else %}texto-main opacity-50{% endif %}">
+                        {% if user.perfil.doc_selfie %}✅ Já anexado (toque para trocar){% else %}Tire uma selfie nítida{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {% if user.perfil.torcida %}
+        {# ---------- IDENTIDADE NA TORCIDA ---------- #}
+        <div class="fundo-card p-6 rounded-[32px] border border-suave shadow-sm space-y-4">
+            <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em] mb-2">Identidade na {{ user.perfil.torcida.nome }}</h4>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">Vulgo</label>
+                    <input type="text" name="vulgo" value="{{ user.perfil.vulgo|default:'' }}" maxlength="50" placeholder="Como te chamam"
+                        class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">{{ user.perfil.torcida.nome_pelotao|default:"Pelotão" }}</label>
+                    <input type="text" name="pelotao" value="{{ user.perfil.pelotao|default:'' }}" maxlength="50" placeholder="{{ user.perfil.torcida.nome_pelotao|default:'Pelotão' }}, estado ou área"
+                        class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
+                </div>
+            </div>
+            <p class="text-[10px] texto-main opacity-50 ml-2">O {{ user.perfil.torcida.nome_pelotao|default:"pelotão"|lower }} identifica a sua área dentro da torcida e aparece no seu perfil e na carteirinha.</p>
+        </div>
+        {% endif %}
 
             <button type="submit"
                 class="w-full fundo-tema texto-claro font-black text-xs uppercase tracking-[0.2em] py-5 rounded-2xl shadow-lg active:scale-95 transition-all border-none mt-4">

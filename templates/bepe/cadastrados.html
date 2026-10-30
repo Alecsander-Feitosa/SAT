@@ -1,0 +1,60 @@
+{% extends 'bepe/base_bepe.html' %}
+{% block bepe_content %}
+<form method="get" class="card p-4 mb-4 grid grid-cols-1 md:grid-cols-12 gap-3">
+    <div class="md:col-span-4">
+        <label class="rotulo">Nome, vulgo, RG, matrícula...</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="Buscar" class="w-full fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main focus:outline-none focus:border-tema">
+    </div>
+    <div class="md:col-span-2">
+        <label class="rotulo">CPF</label>
+        <input type="text" name="cpf" value="{{ cpf }}" inputmode="numeric" placeholder="000.000.000-00" class="w-full fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main focus:outline-none focus:border-tema">
+    </div>
+    <div class="md:col-span-3">
+        <label class="rotulo">Time</label>
+        <select name="time" class="w-full fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+            <option value="">Todos os times</option>
+            {% for t in times %}<option value="{{ t }}" {% if time == t %}selected{% endif %}>{{ t }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="md:col-span-3">
+        <label class="rotulo">Torcida</label>
+        <select name="torcida" class="w-full fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+            <option value="">Todas as torcidas</option>
+            {% for t in torcidas %}<option value="{{ t.id }}" {% if torcida_id == t.id|stringformat:"s" %}selected{% endif %}>{{ t.nome }}</option>{% endfor %}
+        </select>
+    </div>
+    <label class="md:col-span-6 flex items-center gap-2 text-sm texto-main opacity-60 px-1"><input type="checkbox" name="com_registro" value="1" {% if request.GET.com_registro %}checked{% endif %}> Só com prontuário</label>
+    <div class="md:col-span-6 flex gap-2">
+        <a href="{% url 'bepe:cadastrados' %}" class="flex-1 text-center fundo-app border border-suave rounded-xl py-3 text-[11px] font-black uppercase tracking-widest texto-main">Limpar</a>
+        <button class="flex-[2] btn-tema py-3"><i class="bi bi-search"></i> Buscar</button>
+    </div>
+</form>
+
+<p class="rotulo mb-2">{{ pagina.paginator.count }} resultado{{ pagina.paginator.count|pluralize }}</p>
+
+<div class="card divide-suave">
+    {% for p in pagina %}
+    <a href="{% url 'bepe:cadastrado_detalhe' p.id %}" class="flex items-center gap-3 p-3 linha transition">
+        <div class="w-11 h-11 rounded-full overflow-hidden bg-black/5 flex-shrink-0 flex items-center justify-center">
+            {% if p.foto %}<img src="{{ p.foto.url }}" class="w-full h-full object-cover" alt="">{% else %}<i class="bi bi-person-fill texto-main opacity-30 text-xl"></i>{% endif %}
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold texto-main truncate">{{ p.user.get_full_name|default:p.user.username }}{% if p.vulgo %} <span class="texto-main opacity-50 font-normal">"{{ p.vulgo }}"</span>{% endif %}</p>
+            <p class="text-xs texto-main opacity-50 truncate">{{ p.torcida.nome|default:"Sem torcida" }}{% if p.time_coracao %} · {{ p.time_coracao }}{% endif %}{% if p.pelotao %} · {{ p.pelotao }}{% endif %}{% if p.cpf %} · CPF {{ p.cpf }}{% endif %}</p>
+        </div>
+        {% if p.num_registros %}<span class="text-[10px] font-black uppercase px-2 py-1 rounded-lg bg-yellow-500/20 text-yellow-600">{{ p.num_registros }} registro{{ p.num_registros|pluralize }}</span>{% endif %}
+        <i class="bi bi-chevron-right texto-main opacity-30"></i>
+    </a>
+    {% empty %}
+    <p class="p-6 text-center text-sm texto-main opacity-50">Nenhum cadastrado encontrado.</p>
+    {% endfor %}
+</div>
+
+{% if pagina.has_other_pages %}
+<div class="flex justify-center items-center gap-3 mt-4 text-sm">
+    {% if pagina.has_previous %}<a class="card px-4 py-2" href="?{{ filtros_url }}&page={{ pagina.previous_page_number }}">Anterior</a>{% endif %}
+    <span class="texto-main opacity-50">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+    {% if pagina.has_next %}<a class="card px-4 py-2" href="?{{ filtros_url }}&page={{ pagina.next_page_number }}">Próxima</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -101,7 +101,7 @@ def validar_checkin_estadio(request):
                     foto=foto_arquivo,
                     validado=True
                 )
-                return JsonResponse({'status': 'sucesso', 'mensagem': 'Check-in realizado! +50 XP'})
+                return JsonResponse({'status': 'sucesso', 'mensagem': 'Check-in realizado! EXP de participação creditado.'})
             else:
                 return JsonResponse({'status': 'erro', 'mensagem': 'Você está longe demais do local.'}, status=400)
 
@@ -215,12 +215,6 @@ def detalhe_evento(request, evento_id):
     return render(request, 'detalhe_evento.html', context)
 
 # Em accounts/views.py ou no app correspondente
-def bet_view(request):
-    context = {
-        'cor_tema': '#D37129', # Laranja padrão do SAT
-    }
-    return render(request, 'bet_manutencao.html', context)
-
 @login_required
 def confirmar_presenca(request, evento_id):
     evento = get_object_or_404(Evento, id=evento_id)

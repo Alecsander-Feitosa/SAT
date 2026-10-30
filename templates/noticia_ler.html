@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-4 min-w-0">
+            <a href="javascript:history.length > 1 ? history.back() : location.assign('{% url 'noticias' %}')" class="texto-main text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
+            <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">SAT <span class="texto-tema">News</span></h1>
+        </div>
+        <button type="button" onclick="compartilharNoticia()" class="w-9 h-9 fundo-app rounded-full flex items-center justify-center texto-main border border-suave" aria-label="Compartilhar"><i class="bi bi-share-fill text-sm"></i></button>
+    </div>
+
+    <article class="w-full max-w-2xl mx-auto">
+        <div class="relative w-full aspect-[16/10] bg-gray-900 overflow-hidden">
+            {% if noticia.imagem %}
+                <img src="{{ noticia.imagem }}" alt="" class="w-full h-full object-cover">
+            {% elif noticia.escudo %}
+                <div class="w-full h-full flex items-center justify-center"><img src="{{ noticia.escudo }}" alt="" class="w-32 h-32 object-contain opacity-70"></div>
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center"><i class="bi bi-newspaper text-6xl text-white/20"></i></div>
+            {% endif %}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+            {% if noticia.escudo %}
+            <div class="absolute bottom-4 left-5 flex items-center gap-2">
+                <span class="w-12 h-12 bg-white rounded-full p-2 shadow-lg flex items-center justify-center"><img src="{{ noticia.escudo }}" alt="{{ noticia.time }}" class="w-full h-full object-contain"></span>
+                <span class="text-white text-[10px] font-black uppercase tracking-widest drop-shadow">{{ noticia.time }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="px-5 pt-5">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-[10px] font-black uppercase tracking-widest texto-tema">{{ noticia.fonte }}</span>
+                {% if noticia.data %}<span class="text-[10px] font-bold texto-main opacity-50">· {{ noticia.data|date:"d/m/Y H:i" }}</span>{% endif %}
+            </div>
+            <h2 class="text-2xl font-black texto-main leading-tight">{{ noticia.titulo }}</h2>
+            {% if noticia.subtitulo %}
+            <p class="text-base font-bold texto-main opacity-70 leading-snug mt-2">{{ noticia.subtitulo }}</p>
+            {% endif %}
+            {% if noticia.descricao %}
+            <div class="text-[15px] texto-main opacity-80 leading-relaxed mt-4 space-y-3">{{ noticia.descricao|linebreaks }}</div>
+            {% endif %}
+
+            <a href="{{ noticia.link }}" target="_blank" rel="noopener" class="mt-6 flex items-center justify-center gap-2 w-full fundo-card border border-suave rounded-2xl py-3.5 text-[11px] font-black uppercase tracking-widest texto-main shadow-sm">
+                Ler matéria completa em {{ noticia.fonte }} <i class="bi bi-box-arrow-up-right"></i>
+            </a>
+        </div>
+
+        <div class="px-5 mt-8">
+            {% include "includes/mgid_widget.html" %}
+        </div>
+
+        {% if relacionadas %}
+        <div class="px-5 mt-8">
+            <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-4 flex items-center gap-2">
+                {% if noticia.escudo %}<img src="{{ noticia.escudo }}" alt="" class="w-5 h-5 object-contain">{% else %}<i class="bi bi-newspaper"></i>{% endif %}
+                {% if noticia.time %}Mais do {{ noticia.time }}{% else %}Mais notícias{% endif %}
+            </h3>
+            <div class="space-y-3">
+                {% for n in relacionadas %}
+                <a href="{% url 'noticia_ler' n.id %}" class="flex items-center gap-3 fundo-card border border-suave rounded-2xl p-3 shadow-sm">
+                    <div class="w-20 h-20 rounded-xl overflow-hidden bg-black/5 shrink-0 flex items-center justify-center">
+                        {% if n.imagem %}<img src="{{ n.imagem }}" alt="" class="w-full h-full object-cover" loading="lazy">{% elif n.escudo %}<img src="{{ n.escudo }}" alt="" class="w-12 h-12 object-contain">{% else %}<i class="bi bi-newspaper texto-main opacity-20 text-xl"></i>{% endif %}
+                    </div>
+                    <div class="min-w-0">
+                        <span class="text-[9px] font-black uppercase texto-tema">{{ n.fonte }}</span>
+                        <p class="text-sm font-bold texto-main leading-tight line-clamp-3 mt-0.5">{{ n.titulo }}</p>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            <a href="{% url 'noticias' %}" class="block text-center text-[10px] font-black uppercase tracking-widest texto-tema mt-5">Ver todas as notícias</a>
+        </div>
+        {% endif %}
+    </article>
+</div>
+
+<script>
+    function compartilharNoticia() {
+        const dados = { title: document.title, text: document.querySelector('article h2').innerText, url: location.href };
+        if (navigator.share) navigator.share(dados).catch(() => {});
+        else navigator.clipboard.writeText(dados.text + ' ' + dados.url).then(() => Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'Link copiado!', showConfirmButton: false, timer: 2000 }));
+    }
+</script>
+{% endblock %}

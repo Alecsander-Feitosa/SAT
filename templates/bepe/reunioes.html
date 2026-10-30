@@ -1,0 +1,86 @@
+{% extends template_base %}
+{% block bepe_content %}
+<div class="grid {% if lado_bepe %}lg:grid-cols-[1fr_380px]{% endif %} gap-4">
+    <div class="space-y-3">
+        <h2 class="text-lg font-black italic uppercase tracking-tighter texto-main leading-none">Próximas reuniões</h2>
+        {% for r in proximas %}
+        <div class="card p-4 {% if r.acontecendo %}border-2 border-green-500{% endif %}">
+            <div class="flex items-start gap-3">
+                <div class="w-14 shrink-0 rounded-xl fundo-tema texto-claro text-center py-2">
+                    <p class="text-[9px] font-black uppercase leading-none">{{ r.data_hora|date:"M" }}</p>
+                    <p class="text-xl font-black leading-none mt-0.5">{{ r.data_hora|date:"d" }}</p>
+                    <p class="text-[10px] font-bold leading-none mt-0.5">{{ r.data_hora|date:"H:i" }}</p>
+                </div>
+                <div class="flex-1 min-w-0">
+                    {% if r.acontecendo %}<span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-green-600"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Acontecendo agora</span>{% endif %}
+                    <p class="text-sm font-black texto-main">{{ r.titulo }}</p>
+                    <p class="text-[11px] texto-main opacity-60">{{ r.duracao_min }} min · {% for t in r.torcidas.all %}{{ t.sigla|default:t.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                    {% if r.pauta %}<p class="text-[12px] texto-main opacity-80 mt-2 whitespace-pre-line">{{ r.pauta }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="flex gap-2 mt-3 pt-3 border-t border-suave">
+                <a href="{{ r.link }}" target="_blank" rel="noopener" class="flex-1 text-center {% if r.acontecendo %}bg-green-600 text-white{% else %}btn-tema{% endif %} rounded-xl py-3 text-[11px] font-black uppercase tracking-widest">
+                    <i class="bi bi-camera-video-fill"></i> Entrar na sala
+                </a>
+                <button type="button" onclick="navigator.clipboard.writeText('{{ r.link }}'); this.innerHTML='<i class=\'bi bi-check-lg\'></i>'" class="fundo-app border border-suave rounded-xl px-4 texto-main" title="Copiar link"><i class="bi bi-link-45deg"></i></button>
+                {% if lado_bepe %}
+                <form method="post" action="{% url 'bepe:reuniao_cancelar' r.id %}" onsubmit="return confirm('Cancelar a reunião e avisar as diretorias?');">
+                    {% csrf_token %}
+                    <button class="h-full px-4 rounded-xl bg-red-500/10 text-red-600 border border-red-500/20" title="Cancelar"><i class="bi bi-x-lg"></i></button>
+                </form>
+                {% endif %}
+            </div>
+            <p class="text-[10px] texto-main opacity-40 mt-2 truncate">{% if r.link_externo %}Link externo{% else %}Sala de vídeo Jitsi · {{ r.sala }}{% endif %}</p>
+        </div>
+        {% empty %}
+        <div class="card p-8 text-center">
+            <i class="bi bi-camera-video-off texto-main opacity-30 text-3xl"></i>
+            <p class="text-sm font-black texto-main mt-2">Nenhuma reunião agendada</p>
+        </div>
+        {% endfor %}
+
+        {% if anteriores %}
+        <p class="rotulo mt-6">Anteriores</p>
+        <div class="card divide-suave">
+            {% for r in anteriores %}
+            <div class="flex items-center justify-between gap-3 px-4 py-3">
+                <div class="min-w-0">
+                    <p class="text-sm font-bold texto-main truncate">{{ r.titulo }}</p>
+                    <p class="text-[11px] texto-main opacity-50">{{ r.data_hora|date:"d/m/Y H:i" }}</p>
+                </div>
+                {% if r.cancelada %}<span class="text-[9px] font-black uppercase text-red-600">Cancelada</span>{% else %}<span class="text-[9px] font-black uppercase texto-main opacity-50">Realizada</span>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if lado_bepe %}
+    <form method="post" class="card p-4 space-y-3 h-fit lg:sticky lg:top-[160px]">
+        {% csrf_token %}
+        <h2 class="text-sm font-black italic uppercase tracking-tighter texto-main">Nova reunião por vídeo</h2>
+        <div><label class="rotulo">Título</label>{{ form.titulo }}{{ form.titulo.errors }}</div>
+        <div class="grid grid-cols-[1fr_100px] gap-2">
+            <div><label class="rotulo">Data e hora</label>{{ form.data_hora }}{{ form.data_hora.errors }}</div>
+            <div><label class="rotulo">Minutos</label>{{ form.duracao_min }}</div>
+        </div>
+        <div>
+            <label class="rotulo">Diretorias convidadas</label>
+            <div class="fundo-app border border-suave rounded-xl p-2 max-h-44 overflow-y-auto space-y-1">
+                {% for opcao in form.torcidas %}
+                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg linha cursor-pointer text-sm texto-main">{{ opcao.tag }} {{ opcao.choice_label }}</label>
+                {% endfor %}
+            </div>
+            {{ form.torcidas.errors }}
+        </div>
+        <div><label class="rotulo">Pauta</label>{{ form.pauta }}</div>
+        <details>
+            <summary class="text-[11px] font-bold texto-main opacity-60 cursor-pointer">Usar Zoom ou Google Meet</summary>
+            <div class="mt-2">{{ form.link_externo }}{{ form.link_externo.errors }}
+            <p class="text-[10px] texto-main opacity-50 mt-1">Sem link, o sistema cria uma sala de vídeo automática (Jitsi), sem instalar nada.</p></div>
+        </details>
+        <button class="w-full btn-tema py-3"><i class="bi bi-calendar-plus-fill"></i> Agendar e avisar diretorias</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

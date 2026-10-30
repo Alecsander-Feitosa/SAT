@@ -1,0 +1,40 @@
+{% extends 'bepe/base_bepe.html' %}
+{% block bepe_content %}
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+    <div>
+        <h1 class="text-xl font-black texto-main">Fale com o BEPE</h1>
+        <p class="text-sm texto-main opacity-50">Denúncias anônimas. Nenhum dado de quem enviou é armazenado.</p>
+    </div>
+    <a href="{% url 'bepe:fale_com_bepe' %}" target="_blank" class="text-xs texto-tema"><i class="bi bi-box-arrow-up-right"></i> Ver formulário público</a>
+</div>
+
+<div class="flex gap-2 overflow-x-auto mb-4">
+    <a href="?" class="tab {% if not status %}ativa{% endif %} whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold">Todas</a>
+    {% for valor, nome in status_choices %}
+    <a href="?status={{ valor }}" class="tab {% if status == valor %}ativa{% endif %} whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold">{{ nome }}</a>
+    {% endfor %}
+</div>
+
+<div class="card divide-suave">
+    {% for d in pagina %}
+    <a href="{% url 'bepe:denuncia_detalhe' d.id %}" class="flex items-center gap-3 p-4 linha transition">
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold texto-main">{{ d.get_categoria_display }} <span class="texto-main opacity-50 font-normal">· {{ d.protocolo }}</span></p>
+            <p class="text-xs texto-main opacity-60 truncate">{{ d.descricao|truncatechars:120 }}</p>
+            <p class="text-xs texto-main opacity-50 mt-1">{{ d.torcida.nome|default:"Sem torcida" }}{% if d.local %} · {{ d.local }}{% endif %} · {{ d.criada_em|date:"d/m/Y H:i" }}</p>
+        </div>
+        <span class="text-[10px] font-black uppercase px-2 py-1 rounded-lg whitespace-nowrap {% if d.status == 'nova' %}bg-red-500/20 text-red-600{% elif d.status == 'em_analise' %}bg-yellow-500/20 text-yellow-600{% elif d.status == 'concluida' %}bg-green-500/20 text-green-600{% else %}bg-gray-500/20 texto-main opacity-60{% endif %}">{{ d.get_status_display }}</span>
+    </a>
+    {% empty %}
+    <p class="p-6 text-center text-sm texto-main opacity-50">Nenhuma denúncia.</p>
+    {% endfor %}
+</div>
+
+{% if pagina.has_other_pages %}
+<div class="flex justify-center items-center gap-3 mt-4 text-sm">
+    {% if pagina.has_previous %}<a class="card px-4 py-2" href="?status={{ status }}&page={{ pagina.previous_page_number }}">Anterior</a>{% endif %}
+    <span class="texto-main opacity-50">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+    {% if pagina.has_next %}<a class="card px-4 py-2" href="?status={{ status }}&page={{ pagina.next_page_number }}">Próxima</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

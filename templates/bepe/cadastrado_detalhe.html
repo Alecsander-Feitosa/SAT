@@ -1,0 +1,89 @@
+{% extends 'bepe/base_bepe.html' %}
+{% block bepe_content %}
+<a href="{% url 'bepe:cadastrados' %}" class="text-xs texto-main opacity-60 hover:opacity-100"><i class="bi bi-arrow-left"></i> Voltar</a>
+
+<div class="grid lg:grid-cols-3 gap-4 mt-3">
+    {# ---------- FICHA DO CADASTRADO ---------- #}
+    <section class="card p-5 lg:col-span-1 h-fit">
+        <div class="flex flex-col items-center text-center mb-4">
+            <div class="w-24 h-24 rounded-full overflow-hidden bg-black/5 border-2 border-tema flex items-center justify-center">
+                {% if perfil.foto %}<img src="{{ perfil.foto.url }}" class="w-full h-full object-cover" alt="">{% else %}<i class="bi bi-person-fill texto-main opacity-30 text-4xl"></i>{% endif %}
+            </div>
+            <h1 class="text-lg font-black texto-main mt-3">{{ perfil.user.get_full_name|default:perfil.user.username }}</h1>
+            {% if perfil.vulgo %}<p class="text-sm texto-main opacity-60">"{{ perfil.vulgo }}"</p>{% endif %}
+            <p class="text-xs texto-main opacity-50 mt-1">{{ perfil.torcida.nome|default:"Sem torcida" }}{% if perfil.pelotao %} · {{ perfil.pelotao }}{% endif %}</p>
+            <span class="mt-2 text-[10px] font-black uppercase px-2 py-1 rounded-lg {% if perfil.aprovado %}bg-green-500/20 text-green-600{% else %}bg-gray-500/20 texto-main opacity-60{% endif %}">{% if perfil.aprovado %}Sócio aprovado{% else %}Não aprovado{% endif %}</span>
+        </div>
+
+        <dl class="space-y-3 text-sm">
+            <div><dt class="rotulo">Usuário / E-mail</dt><dd>@{{ perfil.user.username }} · {{ perfil.user.email|default:"—" }}</dd></div>
+            <div><dt class="rotulo">CPF</dt><dd>{{ perfil.cpf|default:"—" }}</dd></div>
+            <div><dt class="rotulo">RG / CNH</dt><dd>{{ perfil.rg_cnh|default:"—" }}{% if perfil.orgao_expedidor %} ({{ perfil.orgao_expedidor }}){% endif %}</dd></div>
+            <div><dt class="rotulo">Nascimento</dt><dd>{{ perfil.data_nascimento|date:"d/m/Y"|default:"—" }}</dd></div>
+            <div><dt class="rotulo">Filiação</dt><dd>{{ perfil.nome_mae|default:"—" }}<br>{{ perfil.nome_pai|default:"—" }}</dd></div>
+            <div><dt class="rotulo">Contato</dt><dd>{{ perfil.whatsapp|default:"—" }}{% if perfil.telefone %} · {{ perfil.telefone }}{% endif %}</dd></div>
+            <div><dt class="rotulo">Rede social</dt><dd>{{ perfil.rede_social|default:"—" }}</dd></div>
+            <div><dt class="rotulo">Endereço</dt><dd>{% if perfil.rua %}{{ perfil.rua }}, {{ perfil.numero }}{% if perfil.complemento %} - {{ perfil.complemento }}{% endif %}<br>{{ perfil.bairro }} · {{ perfil.cidade }}/{{ perfil.uf }} · {{ perfil.cep }}{% else %}—{% endif %}</dd></div>
+            <div><dt class="rotulo">Cadastrado em</dt><dd>{{ perfil.user.date_joined|date:"d/m/Y" }}</dd></div>
+        </dl>
+
+        {% if perfil.doc_frente or perfil.doc_verso or perfil.doc_selfie %}
+        <p class="rotulo mt-5 mb-2">Documentos</p>
+        <div class="grid grid-cols-3 gap-2">
+            {% if perfil.doc_frente %}<a href="{{ perfil.doc_frente.url }}" target="_blank" rel="noopener"><img src="{{ perfil.doc_frente.url }}" class="rounded-lg aspect-square object-cover w-full" alt="Frente"></a>{% endif %}
+            {% if perfil.doc_verso %}<a href="{{ perfil.doc_verso.url }}" target="_blank" rel="noopener"><img src="{{ perfil.doc_verso.url }}" class="rounded-lg aspect-square object-cover w-full" alt="Verso"></a>{% endif %}
+            {% if perfil.doc_selfie %}<a href="{{ perfil.doc_selfie.url }}" target="_blank" rel="noopener"><img src="{{ perfil.doc_selfie.url }}" class="rounded-lg aspect-square object-cover w-full" alt="Selfie"></a>{% endif %}
+        </div>
+        {% endif %}
+    </section>
+
+    <div class="lg:col-span-2 space-y-4">
+        {# ---------- NOVO REGISTRO ---------- #}
+        <details class="card p-5" {% if form.errors %}open{% endif %}>
+            <summary class="font-black texto-main cursor-pointer"><i class="bi bi-plus-circle texto-tema"></i> Adicionar registro ao prontuário</summary>
+            <form method="post" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-3 mt-4">
+                {% csrf_token %}
+                <div><label class="rotulo">Tipo</label>{{ form.tipo }}{{ form.tipo.errors }}</div>
+                <div><label class="rotulo">Data do fato</label>{{ form.data_fato }}{{ form.data_fato.errors }}</div>
+                <div class="md:col-span-2"><label class="rotulo">Título</label>{{ form.titulo }}{{ form.titulo.errors }}</div>
+                <div class="md:col-span-2"><label class="rotulo">Descrição</label>{{ form.descricao }}{{ form.descricao.errors }}</div>
+                <div><label class="rotulo">Local</label>{{ form.local }}</div>
+                <div><label class="rotulo">Anexo</label>{{ form.anexo }}</div>
+                <button class="md:col-span-2 btn-tema py-3 text-sm">Salvar registro</button>
+            </form>
+        </details>
+
+        {# ---------- HISTÓRICO DO PRONTUÁRIO ---------- #}
+        <section class="card p-5">
+            <h2 class="font-black texto-main mb-4">Prontuário interno <span class="texto-main opacity-50 font-normal text-sm">({{ registros|length }})</span></h2>
+            <ol class="relative border-l border-suave ml-2 space-y-5">
+                {% for r in registros %}
+                <li class="ml-5 relative">
+                    <span class="absolute -left-[27px] top-1 w-3 h-3 rounded-full {% if r.tipo == 'impedimento' %}bg-red-500{% elif r.tipo == 'advertencia' or r.tipo == 'ocorrencia' %}bg-yellow-500{% else %}fundo-tema{% endif %}"></span>
+                    <p class="text-[10px] font-black uppercase tracking-widest texto-main opacity-50">{{ r.get_tipo_display }} · {{ r.data_fato|date:"d/m/Y H:i" }}{% if r.local %} · {{ r.local }}{% endif %}</p>
+                    <p class="font-bold texto-main">{{ r.titulo }}</p>
+                    <p class="text-sm whitespace-pre-line mt-1">{{ r.descricao }}</p>
+                    <p class="text-xs texto-main opacity-50 mt-1">Registrado por {% if r.autor %}{{ r.autor.get_full_name|default:r.autor.username }}{% else %}—{% endif %} em {{ r.criado_em|date:"d/m/Y H:i" }}{% if r.anexo %} · <a href="{{ r.anexo.url }}" target="_blank" rel="noopener" class="texto-tema"><i class="bi bi-paperclip"></i> anexo</a>{% endif %}</p>
+                </li>
+                {% empty %}
+                <li class="ml-5 text-sm texto-main opacity-50">Nenhum registro para este cadastrado.</li>
+                {% endfor %}
+            </ol>
+        </section>
+
+        {# ---------- CHECK-INS ---------- #}
+        <section class="card p-5">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="font-black texto-main">Últimos check-ins</h2>
+                {% if perfil.torcida %}<a href="{% url 'bepe:mapa' %}?torcida={{ perfil.torcida_id }}" class="text-xs texto-tema"><i class="bi bi-geo-alt"></i> Ver mapa da torcida</a>{% endif %}
+            </div>
+            {% for c in checkins %}
+            <div class="flex justify-between items-center gap-3 py-2 border-b border-suave last:border-0 text-sm">
+                <span>{{ c.evento }}</span>
+                {% if c.latitude %}<a href="https://www.google.com/maps?q={{ c.latitude|stringformat:'f' }},{{ c.longitude|stringformat:'f' }}" target="_blank" rel="noopener" class="text-xs texto-tema whitespace-nowrap"><i class="bi bi-pin-map"></i> {{ c.latitude|floatformat:4 }}, {{ c.longitude|floatformat:4 }}</a>{% else %}<span class="text-xs texto-main opacity-50">sem localização</span>{% endif %}
+            </div>
+            {% empty %}<p class="text-sm texto-main opacity-50">Nenhum check-in registrado.</p>{% endfor %}
+        </section>
+    </div>
+</div>
+{% endblock %}

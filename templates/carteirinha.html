@@ -2,157 +2,118 @@
 {% load static %}
 
 {% block content %}
+{% with t=perfil.torcida %}
 <style>
-    /* Animações específicas que não estão no base.html */
-    @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
-        to { opacity: 1; transform: translateY(0); filter: blur(0); }
-    }
+    @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
     .animate-fade-up { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    
-    /* Ajustes finos do Scanner que são únicos desta página */
-    .scanner-box { position: relative; }
-    .scanner-box::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        border: 2px solid var(--cor-primaria);
-        border-radius: 1.5rem;
-        clip-path: polygon(0 0, 20px 0, 20px 2px, 2px 2px, 2px 20px, 0 20px, 0 100%, 0 calc(100% - 20px), 2px calc(100% - 20px), 2px calc(100% - 2px), 20px calc(100% - 2px), 20px 100%, 0 100%, calc(100% - 20px) 100%, calc(100% - 20px) calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) calc(100% - 20px), 100% calc(100% - 20px), 100% 100%, 100% 0, calc(100% - 20px) 0, calc(100% - 20px) 2px, calc(100% - 2px) 2px, calc(100% - 2px) 20px, 100% 20px);
-    }
-    .scanner-line {
-        position: absolute;
-        width: 90%;
-        height: 2px;
-        background: var(--cor-primaria);
-        box-shadow: 0 0 10px var(--cor-primaria);
-        top: 10%;
-        left: 5%;
-        z-index: 20;
-        animation: scan 2.5s infinite linear alternate;
-    }
-    @keyframes scan {
-        0% { top: 10%; opacity: 0; }
-        10% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { top: 90%; opacity: 0; }
-    }
 </style>
 
 <div class="w-full min-h-screen fundo-app flex flex-col pb-32">
-    
+
     <div class="px-5 mb-6 pt-2 flex items-center justify-between">
         <div class="flex items-center gap-4">
             <a href="javascript:history.back()" class="w-10 h-10 fundo-card rounded-2xl flex items-center justify-center shadow-sm border border-suave texto-main hover:scale-105 transition-transform">
                 <i class="bi bi-arrow-left text-lg font-bold"></i>
             </a>
-            <div>
-                <h1 class="text-xl sm:text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">
-                    CARTÃO DE <span class="texto-main">SÓCIO</span>
-                </h1>
-            </div>
+            <h1 class="text-xl sm:text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">CARTÃO DE <span class="texto-tema">SÓCIO</span></h1>
         </div>
-        <button class="w-10 h-10 fundo-card text-gray-400 rounded-2xl flex items-center justify-center shadow-sm border border-suave hover:texto-main transition-colors">
-            <i class="bi bi-share-fill"></i>
+        <button type="button" onclick="virarCartao()" class="w-10 h-10 fundo-card texto-main rounded-2xl flex items-center justify-center shadow-sm border border-suave" aria-label="Virar cartão">
+            <i class="bi bi-arrow-repeat text-lg"></i>
         </button>
     </div>
 
     <div class="px-5 animate-fade-up flex flex-col items-center">
-        
-        <div class="w-full max-w-sm cartao-socio rounded-3xl p-4 sm:p-6 text-white flex flex-col relative z-10 shadow-2xl min-h-[220px]"
-             style="--cor-primaria: {% if user.perfil.torcida and user.perfil.torcida.cor_primaria %}{{ user.perfil.torcida.cor_primaria }}{% else %}#D37129{% endif %}; background: linear-gradient(135deg, var(--cor-primaria) 0%, rgba(15,15,15,0.95) 100%);">
-            <div class="cartao-glow"></div>
-            {% if user.perfil.torcida and user.perfil.torcida.logo %}
-                <div class="cartao-watermark opacity-20" style="background-image: url('{{ user.perfil.torcida.logo.url }}');"></div>
-            {% endif %}
-            
-            <div class="flex justify-between items-start relative z-10">
-                <div class="flex items-center gap-3 w-full pr-2">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md shadow-inner border border-white/20 p-1.5 overflow-hidden">
-                        {% if user.perfil.torcida and user.perfil.torcida.logo %}
-                            <img src="{{ user.perfil.torcida.logo.url }}" class="w-full h-full object-contain">
-                        {% else %}
-                            <i class="bi bi-shield-fill text-white/90 text-xl sm:text-2xl"></i>
-                        {% endif %}
-                    </div>
-                    <div class="flex-1 min-w-0"> <h2 class="font-black text-sm sm:text-lg tracking-tighter uppercase leading-none truncate w-full">
-                            {% if user.perfil.torcida %}{{ user.perfil.torcida.nome }}{% else %}SAT MEMBER{% endif %}
-                        </h2>
-                        <p class="text-[7px] sm:text-[8px] text-white/70 font-bold uppercase tracking-[0.2em] mt-0.5">
-                            Sócio Oficial Autorizado
-                        </p>
-                    </div>
-                </div>
-                <i class="bi bi-contactless text-xl sm:text-2xl text-white/60 shrink-0"></i>
-            </div>
 
-            <div class="mt-4 sm:mt-6 mb-auto relative z-10 flex items-center justify-between">
-                <div class="cartao-chip scale-75 sm:scale-100 origin-left"></div>
-                <div class="flex items-center gap-1 sm:gap-2">
-                    <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full flex items-center gap-1 shadow-md">
-                        <i class="bi bi-gem text-white/70 text-[8px] sm:text-[10px]"></i>
-                        <span class="text-[8px] sm:text-[10px] font-black uppercase text-white tracking-widest truncate max-w-[80px] sm:max-w-none">
-                            {{ user.perfil.plano|default:"GRATUITO" }}
-                        </span>
-                    </div>
+        {% include "includes/cartao_socio.html" %}
+        <p class="text-[9px] font-black uppercase tracking-widest texto-main opacity-40 mt-3"><i class="bi bi-hand-index-thumb"></i> Toque no cartão para ver o verso</p>
 
-                    <div class="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full flex items-center gap-1 shadow-md">
-                        <i class="bi bi-star-fill text-yellow-400 text-[8px] sm:text-[10px]"></i>
-                        <span class="text-[8px] sm:text-[10px] font-black uppercase text-white tracking-widest">
-                            {% if perfil_game.nivel %}{{ perfil_game.nivel.nome }}{% else %}NÍVEL 1{% endif %}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="relative z-10 flex justify-between items-end mt-4 sm:mt-6 pt-2">
-                <div class="flex-1 min-w-0 pr-3">
-                    <p class="text-[7px] sm:text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Nome na Carteirinha</p>
-                    <p class="text-xs sm:text-sm font-black uppercase texto-emboss text-white truncate w-full">
-                        {{ user.get_full_name|default:user.username }}
-                    </p>
-                </div>
-                <div class="text-right shrink-0">
-                    <p class="text-[7px] sm:text-[8px] text-white/50 font-black uppercase tracking-widest mb-1">Membro Desde</p>
-                    <p class="text-xs font-black uppercase text-white texto-emboss">
-                        {{ user.date_joined|date:"Y"|default:"2026" }}
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="w-full max-w-sm fundo-card rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-suave mt-6 p-5 sm:p-8 flex flex-col items-center text-center relative overflow-hidden">
-            
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tema to-transparent opacity-60"></div>
-
-            <div class="w-10 h-10 sm:w-12 sm:h-12 fundo-tema/10 texto-main rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                <i class="bi bi-qr-code-scan text-xl sm:text-2xl"></i>
-            </div>
-
+        {# ======================= PASSE LIVRE (QR) ======================= #}
+        <div class="w-full max-w-sm fundo-card rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-suave mt-6 p-6 flex flex-col items-center text-center relative overflow-hidden">
             <h3 class="text-xs sm:text-sm font-black texto-main uppercase tracking-tight mb-1">Passe Livre Digital</h3>
-            <p class="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-5">Apresente nas catracas ou eventos</p>
-            
-            <div class="scanner-box w-44 h-44 sm:w-52 sm:h-52 bg-white p-3 sm:p-4 relative flex items-center justify-center rounded-2xl">
-                <div class="scanner-line"></div>
-                <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="w-full h-full object-contain relative z-10">
-            </div>
-            
-            <div class="w-full mt-5 sm:mt-6 pt-4 sm:pt-5 border-t border-suave flex justify-between items-center">
+            <p class="text-[9px] sm:text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mb-4">Apresente nas catracas ou eventos</p>
+            <div class="bg-white p-3 rounded-2xl w-44 h-44"><img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="w-full h-full object-contain"></div>
+            <div class="w-full mt-5 pt-4 border-t border-suave flex justify-between items-center">
                 <div class="text-left">
-                    <p class="text-[7px] sm:text-[8px] text-gray-400 font-black uppercase tracking-widest">Matrícula SAT</p>
-                    <p class="text-[10px] sm:text-xs font-black texto-main tracking-widest mt-0.5">
-                        {{ user.id|stringformat:"05d" }}-{{ user.perfil.cpf|slice:"0:3"|default:"000" }}
-                    </p>
+                    <p class="text-[8px] texto-main opacity-50 font-black uppercase tracking-widest">Matrícula SAT</p>
+                    <p class="text-xs font-mono font-black texto-main tracking-widest mt-0.5">{{ perfil.matricula }}</p>
                 </div>
                 <div class="text-right">
-                    <p class="text-[7px] sm:text-[8px] text-gray-400 font-black uppercase tracking-widest">Status</p>
-                    <p class="text-[10px] sm:text-xs font-black text-green-500 tracking-widest mt-0.5 flex items-center gap-1">
-                        <i class="bi bi-shield-check"></i> ATIVO
-                    </p>
+                    <p class="text-[8px] texto-main opacity-50 font-black uppercase tracking-widest">Status</p>
+                    {% if perfil.aprovado %}
+                    <p class="text-xs font-black text-green-500 tracking-widest mt-0.5 flex items-center gap-1 justify-end"><i class="bi bi-shield-check"></i> ATIVO</p>
+                    {% else %}
+                    <p class="text-xs font-black text-yellow-500 tracking-widest mt-0.5 flex items-center gap-1 justify-end"><i class="bi bi-clock-history"></i> EM ANÁLISE</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
+        {# ======================= HISTÓRICO DE TORCIDAS ======================= #}
+        <div class="w-full max-w-sm mt-6">
+            <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-3 flex items-center gap-2"><i class="bi bi-clock-history"></i> Histórico de torcidas</h3>
+            <div class="fundo-card border border-suave rounded-[20px] p-4">
+                {% for p in passagens %}
+                <div class="flex items-center gap-3 {% if not forloop.last %}pb-3 mb-3 border-b border-suave{% endif %}">
+                    <span class="w-10 h-10 rounded-full bg-black/5 border border-suave p-1 shrink-0 flex items-center justify-center">
+                        {% if p.torcida.logo %}<img src="{{ p.torcida.logo.url }}" alt="" class="w-full h-full object-contain">{% else %}<i class="bi bi-shield-fill texto-main opacity-40"></i>{% endif %}
+                    </span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-black texto-main truncate">{{ p.torcida_nome }}</p>
+                        <p class="text-[10px] texto-main opacity-60">{{ p.entrada|date:"m/Y" }} — {% if p.atual %}atual{% else %}{{ p.saida|date:"m/Y" }}{% endif %}</p>
+                    </div>
+                    {% if p.atual %}<span class="text-[8px] font-black uppercase tracking-widest text-green-600 bg-green-500/10 px-2 py-1 rounded-full">Atual</span>{% endif %}
+                </div>
+                {% empty %}
+                <p class="text-[11px] texto-main opacity-50 text-center py-2">Você ainda não faz parte de nenhuma torcida.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# ======================= SELOS / CONQUISTAS ======================= #}
+        <div class="w-full max-w-sm mt-6">
+            <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-3 flex items-center gap-2"><i class="bi bi-award-fill"></i> Selos e conquistas</h3>
+            <div class="fundo-card border border-suave rounded-[20px] p-4">
+                {% if badges_conquistadas %}
+                <div class="grid grid-cols-4 gap-3">
+                    {% for b in badges_conquistadas %}
+                    <div class="flex flex-col items-center text-center gap-1">
+                        <span class="w-12 h-12 rounded-full bg-yellow-400/20 border border-yellow-500/30 overflow-hidden flex items-center justify-center">
+                            {% if b.badge.imagem %}<img src="{{ b.badge.imagem.url }}" alt="" class="w-full h-full object-cover">{% else %}<i class="bi bi-award-fill text-yellow-500 text-xl"></i>{% endif %}
+                        </span>
+                        <span class="text-[8px] font-black texto-main uppercase leading-tight">{{ b.badge.nome }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-[11px] texto-main opacity-50 text-center py-2">Faça check-in nos eventos da torcida para ganhar selos.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {# ======================= VARIAÇÕES POR PLANO ======================= #}
+        {% if nivel_plano != 'ouro' %}
+        <div class="w-full max-w-sm mt-6">
+            <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-3">Sua carteirinha em outros planos</h3>
+            <div class="grid grid-cols-3 gap-2">
+                {% for nivel, nome in niveis_preview %}
+                <a href="{% url 'seja_socio' %}" class="plano-{{ nivel }} block">
+                    <div class="moldura" style="aspect-ratio: 1.586/1;">
+                        <div class="miolo frente-fundo relative flex flex-col justify-between p-2 text-white" style="background: linear-gradient(135deg, var(--cor-primaria, #D37129) 0%, #111 100%);">
+                            <div class="textura"></div>
+                            <div class="brilho"></div>
+                            <span class="selo-plano self-start relative z-10" style="font-size:6px; padding:2px 6px;">{{ nome }}</span>
+                            <div class="cartao-chip relative z-10" style="width:18px; height:13px; border-radius:3px;"></div>
+                        </div>
+                    </div>
+                    <p class="text-[9px] font-black uppercase tracking-widest texto-main text-center mt-1">{{ nome }}</p>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+
+{% endwith %}
 {% endblock %}

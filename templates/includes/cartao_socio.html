@@ -1,0 +1,220 @@
+{% comment %}
+Cartão de sócio (frente e verso, estilo por plano). Usado na Carteirinha e no Início.
+Precisa no contexto: perfil, nivel_plano, qr_code, passagens, badges_conquistadas, assinatura_vigente
+(veja accounts.views.contexto_carteirinha).
+{% endcomment %}
+{% with t=perfil.torcida %}
+<style>
+    /* ---------- Cartão com frente e verso ---------- */
+    .cartao-flip { perspective: 1400px; width: 100%; max-width: 24rem; aspect-ratio: 1.586 / 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .cartao-inner { position: relative; width: 100%; height: 100%; transition: transform .8s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
+    .cartao-flip.virado .cartao-inner { transform: rotateY(180deg); }
+    .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 1.4rem; overflow: hidden; }
+    .face.verso { transform: rotateY(180deg); }
+
+    /* =====================================================================
+       ESTILO POR PLANO — a base é sempre a da torcida (cores, escudo, layout);
+       cada plano muda só o "acabamento": metal, textura, ornamentos e selos.
+       ===================================================================== */
+    .plano-gratis { --metal: rgba(255,255,255,.22); --metal-claro: rgba(255,255,255,.35); --metal-escuro: rgba(255,255,255,.12); --metal-texto: #fff; }
+    .plano-bronze { --metal: #c27c3e; --metal-claro: #f3c08b; --metal-escuro: #6b3412; --metal-texto: #3a1a05; }
+    .plano-prata  { --metal: #b8c0cc; --metal-claro: #ffffff; --metal-escuro: #6b7280; --metal-texto: #111827; }
+    .plano-ouro   { --metal: #d4a72c; --metal-claro: #fff3b0; --metal-escuro: #8a6508; --metal-texto: #2b1d00; }
+
+    /* Moldura */
+    .moldura { padding: 3px; border-radius: 1.4rem; height: 100%; background: linear-gradient(135deg, var(--metal-claro), var(--metal-escuro) 40%, var(--metal-claro) 60%, var(--metal-escuro)); }
+    .plano-gratis .moldura { padding: 1px; }
+    .plano-ouro .moldura { padding: 4px; box-shadow: 0 0 22px rgba(212,167,44,.45); }
+    .moldura > .miolo { height: 100%; border-radius: calc(1.4rem - 3px); position: relative; overflow: hidden; }
+
+    /* Camadas decorativas (ficam entre o fundo e o conteúdo) */
+    .textura, .brilho, .ornamentos { position: absolute; inset: 0; pointer-events: none; }
+    .textura { z-index: 1; }
+    .brilho { z-index: 2; }
+    .ornamentos { z-index: 3; }
+
+    /* Grátis: fosco, sem metal */
+    .plano-gratis .textura { background: radial-gradient(circle at 20% 0%, rgba(255,255,255,.10), transparent 55%); }
+
+    /* Bronze: metal escovado */
+    .plano-bronze .textura {
+        background: repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px),
+                    linear-gradient(160deg, rgba(194,124,62,.28), transparent 55%);
+    }
+
+    /* Prata: guilhochê (linhas finas de cédula) + faixa de foil */
+    .plano-prata .textura {
+        background: repeating-radial-gradient(circle at 115% 50%, transparent 0 9px, rgba(255,255,255,.07) 9px 10px),
+                    repeating-radial-gradient(circle at -15% 50%, transparent 0 9px, rgba(255,255,255,.05) 9px 10px);
+    }
+    .plano-prata .brilho { background: linear-gradient(115deg, transparent 52%, rgba(255,255,255,.16) 58%, rgba(255,255,255,.04) 66%, transparent 72%); }
+
+    /* Ouro: base preta e dourada, guilhochê dourado e brilho holográfico passando */
+    .plano-ouro .miolo.frente-fundo { background: linear-gradient(135deg, var(--cor-primaria) -30%, #0b0b0b 45%, #1a1408 100%) !important; }
+    .plano-ouro .textura {
+        background: repeating-radial-gradient(circle at 110% 120%, transparent 0 7px, rgba(212,167,44,.12) 7px 8px),
+                    repeating-radial-gradient(circle at -10% -20%, transparent 0 7px, rgba(212,167,44,.08) 7px 8px);
+    }
+    .plano-ouro .brilho { inset: -50%; background: linear-gradient(115deg, transparent 40%, rgba(255,240,180,.30) 48%, rgba(255,255,255,.5) 50%, rgba(160,220,255,.25) 52%, transparent 60%); animation: brilho 5s ease-in-out infinite; }
+    @keyframes brilho { 0%, 55% { transform: translateX(-60%); } 100% { transform: translateX(60%); } }
+
+    /* Cantos ornamentados em metal (Bronze, Prata e Ouro) */
+    .canto { position: absolute; width: 11px; height: 11px; border-color: var(--metal-claro); opacity: .85; }
+    .canto.c2 { top: 5px; right: 5px; border-top: 2px solid; border-right: 2px solid; border-top-right-radius: 5px; }
+    .canto.c3 { bottom: 5px; left: 10px; border-bottom: 2px solid; border-left: 2px solid; border-bottom-left-radius: 5px; }
+    .canto.c4 { bottom: 5px; right: 5px; border-bottom: 2px solid; border-right: 2px solid; border-bottom-right-radius: 5px; }
+    .plano-gratis .canto { display: none; }
+
+    /* Selo do plano + estrelas */
+    .selo-plano { font-size: 9px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; box-shadow: 0 2px 6px rgba(0,0,0,.35);
+                  background: linear-gradient(135deg, var(--metal-claro), var(--metal) 50%, var(--metal-claro)); color: var(--metal-texto); display: inline-flex; align-items: center; gap: 4px; }
+    .plano-gratis .selo-plano { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.25); }
+    .estrelas { color: var(--metal-claro); font-size: 8px; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+
+    /* Vulgo com acabamento metálico */
+    .nome-destaque { color: #fff; }
+    .plano-bronze .nome-destaque, .plano-prata .nome-destaque, .plano-ouro .nome-destaque {
+        background: linear-gradient(180deg, var(--metal-claro) 10%, var(--metal) 55%, var(--metal-claro) 95%);
+        -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none;
+        filter: drop-shadow(0 1px 1px rgba(0,0,0,.6));
+    }
+
+    /* Chip na cor do metal */
+    .plano-bronze .cartao-chip, .plano-prata .cartao-chip, .plano-ouro .cartao-chip { background: linear-gradient(135deg, var(--metal-claro) 0%, var(--metal-escuro) 100%); }
+
+    /* Verso: faixa, moldura do QR e selo holográfico */
+    .plano-bronze .faixa-magnetica, .plano-prata .faixa-magnetica, .plano-ouro .faixa-magnetica { border-bottom: 2px solid var(--metal); }
+    .moldura-qr { background: #fff; padding: 4px; border-radius: 10px; }
+    .plano-bronze .moldura-qr, .plano-prata .moldura-qr, .plano-ouro .moldura-qr { box-shadow: 0 0 0 2px var(--metal); }
+    .selo-holo { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 6px; font-weight: 900; letter-spacing: .05em; color: #1f1300; box-shadow: 0 0 0 1.5px rgba(255,255,255,.6), 0 2px 6px rgba(0,0,0,.4); }
+    .plano-gratis .selo-holo { display: none; }
+    .plano-bronze .selo-holo { background: conic-gradient(from 0deg, #f3c08b, #8c4a1c, #f3c08b, #b5651d, #f3c08b); color: #fff; }
+    .plano-prata  .selo-holo { background: conic-gradient(from 0deg, #fff, #9ca3af, #fff, #d1d5db, #fff); }
+    .plano-ouro   .selo-holo { background: conic-gradient(from 0deg, #fde68a, #f9a8d4, #a5f3fc, #bbf7d0, #fde68a, #fcd34d, #fde68a); animation: girar 8s linear infinite; }
+    @keyframes girar { to { filter: hue-rotate(360deg); } }
+
+    .faixa-magnetica { height: 30px; background: linear-gradient(180deg, #0a0a0a, #222 50%, #0a0a0a); }
+    .texto-mini { font-size: 7px; font-weight: 900; text-transform: uppercase; letter-spacing: .14em; color: rgba(255,255,255,.5); }
+    .dado { font-size: 10px; font-weight: 800; color: #fff; line-height: 1.1; }
+</style>
+
+        {# ======================= CARTÃO ======================= #}
+        <div id="cartao" class="cartao-flip plano-{{ nivel_plano }}" onclick="virarCartao()"
+             style="--cor-primaria: {{ t.cor_primaria|default:'#D37129' }};">
+            <div class="cartao-inner">
+
+                {# ---------- FRENTE ---------- #}
+                <div class="face frente shadow-2xl">
+                    <div class="moldura">
+                        <div class="miolo frente-fundo cartao-socio text-white p-4 sm:p-5 flex flex-col"
+                             style="background: linear-gradient(135deg, var(--cor-primaria) 0%, rgba(15,15,15,0.95) 100%); aspect-ratio: auto;">
+                            <div class="cartao-glow"></div>
+                            <div class="textura"></div>
+                            <div class="brilho"></div>
+                            <div class="ornamentos"><span class="canto c2"></span><span class="canto c3"></span><span class="canto c4"></span></div>
+                            {% if t.logo %}<div class="cartao-watermark opacity-20" style="background-image: url('{{ t.logo.url }}');"></div>{% endif %}
+
+                            <div class="flex justify-between items-start relative z-10 gap-2">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-11 h-11 shrink-0 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 p-1.5 overflow-hidden">
+                                        {% if t.logo %}<img src="{{ t.logo.url }}" class="w-full h-full object-contain" alt="">{% else %}<i class="bi bi-shield-fill text-white/90 text-xl"></i>{% endif %}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h2 class="font-black text-sm sm:text-base tracking-tighter uppercase leading-none truncate">{% if t %}{{ t.nome }}{% else %}SAT MEMBER{% endif %}</h2>
+                                        <p class="text-[7px] sm:text-[8px] text-white/70 font-bold uppercase tracking-[0.2em] mt-1 truncate">{% if t.sigla %}{{ t.sigla }} · {% endif %}{% if t.time_relacionado %}{{ t.time_relacionado }}{% else %}Sócio Oficial{% endif %}</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end gap-1 shrink-0">
+                                    <span class="selo-plano">{% if nivel_plano == 'ouro' %}<i class="bi bi-gem"></i>{% endif %}{% if nivel_plano == 'gratis' %}Sócio{% else %}{{ perfil.plano }}{% endif %}</span>
+                                    <span class="estrelas">{% if nivel_plano == "bronze" %}★{% elif nivel_plano == "prata" %}★★{% elif nivel_plano == "ouro" %}★★★{% endif %}</span>
+                                </div>
+                            </div>
+
+                            <div class="relative z-10 flex items-center justify-between mt-3">
+                                <div class="cartao-chip scale-90 origin-left"></div>
+                                <i class="bi bi-contactless text-xl text-white/60"></i>
+                            </div>
+
+                            <div class="relative z-10 mt-auto">
+                                {% if perfil.vulgo %}
+                                <p class="nome-destaque text-xl sm:text-2xl font-black italic uppercase tracking-tight leading-none truncate">“{{ perfil.vulgo }}”</p>
+                                <p class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/80 truncate mt-1">{{ user.get_full_name|default:user.username }}</p>
+                                {% else %}
+                                <p class="nome-destaque text-sm sm:text-base font-black uppercase truncate">{{ user.get_full_name|default:user.username }}</p>
+                                {% endif %}
+                                <div class="flex justify-between items-end mt-2 pt-2 border-t border-white/10">
+                                    <div>
+                                        <p class="texto-mini">Matrícula</p>
+                                        <p class="text-[10px] sm:text-xs font-mono font-black tracking-widest">{{ perfil.matricula }}</p>
+                                    </div>
+                                    {% if perfil.pelotao %}
+                                    <div class="text-center px-2 min-w-0">
+                                        <p class="texto-mini">{{ t.nome_pelotao|default:"Pelotão" }}</p>
+                                        <p class="text-[10px] font-black uppercase truncate">{{ perfil.pelotao }}</p>
+                                    </div>
+                                    {% endif %}
+                                    <div class="text-right">
+                                        <p class="texto-mini">Desde</p>
+                                        <p class="text-[10px] sm:text-xs font-black">{{ user.date_joined|date:"m/Y" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# ---------- VERSO ---------- #}
+                <div class="face verso shadow-2xl">
+                    <div class="moldura">
+                        <div class="miolo text-white flex flex-col" style="background: linear-gradient(160deg, #1a1a1a 0%, #050505 70%, var(--cor-primaria) 160%);">
+                            <div class="textura"></div>
+                            <div class="brilho"></div>
+                            <div class="faixa-magnetica mt-3 relative z-10"></div>
+                            <div class="flex gap-3 px-4 pt-2.5 relative z-10 flex-1 min-h-0">
+                                <div class="flex-1 min-w-0 grid grid-cols-2 gap-x-3 gap-y-1.5 content-start">
+                                    <div class="col-span-2"><p class="texto-mini">Nome completo</p><p class="dado truncate uppercase">{{ user.get_full_name|default:user.username }}</p></div>
+                                    <div>
+                                        <p class="texto-mini">CPF</p>
+                                        <p class="dado font-mono" id="cpf-verso" data-cpf="{{ perfil.cpf|default:'—' }}" onclick="event.stopPropagation(); mostrarCpf()">{% if perfil.cpf %}•••.•••.•••-{{ perfil.cpf|slice:"-2:" }} <i class="bi bi-eye text-white/50"></i>{% else %}—{% endif %}</p>
+                                    </div>
+                                    <div><p class="texto-mini">Nascimento</p><p class="dado">{{ perfil.data_nascimento|date:"d/m/Y"|default:"—" }}</p></div>
+                                    <div><p class="texto-mini">RG / CNH</p><p class="dado truncate">{{ perfil.rg_cnh|default:"—" }}{% if perfil.orgao_expedidor %} {{ perfil.orgao_expedidor }}{% endif %}</p></div>
+                                    <div><p class="texto-mini">Validade</p><p class="dado">{% if assinatura_vigente.valida_ate %}{{ assinatura_vigente.valida_ate|date:"d/m/Y" }}{% else %}Indeterminada{% endif %}</p></div>
+                                    <div class="col-span-2"><p class="texto-mini">Matrícula SAT</p><p class="dado font-mono tracking-widest">{{ perfil.matricula }}</p></div>
+                                </div>
+                                <div class="w-[72px] shrink-0 flex flex-col items-center">
+                                    <div class="moldura-qr"><img src="data:image/png;base64,{{ qr_code }}" alt="QR" class="w-16 h-16"></div>
+                                    <p class="texto-mini mt-1 text-center">Validação</p>
+                                </div>
+                            </div>
+                            {# Selos: torcidas por onde passou + conquistas #}
+                            <div class="px-4 pb-3 pt-1 relative z-10 flex items-center gap-1.5 overflow-hidden">
+                                <p class="texto-mini mr-1 shrink-0">Selos</p>
+                                {% for p in passagens|slice:":4" %}
+                                <span class="w-6 h-6 rounded-full bg-white/90 p-0.5 shrink-0 flex items-center justify-center {% if p.atual %}ring-2 ring-white{% else %}opacity-70{% endif %}" title="{{ p.torcida_nome }}">
+                                    {% if p.torcida.logo %}<img src="{{ p.torcida.logo.url }}" alt="" class="w-full h-full object-contain">{% else %}<i class="bi bi-shield-fill text-black/60 text-[10px]"></i>{% endif %}
+                                </span>
+                                {% endfor %}
+                                {% for b in badges_conquistadas|slice:":4" %}
+                                <span class="w-6 h-6 rounded-full bg-yellow-400/90 p-0.5 shrink-0 overflow-hidden" title="{{ b.badge.nome }}">
+                                    {% if b.badge.imagem %}<img src="{{ b.badge.imagem.url }}" alt="" class="w-full h-full object-cover rounded-full">{% else %}<i class="bi bi-award-fill text-black/70 text-[10px]"></i>{% endif %}
+                                </span>
+                                {% endfor %}
+                                {% if not passagens and not badges_conquistadas %}<p class="text-[9px] text-white/40">Participe de eventos para ganhar selos</p>{% endif %}
+                                <span class="selo-holo ml-auto shrink-0" title="Selo de autenticidade {{ perfil.plano }}">SAT</span>
+                                {% if nivel_plano == 'gratis' %}<span class="ml-auto text-[7px] font-black tracking-widest text-white/40 uppercase shrink-0">SAT</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+<script>
+    function virarCartao() { document.getElementById('cartao').classList.toggle('virado'); }
+    function mostrarCpf() {
+        const el = document.getElementById('cpf-verso');
+        if (!el || el.dataset.cpf === '—') return;
+        el.textContent = el.textContent.includes('•') ? el.dataset.cpf : '•••.•••.•••-' + el.dataset.cpf.slice(-2);
+    }
+</script>
+{% endwith %}

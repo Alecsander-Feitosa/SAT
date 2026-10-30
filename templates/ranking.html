@@ -109,7 +109,7 @@
                     <span class="w-8 font-black italic text-[#CD7F32] text-lg">#{{ forloop.counter }}</span>
                     <div class="flex-grow ml-4">
                         <h4 class="text-sm font-bold uppercase text-[#1A1A1A]">{{ lider.user.username }}</h4>
-                        <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{{ lider.nivel.nome|default:"NOVATO" }}</span>
+                        <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Nv {{ lider.nivel_numero }} · {{ lider.titulo }}</span>
                     </div>
                     <div class="xp-pill">{{ lider.xp_total }} XP</div>
                 </div>

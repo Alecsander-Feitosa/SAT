@@ -1,0 +1,180 @@
+{% extends 'bepe/base_bepe.html' %}
+{% block bepe_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css">
+<style>
+    /* isolation: o mapa não passa por cima do cabeçalho/menu fixos do app */
+    #mapa-wrap { position: relative; isolation: isolate; z-index: 0; }
+    #mapa { height: 62vh; min-height: 360px; border-radius: 1rem; }
+    .leaflet-container img { max-width: none !important; }
+    .leaflet-popup-content-wrapper { border-radius: 14px; }
+    .leaflet-popup-content { margin: 12px 14px; font-family: inherit; }
+    .pino-vivo { width: 16px; height: 16px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 0 rgba(37,99,235,.6); animation: pulsar 2s infinite; }
+    @keyframes pulsar { 0% { box-shadow: 0 0 0 0 rgba(37,99,235,.55); } 70% { box-shadow: 0 0 0 12px rgba(37,99,235,0); } 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); } }
+    .leaflet-marker-icon.movendo { transition: transform 1.2s ease-out; }
+</style>
+{% endblock %}
+
+{% block bepe_content %}
+<div class="grid grid-cols-3 gap-3 mb-4">
+    <div class="card py-3 flex flex-col items-center">
+        <span class="text-lg font-black texto-main leading-none mb-1" id="total-vivo">{{ total_ao_vivo }}</span>
+        <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest text-center"><span class="inline-block w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Ao vivo</span>
+    </div>
+    <div class="card py-3 flex flex-col items-center">
+        <span class="text-lg font-black texto-main leading-none mb-1" id="total-checkins">{{ total_checkins }}</span>
+        <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest text-center">Check-ins</span>
+    </div>
+    <div class="card py-3 flex flex-col items-center">
+        <span class="text-lg font-black texto-main leading-none mb-1" id="total-compartilhando">{{ total_compartilhando }}</span>
+        <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest text-center">Compartilhando</span>
+    </div>
+</div>
+
+<form method="get" id="filtros" class="card p-3 mb-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+    <select name="torcida" class="fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+        <option value="">Todas as torcidas</option>
+        {% for t in torcidas %}<option value="{{ t.id }}" {% if torcida_id == t.id|stringformat:"s" %}selected{% endif %}>{{ t.nome }}</option>{% endfor %}
+    </select>
+    <select name="evento" class="fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+        <option value="">Todos (ao vivo + check-ins)</option>
+        {% for e in eventos %}<option value="{{ e.id }}" {% if evento_id == e.id|stringformat:"s" %}selected{% endif %}>Só check-ins: {{ e.titulo }} · {{ e.data|date:"d/m" }}</option>{% endfor %}
+    </select>
+    <select name="periodo" class="fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+        {% for minutos, nome in periodos %}<option value="{{ minutos }}" {% if periodo == minutos %}selected{% endif %}>{{ nome }}</option>{% endfor %}
+    </select>
+    <button class="btn-tema px-6 py-3"><i class="bi bi-funnel-fill"></i> Filtrar</button>
+</form>
+
+<div class="flex items-center justify-between gap-3 mb-2 px-1">
+    <label class="flex items-center gap-2 cursor-pointer select-none">
+        <input type="checkbox" id="ao-vivo" checked class="w-4 h-4">
+        <span class="text-[11px] font-black uppercase tracking-widest texto-main">Atualizar ao vivo</span>
+        <span id="ponto-vivo" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+    </label>
+    <span class="text-[10px] font-bold texto-main opacity-50">Atualizado às <span id="gerado-em">{{ gerado_em }}</span></span>
+</div>
+
+<div id="mapa-wrap" class="card p-1.5">
+    <div id="mapa"></div>
+    <div id="vazio" class="{% if pontos %}hidden{% endif %} absolute inset-0 flex items-center justify-center pointer-events-none z-[500]">
+        <div class="card px-5 py-4 text-center shadow-xl max-w-xs mx-4">
+            <i class="bi bi-geo-alt texto-tema text-2xl"></i>
+            <p class="text-sm font-black texto-main mt-1">Nenhuma localização no período</p>
+            <p class="text-[11px] texto-main opacity-60 mt-1">Aparecem aqui os torcedores que ativaram "Compartilhar localização" no menu do app e os check-ins em eventos.</p>
+        </div>
+    </div>
+</div>
+
+<div class="flex flex-wrap gap-4 mt-3 px-1 text-[10px] font-bold uppercase tracking-widest texto-main opacity-60">
+    <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow"></span> Ao vivo (cor = torcida)</span>
+    <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-gray-500 border-2 border-white shadow"></span> Check-in em evento</span>
+</div>
+
+{{ pontos|json_script:"pontos-data" }}
+{% endblock %}
+
+{% block bepe_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
+<script>
+(function () {
+    const URL_DADOS = "{% url 'bepe:mapa_dados' %}";
+    const ATUALIZAR_A_CADA = 10000; // 10 s
+    const $ = (id) => document.getElementById(id);
+    const mapa = L.map('mapa', { zoomControl: true }).setView([-22.91, -43.25], 11); // Rio de Janeiro
+
+    // O OSM exige o cabeçalho Referer; o Django (SECURE_REFERRER_POLICY = same-origin) não o envia
+    // para outros sites, então liberamos só para as imagens do mapa.
+    const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        referrerPolicy: 'strict-origin-when-cross-origin',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(mapa);
+
+    // Reserva: se o OSM recusar as imagens, troca para o mapa da CARTO (mesmos dados do OSM)
+    let falhas = 0;
+    osm.on('tileerror', function () {
+        if (++falhas !== 3) return;
+        mapa.removeLayer(osm);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19, subdomains: 'abcd',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        }).addTo(mapa);
+    });
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const urlPerfil = "{% url 'bepe:cadastrados' %}";
+
+    // Ao vivo fica fora do agrupamento para os pontos poderem "andar" na tela
+    const camadaVivo = L.layerGroup().addTo(mapa);
+    const camadaCheckin = L.markerClusterGroup({ showCoverageOnHover: false }).addTo(mapa);
+    L.control.layers(null, { 'Ao vivo': camadaVivo, 'Check-ins': camadaCheckin }, { collapsed: false }).addTo(mapa);
+    const marcadoresVivo = {};
+
+    function popup(p) {
+        const vivo = p.origem === 'ao_vivo';
+        const link = p.perfil_id
+            ? `<a href="${urlPerfil}${p.perfil_id}/" style="display:inline-block;margin-top:8px;font-weight:900;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#1d4ed8">Abrir prontuário →</a>`
+            : '';
+        return `<div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:${vivo ? '#2563eb' : '#6b7280'}">${vivo ? '● Ao vivo' : 'Check-in'}</div>` +
+            `<div style="font-weight:900;font-size:14px;margin-top:2px">${esc(p.nome)}${p.vulgo ? ' <span style="opacity:.6;font-weight:600">"' + esc(p.vulgo) + '"</span>' : ''}</div>` +
+            `<div style="font-size:12px;opacity:.8">${esc(p.torcida)}</div>` +
+            `<div style="font-size:11px;opacity:.6;margin-top:4px">${esc(p.detalhe)} · ${esc(p.data)}</div>` + link;
+    }
+    function icone(p) {
+        const vivo = p.origem === 'ao_vivo';
+        return L.divIcon({
+            className: vivo ? 'movendo' : '',
+            html: vivo
+                ? `<div class="pino-vivo" style="background:${esc(p.cor)}"></div>`
+                : `<div style="width:12px;height:12px;border-radius:3px;border:2px solid #fff;background:${esc(p.cor)};box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`,
+            iconSize: vivo ? [16, 16] : [12, 12],
+        });
+    }
+
+    function aplicar(pontos, ajustar) {
+        // Ao vivo: atualiza a posição dos que já estão no mapa (o ponto "anda"), cria os novos e remove quem saiu
+        const vistos = new Set();
+        pontos.filter(p => p.origem === 'ao_vivo').forEach(p => {
+            vistos.add(p.id);
+            const m = marcadoresVivo[p.id];
+            if (m) { m.setLatLng([p.lat, p.lng]); m.setPopupContent(popup(p)); }
+            else marcadoresVivo[p.id] = L.marker([p.lat, p.lng], { icon: icone(p) }).bindPopup(popup(p)).addTo(camadaVivo);
+        });
+        Object.keys(marcadoresVivo).forEach(id => { if (!vistos.has(id)) { camadaVivo.removeLayer(marcadoresVivo[id]); delete marcadoresVivo[id]; } });
+
+        // Check-ins: redesenha (mudam pouco)
+        camadaCheckin.clearLayers();
+        pontos.filter(p => p.origem !== 'ao_vivo').forEach(p => L.marker([p.lat, p.lng], { icon: icone(p) }).bindPopup(popup(p)).addTo(camadaCheckin));
+
+        $('vazio').classList.toggle('hidden', pontos.length > 0);
+        if (ajustar && pontos.length) {
+            const todos = L.featureGroup([...Object.values(marcadoresVivo), ...camadaCheckin.getLayers()]);
+            mapa.fitBounds(todos.getBounds(), { padding: [30, 30], maxZoom: 16 });
+        }
+    }
+
+    async function atualizar() {
+        if (!$('ao-vivo').checked || document.hidden) return;
+        try {
+            const params = new URLSearchParams(new FormData($('filtros')));
+            const d = await (await fetch(URL_DADOS + '?' + params)).json();
+            aplicar(d.pontos, false);
+            $('total-vivo').textContent = d.total_ao_vivo;
+            $('total-checkins').textContent = d.total_checkins;
+            $('total-compartilhando').textContent = d.total_compartilhando;
+            $('gerado-em').textContent = d.gerado_em;
+        } catch (e) { /* sem conexão: tenta de novo no próximo ciclo */ }
+    }
+
+    aplicar(JSON.parse($('pontos-data').textContent), true);
+    setInterval(atualizar, ATUALIZAR_A_CADA);
+    $('ao-vivo').addEventListener('change', () => $('ponto-vivo').classList.toggle('hidden', !$('ao-vivo').checked));
+
+    // Corrige o tamanho caso o mapa seja desenhado durante a animação de entrada
+    setTimeout(() => mapa.invalidateSize(), 500);
+})();
+</script>
+{% endblock %}

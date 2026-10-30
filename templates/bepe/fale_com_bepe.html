@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-6">
+    <div class="text-center mb-6">
+        <div class="w-16 h-16 mx-auto rounded-full fundo-tema flex items-center justify-center shadow-lg">
+            <i class="bi bi-megaphone-fill text-2xl text-white"></i>
+        </div>
+        <h1 class="text-2xl font-black texto-main mt-3">Fale com o BEPE</h1>
+        <p class="text-sm texto-main opacity-70 mt-1">Canal de denúncia <b>100% anônimo</b>. Não registramos seu nome, usuário ou qualquer dado que identifique você.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="fundo-card rounded-2xl p-5 shadow-md border border-suave space-y-4">
+        {% csrf_token %}
+        <div>
+            <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">Tipo de denúncia *</label>
+            {{ form.categoria }}{% for e in form.categoria.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+        </div>
+        <div>
+            <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">{{ form.torcida.label }}</label>
+            {{ form.torcida }}
+        </div>
+        <div>
+            <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">O que aconteceu? *</label>
+            {{ form.descricao }}{% for e in form.descricao.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">Onde?</label>
+                {{ form.local }}
+            </div>
+            <div>
+                <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">Quando?</label>
+                {{ form.data_fato }}
+            </div>
+        </div>
+        <div>
+            <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">Foto, vídeo ou arquivo (opcional)</label>
+            {{ form.anexo }}
+            <p class="text-[11px] texto-main opacity-50 mt-1">Removemos automaticamente os metadados (como localização do GPS) das fotos.</p>
+        </div>
+        <button class="w-full fundo-tema text-white font-black uppercase tracking-widest rounded-xl py-4 text-sm shadow-lg hover:opacity-90 transition">
+            <i class="bi bi-send-fill"></i> Enviar denúncia anônima
+        </button>
+    </form>
+
+    <a href="{% url 'bepe:acompanhar_denuncia' %}" class="block text-center text-sm font-bold texto-main opacity-70 hover:opacity-100 mt-5">
+        <i class="bi bi-search"></i> Já fez uma denúncia? Acompanhe pelo protocolo
+    </a>
+    <p class="text-center text-xs texto-main opacity-50 mt-4">Em caso de emergência, ligue <b>190</b>.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% load social_tags %}
+{% with autor=post.autor_s %}
+<div id="post-{{ post.id }}" class="social-card fundo-card border p-4 animate-fade-up {% if post.tipo == 'anuncio' %}post-anuncio{% elif post.tipo == 'convocacao' %}post-convocacao{% else %}border-suave{% endif %}"
+     {% if post.tipo == 'convocacao' and post.torcida %}style="--cor-convocacao: {{ post.torcida.cor_primaria }}"{% endif %}>
+
+    {% if post.tipo == 'anuncio' %}
+    <div class="flex items-center gap-1.5 mb-3 text-[9px] font-black uppercase tracking-widest selo-dev-nome"><i class="bi bi-pin-angle-fill"></i> Anúncio oficial da equipe SAT</div>
+    {% elif post.tipo == 'convocacao' %}
+    <div class="flex items-center gap-1.5 mb-3 text-[9px] font-black uppercase tracking-widest" style="color: var(--cor-convocacao)"><i class="bi bi-megaphone-fill"></i> Convocação da {{ post.torcida.nome }}</div>
+    {% endif %}
+    {% if post.em_revisao %}
+    <div class="mb-3 px-3 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-[10px] font-bold text-yellow-700"><i class="bi bi-hourglass-split"></i> Em revisão pela moderação — oculto para os outros usuários.</div>
+    {% endif %}
+
+    <div class="flex justify-between items-start mb-3">
+        <div class="flex items-center gap-3 min-w-0">
+            <a href="{% url 'perfil_publico' autor.id %}" class="w-10 h-10 rounded-full overflow-hidden fundo-app border-2 {% if post.tipo == 'anuncio' %}border-cyan-400{% else %}border-suave{% endif %} flex-shrink-0 flex items-center justify-center no-underline">
+                {% if autor.perfil.foto %}<img src="{{ autor.perfil.foto.url }}" class="w-full h-full object-cover" alt="">{% else %}<i class="bi bi-person-fill texto-main opacity-30 text-2xl mt-1"></i>{% endif %}
+            </a>
+            <div class="min-w-0">
+                <a href="{% url 'perfil_publico' autor.id %}" class="text-sm texto-main leading-tight no-underline hover:opacity-80">{% selo_autor autor %}</a>
+                <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider mt-0.5 flex items-center gap-1">
+                    {% if post.visibilidade == 'torcida' %}<i class="bi bi-shield-fill" title="Só a torcida"></i> {{ post.torcida.sigla|default:post.torcida.nome }} •
+                    {% elif post.visibilidade == 'amigos' %}<i class="bi bi-people-fill" title="Só amigos"></i> Amigos •
+                    {% else %}<i class="bi bi-globe-americas" title="Global"></i>{% endif %}
+                    {{ post.data_criacao|timesince }} atrás
+                </p>
+            </div>
+        </div>
+
+        <details class="relative menu-post">
+            <summary class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 texto-main opacity-40 cursor-pointer list-none"><i class="bi bi-three-dots-vertical"></i></summary>
+            <div class="absolute right-0 top-full mt-1 w-56 fundo-card border border-suave rounded-xl shadow-lg z-20 overflow-hidden">
+                {% if post|pode_excluir:request.user %}
+                <form action="{% url 'social_excluir_post' post.id %}" method="POST" onsubmit="return confirm('Excluir esta publicação?');" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full text-left px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-500/10 flex items-center gap-2 border-none bg-transparent cursor-pointer">
+                        <i class="bi bi-trash3"></i> {% if post.autor_s_id == request.user.id %}Excluir{% else %}Excluir (moderação){% endif %}
+                    </button>
+                </form>
+                {% endif %}
+                {% if post.autor_s_id != request.user.id %}
+                <form action="{% url 'social_denunciar_post' post.id %}" method="POST" class="m-0 p-3 border-t border-suave space-y-2">
+                    {% csrf_token %}
+                    <p class="text-[9px] font-black uppercase tracking-widest texto-main opacity-60"><i class="bi bi-flag"></i> Denunciar</p>
+                    <select name="motivo" class="w-full fundo-app border border-suave rounded-lg px-2 py-1.5 text-xs texto-main">
+                        <option value="ofensa">Ofensa / ódio</option>
+                        <option value="violencia">Incitação à violência</option>
+                        <option value="spam">Spam / golpe</option>
+                        <option value="nudez">Nudez / conteúdo sexual</option>
+                        <option value="falso">Informação falsa</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                    <button type="submit" class="w-full py-1.5 rounded-lg bg-black/5 text-xs font-black texto-main border-none cursor-pointer">Enviar denúncia</button>
+                </form>
+                {% endif %}
+            </div>
+        </details>
+    </div>
+
+    {% if post.texto %}
+    <p class="text-sm texto-main opacity-90 leading-relaxed font-medium mb-3">{{ post.texto|linebreaksbr }}</p>
+    {% endif %}
+
+    {% if post.midias.all %}
+    <div class="mb-3 relative group overflow-hidden rounded-2xl border border-suave shadow-sm">
+        <div class="flex gap-1 overflow-x-auto snap-x-mandatory no-scrollbar bg-black/5" style="scroll-snap-type: x mandatory;">
+            {% for media in post.midias.all %}
+            <div class="min-w-full snap-center-item flex items-center justify-center bg-black/90 relative">
+                {% if media.is_video %}<video src="{{ media.arquivo.url }}" controls class="w-full max-h-[450px] object-contain"></video>
+                {% else %}<img src="{{ media.arquivo.url }}" class="w-full max-h-[450px] object-contain" loading="lazy" alt="">{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% if post.midias.all|length > 1 %}
+        <div class="absolute top-3 right-3 flex gap-1.5 bg-black/50 backdrop-blur px-2.5 py-1 rounded-full pointer-events-none z-10">
+            <i class="bi bi-images text-white/90 text-[10px] mt-0.5"></i><span class="text-white/90 text-[9px] font-black tracking-widest">{{ post.midias.all|length }}</span>
+        </div>
+        {% endif %}
+    </div>
+    {% elif post.imagem %}
+    <div class="mb-3 overflow-hidden rounded-2xl border border-suave shadow-sm"><img src="{{ post.imagem.url }}" class="w-full max-h-[450px] object-contain" loading="lazy" alt=""></div>
+    {% endif %}
+
+    {% if post.evento_relacionado %}
+    <div class="mb-3 fundo-app border border-suave rounded-2xl overflow-hidden shadow-sm hover:border-tema transition-colors">
+        <a href="{% url 'detalhe_evento' post.evento_relacionado.id %}" class="block no-underline">
+            {% if post.evento_relacionado.imagem_capa %}<img src="{{ post.evento_relacionado.imagem_capa.url }}" class="w-full h-32 object-cover" alt="">{% endif %}
+            <div class="p-4">
+                <h5 class="text-sm font-black italic uppercase texto-main mb-1">📅 Evento: {{ post.evento_relacionado.titulo }}{% if post.evento_relacionado.epico %} <span class="text-[9px] not-italic px-1.5 py-0.5 rounded bg-cyan-400/20 text-cyan-600">ÉPICO · EXP x2</span>{% endif %}</h5>
+                <p class="text-[11px] font-bold uppercase tracking-widest texto-main opacity-50 mb-2">📍 {{ post.evento_relacionado.local }}</p>
+                <p class="text-xs texto-main opacity-80 leading-relaxed">{{ post.evento_relacionado.informativo|truncatechars:100 }}</p>
+            </div>
+        </a>
+    </div>
+    {% endif %}
+    {% if post.foto_relacionada %}
+    <div class="mb-3 fundo-app border border-suave rounded-2xl overflow-hidden shadow-sm">
+        <img src="{{ post.foto_relacionada.imagem.url }}" class="w-full object-cover" alt="">
+        <div class="p-3 bg-black/5"><h6 class="text-[11px] font-black uppercase tracking-widest texto-main">📸 {{ post.foto_relacionada.titulo }}</h6>
+            {% if post.foto_relacionada.legenda %}<p class="text-xs texto-main opacity-60 mt-1">{{ post.foto_relacionada.legenda }}</p>{% endif %}</div>
+    </div>
+    {% endif %}
+    {% if post.caravana_relacionada %}
+    <div class="mb-3 p-4 fundo-app border border-suave rounded-2xl shadow-sm border-l-4 border-l-tema">
+        <h5 class="text-sm font-black italic uppercase texto-main mb-2">🚌 Caravana: {{ post.caravana_relacionada.titulo }}</h5>
+        <div class="grid grid-cols-2 gap-2 mt-2">
+            <div><span class="text-[9px] font-bold uppercase tracking-widest texto-main opacity-50 block">Saída</span><span class="text-xs texto-main">{{ post.caravana_relacionada.saida_local }}</span></div>
+            <div><span class="text-[9px] font-bold uppercase tracking-widest texto-main opacity-50 block">Valor</span><span class="text-xs font-black text-green-500">R$ {{ post.caravana_relacionada.valor }}</span></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="w-full h-[1px] bg-black/10 my-3"></div>
+
+    {% with comentarios=post|comentarios_visiveis %}
+    <div class="flex justify-between items-center px-1">
+        <form action="{% url 'social_curtir_post' post.id %}" method="POST" class="m-0" onsubmit="return curtirPostAjax(event, this, {{ post.id }})">
+            {% csrf_token %}
+            <button type="submit" class="action-btn flex items-center gap-1.5 group bg-transparent border-none p-0 cursor-pointer">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-red-500/10 transition-colors">
+                    <i id="icone-coracao-{{ post.id }}" class="bi {% if post|curtiu:request.user %}bi-heart-fill text-red-500{% else %}bi-heart texto-main opacity-40{% endif %} text-lg"></i>
+                </div>
+                <span id="contador-curtidas-{{ post.id }}" class="text-[11px] font-black uppercase tracking-widest texto-main opacity-60">{{ post.curtidas.all|length }}</span>
+            </button>
+        </form>
+        <button type="button" onclick="toggleComentarios({{ post.id }})" class="action-btn flex items-center gap-1.5 group bg-transparent border-none p-0 cursor-pointer">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-blue-500/10 transition-colors"><i class="bi bi-chat texto-main opacity-40 text-lg"></i></div>
+            <span id="contador-comentarios-{{ post.id }}" class="text-[11px] font-black uppercase tracking-widest texto-main opacity-60">{{ comentarios|length }}</span>
+        </button>
+        <button type="button" onclick="compartilharPost('{{ request.scheme }}://{{ request.get_host }}{% url 'ver_post' post.id %}', '{{ post.titulo|escapejs }}')" class="action-btn flex items-center gap-1.5 group bg-transparent border-none p-0 cursor-pointer">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-green-500/10 transition-colors"><i class="bi bi-share texto-main opacity-40 text-lg"></i></div>
+        </button>
+    </div>
+
+    <div id="secao-comentarios-{{ post.id }}" class="{% if not abrir_comentarios %}hidden {% endif %}mt-3 pt-3 border-t border-suave">
+        {% with moderador=post|pode_moderar_post:request.user %}
+        <div id="lista-comentarios-{{ post.id }}" class="space-y-3 mb-4 max-h-64 overflow-y-auto no-scrollbar">
+            {% for comentario in comentarios %}
+            <div class="flex gap-2 items-start" id="comentario-{{ comentario.id }}">
+                <a href="{% url 'perfil_publico' comentario.autor_id %}" class="w-6 h-6 rounded-full overflow-hidden fundo-app border border-suave flex-shrink-0 mt-0.5 flex items-center justify-center">
+                    {% if comentario.autor.perfil.foto %}<img src="{{ comentario.autor.perfil.foto.url }}" class="w-full h-full object-cover" alt="">{% else %}<i class="bi bi-person-fill texto-main opacity-30 text-xs"></i>{% endif %}
+                </a>
+                <div class="fundo-app border border-suave rounded-2xl rounded-tl-none px-3 py-2 flex-1 min-w-0">
+                    <span class="text-[10px] texto-main block mb-0.5">{% selo_autor comentario.autor 'mini' %}</span>
+                    <span class="text-xs texto-main opacity-80 leading-relaxed font-medium">{{ comentario.texto }}</span>
+                </div>
+                {% if comentario.autor_id == request.user.id or moderador %}
+                <form action="{% url 'social_remover_comentario' comentario.id %}" method="POST" class="m-0" onsubmit="return confirm('{% if comentario.autor_id == request.user.id %}Apagar seu comentário?{% else %}Ocultar este comentário (moderação)?{% endif %}');">
+                    {% csrf_token %}
+                    <button class="w-6 h-6 mt-1 rounded-full texto-main opacity-30 hover:opacity-100 hover:text-red-600 bg-transparent border-none cursor-pointer" title="{% if comentario.autor_id == request.user.id %}Apagar{% else %}Ocultar{% endif %}"><i class="bi bi-{% if comentario.autor_id == request.user.id %}trash3{% else %}eye-slash{% endif %} text-[11px]"></i></button>
+                </form>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p class="no-comments-msg text-[9px] text-center texto-main opacity-40 font-bold uppercase tracking-widest py-2">Sem comentários. Seja o primeiro!</p>
+            {% endfor %}
+        </div>
+        {% endwith %}
+        <form action="{% url 'social_comentar_post' post.id %}" method="POST" class="flex gap-2 items-center" onsubmit="return comentarPostAjax(event, this, {{ post.id }})">
+            {% csrf_token %}
+            <input type="text" name="comentario" placeholder="Adicione um comentário..." class="flex-1 fundo-app border border-suave rounded-full px-4 py-2 text-xs font-medium texto-main focus:outline-none" required autocomplete="off">
+            <button type="submit" class="w-8 h-8 fundo-tema texto-claro rounded-full flex items-center justify-center flex-shrink-0 shadow-md active:scale-95 border-none cursor-pointer"><i class="bi bi-send-fill text-[10px] ml-0.5"></i></button>
+        </form>
+    </div>
+    {% endwith %}
+</div>
+{% endwith %}

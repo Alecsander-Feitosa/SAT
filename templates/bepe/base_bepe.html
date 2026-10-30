@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    @keyframes bepeFadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .bepe-anima { animation: bepeFadeUp .45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .bepe-hero { background: linear-gradient(135deg, #0b1d3a 0%, #13315f 55%, #1d4ed8 100%); }
+
+    /* Componentes da Área BEPE seguindo as variáveis de tema da SAT */
+    .card { background-color: var(--cor-secundaria); border: 1px solid rgba(150,150,150,.2); border-radius: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+    .rotulo { display: block; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .15em; color: var(--cor-terciaria); opacity: .5; margin-bottom: 4px; }
+    .divide-suave > * + * { border-top: 1px solid rgba(150,150,150,.2); }
+    .linha:hover { background-color: rgba(0,0,0,.04); }
+    .tab { background-color: var(--cor-secundaria); color: var(--cor-terciaria); border: 1px solid rgba(150,150,150,.2); }
+    .tab.ativa { background-color: var(--cor-primaria); color: var(--cor-secundaria); border-color: var(--cor-primaria); box-shadow: 0 6px 16px rgba(0,0,0,.15); }
+    .btn-tema { background-color: var(--cor-primaria); color: var(--cor-secundaria); font-weight: 900; text-transform: uppercase; letter-spacing: .1em; font-size: 11px; border-radius: .75rem; transition: all .2s; }
+    .btn-tema:hover { opacity: .9; transform: translateY(-1px); }
+    .errorlist { color: #dc2626; font-size: 12px; font-weight: 700; margin-top: 4px; }
+    .bepe-scroll::-webkit-scrollbar { display: none; }
+    .bepe-scroll { scrollbar-width: none; }
+</style>
+{% block bepe_head %}{% endblock %}
+
+<div class="w-full max-w-6xl mx-auto px-5 pt-2 pb-10">
+
+    {# ---------- CABEÇALHO ---------- #}
+    <div class="bepe-hero bepe-anima relative overflow-hidden rounded-[20px] p-5 shadow-xl mb-4">
+        <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+        <i class="bi bi-shield-fill-check absolute -right-3 -bottom-6 text-[110px] text-white/10 pointer-events-none"></i>
+        <div class="relative flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+                <i class="bi bi-shield-shaded text-white text-2xl"></i>
+            </div>
+            <div class="min-w-0">
+                <h1 class="text-white font-black italic uppercase tracking-tighter text-2xl leading-none" style="font-family: 'Montserrat', sans-serif;">{% block marca %}Área <span class="text-blue-300">BEPE</span>{% endblock %}</h1>
+                <p class="text-white/60 text-[10px] font-bold uppercase tracking-widest mt-1.5 truncate">{% block submarca %}<i class="bi bi-lock-fill"></i> Acesso restrito · {{ user.get_full_name|default:user.username }}{% endblock %}</p>
+            </div>
+        </div>
+    </div>
+
+    {# ---------- ABAS ---------- #}
+    <nav class="bepe-scroll flex gap-2 overflow-x-auto pb-1 mb-5 bepe-anima" style="animation-delay:.05s">
+        {% block nav %}
+        <a href="{% url 'bepe:painel' %}" class="tab {% if aba == 'painel' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-grid-1x2-fill"></i> Painel</a>
+        <a href="{% url 'bepe:cadastrados' %}" class="tab {% if aba == 'cadastrados' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-person-vcard-fill"></i> Cadastrados</a>
+        <a href="{% url 'bepe:mapa' %}" class="tab {% if aba == 'mapa' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-geo-alt-fill"></i> Mapa</a>
+        <a href="{% url 'bepe:rotas' %}" class="tab {% if aba == 'rotas' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-signpost-split-fill"></i> Rotas</a>
+        <a href="{% url 'bepe:jogos' %}" class="tab {% if aba == 'jogos' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-calendar-event-fill"></i> Jogos RJ</a>
+        <a href="{% url 'bepe:reunioes' %}" class="tab {% if aba == 'reunioes' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-camera-video-fill"></i> Reuniões</a>
+        <a href="{% url 'bepe:conversas' %}" class="tab {% if aba == 'canal' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-chat-square-text-fill"></i> Diretorias</a>
+        <a href="{% url 'bepe:denuncias' %}" class="tab {% if aba == 'denuncias' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-megaphone-fill"></i> Denúncias</a>
+        {% endblock %}
+    </nav>
+
+    <div class="bepe-anima" style="animation-delay:.1s">
+        {% block bepe_content %}{% endblock %}
+    </div>
+</div>
+{% block bepe_scripts %}{% endblock %}
+{% endblock %}

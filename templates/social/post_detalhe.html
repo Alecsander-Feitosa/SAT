@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex items-center gap-4">
+        <a href="{% url 'mural' %}" class="texto-main text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">SAT <span class="texto-tema">Social</span></h1>
+    </div>
+    <div class="px-5 pt-5 max-w-2xl w-full mx-auto">
+        {% with abrir_comentarios=True %}{% include "social/_post_card.html" %}{% endwith %}
+    </div>
+</div>
+{% include "social/_post_js.html" %}
+{% endblock %}

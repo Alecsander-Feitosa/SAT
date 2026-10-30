@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'organizadas',   # Torcidas
     'social',
     'loja',
+    'bepe',          # Área BEPE (restrita)
 ]
 
 SITE_ID = 1
@@ -98,6 +99,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'gamification.middleware.CheckinDiarioMiddleware',  # +EXP no primeiro acesso do dia
+    'accounts.dispositivos.DispositivoMiddleware',      # Segurança > Dispositivos conectados
 ]
 
 ROOT_URLCONF = 'sat_core.urls'
@@ -116,6 +119,9 @@ TEMPLATES = [
                 'accounts.context_processors.tema_torcida',
                 'accounts.context_processors.torcida_branding', # <-- Adicionado aqui corretamente
                 'accounts.context_processors.carrinho_global',  # <-- Carrinho em todas as páginas
+                'bepe.context_processors.acesso_bepe',          # <-- Links da Área BEPE no menu
+                'accounts.context_processors.monetizacao',      # <-- Espaços de notícias patrocinadas (MGID)
+                'social.context_processors.social',             # <-- Sininho de notificações
             ],
         },
     },
@@ -215,6 +221,23 @@ CORS_ALLOW_ALL_ORIGINS = True # Em produção, mudaremos para domínios específ
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
+
+# --- club_ben (clube de benefícios externo) — integração ativada quando configurado no .env ---
+CLUBE_BEN_API_URL = os.getenv('CLUBE_BEN_API_URL', '')
+CLUBE_BEN_API_KEY = os.getenv('CLUBE_BEN_API_KEY', '')
+CLUBE_BEN_PORTAL_URL = os.getenv('CLUBE_BEN_PORTAL_URL', '')  # link que o sócio abre para usar o clube
+
+# --- MGID (notícias patrocinadas, pagas por clique) — ativa quando os IDs estiverem no .env ---
+MGID_SITE_ID = os.getenv('MGID_SITE_ID', '')
+MGID_WIDGET_ID = os.getenv('MGID_WIDGET_ID', '')
+# Linhas do ads.txt exigidas pela MGID para aprovar o site (separe as linhas com "|")
+ADS_TXT = os.getenv('ADS_TXT', '')
+
+# --- Suporte SAT por WhatsApp (usado quando a torcida não cadastrou o dela) ---
+SAT_WHATSAPP_SUPORTE = os.getenv('SAT_WHATSAPP_SUPORTE', '')
+
+# --- BEPE: de quantos em quantos segundos o celular do torcedor envia a localização ---
+BEPE_INTERVALO_LOCALIZACAO = int(os.getenv('BEPE_INTERVALO_LOCALIZACAO', '60'))
 
 LOGIN_REDIRECT_URL = 'dashboard'
 
