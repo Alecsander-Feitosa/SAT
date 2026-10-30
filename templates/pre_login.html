@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load socialaccount %}
+{% load socialaccount login_social %}
 
 {% block content %}
 <style>
@@ -27,17 +27,7 @@
                     Fazer login
                 </a>
 
-                <div class="flex justify-between w-full">
-                    <a href="#" class="w-24 h-16 flex items-center justify-center bg-white rounded-[20px] hover:scale-105 transition-all shadow-md">
-                        <img src="{% static 'img/google_logo.png' %}" alt="Google" class="w-12 h-12 object-contain">
-                    </a>
-                    <a href="#" class="w-24 h-16 flex items-center justify-center bg-white rounded-[20px] hover:scale-105 transition-all shadow-md">
-                        <img src="{% static 'img/apple_logo.png' %}" alt="Apple" class="w-12 h-12 object-contain">
-                    </a>
-                    <a href="#" class="w-24 h-16 flex items-center justify-center bg-white rounded-[20px] hover:scale-105 transition-all shadow-md">
-                        <img src="{% static 'img/facebook_logo.png' %}" alt="Facebook" class="w-12 h-12 object-contain">
-                    </a>
-                </div>
+                {% botoes_login_social 'pre_login' %}
 
                 <a href="{% url 'cadastro' %}" class="w-full border border-white text-white hover:bg-white hover:text-black font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95">
                     Crie conta

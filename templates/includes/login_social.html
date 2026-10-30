@@ -1,0 +1,104 @@
+{% load static socialaccount %}
+{% if provedores %}
+<div id="login-social">
+    {% if v.divisor %}
+    <div class="{{ v.divisor }}">
+        <div class="{{ v.linha }}"></div>
+        <span class="{{ v.texto }}">ou</span>
+        <div class="{{ v.linha }}"></div>
+    </div>
+    {% endif %}
+
+    <div class="{{ v.grupo }}">
+        {% for p in provedores %}
+        <form method="post" action="{% provider_login_url p.id process='login' %}" data-provedor="{{ p.id }}" class="{{ v.form }}">
+            {% csrf_token %}
+            <button type="submit" class="{{ v.botao }}" aria-label="Entrar com {{ p.name }}">
+                <img src="{% static 'img/'|add:p.id|add:'_logo.png' %}" alt="{{ p.name }}" class="{{ v.logo }}">
+            </button>
+        </form>
+        {% endfor %}
+    </div>
+</div>
+
+{{ config_app|json_script:"login-social-config" }}
+<script>
+// Dentro do app (Capacitor) o Google/Apple não abrem em WebView: usa o login nativo do
+// aparelho e troca o token por uma sessão no Django (allauth headless).
+(function () {
+    var cap = window.Capacitor;
+    if (!cap || !cap.isNativePlatform || !cap.isNativePlatform()) return;
+
+    var cfg = JSON.parse(document.getElementById('login-social-config').textContent);
+    var plataforma = cap.getPlatform();
+    var SocialLogin = cap.Plugins && cap.Plugins.SocialLogin;
+
+    // Provedores com login nativo disponível em cada plataforma
+    var nativos = [];
+    if (SocialLogin && plataforma === 'ios') {
+        if (cfg.googleIos) nativos.push('google');
+        nativos.push('apple');
+    } else if (SocialLogin && plataforma === 'android') {
+        nativos.push('google');
+    }
+
+    var forms = document.querySelectorAll('#login-social form[data-provedor]');
+    forms.forEach(function (f) { if (nativos.indexOf(f.dataset.provedor) === -1) f.remove(); });
+    if (!document.querySelector('#login-social form')) {
+        document.getElementById('login-social').remove();
+        return;
+    }
+
+    var inicializado = SocialLogin.initialize({
+        google: { webClientId: cfg.googleWeb, iOSClientId: cfg.googleIos, iOSServerClientId: cfg.googleWeb, mode: 'online' },
+        apple: { clientId: cfg.appleBundle }
+    });
+
+    function audDoToken(jwt) {
+        var b64 = jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(atob(b64)).aud;
+    }
+
+    function tokenPara(provedor, res) {
+        var idToken = res.result && res.result.idToken;
+        if (!idToken) throw new Error('sem_token');
+        if (provedor === 'google') return { client_id: audDoToken(idToken), id_token: idToken };
+        return { client_id: cfg.appleClientId, id_token: idToken };
+    }
+
+    document.querySelectorAll('#login-social form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var provedor = form.dataset.provedor;
+            var csrf = form.querySelector('[name=csrfmiddlewaretoken]').value;
+            var opcoes = provedor === 'apple' ? { scopes: ['email', 'name'] } : { scopes: ['email', 'profile'] };
+
+            inicializado
+                .then(function () { return SocialLogin.login({ provider: provedor, options: opcoes }); })
+                .then(function (res) {
+                    return fetch('/_allauth/browser/v1/auth/provider/token', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+                        body: JSON.stringify({ provider: provedor, process: 'login', token: tokenPara(provedor, res) })
+                    });
+                })
+                .then(function (resp) {
+                    if (resp.status === 200) {
+                        window.location.href = '{% url "continuar_login_social" %}';
+                    } else {
+                        throw new Error('servidor_' + resp.status);
+                    }
+                })
+                .catch(function (err) {
+                    var msg = String(err && (err.message || err));
+                    if (/cancel/i.test(msg)) return;  // usuário fechou a janela de login
+                    alert('Não foi possível entrar. Tente novamente ou use e-mail e senha.');
+                });
+        });
+    });
+})();
+</script>
+{% elif v.vazio %}
+<div class="{{ v.vazio }}"></div>
+{% endif %}

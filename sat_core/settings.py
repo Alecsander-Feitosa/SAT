@@ -38,7 +38,7 @@ else:
     EFI_CERTIFICADO = os.path.join(BASE_DIR, _efi_cert_path) if _efi_cert_path else ''
 
 # --- NOVO: Obrigatório para o Render permitir logins e formulários via HTTPS ---
-CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com', 'https://somossatapp.com.br', 'https://www.somossatapp.com.br']
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.apple',
     'allauth.socialaccount.providers.facebook',
+    'allauth.headless',  # Login social nativo do app (token do Google/Apple -> sessão)
 
     # --- Frameworks para API (Android/iOS) ---
     'rest_framework',   # Cria a API
@@ -247,6 +248,54 @@ LOGOUT_REDIRECT_URL = 'login'
 # Configurações opcionais do Allauth para capturar o email
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 SOCIALACCOUNT_QUERY_EMAIL = True
+
+# --- Login social (Google / Apple / Facebook) ---
+# Cada provedor só aparece no login quando as credenciais dele estão no ambiente.
+ACCOUNT_ADAPTER = 'accounts.adapters.ContaAdapter'
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.SocialAdapter'
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # Não há servidor de e-mail configurado
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http' if DEBUG else 'https'
+SOCIALACCOUNT_AUTO_SIGNUP = True
+# E-mail verificado pelo provedor entra na conta SAT que já usa esse e-mail
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+HEADLESS_CLIENTS = ['browser']
+
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')          # Cliente "Aplicativo da Web"
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
+GOOGLE_IOS_CLIENT_ID = os.getenv('GOOGLE_IOS_CLIENT_ID', '')  # Cliente "iOS" (app do iPhone)
+
+APPLE_SERVICES_ID = os.getenv('APPLE_SERVICES_ID', '')  # Login pelo site
+APPLE_BUNDLE_ID = os.getenv('APPLE_BUNDLE_ID', 'br.com.sat.torcedor')  # Login pelo app (= appId do Capacitor)
+APPLE_TEAM_ID = os.getenv('APPLE_TEAM_ID', '')
+APPLE_KEY_ID = os.getenv('APPLE_KEY_ID', '')
+APPLE_PRIVATE_KEY = os.getenv('APPLE_PRIVATE_KEY', '').replace('\\n', '\n')  # conteúdo do .p8
+
+FACEBOOK_APP_ID = os.getenv('FACEBOOK_APP_ID', '')
+FACEBOOK_APP_SECRET = os.getenv('FACEBOOK_APP_SECRET', '')
+
+SOCIALACCOUNT_PROVIDERS = {}
+if GOOGLE_CLIENT_ID:
+    _apps_google = [{'client_id': GOOGLE_CLIENT_ID, 'secret': GOOGLE_CLIENT_SECRET}]
+    if GOOGLE_IOS_CLIENT_ID:
+        # Só valida o token do app iOS; não vira botão no site
+        _apps_google.append({'client_id': GOOGLE_IOS_CLIENT_ID, 'secret': '', 'settings': {'hidden': True}})
+    SOCIALACCOUNT_PROVIDERS['google'] = {'APPS': _apps_google, 'SCOPE': ['profile', 'email']}
+if APPLE_SERVICES_ID and APPLE_KEY_ID:
+    SOCIALACCOUNT_PROVIDERS['apple'] = {'APPS': [{
+        # O primeiro ID é usado no site; o Bundle ID aceita o token do app
+        'client_id': f'{APPLE_SERVICES_ID},{APPLE_BUNDLE_ID}',
+        'secret': APPLE_KEY_ID,
+        'key': APPLE_TEAM_ID,
+        'settings': {'certificate_key': APPLE_PRIVATE_KEY},
+    }]}
+if FACEBOOK_APP_ID:
+    SOCIALACCOUNT_PROVIDERS['facebook'] = {
+        'APPS': [{'client_id': FACEBOOK_APP_ID, 'secret': FACEBOOK_APP_SECRET}],
+        'METHOD': 'oauth2',
+        'SCOPE': ['email', 'public_profile'],
+        'FIELDS': ['id', 'email', 'name', 'first_name', 'last_name', 'picture'],
+    }
 
 
 

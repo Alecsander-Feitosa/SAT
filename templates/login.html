@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load socialaccount %}
+{% load socialaccount login_social %}
 
 {% block content %}
 
@@ -44,23 +44,7 @@
                     </button>
                 </form>
 
-                <div class="w-full flex items-center justify-center mt-6 mb-4">
-                    <div class="h-px bg-gray-800 flex-grow"></div>
-                    <span class="px-4 text-gray-500 font-black uppercase tracking-widest text-[10px]">ou</span>
-                    <div class="h-px bg-gray-800 flex-grow"></div>
-                </div>
-
-                <div class="flex justify-between w-full gap-2">
-                    <a href="#" class="flex-1 h-14 flex items-center justify-center bg-[#0d1117] border border-gray-800 rounded-xl hover:scale-105 hover:border-[var(--tema-cor)] transition-all shadow-md">
-                        <img src="{% static 'img/facebook_logo.png' %}" alt="Facebook" class="w-7 h-7 object-contain">
-                    </a>
-                    <a href="#" class="flex-1 h-14 flex items-center justify-center bg-[#0d1117] border border-gray-800 rounded-xl hover:scale-105 hover:border-[var(--tema-cor)] transition-all shadow-md">
-                        <img src="{% static 'img/apple_logo.png' %}" alt="Apple" class="w-7 h-7 object-contain">
-                    </a>
-                    <a href="#" class="flex-1 h-14 flex items-center justify-center bg-[#0d1117] border border-gray-800 rounded-xl hover:scale-105 hover:border-[var(--tema-cor)] transition-all shadow-md">
-                        <img src="{% static 'img/google_logo.png' %}" alt="Google" class="w-7 h-7 object-contain">
-                    </a>
-                </div>
+                {% botoes_login_social 'torcida' %}
 
                 <div class="mt-8 flex flex-col gap-4 items-center">
                     <a href="{% url 'cadastro' %}" class="w-full bg-transparent border-2 font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all shadow-lg hover:bg-white/5 active:scale-95 flex items-center justify-center gap-2" style="border-color: var(--tema-cor); color: var(--tema-cor);">
@@ -121,23 +105,7 @@
                 </button>
             </form>
 
-            <div class="w-full flex items-center justify-center mt-8 mb-6">
-                <div class="h-px bg-[#D37129]/30 flex-grow"></div>
-                <span class="px-4 text-[#D37129]/60 font-black uppercase tracking-widest text-[10px]">ou</span>
-                <div class="h-px bg-[#D37129]/30 flex-grow"></div>
-            </div>
-
-            <div class="flex justify-between w-full gap-3 mb-8">
-                <a href="#" class="flex-1 h-14 flex items-center justify-center bg-white border-2 border-[#D37129]/20 rounded-xl hover:scale-105 hover:border-[#D37129] transition-all shadow-sm">
-                    <img src="{% static 'img/facebook_logo.png' %}" alt="Facebook" class="w-7 h-7 object-contain">
-                </a>
-                <a href="#" class="flex-1 h-14 flex items-center justify-center bg-white border-2 border-[#D37129]/20 rounded-xl hover:scale-105 hover:border-[#D37129] transition-all shadow-sm">
-                    <img src="{% static 'img/apple_logo.png' %}" alt="Apple" class="w-7 h-7 object-contain">
-                </a>
-                <a href="#" class="flex-1 h-14 flex items-center justify-center bg-white border-2 border-[#D37129]/20 rounded-xl hover:scale-105 hover:border-[#D37129] transition-all shadow-sm">
-                    <img src="{% static 'img/google_logo.png' %}" alt="Google" class="w-7 h-7 object-contain">
-                </a>
-            </div>
+            {% botoes_login_social 'padrao' %}
 
             <a href="{% url 'cadastro' %}" class="w-full text-[#D37129] bg-transparent border-2 border-[#D37129] hover:bg-[#D37129] hover:text-white font-black rounded-xl text-sm px-5 py-4 text-center uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center justify-center gap-2">
                 <i class="bi bi-person-plus-fill text-lg"></i>

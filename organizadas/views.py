@@ -442,6 +442,10 @@ def painel_moderador(request):
             foto.save()
             messages.success(request, "Registo da galeria atualizado!")
 
+        elif acao == 'deletar_foto':
+            get_object_or_404(FotoGaleria, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
+            messages.success(request, "Foto removida da galeria.")
+
         # 5. CONQUISTAS E CANÇÕES
         elif acao == 'nova_conquista':
             ConquistaTorcida.objects.create(
@@ -488,11 +492,11 @@ def painel_moderador(request):
             cancao.letra = request.POST.get('letra', cancao.letra)
             cancao.video_url = request.POST.get('url_youtube', cancao.video_url) # <-- CORRIGIDO AQUI
             cancao.save()
-            messages.success(request, "Canção atualizada com sucesso!")
-            
-            # 3. Guardar na base de dados
-            cancao.save()
             messages.success(request, f"A canção '{cancao.titulo}' foi atualizada com sucesso!")
+
+        elif acao == 'deletar_cancao':
+            get_object_or_404(Cancao, id=request.POST.get('item_id'), torcida=minha_torcida).delete()
+            messages.success(request, "Canção removida do repertório.")
 
         # 6. ALIADAS
         elif acao == 'nova_aliada':

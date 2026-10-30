@@ -11,3 +11,7 @@ certs/
 # Claude Code (configuração pessoal)
 .claude/settings.local.json
 db_dev.sqlite3
+
+# Chaves de assinatura do app (NUNCA versionar)
+*.jks
+*.keystore

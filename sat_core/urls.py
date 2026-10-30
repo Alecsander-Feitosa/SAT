@@ -5,9 +5,15 @@ from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from gamification import views
 from accounts import views as accounts_views
+from sat_core import pwa
 
 
 urlpatterns = [
+    # PWA / app (manifest e service worker precisam ficar na raiz)
+    path('manifest.webmanifest', pwa.manifest, name='pwa_manifest'),
+    path('sw.js', pwa.service_worker, name='pwa_sw'),
+    path('offline/', pwa.offline, name='pwa_offline'),
+
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')),
     path('gamification/', include('gamification.urls')),
@@ -35,6 +41,7 @@ urlpatterns = [
     
     path('admin-painel/utilizador/<int:perfil_id>/editar/', accounts_views.admin_editar_utilizador, name='admin_editar_utilizador'),    
     path('accounts/', include('allauth.urls')),
+    path('_allauth/', include('allauth.headless.urls')),  # login nativo do app
 ]
 
 # --- A MÁGICA DO CSS ACONTECE AQUI ---

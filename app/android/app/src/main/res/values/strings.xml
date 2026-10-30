@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SAT</string>
+    <string name="title_activity_main">SAT</string>
+    <string name="package_name">br.com.sat.torcedor</string>
+    <string name="custom_url_scheme">br.com.sat.torcedor</string>
+</resources>

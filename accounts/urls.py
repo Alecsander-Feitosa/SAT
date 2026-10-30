@@ -19,6 +19,7 @@ urlpatterns = [
     
     path('cadastro/', views.cadastro, name='cadastro'),
     path('cadastro_etapa2/', views.cadastro_etapa2, name='cadastro_etapa2'),
+    path('entrar/social/continuar/', views.continuar_login_social, name='continuar_login_social'),
     path('noticias/', views.noticias, name='noticias'),
     path('noticias/ler/<str:noticia_id>/', views.noticia_ler, name='noticia_ler'),
     path('ads.txt', views.ads_txt, name='ads_txt'),

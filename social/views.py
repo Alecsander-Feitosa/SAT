@@ -117,9 +117,10 @@ def mural_social(request):
         )
         for index, arquivo in enumerate(midias):
             is_video = arquivo.name.lower().endswith(('.mp4', '.mov', '.webm', '.avi', '.mkv'))
-            PostMedia.objects.create(post=novo_post, arquivo=arquivo, is_video=is_video)
+            midia = PostMedia.objects.create(post=novo_post, arquivo=arquivo, is_video=is_video)
             if index == 0 and not is_video:
-                novo_post.imagem = arquivo
+                # Reaproveita o arquivo já enviado: reenviar o upload (já lido até o fim) quebra no Cloudinary
+                novo_post.imagem = midia.arquivo.name
                 novo_post.save(update_fields=['imagem'])
 
         ganho = conceder_xp(user, 'postar', referencia=novo_post.id)

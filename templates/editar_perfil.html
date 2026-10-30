@@ -124,9 +124,10 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="text-[9px] font-black texto-main opacity-50 uppercase mb-1 ml-2 block">CEP *</label>
-                    <input type="text" name="cep" value="{{ user.perfil.cep|default:'' }}" required
-                        class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors"
-                        py-3 text-sm font-bold texto-main focus:border-tema outline-none">
+                    <input type="text" name="cep" id="id_cep" value="{{ user.perfil.cep|default:'' }}" required
+                        inputmode="numeric" maxlength="9" placeholder="00000-000" autocomplete="postal-code"
+                        class="w-full bg-black/5 border-2 border-suave rounded-2xl shadow-inner px-4 py-3 text-sm font-bold texto-main focus:border-tema outline-none transition-colors">
+                    <p id="cep-status" class="text-[9px] font-bold texto-main opacity-50 mt-1 ml-2"></p>
                 </div>
             </div>
 
@@ -300,5 +301,40 @@
             document.getElementById(textElementId).classList.add("texto-main");
         }
     }
+
+    // CEP: máscara 00000-000 e preenchimento automático do endereço (ViaCEP)
+    (function () {
+        const cep = document.getElementById('id_cep');
+        const status = document.getElementById('cep-status');
+        if (!cep) return;
+        const campo = (nome) => document.querySelector('[name="' + nome + '"]');
+        let ultimoBuscado = '';
+
+        function buscar() {
+            const digitos = cep.value.replace(/\D/g, '');
+            if (digitos.length !== 8 || digitos === ultimoBuscado) return;
+            ultimoBuscado = digitos;
+            status.textContent = 'Buscando endereço...';
+            fetch('https://viacep.com.br/ws/' + digitos + '/json/')
+                .then((r) => r.json())
+                .then((d) => {
+                    if (d.erro) { status.textContent = 'CEP não encontrado.'; return; }
+                    if (d.logradouro) campo('rua').value = d.logradouro;
+                    if (d.bairro) campo('bairro').value = d.bairro;
+                    if (d.localidade) campo('cidade').value = d.localidade;
+                    if (d.uf) campo('uf').value = d.uf;
+                    status.textContent = '';
+                    campo(d.logradouro ? 'numero' : 'rua').focus();
+                })
+                .catch(() => { ultimoBuscado = ''; status.textContent = 'Não foi possível buscar o CEP. Preencha manualmente.'; });
+        }
+
+        cep.addEventListener('input', function () {
+            const d = cep.value.replace(/\D/g, '').slice(0, 8);
+            cep.value = d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d;
+            buscar();
+        });
+        cep.addEventListener('blur', buscar);
+    })();
 </script>
 {% endblock %}

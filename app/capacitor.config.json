@@ -1,0 +1,38 @@
+{
+  "appId": "br.com.sat.torcedor",
+  "appName": "SAT",
+  "webDir": "www",
+  "appendUserAgent": "SATApp",
+  "server": {
+    "url": "https://somossatapp.com.br",
+    "cleartext": false,
+    "errorPath": "offline.html"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "ios": {
+    "contentInset": "always"
+  },
+  "plugins": {
+    "SocialLogin": {
+      "providers": {
+        "google": true,
+        "apple": true,
+        "facebook": false,
+        "twitter": false
+      }
+    },
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "launchAutoHide": true,
+      "backgroundColor": "#1A1A1A",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#1A1A1A",
+      "overlaysWebView": false
+    }
+  }
+}

@@ -1148,6 +1148,14 @@ def configurar_torcida(request):
     return render(request, 'configurar_torcida.html', {'torcida': torcida})
 
 
+@login_required
+def continuar_login_social(request):
+    # Login nativo do app: conta nova completa time/torcida na Etapa 2
+    if request.session.get('novo_usuario_id'):
+        return redirect('cadastro_etapa2')
+    return redirect('dashboard')
+
+
 def pre_login(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
