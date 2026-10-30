@@ -180,8 +180,8 @@
             <div class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave space-y-3">
                 {% for item in itens %}
                 <div class="flex justify-between items-center pb-3 border-b border-suave/50">
-                    <span class="text-xs font-bold texto-main opacity-80 flex-1">{{ item.quantidade }}x {{ item.produto.nome }}</span>
-                    <span class="text-xs font-black texto-main">R$ {{ item.produto.preco_atual }}</span>
+                    <span class="text-xs font-bold texto-main opacity-80 flex-1">{{ item.quantidade }}x {{ item.produto.nome }}{% if item.variacao %} <span class="opacity-60">({{ item.variacao.descricao }})</span>{% endif %}</span>
+                    <span class="text-xs font-black texto-main">R$ {{ item.subtotal }}</span>
                 </div>
                 {% endfor %}
                 

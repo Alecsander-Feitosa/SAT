@@ -604,7 +604,8 @@
                 <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Loja</h3>
                 <div class="flex gap-2">
                     <button onclick="abrirModal('modalCategoriaLoja')" class="text-[9px] bg-black/5 hover:bg-black/10 transition-colors px-3 py-1.5 rounded-full font-black uppercase border border-suave">+ Categoria</button>
-                    <button onclick="abrirModal('modalProduto')" class="text-[9px] bg-green-600 hover:bg-green-700 transition-colors text-white px-3 py-1.5 rounded-full font-black uppercase">+ Produto</button>
+                    <a href="{% url 'painel_loja' %}" class="text-[9px] bg-black/5 hover:bg-black/10 transition-colors px-3 py-1.5 rounded-full font-black uppercase border border-suave no-underline texto-main">Banner</a>
+                    <a href="{% url 'novo_produto' %}" class="text-[9px] bg-green-600 hover:bg-green-700 transition-colors text-white px-3 py-1.5 rounded-full font-black uppercase no-underline">+ Produto</a>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -623,7 +624,10 @@
                         {% endif %}
                     </div>
                     <h4 class="text-[10px] font-black uppercase truncate">{{ prod.nome }}</h4>
-                    <p class="text-[11px] font-black" style="color: var(--cor-primaria)">R$ {{ prod.preco_atual }}</p>
+                    <div class="flex justify-between items-center">
+                        <p class="text-[11px] font-black" style="color: var(--cor-primaria)">R$ {{ prod.preco_atual }}</p>
+                        <a href="{% url 'editar_produto' prod.id %}" class="text-[9px] text-orange-500 font-black uppercase no-underline flex items-center gap-1"><i class="bi bi-pencil-fill"></i> Editar</a>
+                    </div>
                 </div>
                 {% empty %}
                 <div class="col-span-2 text-center py-8 opacity-40 border border-dashed border-suave rounded-2xl bg-black/5">
@@ -1033,50 +1037,6 @@
             </div>
         </div>
 
-    </div>
-</div>
-
-<div id="modalProduto" class="fixed inset-0 modal-backdrop z-[200] hidden items-end sm:items-center justify-center opacity-0 transition-opacity duration-300">
-    <div class="w-full max-w-md fundo-card rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 transform translate-y-full sm:translate-y-0 transition-transform duration-300 border border-suave">
-        <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
-            <h3 class="font-black texto-main text-sm uppercase tracking-widest">Adicionar Produto</h3>
-            <button type="button" onclick="fecharModal('modalProduto')" class="w-8 h-8 rounded-full flex items-center justify-center texto-main bg-black/5 hover:bg-black/10 transition-colors"><i class="bi bi-x-lg"></i></button>
-        </div>
-        <form method="POST" enctype="multipart/form-data" class="space-y-4">
-            {% csrf_token %}
-            <input type="text" name="nome" required placeholder="Nome do Produto" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-            
-            <textarea name="descricao" rows="2" placeholder="Descrição do Produto" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none"></textarea>
-
-            <div class="grid grid-cols-2 gap-3">
-                <input type="number" step="0.01" name="preco" required placeholder="Preço Orig. (R$)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-                <input type="number" step="0.01" name="preco_promocional" placeholder="Promocional (R$)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-            </div>
-            
-            <div class="grid grid-cols-2 gap-3">
-                <select name="categoria_id" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-                    <option value="">Sem Categoria</option>
-                    {% for cat in categorias_loja %}
-                    <option value="{{ cat.id }}">{{ cat.nome }}</option>
-                    {% endfor %}
-                </select>
-                <input type="number" name="estoque" required placeholder="Estoque" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-            </div>
-
-            <div class="flex items-center gap-2 p-3 bg-black/5 rounded-xl border border-suave">
-                <input type="checkbox" name="destaque" id="destaqueProd" class="w-4 h-4 text-orange-500 bg-transparent border-suave rounded cursor-pointer">
-                <label for="destaqueProd" class="text-[10px] font-black uppercase opacity-70 cursor-pointer">Produto em Destaque?</label>
-            </div>
-
-            <div>
-                <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Tamanhos / Variações</label>
-                <input type="text" name="tamanhos" placeholder="Ex: P, M, G, GG (separados por vírgula)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-                <p class="text-[8px] font-bold opacity-40 mt-1 ml-1">Deixe vazio se o produto não tem variação de tamanho.</p>
-            </div>
-
-            <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
-            <button type="submit" name="acao" value="novo_produto" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Publicar Produto</button>
-        </form>
     </div>
 </div>
 

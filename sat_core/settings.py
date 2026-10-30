@@ -21,6 +21,15 @@ EFI_SANDBOX = os.getenv('EFI_SANDBOX', 'True') == 'True'
 EFI_CHAVE_PIX = os.getenv('EFI_CHAVE_PIX', 'sua_chave_pix_aqui@gmail.com')
 EFI_CONTA_ID = os.getenv('EFI_CONTA_ID', '')  # ID da conta Efí (necessário para pagamento com cartão)
 
+# Planos pagos de sócio (Seja Sócio > Benefícios): em espera até o lançamento. Para liberar: PLANOS_PAGOS_LIBERADOS=True
+PLANOS_PAGOS_LIBERADOS = os.getenv('PLANOS_PAGOS_LIBERADOS', 'False') == 'True'
+
+# Frete (loja/frete.py): sem token do Melhor Envio, o frete é uma estimativa por peso e região
+MELHOR_ENVIO_TOKEN = os.getenv('MELHOR_ENVIO_TOKEN', '')
+MELHOR_ENVIO_SANDBOX = os.getenv('MELHOR_ENVIO_SANDBOX', 'False') == 'True'
+MELHOR_ENVIO_EMAIL = os.getenv('MELHOR_ENVIO_EMAIL', '')  # contato técnico exigido no User-Agent da API
+LOJA_CEP_ORIGEM = os.getenv('LOJA_CEP_ORIGEM', '')  # CEP padrão de envio, se a torcida não cadastrar o dela
+
 # Certificado: prioriza Base64 (para Render/produção), depois caminho local
 import base64 as _b64
 _efi_cert_b64 = os.getenv('EFI_CERT_BASE64', '')

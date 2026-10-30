@@ -30,12 +30,21 @@
         </div>
 
         <div class="flex-grow pr-6">
-            <h3 class="font-bold texto-main text-sm leading-tight line-clamp-2">{{ item.produto.nome }}</h3>
-            <p class="texto-tema font-black text-xs mt-1">R$ {{ item.produto.preco }}</p>
-            
-            <div class="flex items-center mt-2">
-                <span class="text-[10px] font-bold texto-main opacity-60 uppercase bg-gray-500/10 px-2 py-1 rounded-md">Qtd: {{ item.quantidade }}</span>
-            </div>
+            <span class="text-[8px] font-black texto-main opacity-40 uppercase tracking-widest">{{ item.produto.vendedor }}</span>
+            <a href="{% url 'detalhe_produto' item.produto.id %}" class="no-underline"><h3 class="font-bold texto-main text-sm leading-tight line-clamp-2">{{ item.produto.nome }}</h3></a>
+            {% if item.variacao %}
+            <p class="text-[10px] font-bold texto-main opacity-60 mt-0.5">
+                {{ item.produto.rotulo_opcao1|default:"Opção" }}: {{ item.variacao.nome }}{% if item.variacao.opcao2 %} · {{ item.produto.rotulo_opcao2|default:"Opção" }}: {{ item.variacao.opcao2 }}{% endif %}
+            </p>
+            {% endif %}
+            <p class="texto-tema font-black text-xs mt-1">R$ {{ item.subtotal }}{% if item.quantidade > 1 %} <span class="texto-main opacity-40 font-bold text-[10px]">({{ item.quantidade }} × R$ {{ item.produto.preco_atual }})</span>{% endif %}</p>
+
+            <form method="POST" action="{% url 'atualizar_quantidade' item.id %}" class="flex items-center mt-2 w-fit fundo-app border border-suave rounded-xl">
+                {% csrf_token %}
+                <button type="submit" name="quantidade" value="{{ item.quantidade|add:'-1' }}" class="w-8 h-8 texto-main font-black" aria-label="Diminuir quantidade">−</button>
+                <span class="w-8 text-center text-xs font-black texto-main">{{ item.quantidade }}</span>
+                <button type="submit" name="quantidade" value="{{ item.quantidade|add:'1' }}" class="w-8 h-8 texto-main font-black" aria-label="Aumentar quantidade">+</button>
+            </form>
         </div>
 
         <a href="{% url 'remover_do_carrinho' item.id %}" class="absolute top-4 right-4 w-8 h-8 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors shadow-sm">

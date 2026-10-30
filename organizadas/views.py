@@ -7,7 +7,7 @@ from accounts.models import Aliada, Fatura, Assinatura, PlanoSocio, Cancao, Camp
 from .models import Torcida, Evento, MembroDiretoria, Regra, FotoGaleria
 # IMPORTAÇÃO LOCAL CORRIGIDA (Separando o que é do Organizadas e o que é do Accounts)
 from organizadas.models import Torcida, Evento, MembroDiretoria, Regra, FotoGaleria, Parceiro, Publicidade, CategoriaDiretoria, ConquistaTorcida, Caravana
-from loja.models import Produto, CategoriaProduto, Variacao
+from loja.models import Produto, CategoriaProduto
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
@@ -526,38 +526,6 @@ def painel_moderador(request):
         elif acao == 'nova_categoria_loja':
             CategoriaProduto.objects.create(torcida=minha_torcida, nome=request.POST.get('nome'))
             messages.success(request, "Categoria de loja criada!")
-
-        elif acao == 'novo_produto':
-            cat_id = request.POST.get('categoria_id')
-            categoria = CategoriaProduto.objects.get(id=cat_id) if cat_id else None
-            
-            preco_promo = request.POST.get('preco_promocional')
-            
-            novo_produto = Produto.objects.create(
-                torcida=minha_torcida,
-                nome=request.POST.get('nome'),
-                descricao=request.POST.get('descricao', ''),
-                categoria=categoria,
-                preco=request.POST.get('preco'),
-                preco_promocional=preco_promo if preco_promo else None,
-                estoque=request.POST.get('estoque', 0),
-                destaque=request.POST.get('destaque') == 'on',
-                imagem=request.FILES.get('imagem')
-            )
-            
-            # Criar variações de tamanho automaticamente
-            tamanhos_str = request.POST.get('tamanhos', '')
-            if tamanhos_str:
-                for tamanho in tamanhos_str.split(','):
-                    tamanho = tamanho.strip()
-                    if tamanho:
-                        Variacao.objects.create(
-                            produto=novo_produto,
-                            nome=tamanho,
-                            estoque=0
-                        )
-            
-            messages.success(request, "Produto adicionado à loja oficial!")
 
         elif acao == 'deletar_produto':
             get_object_or_404(Produto, id=request.POST.get('item_id'), torcida=minha_torcida).delete()

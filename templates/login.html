@@ -30,7 +30,13 @@
                 <form method="post" action="{% url 'login' %}" class="flex flex-col gap-4">
                     {% csrf_token %}
                     
-                    <input type="text" name="username" placeholder="E-mail ou Usuário" class="w-full bg-[#0d1117] border-2 border-gray-800 text-white text-sm font-semibold rounded-xl focus:border-[var(--tema-cor)] focus:ring-4 focus:ring-[var(--tema-cor)]/20 p-4 outline-none transition-all placeholder-gray-500" required>
+                    {% if form.errors %}
+                    <div role="alert" class="flex items-start gap-2 bg-red-500/10 border border-red-500/40 text-red-500 text-xs font-bold rounded-xl px-4 py-3">
+                        <i class="bi bi-exclamation-triangle-fill mt-0.5"></i>
+                        <span>{% if form.non_field_errors %}E-mail/usuário ou senha incorretos. Confira e tente de novo.{% else %}{{ form.errors.values.0.0 }}{% endif %}</span>
+                    </div>
+                    {% endif %}
+                    <input type="text" name="username" value="{{ form.username.value|default:'' }}" placeholder="E-mail ou Usuário" class="w-full bg-[#0d1117] border-2 border-gray-800 text-white text-sm font-semibold rounded-xl focus:border-[var(--tema-cor)] focus:ring-4 focus:ring-[var(--tema-cor)]/20 p-4 outline-none transition-all placeholder-gray-500" required>
                     
                     <div class="relative">
                         <input type="password" id="pass1" name="password" placeholder="Senha" class="w-full bg-[#0d1117] border-2 border-gray-800 text-white text-sm font-semibold rounded-xl focus:border-[var(--tema-cor)] focus:ring-4 focus:ring-[var(--tema-cor)]/20 p-4 pr-12 outline-none transition-all placeholder-gray-500" required>
@@ -83,7 +89,13 @@
             <form method="post" action="{% url 'login' %}" class="w-full flex flex-col gap-4">
                 {% csrf_token %}
                 
-                <input type="text" name="username" placeholder="E-mail ou Usuário" class="w-full bg-white border-2 border-[#D37129] text-black text-sm font-medium rounded-xl focus:ring-4 focus:ring-[#D37129]/20 block p-4 outline-none transition-all" required>
+                {% if form.errors %}
+                    <div role="alert" class="flex items-start gap-2 bg-red-500/10 border border-red-500/40 text-red-500 text-xs font-bold rounded-xl px-4 py-3">
+                        <i class="bi bi-exclamation-triangle-fill mt-0.5"></i>
+                        <span>{% if form.non_field_errors %}E-mail/usuário ou senha incorretos. Confira e tente de novo.{% else %}{{ form.errors.values.0.0 }}{% endif %}</span>
+                    </div>
+                    {% endif %}
+                    <input type="text" name="username" value="{{ form.username.value|default:'' }}" placeholder="E-mail ou Usuário" class="w-full bg-white border-2 border-[#D37129] text-black text-sm font-medium rounded-xl focus:ring-4 focus:ring-[#D37129]/20 block p-4 outline-none transition-all" required>
                 
                 <div class="relative">
                     <input type="password" id="pass2" name="password" placeholder="Senha" class="w-full bg-white border-2 border-[#D37129] text-black text-sm font-medium rounded-xl focus:ring-4 focus:ring-[#D37129]/20 block p-4 pr-12 outline-none transition-all" required>

@@ -1,5 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    dialog.janela { padding: 0; border: none; background: transparent; width: min(92vw, 440px); max-height: 85vh; }
+    dialog.janela::backdrop { background: rgba(0, 0, 0, .6); backdrop-filter: blur(2px); }
+    .opcao-btn[aria-pressed="true"] { border-color: var(--cor-primaria, #D37129); background: var(--cor-primaria, #D37129); color: #fff; }
+    .opcao-btn:disabled { opacity: .3; text-decoration: line-through; cursor: not-allowed; }
+    .estrela { color: rgba(156, 163, 175, .5); }
+    .estrela.on { color: #f5b301; }
+</style>
 
 <div class="px-5 mb-4 pt-4 flex items-center gap-4">
     <a href="{% url 'loja' %}" class="w-10 h-10 fundo-card rounded-2xl flex items-center justify-center shadow-sm border border-suave texto-main hover:scale-105 transition-transform">
@@ -13,35 +23,68 @@
 </div>
 
 <div class="px-5 pb-10">
-    <div class="w-full aspect-square fundo-card rounded-[32px] overflow-hidden shadow-sm border border-suave relative mb-6 flex items-center justify-center">
+    {# ---------- GALERIA ---------- #}
+    <div class="w-full aspect-square fundo-card rounded-[32px] overflow-hidden shadow-sm border border-suave relative mb-3">
         {% if produto.destaque %}
         <span class="absolute top-4 left-4 fundo-tema texto-claro text-[10px] font-black uppercase px-3 py-1.5 rounded-full shadow-md z-10">Destaque</span>
         {% endif %}
-        
-        {% if produto.imagem %}
-            <img src="{{ produto.imagem.url }}" class="w-full h-full object-cover">
+        {% if imagens %}
+            <div id="galeria" class="w-full h-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
+                {% for img in imagens %}
+                <img src="{{ img.url }}" alt="{{ produto.nome }} — foto {{ forloop.counter }}" class="w-full h-full object-cover flex-shrink-0 snap-center">
+                {% endfor %}
+            </div>
+            {% if imagens|length > 1 %}
+            <span id="contador_galeria" class="absolute bottom-4 right-4 bg-black/60 text-white text-[10px] font-black px-2.5 py-1 rounded-full">1 / {{ imagens|length }}</span>
+            {% endif %}
         {% else %}
-            <i class="bi bi-box-seam text-6xl texto-main opacity-10"></i>
+            <div class="w-full h-full flex items-center justify-center"><i class="bi bi-box-seam text-6xl texto-main opacity-10"></i></div>
         {% endif %}
     </div>
+    {% if imagens|length > 1 %}
+    <div class="flex gap-2 overflow-x-auto no-scrollbar mb-6">
+        {% for img in imagens %}
+        <button type="button" onclick="irParaFoto({{ forloop.counter0 }})" class="miniatura w-14 h-14 flex-shrink-0 rounded-xl overflow-hidden border-2 {% if forloop.first %}border-tema{% else %}border-suave{% endif %}" aria-label="Ver foto {{ forloop.counter }}">
+            <img src="{{ img.url }}" alt="" class="w-full h-full object-cover">
+        </button>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="mb-3"></div>
+    {% endif %}
 
     <div class="fundo-card rounded-[32px] p-6 shadow-sm border border-suave relative">
-        
-        <div class="flex justify-between items-start mb-3">
-            <span class="px-3 py-1 fundo-app border border-suave texto-tema text-[9px] font-black uppercase tracking-widest rounded-full">
-                {{ produto.categoria|default:"Oficial" }}
-            </span>
-            <p class="text-2xl font-black texto-main">R$ {{ produto.preco }}</p>
+
+        <div class="flex justify-between items-start mb-3 gap-3">
+            <div class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 fundo-app border border-suave texto-tema text-[9px] font-black uppercase tracking-widest rounded-full">
+                    {{ produto.categoria|default:"Oficial" }}
+                </span>
+                <span class="px-3 py-1 bg-black/5 border border-suave texto-main text-[9px] font-black uppercase tracking-widest rounded-full flex items-center gap-1">
+                    {% if produto.torcida.logo %}<img src="{{ produto.torcida.logo.url }}" alt="" class="w-3.5 h-3.5 object-contain">{% else %}<i class="bi bi-shop"></i>{% endif %}
+                    Vendido por {{ produto.vendedor }}
+                </span>
+            </div>
+            <div class="text-right flex-shrink-0">
+                {% if produto.preco_atual != produto.preco %}
+                <p class="text-xs font-bold texto-main opacity-40 line-through">R$ {{ produto.preco }}</p>
+                {% endif %}
+                <p class="text-2xl font-black texto-main">R$ {{ produto.preco_atual }}</p>
+            </div>
         </div>
-        
-        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-tight mb-4">
+
+        <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-tight mb-2">
             {{ produto.nome }}
         </h1>
 
-        <div class="flex items-center gap-2 mb-6 bg-green-50/50 text-green-600 px-3 py-2 rounded-xl border border-green-100/50 w-fit">
-            <i class="bi bi-check-circle-fill text-sm"></i>
-            <span class="text-[10px] font-black uppercase tracking-wider">Estoque: {{ produto.estoque }}</span>
-        </div>
+        {% if total_avaliacoes %}
+        <a href="#avaliacoes" class="flex items-center gap-1 mb-4 no-underline w-fit">
+            {% with media=nota_media|floatformat:0 %}
+            {% for i in "12345" %}<i class="bi bi-star-fill text-xs estrela {% if i <= media %}on{% endif %}"></i>{% endfor %}
+            {% endwith %}
+            <span class="text-[10px] font-black texto-main opacity-60 ml-1">{{ nota_media|floatformat:1 }} ({{ total_avaliacoes }})</span>
+        </a>
+        {% endif %}
 
         <div class="mb-6">
             <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-2 flex items-center gap-2">
@@ -56,27 +99,321 @@
             </p>
         </div>
 
-        <form action="{% url 'adicionar_ao_carrinho' produto.id %}" method="POST">
+        <form action="{% url 'adicionar_ao_carrinho' produto.id %}" method="POST" id="form_carrinho">
             {% csrf_token %}
+            <input type="hidden" name="variacao_id" id="variacao_id">
 
-            {% if produto.variacoes.exists %}
-            <div class="mb-6 fundo-app p-4 rounded-2xl border border-suave">
-                <label class="text-[10px] font-black uppercase texto-main opacity-60 tracking-widest block mb-2">Selecione o Tamanho</label>
-                <select name="variacao_id" class="w-full bg-transparent border-none font-bold text-sm texto-main focus:ring-0 outline-none cursor-pointer">
-                    {% for v in produto.variacoes.all %}
-                        <option value="{{ v.id }}" {% if v.estoque == 0 %}disabled{% endif %} class="texto-main bg-white">
-                            {{ v.nome }} {% if v.estoque == 0 %}(Esgotado){% endif %}
-                        </option>
-                    {% endfor %}
-                </select>
+            {% if tem_variacoes %}
+            <div class="mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-[10px] font-black uppercase texto-main opacity-60 tracking-widest">{{ produto.rotulo_opcao1|default:"Tamanho" }}</label>
+                    {% if produto.tabela_medidas or linhas_medidas %}
+                    <button type="button" onclick="document.getElementById('janela_medidas').showModal()" class="text-[10px] font-black uppercase texto-tema flex items-center gap-1"><i class="bi bi-rulers"></i> Tabela de medidas</button>
+                    {% endif %}
+                </div>
+                <div id="opcoes1" class="flex flex-wrap gap-2"></div>
+            </div>
+            {% if produto.rotulo_opcao2 %}
+            <div class="mb-4">
+                <label class="text-[10px] font-black uppercase texto-main opacity-60 tracking-widest block mb-2">{{ produto.rotulo_opcao2 }}</label>
+                <div id="opcoes2" class="flex flex-wrap gap-2"></div>
             </div>
             {% endif %}
+            {% elif produto.tabela_medidas or linhas_medidas %}
+            <button type="button" onclick="document.getElementById('janela_medidas').showModal()" class="text-[10px] font-black uppercase texto-tema flex items-center gap-1 mb-4"><i class="bi bi-rulers"></i> Tabela de medidas</button>
+            {% endif %}
 
-            <button type="submit" class="w-full py-4 fundo-tema texto-claro rounded-2xl font-black italic uppercase tracking-widest shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-3">
+            <div class="flex items-center justify-between gap-4 mb-6">
+                <div class="flex items-center fundo-app border border-suave rounded-2xl">
+                    <button type="button" onclick="mudarQtd(-1)" class="w-11 h-11 texto-main text-lg font-black" aria-label="Diminuir quantidade">−</button>
+                    <input type="number" name="quantidade" id="quantidade" value="1" min="1" class="w-10 bg-transparent text-center font-black texto-main text-sm outline-none" aria-label="Quantidade">
+                    <button type="button" onclick="mudarQtd(1)" class="w-11 h-11 texto-main text-lg font-black" aria-label="Aumentar quantidade">+</button>
+                </div>
+                <span id="info_estoque" class="text-[10px] font-black uppercase tracking-wider {% if produto.estoque > 0 %}text-green-600{% else %}text-red-500{% endif %}">
+                    {% if tem_variacoes %}Escolha as opções{% elif produto.estoque > 0 %}{{ produto.estoque }} em estoque{% else %}Esgotado{% endif %}
+                </span>
+            </div>
+
+            <button type="submit" id="btn_adicionar" {% if produto.estoque <= 0 %}disabled{% endif %} class="w-full py-4 fundo-tema texto-claro rounded-2xl font-black italic uppercase tracking-widest shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed">
                 <i class="bi bi-bag-plus-fill text-lg"></i>
-                Adicionar
+                Adicionar ao carrinho
             </button>
+            <p class="text-[9px] font-bold texto-main opacity-40 text-center mt-2">Quer outro tamanho ou cor? Adicione de novo com outras opções.</p>
         </form>
     </div>
+
+    {# ---------- FRETE E PAGAMENTO ---------- #}
+    <div class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave mt-4">
+        <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest mb-3 flex items-center gap-2"><i class="bi bi-truck"></i> Calcular frete</h2>
+        <div class="flex gap-2">
+            <input type="text" id="cep_frete" inputmode="numeric" maxlength="9" placeholder="00000-000" autocomplete="postal-code" class="flex-1 min-w-0 bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm font-bold outline-none focus:border-tema">
+            <button type="button" onclick="calcularFrete()" class="px-5 fundo-tema texto-claro rounded-xl text-[10px] font-black uppercase tracking-widest">Calcular</button>
+        </div>
+        <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener" class="text-[9px] font-bold texto-tema underline mt-2 inline-block">Não sei meu CEP</a>
+        <div id="resultado_frete" class="mt-3 space-y-2"></div>
+    </div>
+
+    <button type="button" onclick="document.getElementById('janela_pagamento').showModal()" class="w-full fundo-card rounded-[24px] p-5 shadow-sm border border-suave mt-4 flex items-center justify-between text-left">
+        <span class="flex items-center gap-3">
+            <i class="bi bi-credit-card-2-front texto-tema text-xl"></i>
+            <span>
+                <span class="text-xs font-black texto-main uppercase block">Formas de pagamento</span>
+                <span class="text-[10px] font-bold texto-main opacity-50">Pix, cartão de crédito e boleto</span>
+            </span>
+        </span>
+        <i class="bi bi-chevron-right texto-main opacity-40"></i>
+    </button>
+
+    {# ---------- AVALIAÇÕES ---------- #}
+    <div id="avaliacoes" class="fundo-card rounded-[24px] p-5 shadow-sm border border-suave mt-4">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-[10px] font-black uppercase texto-main opacity-50 tracking-widest flex items-center gap-2"><i class="bi bi-star"></i> Avaliações</h2>
+            {% if total_avaliacoes %}<span class="text-xs font-black texto-main">{{ nota_media|floatformat:1 }} <i class="bi bi-star-fill estrela on"></i> · {{ total_avaliacoes }}</span>{% endif %}
+        </div>
+
+        {% if pode_avaliar %}
+        <form method="POST" action="{% url 'avaliar_produto' produto.id %}" enctype="multipart/form-data" class="bg-black/5 border border-suave rounded-2xl p-4 mb-5 space-y-3">
+            {% csrf_token %}
+            <p class="text-[10px] font-black uppercase texto-main">{% if minha_avaliacao %}Editar minha avaliação{% else %}Avalie sua compra{% endif %}</p>
+            <input type="hidden" name="nota" id="nota" value="{{ minha_avaliacao.nota|default:0 }}">
+            <div class="flex items-center gap-1" id="seletor_estrelas">
+                {% for i in "12345" %}
+                <button type="button" data-nota="{{ forloop.counter }}" class="text-2xl estrela" aria-label="{{ forloop.counter }} estrela{{ forloop.counter|pluralize }}"><i class="bi bi-star-fill"></i></button>
+                {% endfor %}
+                <span id="nota_texto" class="text-[10px] font-black texto-main opacity-50 ml-2"></span>
+            </div>
+            <textarea name="comentario" maxlength="300" rows="2" placeholder="Conte rapidinho o que achou (opcional)" class="w-full bg-transparent border border-suave rounded-xl p-3 text-xs font-bold texto-main outline-none focus:border-tema resize-none">{{ minha_avaliacao.comentario|default:'' }}</textarea>
+            {% if minha_avaliacao.foto %}
+            <div class="flex items-center gap-3">
+                <img src="{{ minha_avaliacao.foto.url }}" alt="Sua foto" class="w-14 h-14 rounded-xl object-cover">
+                <label class="text-[10px] font-bold texto-main flex items-center gap-2"><input type="checkbox" name="remover_foto" value="1"> Remover foto</label>
+            </div>
+            {% endif %}
+            <label class="flex items-center gap-2 text-[10px] font-black uppercase texto-main opacity-70 cursor-pointer">
+                <i class="bi bi-camera"></i> <span id="nome_foto">Adicionar foto</span>
+                <input type="file" name="foto" accept="image/*" class="hidden" onchange="document.getElementById('nome_foto').textContent = this.files[0] ? this.files[0].name : 'Adicionar foto'">
+            </label>
+            <button type="submit" class="w-full py-3 fundo-tema texto-claro rounded-xl text-[10px] font-black uppercase tracking-widest">Enviar avaliação</button>
+        </form>
+        {% endif %}
+
+        <div class="space-y-4">
+            {% for av in avaliacoes %}
+            <div class="border-b border-suave/50 pb-4 last:border-0 last:pb-0">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs font-black texto-main">{{ av.usuario.perfil.vulgo|default:av.usuario.first_name|default:av.usuario.username }}</span>
+                    <span class="text-[9px] font-bold texto-main opacity-40">{{ av.data|date:"d/m/Y" }}</span>
+                </div>
+                <div class="flex gap-0.5 mb-1">{% for i in "12345" %}<i class="bi bi-star-fill text-[10px] estrela {% if forloop.counter <= av.nota %}on{% endif %}"></i>{% endfor %}</div>
+                {% if av.comentario %}<p class="text-xs texto-main opacity-80 font-medium">{{ av.comentario }}</p>{% endif %}
+                {% if av.foto %}<a href="{{ av.foto.url }}" target="_blank" rel="noopener"><img src="{{ av.foto.url }}" alt="Foto da avaliação" class="w-20 h-20 rounded-xl object-cover mt-2 border border-suave"></a>{% endif %}
+            </div>
+            {% empty %}
+            <p class="text-[10px] font-bold texto-main opacity-40 uppercase tracking-widest text-center py-4">Ainda sem avaliações.{% if not pode_avaliar %} Quem comprar pode avaliar.{% endif %}</p>
+            {% endfor %}
+        </div>
+    </div>
 </div>
+
+{# ---------- JANELA: TABELA DE MEDIDAS ---------- #}
+{% if produto.tabela_medidas or linhas_medidas %}
+<dialog id="janela_medidas" class="janela" onclick="if (event.target === this) this.close()">
+    <div class="fundo-card rounded-[28px] p-6 border border-suave">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-sm font-black uppercase texto-main tracking-widest">Tabela de medidas</h3>
+            <button type="button" onclick="this.closest('dialog').close()" class="w-8 h-8 rounded-full bg-black/5 texto-main" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
+        </div>
+        {% if linhas_medidas %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs texto-main">
+                {% for linha in linhas_medidas %}
+                <tr class="{% if forloop.first %}font-black uppercase text-[10px] opacity-60{% else %}font-bold border-t border-suave{% endif %}">
+                    {% for celula in linha %}<td class="py-2 px-2 {% if not forloop.first %}text-center{% endif %}">{{ celula }}</td>{% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+        {% if produto.tabela_medidas %}
+        <img src="{{ produto.tabela_medidas.url }}" alt="Tabela de medidas" class="w-full rounded-xl {% if linhas_medidas %}mt-4{% endif %}">
+        {% endif %}
+    </div>
+</dialog>
+{% endif %}
+
+{# ---------- JANELA: FORMAS DE PAGAMENTO ---------- #}
+<dialog id="janela_pagamento" class="janela" onclick="if (event.target === this) this.close()">
+    <div class="fundo-card rounded-[28px] p-6 border border-suave overflow-y-auto" style="max-height: 85vh">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-sm font-black uppercase texto-main tracking-widest">Formas de pagamento</h3>
+            <button type="button" onclick="this.closest('dialog').close()" class="w-8 h-8 rounded-full bg-black/5 texto-main" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="space-y-4">
+            <div class="bg-black/5 rounded-2xl p-4 border border-suave">
+                <p class="text-xs font-black uppercase texto-main flex items-center gap-2 mb-2"><i class="bi bi-qr-code text-green-600"></i> Pix</p>
+                <ul class="text-[11px] texto-main opacity-80 font-medium space-y-1 list-disc pl-4">
+                    <li>Aprovação na hora, sem taxa e sem juros.</li>
+                    <li>Pague pelo QR Code ou pelo código "copia e cola".</li>
+                    <li>O código vale por 1 hora depois de gerado.</li>
+                </ul>
+            </div>
+            <div class="bg-black/5 rounded-2xl p-4 border border-suave">
+                <p class="text-xs font-black uppercase texto-main flex items-center gap-2 mb-2"><i class="bi bi-credit-card text-blue-600"></i> Cartão de crédito</p>
+                <ul class="text-[11px] texto-main opacity-80 font-medium space-y-1 list-disc pl-4">
+                    <li>Bandeiras aceitas: Visa, Mastercard, Elo e American Express.</li>
+                    <li>Pagamento à vista (1x), sem juros.</li>
+                    <li>Aprovação em poucos minutos, após a análise da operadora.</li>
+                </ul>
+            </div>
+            <div class="bg-black/5 rounded-2xl p-4 border border-suave">
+                <p class="text-xs font-black uppercase texto-main flex items-center gap-2 mb-2"><i class="bi bi-upc text-orange-500"></i> Boleto bancário</p>
+                <ul class="text-[11px] texto-main opacity-80 font-medium space-y-1 list-disc pl-4">
+                    <li>Vencimento em 5 dias, sem juros.</li>
+                    <li>A compensação leva até 3 dias úteis após o pagamento.</li>
+                    <li>O pedido só é separado depois da compensação.</li>
+                </ul>
+            </div>
+            <p class="text-[10px] font-bold texto-main opacity-50 text-center">Retirando na sede, também dá para pagar lá na hora.<br>Pagamentos processados com segurança pela Efí Bank.</p>
+        </div>
+    </div>
+</dialog>
+
+{{ variacoes_json|json_script:"dados_variacoes" }}
+<script>
+    // ---------- Galeria ----------
+    const galeria = document.getElementById('galeria');
+    function irParaFoto(i) { galeria.scrollTo({ left: i * galeria.clientWidth, behavior: 'smooth' }); }
+    if (galeria) {
+        galeria.addEventListener('scroll', function () {
+            const i = Math.round(galeria.scrollLeft / galeria.clientWidth);
+            const contador = document.getElementById('contador_galeria');
+            if (contador) contador.textContent = (i + 1) + ' / ' + galeria.children.length;
+            document.querySelectorAll('.miniatura').forEach((m, j) => {
+                m.classList.toggle('border-tema', i === j);
+                m.classList.toggle('border-suave', i !== j);
+            });
+        }, { passive: true });
+    }
+
+    // ---------- Variações (até duas) ----------
+    const variacoes = JSON.parse(document.getElementById('dados_variacoes').textContent);
+    const usa2 = {{ produto.rotulo_opcao2|yesno:"true,false" }};
+    const escolha = { op1: null, op2: null };
+    const inputQtd = document.getElementById('quantidade');
+    const btnAdd = document.getElementById('btn_adicionar');
+    const infoEstoque = document.getElementById('info_estoque');
+    let estoqueMax = {{ produto.estoque }};
+
+    function unicos(campo) { return [...new Set(variacoes.map((v) => v[campo]).filter(Boolean))]; }
+
+    function desenharOpcoes(alvoId, campo) {
+        const alvo = document.getElementById(alvoId);
+        if (!alvo) return;
+        unicos(campo).forEach((valor) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'opcao-btn min-w-[44px] px-4 py-2.5 rounded-xl border-2 border-suave texto-main text-xs font-black uppercase transition-colors';
+            b.textContent = valor;
+            b.dataset.valor = valor;
+            b.dataset.campo = campo;
+            b.setAttribute('aria-pressed', 'false');
+            b.onclick = () => { escolha[campo] = escolha[campo] === valor ? null : valor; atualizar(); };
+            alvo.appendChild(b);
+        });
+    }
+
+    function combina(v, op1, op2) { return (!op1 || v.op1 === op1) && (!usa2 || !op2 || v.op2 === op2); }
+
+    function atualizar() {
+        document.querySelectorAll('.opcao-btn').forEach((b) => {
+            const campo = b.dataset.campo, valor = b.dataset.valor;
+            const outro = campo === 'op1' ? ['op2', escolha.op2] : ['op1', escolha.op1];
+            // Esgota a opção que não tem estoque junto com a outra já escolhida
+            const disponivel = variacoes.some((v) => v[campo] === valor && v.estoque > 0 && (!outro[1] || v[outro[0]] === outro[1]));
+            b.disabled = !disponivel;
+            if (!disponivel && escolha[campo] === valor) escolha[campo] = null;
+            b.setAttribute('aria-pressed', String(escolha[campo] === valor));
+        });
+        const completa = escolha.op1 && (!usa2 || escolha.op2);
+        const v = completa ? variacoes.find((x) => combina(x, escolha.op1, escolha.op2)) : null;
+        document.getElementById('variacao_id').value = v ? v.id : '';
+        if (v) {
+            estoqueMax = v.estoque;
+            infoEstoque.textContent = v.estoque > 0 ? v.estoque + ' em estoque' : 'Esgotado';
+            infoEstoque.className = 'text-[10px] font-black uppercase tracking-wider ' + (v.estoque > 0 ? 'text-green-600' : 'text-red-500');
+        } else {
+            infoEstoque.textContent = 'Escolha as opções';
+            infoEstoque.className = 'text-[10px] font-black uppercase tracking-wider texto-main opacity-50';
+        }
+        btnAdd.disabled = !v || v.estoque <= 0;
+        mudarQtd(0);
+    }
+
+    function mudarQtd(delta) {
+        const n = Math.max(1, Math.min((parseInt(inputQtd.value, 10) || 1) + delta, Math.max(estoqueMax, 1)));
+        inputQtd.value = n;
+    }
+    inputQtd.addEventListener('change', () => mudarQtd(0));
+
+    if (variacoes.length) {
+        desenharOpcoes('opcoes1', 'op1');
+        desenharOpcoes('opcoes2', 'op2');
+        // Uma opção só já vem marcada
+        if (unicos('op1').length === 1) escolha.op1 = unicos('op1')[0];
+        if (usa2 && unicos('op2').length === 1) escolha.op2 = unicos('op2')[0];
+        atualizar();
+    }
+
+    // ---------- Frete ----------
+    const inputCep = document.getElementById('cep_frete');
+    inputCep.addEventListener('input', () => {
+        const d = inputCep.value.replace(/\D/g, '').slice(0, 8);
+        inputCep.value = d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d;
+    });
+    inputCep.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); calcularFrete(); } });
+
+    function calcularFrete() {
+        const saida = document.getElementById('resultado_frete');
+        const cep = inputCep.value.replace(/\D/g, '');
+        if (cep.length !== 8) { saida.innerHTML = '<p class="text-red-500 text-xs font-bold">Digite um CEP com 8 números.</p>'; return; }
+        saida.innerHTML = '<p class="text-[10px] font-bold uppercase texto-main opacity-50"><i class="bi bi-arrow-repeat animate-spin inline-block"></i> Calculando...</p>';
+        fetch("{% url 'calcular_frete' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ cep: cep, produto_id: {{ produto.id }}, quantidade: parseInt(inputQtd.value, 10) || 1 }),
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (!data.sucesso) { saida.innerHTML = ''; const p = document.createElement('p'); p.className = 'text-red-500 text-xs font-bold'; p.textContent = data.erro; saida.appendChild(p); return; }
+                saida.innerHTML = '';
+                data.opcoes.forEach((o) => {
+                    const linha = document.createElement('div');
+                    linha.className = 'flex justify-between items-center bg-black/5 border border-suave rounded-xl px-4 py-3';
+                    linha.innerHTML = '<div><span class="text-xs font-black texto-main block"></span><span class="text-[10px] font-bold texto-main opacity-50"></span></div><span class="text-sm font-black texto-tema"></span>';
+                    linha.querySelector('.text-xs').textContent = o.tipo;
+                    linha.querySelector('.text-\\[10px\\]').textContent = o.prazo;
+                    linha.querySelector('.texto-tema').textContent = 'R$ ' + o.valor.toFixed(2).replace('.', ',');
+                    saida.appendChild(linha);
+                });
+            })
+            .catch(() => { saida.innerHTML = '<p class="text-red-500 text-xs font-bold">Não foi possível calcular agora.</p>'; });
+    }
+
+    // ---------- Estrelas da avaliação (toque de novo na mesma estrela = 0) ----------
+    const seletor = document.getElementById('seletor_estrelas');
+    if (seletor) {
+        const inputNota = document.getElementById('nota');
+        const rotulos = ['Sem estrelas', 'Péssimo', 'Ruim', 'Ok', 'Bom', 'Excelente'];
+        const pintar = () => {
+            const n = parseInt(inputNota.value, 10) || 0;
+            seletor.querySelectorAll('[data-nota]').forEach((b) => b.classList.toggle('on', parseInt(b.dataset.nota, 10) <= n));
+            document.getElementById('nota_texto').textContent = n + '/5 · ' + rotulos[n];
+        };
+        seletor.querySelectorAll('[data-nota]').forEach((b) => b.addEventListener('click', () => {
+            inputNota.value = inputNota.value === b.dataset.nota ? 0 : b.dataset.nota;
+            pintar();
+        }));
+        pintar();
+    }
+</script>
 {% endblock %}

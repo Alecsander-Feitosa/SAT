@@ -534,6 +534,7 @@ def seja_socio(request):
         'niveis': niveis,
         'nivel_atual': perfil.nivel_plano,
         'assinatura_vigente': perfil.assinatura_vigente,
+        'planos_pagos_liberados': settings.PLANOS_PAGOS_LIBERADOS,
     }
     return render(request, 'seja_socio.html', context)
 
@@ -1584,6 +1585,10 @@ def pagar_fatura_pix(request, fatura_id):
     from accounts.efi_utils import gerar_cobranca_pix
     
     fatura = get_object_or_404(Fatura, id=fatura_id, assinatura__perfil__user=request.user)
+
+    if not settings.PLANOS_PAGOS_LIBERADOS:
+        messages.info(request, 'O pagamento dos planos ainda não foi liberado. Em breve!')
+        return redirect('seja_socio')
     
     if fatura.status == 'pago':
         messages.info(request, "Esta fatura já está paga.")
@@ -1659,6 +1664,10 @@ def assinar_plano(request, plano_id):
         ativar_assinatura(assinatura)
         messages.success(request, 'Plano Grátis ativado!')
         return redirect('beneficios')
+
+    if not settings.PLANOS_PAGOS_LIBERADOS:
+        messages.info(request, 'A assinatura dos planos pagos ainda não foi liberada. Em breve!')
+        return redirect('seja_socio')
 
     # Reaproveita a assinatura deste plano (renovação soma os dias que ainda restam)
     assinatura = Assinatura.objects.filter(perfil=perfil, plano=plano).order_by('-id').first()

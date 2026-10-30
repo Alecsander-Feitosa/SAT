@@ -5,15 +5,18 @@ from django.db.models import Sum
 def carrinho_global(request):
     """Injeta a contagem de itens do carrinho em TODAS as páginas."""
     total = 0
+    lembrete = None
     if request.user.is_authenticated:
         try:
             from loja.models import ItemCarrinho
-            total = ItemCarrinho.objects.filter(usuario=request.user).aggregate(
-                Sum('quantidade')
-            )['quantidade__sum'] or 0
+            itens = ItemCarrinho.objects.filter(usuario=request.user)
+            total = itens.aggregate(Sum('quantidade'))['quantidade__sum'] or 0
+            # Item mais antigo, para o aviso de "itens esquecidos no carrinho"
+            if total:
+                lembrete = itens.select_related('produto').order_by('adicionado_em').first()
         except Exception:
             pass
-    return {'total_itens_carrinho': total}
+    return {'total_itens_carrinho': total, 'carrinho_lembrete': lembrete}
 
 
 def tema_torcida(request):

@@ -98,6 +98,8 @@
                             {% csrf_token %}
                             {% if nivel_atual == n.nivel and plano.gratuito %}
                             <button type="button" disabled class="w-full py-3 rounded-xl bg-black/5 texto-main font-black uppercase text-[10px] opacity-60">Plano atual</button>
+                            {% elif not plano.gratuito and not planos_pagos_liberados %}
+                            <button type="button" disabled class="w-full py-3 rounded-xl bg-black/5 border border-dashed border-suave texto-main font-black uppercase text-[10px] opacity-60 cursor-not-allowed"><i class="bi bi-hourglass-split"></i> Em breve</button>
                             {% elif nivel_atual == n.nivel %}
                             <button type="submit" class="w-full py-3 rounded-xl fundo-tema texto-claro font-black uppercase text-[10px] transition-transform active:scale-95">Renovar +30 dias</button>
                             {% elif plano.gratuito %}

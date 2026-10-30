@@ -448,6 +448,36 @@
         {% endif %}
     })();
     </script>
+
+    {# ===== CARRINHO ESQUECIDO: avisa uma vez por sessão, fora das páginas da loja ===== #}
+    {% if carrinho_lembrete %}
+    {% with url_name=request.resolver_match.url_name %}
+    {% if url_name != 'loja' and url_name != 'detalhe_produto' and url_name != 'ver_carrinho' and url_name != 'checkout_exemplo' and url_name != 'finalizar_checkout' %}
+    <script>
+    (function () {
+        try { if (sessionStorage.getItem('sat_carrinho_aviso')) return; } catch (e) {}
+        setTimeout(function () {
+            if (!window.Swal || Swal.isVisible()) return; // não briga com outro pop-up aberto
+            try { sessionStorage.setItem('sat_carrinho_aviso', '1'); } catch (e) {}
+            Swal.fire({
+                toast: true,
+                position: 'bottom',
+                {% if carrinho_lembrete.produto.imagem %}imageUrl: '{{ carrinho_lembrete.produto.imagem.url|escapejs }}', imageWidth: 56, imageHeight: 56,{% else %}icon: 'info',{% endif %}
+                title: 'Você esqueceu {{ total_itens_carrinho }} item{{ total_itens_carrinho|pluralize:"s" }} no carrinho',
+                text: '{{ carrinho_lembrete.produto.nome|escapejs }}{% if total_itens_carrinho > 1 %} e mais{% endif %}',
+                showConfirmButton: true,
+                confirmButtonText: 'Ver carrinho',
+                showCloseButton: true,
+                timer: 12000,
+                timerProgressBar: true,
+                confirmButtonColor: '{{ user.perfil.torcida.cor_primaria|default:"#D37129" }}',
+            }).then(function (r) { if (r.isConfirmed) window.location.href = "{% url 'ver_carrinho' %}"; });
+        }, 5000);
+    })();
+    </script>
+    {% endif %}
+    {% endwith %}
+    {% endif %}
     {% endif %}
 
     <script>

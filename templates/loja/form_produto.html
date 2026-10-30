@@ -12,46 +12,137 @@
         </h1>
     </div>
 
-    <form method="POST" enctype="multipart/form-data" class="fundo-card border border-suave rounded-[25px] p-5 shadow-sm flex flex-col gap-5">
+    <form method="POST" enctype="multipart/form-data" class="flex flex-col gap-5">
         {% csrf_token %}
-        
-        <div>
-            <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Nome do Produto</label>
-            <input type="text" name="nome" value="{{ produto.nome|default:'' }}" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
-        </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        {# ---------- DADOS BÁSICOS ---------- #}
+        <div class="fundo-card border border-suave rounded-[25px] p-5 shadow-sm flex flex-col gap-5">
             <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Preço (R$)</label>
-                <input type="number" step="0.01" name="preco" value="{{ produto.preco|default:'' }}" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Nome do Produto</label>
+                <input type="text" name="nome" value="{{ produto.nome|default:'' }}" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
             </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Preço (R$)</label>
+                    <input type="number" step="0.01" min="0" name="preco" value="{{ produto.preco|default:''|stringformat:'s' }}" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Promocional (R$)</label>
+                    <input type="number" step="0.01" min="0" name="preco_promocional" value="{{ produto.preco_promocional|default:''|stringformat:'s' }}" placeholder="Opcional" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Estoque</label>
+                    <input type="number" min="0" name="estoque" id="estoque_produto" value="{{ produto.estoque|default:'0' }}" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                    <p id="aviso_estoque" class="text-[8px] font-bold texto-main opacity-40 mt-1 ml-2 hidden">Com variações, o estoque é a soma delas.</p>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Peso (kg)</label>
+                    <input type="number" step="0.001" min="0" name="peso" value="{{ produto.peso|default:'0.5'|stringformat:'s' }}" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                    <p class="text-[8px] font-bold texto-main opacity-40 mt-1 ml-2">Usado no cálculo do frete.</p>
+                </div>
+            </div>
+
             <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Estoque</label>
-                <input type="number" name="estoque" value="{{ produto.estoque|default:'0' }}" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Categoria</label>
+                <input type="text" name="categoria" list="lista_categorias" value="{{ produto.categoria|default:'' }}" placeholder="Ex: Camisas, Bonés..." class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                <datalist id="lista_categorias">{% for c in categorias %}<option value="{{ c }}">{% endfor %}</datalist>
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Descrição</label>
+                <textarea name="descricao" rows="3" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">{{ produto.descricao|default:'' }}</textarea>
+            </div>
+
+            <div class="flex items-center gap-3 bg-black/5 p-4 rounded-xl border border-suave">
+                <input type="checkbox" name="destaque" id="destaque" {% if produto.destaque %}checked{% endif %} class="w-5 h-5 accent-[#D37129]">
+                <label for="destaque" class="text-xs font-bold texto-main uppercase">Produto em Destaque (Hot)</label>
             </div>
         </div>
 
-        <div>
-            <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Categoria</label>
-            <input type="text" name="categoria" value="{{ produto.categoria|default:'' }}" placeholder="Ex: Camisas, Bonés..." required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+        {# ---------- FOTOS ---------- #}
+        <div class="fundo-card border border-suave rounded-[25px] p-5 shadow-sm flex flex-col gap-4">
+            <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em]">Fotos</h4>
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Foto principal</label>
+                {% if produto.imagem %}
+                    <img src="{{ produto.imagem.url }}" class="w-20 h-20 object-cover rounded-xl border border-suave mb-2">
+                {% endif %}
+                <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
+            </div>
+
+            <div>
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Mais fotos (pode escolher várias)</label>
+                {% if produto %}
+                <div class="grid grid-cols-4 gap-2 mb-2">
+                    {% for foto in produto.imagens_extra.all %}
+                    <label class="relative aspect-square rounded-xl overflow-hidden border border-suave cursor-pointer group">
+                        <img src="{{ foto.imagem.url }}" class="w-full h-full object-cover">
+                        <input type="checkbox" name="remover_foto" value="{{ foto.id }}" class="peer hidden">
+                        <span class="absolute inset-0 bg-red-600/70 text-white text-[8px] font-black uppercase hidden peer-checked:flex items-center justify-center">Remover</span>
+                        <span class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center peer-checked:hidden"><i class="bi bi-x text-xs"></i></span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% if produto.imagens_extra.exists %}<p class="text-[8px] font-bold texto-main opacity-40 mb-2 ml-2">Toque numa foto para marcar para remover.</p>{% endif %}
+                {% endif %}
+                <input type="file" name="fotos_extra" accept="image/*" multiple class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
+            </div>
         </div>
 
-        <div>
-            <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Descrição</label>
-            <textarea name="descricao" rows="3" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">{{ produto.descricao|default:'' }}</textarea>
+        {# ---------- VARIAÇÕES ---------- #}
+        <div class="fundo-card border border-suave rounded-[25px] p-5 shadow-sm flex flex-col gap-4">
+            <div>
+                <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em]">Variações</h4>
+                <p class="text-[9px] font-bold texto-main opacity-40 mt-1">Cada linha é uma combinação com estoque próprio. Ex: P + Preta, G + Branca. Deixe sem linhas se o produto não tem variação.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">1ª variação</label>
+                    <input type="text" name="rotulo_opcao1" id="rotulo_opcao1" value="{{ produto.rotulo_opcao1|default:'Tamanho' }}" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">2ª variação (opcional)</label>
+                    <input type="text" name="rotulo_opcao2" id="rotulo_opcao2" value="{{ produto.rotulo_opcao2|default:'' }}" placeholder="Ex: Cor, Tipo" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                </div>
+            </div>
+
+            <div id="linhas_variacoes" class="flex flex-col gap-2">
+                {% for v in variacoes %}
+                <div class="linha-variacao grid grid-cols-12 gap-2 items-center">
+                    <input type="hidden" name="var_id" value="{{ v.id }}">
+                    <input type="text" name="var_op1" value="{{ v.nome }}" placeholder="P" class="col-span-4 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+                    <input type="text" name="var_op2" value="{{ v.opcao2 }}" placeholder="Preta" class="campo-op2 col-span-4 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+                    <input type="number" min="0" name="var_estoque" value="{{ v.estoque }}" placeholder="Qtd" class="col-span-3 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+                    <button type="button" onclick="removerLinha(this)" class="col-span-1 text-red-500" aria-label="Remover variação"><i class="bi bi-trash"></i></button>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="grid grid-cols-12 gap-2 text-[8px] font-black uppercase texto-main opacity-40 px-1 -mt-2" id="legenda_variacoes">
+                <span class="col-span-4" id="leg_op1">{{ produto.rotulo_opcao1|default:'Tamanho' }}</span>
+                <span class="col-span-4" id="leg_op2">{{ produto.rotulo_opcao2|default:'—' }}</span>
+                <span class="col-span-3">Estoque</span>
+            </div>
+            <button type="button" onclick="adicionarLinha()" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2.5 rounded-full font-black uppercase border border-suave texto-main">+ Adicionar variação</button>
         </div>
 
-        <div class="flex items-center gap-3 bg-black/5 p-4 rounded-xl border border-suave">
-            <input type="checkbox" name="destaque" id="destaque" {% if produto.destaque %}checked{% endif %} class="w-5 h-5 accent-[#D37129]">
-            <label for="destaque" class="text-xs font-bold texto-main uppercase">Produto em Destaque (Hot)</label>
-        </div>
-
-        <div>
-            <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Imagem do Produto</label>
-            <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
-            {% if produto.imagem %}
-                <p class="text-[9px] texto-main opacity-40 mt-2 ml-2">Imagem atual: {{ produto.imagem.name }}</p>
+        {# ---------- TABELA DE MEDIDAS ---------- #}
+        <div class="fundo-card border border-suave rounded-[25px] p-5 shadow-sm flex flex-col gap-4">
+            <div>
+                <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em]">Tabela de medidas</h4>
+                <p class="text-[9px] font-bold texto-main opacity-40 mt-1">Envie uma imagem pronta ou escreva a tabela: uma linha por tamanho, colunas separadas por |. A 1ª linha é o cabeçalho.</p>
+            </div>
+            <textarea name="tabela_medidas_texto" rows="4" placeholder="Tamanho | Largura | Altura&#10;P | 50 cm | 70 cm&#10;M | 53 cm | 72 cm" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-xs font-mono focus:outline-none focus:border-tema">{{ produto.tabela_medidas_texto|default:'' }}</textarea>
+            {% if produto.tabela_medidas %}
+            <div class="flex items-center gap-3">
+                <img src="{{ produto.tabela_medidas.url }}" class="w-20 h-20 object-cover rounded-xl border border-suave">
+                <label class="text-[10px] font-bold texto-main flex items-center gap-2"><input type="checkbox" name="remover_tabela_medidas" value="1"> Remover imagem</label>
+            </div>
             {% endif %}
+            <input type="file" name="tabela_medidas" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
         </div>
 
         <button type="submit" class="w-full py-4 mt-2 fundo-tema texto-claro rounded-xl font-black uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-transform">
@@ -59,4 +150,53 @@
         </button>
     </form>
 </div>
+
+<template id="modelo_linha">
+    <div class="linha-variacao grid grid-cols-12 gap-2 items-center">
+        <input type="hidden" name="var_id" value="">
+        <input type="text" name="var_op1" placeholder="P" class="col-span-4 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+        <input type="text" name="var_op2" placeholder="Preta" class="campo-op2 col-span-4 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+        <input type="number" min="0" name="var_estoque" value="0" placeholder="Qtd" class="col-span-3 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+        <button type="button" onclick="removerLinha(this)" class="col-span-1 text-red-500" aria-label="Remover variação"><i class="bi bi-trash"></i></button>
+    </div>
+</template>
+
+<script>
+    const linhas = document.getElementById('linhas_variacoes');
+    const rot1 = document.getElementById('rotulo_opcao1');
+    const rot2 = document.getElementById('rotulo_opcao2');
+
+    function atualizarVariacoes() {
+        const temLinhas = linhas.children.length > 0;
+        const usa2 = rot2.value.trim() !== '';
+        document.getElementById('legenda_variacoes').classList.toggle('hidden', !temLinhas);
+        document.getElementById('leg_op1').textContent = rot1.value || 'Tamanho';
+        document.getElementById('leg_op2').textContent = usa2 ? rot2.value : '—';
+        linhas.querySelectorAll('.campo-op2').forEach((c) => { c.disabled = !usa2; c.classList.toggle('opacity-30', !usa2); });
+        // Com variações, o estoque do produto vira a soma delas (calculado ao salvar)
+        document.getElementById('estoque_produto').readOnly = temLinhas;
+        document.getElementById('estoque_produto').classList.toggle('opacity-50', temLinhas);
+        document.getElementById('aviso_estoque').classList.toggle('hidden', !temLinhas);
+    }
+
+    function adicionarLinha() {
+        linhas.appendChild(document.getElementById('modelo_linha').content.cloneNode(true));
+        atualizarVariacoes();
+        linhas.lastElementChild.querySelector('[name=var_op1]').focus();
+    }
+
+    function removerLinha(botao) {
+        botao.closest('.linha-variacao').remove();
+        atualizarVariacoes();
+    }
+
+    // Campo desabilitado não é enviado: reabilita antes de enviar para as listas ficarem alinhadas
+    document.querySelector('form').addEventListener('submit', () => {
+        linhas.querySelectorAll('.campo-op2').forEach((c) => { if (c.disabled) { c.value = ''; c.disabled = false; } });
+    });
+
+    rot1.addEventListener('input', atualizarVariacoes);
+    rot2.addEventListener('input', atualizarVariacoes);
+    atualizarVariacoes();
+</script>
 {% endblock %}

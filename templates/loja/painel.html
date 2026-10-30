@@ -15,6 +15,46 @@
         </a>
     </div>
 
+    {# ---------- BANNER E ENVIO ---------- #}
+    <details class="fundo-card border border-suave rounded-[20px] p-4 shadow-sm mb-6" {% if not config.banner_imagem and not config.cep_origem %}open{% endif %}>
+        <summary class="text-[10px] font-black texto-main uppercase tracking-widest cursor-pointer flex items-center gap-2">
+            <i class="bi bi-image texto-tema"></i> Banner da loja e envio
+        </summary>
+        <form method="POST" enctype="multipart/form-data" class="flex flex-col gap-3 mt-4">
+            {% csrf_token %}
+            <div class="w-full h-32 rounded-[18px] overflow-hidden relative border border-suave bg-gradient-to-r from-gray-900 to-black">
+                {% if config.banner_imagem %}
+                    <img src="{{ config.banner_imagem.url }}" class="absolute inset-0 w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                {% endif %}
+                <div class="absolute inset-0 p-4 flex flex-col justify-end">
+                    {% if config.banner_selo %}<span class="fundo-tema texto-claro text-[8px] font-black uppercase px-2 py-0.5 rounded-full w-max mb-1">{{ config.banner_selo }}</span>{% endif %}
+                    <p class="text-white text-sm font-black uppercase leading-tight">{{ config.banner_titulo }}</p>
+                    <p class="text-white/70 text-[9px] font-bold uppercase">{{ config.banner_subtitulo }}</p>
+                </div>
+            </div>
+            <input type="file" name="banner_imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
+            <p class="text-[8px] font-bold texto-main opacity-40 -mt-2 ml-2">Formato largo, ex: 1200 × 450 px.</p>
+            {% if config.banner_imagem %}
+            <label class="text-[10px] font-bold texto-main flex items-center gap-2 ml-2"><input type="checkbox" name="remover_banner" value="1"> Remover imagem</label>
+            {% endif %}
+            <div class="grid grid-cols-3 gap-2">
+                <input type="text" name="banner_selo" value="{{ config.banner_selo }}" maxlength="30" placeholder="Selo" class="col-span-1 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+                <input type="text" name="banner_titulo" value="{{ config.banner_titulo }}" maxlength="80" placeholder="Título" class="col-span-2 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+            </div>
+            <input type="text" name="banner_subtitulo" value="{{ config.banner_subtitulo }}" maxlength="120" placeholder="Subtítulo" class="bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+            <input type="text" name="banner_link" value="{{ config.banner_link }}" maxlength="255" placeholder="Link ao tocar no banner (opcional, ex: /loja/produto/12/)" class="bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+
+            <div class="border-t border-suave pt-3 mt-1">
+                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">CEP de onde os produtos são enviados</label>
+                <input type="text" name="cep_origem" value="{{ config.cep_origem }}" inputmode="numeric" maxlength="9" placeholder="00000-000" class="w-full bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+                <p class="text-[8px] font-bold texto-main opacity-40 mt-1 ml-2">Normalmente o CEP da sede. Não sabe? <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener" class="texto-tema underline">Busque pelo endereço nos Correios</a>.</p>
+            </div>
+
+            <button type="submit" class="w-full py-3 fundo-tema texto-claro rounded-xl font-black uppercase text-[10px] tracking-widest shadow-md active:scale-95 transition-transform">Salvar banner e envio</button>
+        </form>
+    </details>
+
     <div class="flex flex-col gap-4">
         {% for produto in produtos %}
         <div class="fundo-card border border-suave rounded-[20px] p-3 flex items-center gap-4 shadow-sm relative overflow-hidden">
@@ -45,7 +85,7 @@
                 <a href="{% url 'editar_produto' produto.id %}" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20 active:scale-90 transition-transform">
                     <i class="bi bi-pencil-fill text-[10px]"></i>
                 </a>
-                <a href="{% url 'excluir_produto' produto.id %}" onclick="return confirm('Tem certeza que deseja excluir?')" class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 active:scale-90 transition-transform">
+                <a href="{% url 'excluir_produto' produto.id %}" onclick="return confirm('Tem certeza que deseja excluir?')" aria-label="Excluir produto" class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 active:scale-90 transition-transform">
                     <i class="bi bi-trash-fill text-[10px]"></i>
                 </a>
             </div>
