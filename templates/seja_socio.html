@@ -142,22 +142,33 @@
             {% csrf_token %}
 
             <div class="mb-8 border border-suave rounded-[20px] overflow-hidden fundo-card shadow-sm">
-                <details class="group" id="menu-times" open>
-                    <summary class="flex items-center justify-between p-4 cursor-pointer list-none outline-none">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center border border-suave">
-                                <i class="bi bi-heart-fill texto-main text-lg"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-xs font-black texto-main uppercase tracking-widest leading-none" id="texto-time-atual">
-                                    {% if perfil.time_coracao %}Meu Time: <span class="texto-main">{{ perfil.time_coracao }}</span>{% else %}Escolher Time do Coração{% endif %}
-                                </h3>
-                                <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Toque para expandir a lista</p>
-                            </div>
+                <!-- Time escolhido em destaque -->
+                <div id="time-destaque" class="p-5 flex items-center gap-4 {% if not perfil.time_coracao %}hidden{% endif %}">
+                    <div class="w-20 h-20 shrink-0 rounded-2xl bg-black/5 border border-suave flex items-center justify-center p-2">
+                        <img id="time-destaque-escudo" src="{{ escudo_time|default:'' }}" alt="" class="max-h-full max-w-full object-contain drop-shadow-md {% if not escudo_time %}hidden{% endif %}">
+                        <i id="time-destaque-icone" class="bi bi-heart-fill texto-main text-3xl {% if escudo_time %}hidden{% endif %}"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest">Meu Time</p>
+                        <h3 id="time-destaque-nome" class="text-lg font-black texto-main uppercase leading-tight truncate">{{ perfil.time_coracao|default:'' }}</h3>
+                        <p id="time-destaque-aviso" class="hidden text-[8px] font-black text-yellow-600 uppercase tracking-widest mt-1">Toque em Salvar para confirmar</p>
+                    </div>
+                    <button type="button" id="btn-trocar-time" class="shrink-0 px-4 py-2 border border-suave rounded-full text-[9px] font-black texto-main uppercase tracking-widest active:scale-95 transition-transform">
+                        <i class="bi bi-arrow-repeat"></i> Trocar
+                    </button>
+                </div>
+
+                <!-- Lista de times: aberta só para escolher ou trocar -->
+                <div id="lista-times" class="{% if perfil.time_coracao %}hidden border-t border-suave{% endif %}">
+                    <div class="flex items-center gap-3 p-4">
+                        <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center border border-suave">
+                            <i class="bi bi-heart-fill texto-main text-lg"></i>
                         </div>
-                        <i class="bi bi-chevron-down texto-main opacity-50 transition-transform duration-300 group-open:rotate-180"></i>
-                    </summary>
-                    
+                        <h3 class="text-xs font-black texto-main uppercase tracking-widest leading-none">
+                            {% if perfil.time_coracao %}Trocar de Time{% else %}Escolher Time do Coração{% endif %}
+                        </h3>
+                    </div>
+
                     <div class="p-4 border-t border-suave bg-black/5">
                         <div class="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto scroll-custom p-1">
                             {% for time in times_brasil %}
@@ -174,7 +185,7 @@
                             {% endfor %}
                         </div>
                     </div>
-                </details>
+                </div>
             </div>
 
             {% if not perfil.torcida or not perfil.aprovado %}
@@ -226,6 +237,11 @@
             <form method="POST" action="{% url 'seja_socio' %}" onsubmit="return confirm('Sair da torcida agora?');">
                 {% csrf_token %}
                 <input type="hidden" name="torcida_id" value="neutro">
+                {% if user.has_usable_password %}
+                <input type="password" name="senha_confirmacao" required autocomplete="current-password" placeholder="Digite sua senha de login" class="w-full mb-3 px-4 py-3 rounded-xl border border-red-500/40 bg-transparent texto-main text-xs font-bold text-center outline-none focus:border-red-500">
+                {% else %}
+                <input type="text" name="senha_confirmacao" required autocomplete="off" placeholder="Digite SAIR para confirmar" class="w-full mb-3 px-4 py-3 rounded-xl border border-red-500/40 bg-transparent texto-main text-xs font-bold text-center uppercase outline-none focus:border-red-500">
+                {% endif %}
                 <button type="submit" class="w-full py-3 border border-red-500 text-red-500 rounded-xl text-[9px] font-black uppercase active:scale-95 transition-transform">Desvincular Agora</button>
             </form>
         </div>
@@ -237,29 +253,23 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const radiosTime = document.querySelectorAll('input[name="time_coracao"]');
-        const textoTimeAtual = document.getElementById('texto-time-atual');
-        const menuTimes = document.getElementById('menu-times');
+        const destaque = document.getElementById('time-destaque');
+        const destaqueEscudo = document.getElementById('time-destaque-escudo');
+        const destaqueIcone = document.getElementById('time-destaque-icone');
+        const destaqueNome = document.getElementById('time-destaque-nome');
+        const destaqueAviso = document.getElementById('time-destaque-aviso');
+        const listaTimes = document.getElementById('lista-times');
+        const btnTrocar = document.getElementById('btn-trocar-time');
+        const ICONE_TROCAR = '<i class="bi bi-arrow-repeat"></i> Trocar';
 
-        radiosTime.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.checked) {
-                    // Atualiza o texto imediatamente
-                    textoTimeAtual.innerHTML = `Meu Time: <span class="texto-main">${this.value}</span>`;
-                    // Fecha o menu retrátil suavemente
-                    if (menuTimes) {
-                        menuTimes.removeAttribute('open');
-                    }
-                }
-            });
+        // Botão Trocar abre/fecha a lista de times
+        btnTrocar.addEventListener('click', function() {
+            const abrir = listaTimes.classList.contains('hidden');
+            listaTimes.classList.toggle('hidden', !abrir);
+            this.innerHTML = abrir ? '<i class="bi bi-x-lg"></i> Fechar' : ICONE_TROCAR;
         });
-    });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const radiosTime = document.querySelectorAll('input[name="time_coracao"]');
-        const textoTimeAtual = document.getElementById('texto-time-atual');
-        const menuTimes = document.getElementById('menu-times');
-        
-        // NOVA LÓGICA DE FILTRO
+        // FILTRO DE TORCIDAS PELO TIME
         const torcidaItems = document.querySelectorAll('.torcida-item');
         
         function filtrarTorcidas(timeSelecionado) {
@@ -288,12 +298,19 @@
         radiosTime.forEach(radio => {
             radio.addEventListener('change', function() {
                 if (this.checked) {
-                    // Atualiza o texto imediatamente
-                    textoTimeAtual.innerHTML = `Meu Time: <span class="texto-main">${this.value}</span>`;
-                    // Fecha o menu retrátil suavemente
-                    if (menuTimes) {
-                        menuTimes.removeAttribute('open');
+                    // Coloca o time escolhido em destaque e recolhe a lista
+                    const img = document.querySelector('label[for="' + this.id + '"] img');
+                    destaqueNome.textContent = this.value;
+                    if (img) {
+                        destaqueEscudo.src = img.src;
+                        destaqueEscudo.classList.remove('hidden');
+                        destaqueIcone.classList.add('hidden');
                     }
+                    destaqueAviso.classList.remove('hidden');
+                    destaque.classList.remove('hidden');
+                    listaTimes.classList.add('hidden', 'border-t', 'border-suave');
+                    btnTrocar.innerHTML = ICONE_TROCAR;
+                    destaque.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     // Filtra as torcidas em tempo real
                     filtrarTorcidas(this.value);
                 }

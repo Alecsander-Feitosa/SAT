@@ -5,9 +5,25 @@
         <div class="w-16 h-16 mx-auto rounded-full fundo-tema flex items-center justify-center shadow-lg">
             <i class="bi bi-megaphone-fill text-2xl text-white"></i>
         </div>
-        <h1 class="text-2xl font-black texto-main mt-3">Fale com o BEPE</h1>
-        <p class="text-sm texto-main opacity-70 mt-1">Canal de denúncia <b>100% anônimo</b>. Não registramos seu nome, usuário ou qualquer dado que identifique você.</p>
+        <h1 class="text-2xl font-black texto-main mt-3">Emergência</h1>
+        <p class="text-sm texto-main opacity-70 mt-1">Ligue para o serviço público certo ou faça uma denúncia <b>100% anônima</b> abaixo.</p>
     </div>
+
+    {# Serviços públicos: um toque liga direto #}
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6">
+        {% for numero, nome, icone, cor in servicos_emergencia %}
+        <a href="tel:{{ numero|cut:' '|cut:'('|cut:')'|cut:'-' }}" class="fundo-card border border-suave rounded-2xl p-3 flex items-center gap-3 no-underline shadow-sm active:scale-[0.98] transition-transform">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: {{ cor }}"><i class="bi {{ icone }} text-white"></i></div>
+            <div class="min-w-0">
+                <p class="text-base font-black texto-main leading-none">{{ numero }}</p>
+                <p class="text-[10px] texto-main opacity-60 font-bold leading-tight mt-1">{{ nome }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <h2 class="text-sm font-black uppercase tracking-widest texto-main mb-1">Denúncia anônima</h2>
+    <p class="text-xs texto-main opacity-60 mb-3">Não registramos seu nome, usuário ou qualquer dado que identifique você.</p>
 
     <form method="post" enctype="multipart/form-data" class="fundo-card rounded-2xl p-5 shadow-md border border-suave space-y-4">
         {% csrf_token %}
@@ -46,6 +62,5 @@
     <a href="{% url 'bepe:acompanhar_denuncia' %}" class="block text-center text-sm font-bold texto-main opacity-70 hover:opacity-100 mt-5">
         <i class="bi bi-search"></i> Já fez uma denúncia? Acompanhe pelo protocolo
     </a>
-    <p class="text-center text-xs texto-main opacity-50 mt-4">Em caso de emergência, ligue <b>190</b>.</p>
 </div>
 {% endblock %}

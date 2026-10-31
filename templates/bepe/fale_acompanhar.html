@@ -16,7 +16,7 @@
         </div>
         <p class="text-xs texto-main opacity-60">{{ denuncia.get_categoria_display }} · enviada em {{ denuncia.criada_em|date:"d/m/Y" }}</p>
         <div>
-            <p class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">Resposta do BEPE</p>
+            <p class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">Resposta</p>
             <p class="text-sm texto-main whitespace-pre-line mt-1">{{ denuncia.resposta_publica|default:"Ainda sem resposta. Volte mais tarde." }}</p>
         </div>
     </div>

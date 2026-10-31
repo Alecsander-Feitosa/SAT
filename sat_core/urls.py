@@ -30,7 +30,7 @@ urlpatterns = [
     path('financeiro/', accounts_views.financeiro, name='financeiro'),
     
     # ROTAS DE ADMINISTRAÇÃO DA SAT
-    path('admin-financeiro/', TemplateView.as_view(template_name='admin_financeiro.html'), name='admin_financeiro'),
+    # (o financeiro do moderador fica em organizadas/urls.py: admin_financeiro)
     path('admin-master/', TemplateView.as_view(template_name='admin_master.html'), name='admin_master'),
     
     path('admin-dashboard/', TemplateView.as_view(template_name='admin_master.html'), name='admin_dashboard'),

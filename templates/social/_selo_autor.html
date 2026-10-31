@@ -1,4 +1,4 @@
-{# Nome do autor com os selos: Desenvolvedor (neon), Presidente (cores e brasão da torcida), sócio e nível #}
+{# Nome do autor com os selos: Desenvolvedor (neon), Presidente (cores e brasão da torcida), identidade verificada e nível #}
 <span class="inline-flex items-center gap-1 min-w-0">
     {% if dev %}
         <span class="font-black truncate selo-dev-nome">{{ nome }}</span>
@@ -9,7 +9,7 @@
         <span class="selo-presidente" style="background: {{ perfil.torcida.cor_primaria }}" title="Presidente — líder oficial da {{ perfil.torcida.nome }}"><i class="bi bi-megaphone-fill"></i></span>
     {% else %}
         <span class="font-black truncate">{{ nome }}</span>
-        {% if perfil.aprovado %}<i class="bi bi-patch-check-fill texto-tema text-[11px] shrink-0" title="Sócio oficial"></i>{% endif %}
+        {% if perfil.docs_status == 'verificado' %}<i class="bi bi-patch-check-fill text-sky-500 text-[11px] shrink-0" title="Identidade verificada"></i>{% endif %}
     {% endif %}
     {% if tamanho != 'mini' %}
         {% if dev %}

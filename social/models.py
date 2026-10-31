@@ -107,6 +107,7 @@ class Notificacao(models.Model):
         ('xp', 'Bônus de EXP'),
         ('nivel', 'Subiu de nível'),
         ('moderacao', 'Moderação'),
+        ('pedido', 'Pedido da loja'),
     ]
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificacoes_sociais')
     ator = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='+')
@@ -167,3 +168,67 @@ class CPFBloqueado(models.Model):
 
     def __str__(self):
         return f"{self.cpf[:3]}.***.***-{self.cpf[-2:]}"
+
+
+class Popup(models.Model):
+    """Pop-up de aviso. Sem torcida = aviso da SAT para todos; com torcida = só para os membros dela."""
+    MODOS = [
+        ('tempo', 'Fecha sozinho (1 a 10s)'),
+        ('manual', 'O usuário fecha'),
+    ]
+    LIMITE_DIARIO_TORCIDA = 3
+
+    torcida = models.ForeignKey(Torcida, on_delete=models.CASCADE, null=True, blank=True, related_name='popups',
+                                help_text="Vazio = aviso da SAT para todos os usuários")
+    titulo = models.CharField(max_length=80)
+    mensagem = models.TextField(max_length=500, blank=True)
+    imagem = models.ImageField(upload_to='popups/', null=True, blank=True)
+    link = models.CharField(max_length=255, blank=True)
+    texto_botao = models.CharField(max_length=30, blank=True, help_text="Ex: Ver evento (só aparece se tiver link)")
+    modo = models.CharField(max_length=10, choices=MODOS, default='manual')
+    duracao = models.PositiveSmallIntegerField("Duração (s)", default=5, help_text="Só no modo 'fecha sozinho': 1 a 10 segundos")
+    exibir_em = models.DateTimeField("Aparece a partir de", default=timezone.now)
+    exibir_ate = models.DateTimeField("Aparece até", null=True, blank=True, help_text="Vazio = até todos verem")
+    ativo = models.BooleanField(default=True)
+    criado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-exibir_em']
+        verbose_name = 'Pop-up'
+        verbose_name_plural = 'Pop-ups'
+
+    def __str__(self):
+        return f"{self.titulo} ({self.torcida or 'SAT'})"
+
+
+class PopupVisto(models.Model):
+    popup = models.ForeignKey(Popup, on_delete=models.CASCADE, related_name='vistos')
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
+    visto_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['popup', 'usuario'], name='popup_visto_uma_vez')]
+
+
+class AvisoCabecalho(models.Model):
+    """Faixa fixa no topo do app para todos. Os admins ligam e desligam quando quiserem."""
+    CORES = [
+        ('info', 'Azul (informação)'),
+        ('alerta', 'Amarelo (atenção)'),
+        ('urgente', 'Vermelho (urgente)'),
+        ('tema', 'Cor da SAT'),
+    ]
+    texto = models.CharField(max_length=160)
+    link = models.CharField(max_length=255, blank=True)
+    cor = models.CharField(max_length=10, choices=CORES, default='info')
+    ativo = models.BooleanField(default=False)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-atualizado_em']
+        verbose_name = 'Aviso de cabeçalho'
+        verbose_name_plural = 'Avisos de cabeçalho'
+
+    def __str__(self):
+        return self.texto

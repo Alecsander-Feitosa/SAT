@@ -1,0 +1,46 @@
+{% extends template_base %}
+{% block bepe_content %}
+<a href="{% url 'bepe:diretoria_documentos' %}" class="text-xs texto-main opacity-60 hover:opacity-100"><i class="bi bi-arrow-left"></i> Voltar</a>
+
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mt-3 mb-4">
+    <div>
+        <h1 class="text-xl font-black texto-main">{{ alvo.titulo }}</h1>
+        <p class="text-sm texto-main opacity-50">{% if tipo == 'caravana' %}Caravana{% else %}Evento{% endif %} · {{ data|date:"d/m/Y H:i" }} · <b>{{ perfis|length }}</b> confirmado{{ perfis|length|pluralize }}</p>
+    </div>
+    <a href="?formato=csv" class="tab px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider text-center"><i class="bi bi-file-earmark-spreadsheet"></i> Baixar planilha</a>
+</div>
+
+<form method="post" class="card p-4 mb-4 flex flex-col sm:flex-row gap-3" onsubmit="return confirm('Enviar a lista com {{ perfis|length }} pessoa{{ perfis|length|pluralize }} ao BEPE?');">
+    {% csrf_token %}
+    <input type="text" name="descricao" placeholder="Observação para o BEPE (opcional)" class="flex-1 fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+    <button class="btn-tema px-6 py-3 whitespace-nowrap" {% if not perfis %}disabled{% endif %}><i class="bi bi-send-fill"></i> Enviar lista ao BEPE</button>
+</form>
+{% if ja_enviadas %}
+<p class="text-[11px] texto-main opacity-60 mb-4"><i class="bi bi-info-circle"></i> Já enviada {{ ja_enviadas|length }} vez{{ ja_enviadas|length|pluralize:"es" }} (última em {{ ja_enviadas.0.enviado_em|date:"d/m H:i" }}, com {{ ja_enviadas.0.total_pessoas }}). Envie de novo para mandar a lista atualizada.</p>
+{% endif %}
+
+<div class="card overflow-x-auto">
+    <table class="w-full text-sm texto-main">
+        <thead>
+            <tr class="text-left text-[9px] font-black uppercase tracking-widest opacity-50">
+                <th class="px-4 py-3">#</th><th class="px-4 py-3">Nome</th><th class="px-4 py-3">Vulgo</th>
+                <th class="px-4 py-3">CPF</th><th class="px-4 py-3">RG/CNH</th><th class="px-4 py-3">WhatsApp</th>
+            </tr>
+        </thead>
+        <tbody class="divide-suave">
+        {% for p in perfis %}
+            <tr class="border-t border-suave">
+                <td class="px-4 py-2 opacity-50">{{ forloop.counter }}</td>
+                <td class="px-4 py-2 font-bold whitespace-nowrap">{{ p.user.get_full_name|default:p.user.username }}</td>
+                <td class="px-4 py-2">{{ p.vulgo|default:"—" }}</td>
+                <td class="px-4 py-2 whitespace-nowrap">{{ p.cpf|default:"—" }}</td>
+                <td class="px-4 py-2">{{ p.rg_cnh|default:"—" }}</td>
+                <td class="px-4 py-2 whitespace-nowrap">{{ p.whatsapp|default:"—" }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="px-4 py-6 text-center opacity-50">Ninguém confirmou presença ainda.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

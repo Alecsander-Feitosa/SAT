@@ -2,214 +2,115 @@
 {% load static %}
 
 {% block content %}
-<style>
-    :root {
+{% include 'includes/painel_sat_estilo.html' %}
 
-        /* Define a cor principal da claque ou usa o padrão da SAT */
-        --cor-primaria: {
-                {
-                torcida.cor_primaria|default: "#D37129"
-            }
-        }
+<div class="painel-sat w-full min-h-screen fundo-app flex flex-col pb-32 px-4 pt-3">
+    {% url 'painel_moderador' as url_voltar %}{% url 'exportar_financeiro_csv' as url_exportar %}
+    {% include 'includes/painel_sat_topo.html' with titulo="Financeiro" icone="bi-cash-coin" voltar=url_voltar acao_url=url_exportar acao_texto="CSV" acao_icone="bi-download" %}
 
-        ;
-    }
+    {% if not planos_pagos_liberados %}
+    <div class="cartao-sat fundo-card border border-suave p-4 mb-4 flex gap-3 items-start">
+        <i class="bi bi-hourglass-split text-lg" style="color: var(--destaque)"></i>
+        <p class="text-[11px] texto-main opacity-80 leading-relaxed">Os <b>planos pagos ainda não foram liberados</b> pela SAT. Quando forem, as mensalidades dos sócios aparecem aqui.</p>
+    </div>
+    {% endif %}
 
-    .bg-dinamico {
-        background-color: var(--cor-primaria) !important;
-    }
+    {# ---------- NÚMEROS DO MÊS ---------- #}
+    <div class="grid grid-cols-2 gap-3 mb-3">
+        <div class="cartao-sat fundo-card border border-suave p-4">
+            <div class="flex items-center justify-between mb-3">
+                <span class="w-9 h-9 rounded-xl bg-green-500/15 text-green-600 flex items-center justify-center"><i class="bi bi-graph-up-arrow"></i></span>
+                <span class="selo-sat selo-verde">{{ hoje|date:"M" }}</span>
+            </div>
+            <p class="text-xl font-black texto-main leading-none">R$ {{ receita_mensal|floatformat:2 }}</p>
+            <p class="text-[9px] font-black uppercase tracking-widest texto-main opacity-50 mt-1">Recebido no mês</p>
+        </div>
+        <div class="cartao-sat fundo-card border p-4 {% if qtd_inadimplentes %}border-red-500/40{% else %}border-suave{% endif %}">
+            <div class="flex items-center justify-between mb-3">
+                <span class="w-9 h-9 rounded-xl bg-red-500/15 text-red-500 flex items-center justify-center"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                <span class="selo-sat {% if qtd_inadimplentes %}selo-vermelho{% else %}selo-cinza{% endif %}">{{ qtd_inadimplentes }} sócio{{ qtd_inadimplentes|pluralize }}</span>
+            </div>
+            <p class="text-xl font-black texto-main leading-none">R$ {{ valor_receber|floatformat:2 }}</p>
+            <p class="text-[9px] font-black uppercase tracking-widest texto-main opacity-50 mt-1">Em atraso</p>
+        </div>
+    </div>
 
-    .text-dinamico {
-        color: var(--cor-primaria) !important;
-    }
+    <a href="{% url 'painel_planos' %}" class="atalho-sat fundo-card border border-suave mb-6">
+        <span class="icone"><i class="bi bi-gift-fill"></i></span>
+        <div class="flex-1">
+            <h4 class="text-base font-black italic uppercase tracking-tight texto-main leading-none">Benefícios por plano</h4>
+            <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Vantagens extras da {{ torcida.sigla|default:torcida.nome }}</p>
+        </div>
+        <i class="bi bi-chevron-right texto-main opacity-40"></i>
+    </a>
 
-    .border-dinamico {
-        border-color: var(--cor-primaria) !important;
-    }
+    {# ---------- SÓCIOS POR PLANO ---------- #}
+    <div class="flex items-center justify-between mb-3">
+        <h3 class="titulo-sat">Sócios por plano</h3>
+        <span class="selo-sat selo-destaque">{{ total_assinantes }} no total</span>
+    </div>
+    <div class="cartao-sat fundo-card border border-suave p-4 mb-6 space-y-3">
+        {% for plano in planos %}
+        <div>
+            <div class="flex items-center justify-between mb-1">
+                <p class="text-xs font-black texto-main uppercase">{{ plano.nome }} <span class="text-[10px] opacity-50 font-bold normal-case">{% if plano.gratuito %}grátis{% else %}R$ {{ plano.preco|floatformat:2 }}/mês{% endif %}</span></p>
+                <p class="text-sm font-black texto-main">{{ plano.qtd_socios }}</p>
+            </div>
+            <div class="h-2 rounded-full overflow-hidden" style="background: rgba(120,120,120,.15);">
+                <div class="h-full rounded-full" style="background: var(--destaque); width: {% if total_assinantes %}{% widthratio plano.qtd_socios total_assinantes 100 %}{% else %}0{% endif %}%;"></div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-[11px] texto-main opacity-50">Nenhum plano configurado.</p>
+        {% endfor %}
+    </div>
 
-    .modal-backdrop {
-        background-color: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(8px);
-    }
-
-    .no-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-</style>
-
-<div class="w-full min-h-screen fundo-app px-5 pt-8 pb-32">
-
-    <div class="flex items-center justify-between mb-8">
-        <div class="flex items-center gap-3">
-            <a href="{% url 'moderacao_torcida' %}"
-                class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main shadow-sm border border-suave transition-transform hover:scale-105">
-                <i class="bi bi-arrow-left"></i>
+    {# ---------- EM ATRASO ---------- #}
+    <h3 class="titulo-sat mb-3">Mensalidades em atraso</h3>
+    <div class="space-y-2 mb-6">
+        {% for fatura in faturas_atrasadas %}
+        {% with p=fatura.assinatura.perfil %}
+        <div class="cartao-sat fundo-card border border-red-500/25 p-3 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center" style="background: rgba(120,120,120,.12);">
+                {% if p.foto %}<img src="{{ p.foto.url }}" class="w-full h-full object-cover" alt="">{% else %}<i class="bi bi-person-fill texto-main opacity-30 text-xl"></i>{% endif %}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-black texto-main truncate">{{ p.user.get_full_name|default:p.user.username }}</p>
+                <p class="text-[10px] font-bold text-red-500 uppercase">Venceu {{ fatura.data_vencimento|date:"d/m" }} · {{ fatura.data_vencimento|timesince:hoje }} · R$ {{ fatura.valor|floatformat:2 }}</p>
+            </div>
+            {% if p.whatsapp %}
+            <a href="https://wa.me/55{{ p.whatsapp|cut:' '|cut:'('|cut:')'|cut:'-' }}?text={{ 'Olá! Sua mensalidade da '|urlencode }}{{ torcida.nome|urlencode }}{{ ' está em aberto. Pode regularizar pelo app da SAT.'|urlencode }}" target="_blank" rel="noopener" class="w-9 h-9 rounded-full bg-green-500/15 text-green-600 flex items-center justify-center shrink-0" aria-label="Cobrar pelo WhatsApp">
+                <i class="bi bi-whatsapp"></i>
             </a>
-            <div>
-                <h1 class="text-2xl font-black italic texto-main uppercase"
-                    style="font-family: 'Montserrat', sans-serif;">
-                    GESTÃO <span class="text-dinamico">FINANCEIRA</span>
-                </h1>
-                <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Painel: {{
-                    torcida.nome }}</p>
-            </div>
+            {% endif %}
         </div>
+        {% endwith %}
+        {% empty %}
+        <div class="vazio-sat texto-main">
+            <i class="bi bi-emoji-sunglasses text-3xl block mb-2"></i>
+            <p class="text-[10px] font-black uppercase tracking-widest">Tudo em dia!</p>
+        </div>
+        {% endfor %}
     </div>
 
-    <div class="grid grid-cols-2 gap-4 mb-8">
-        <div class="fundo-card border border-suave rounded-3xl p-5 shadow-sm">
-            <div class="w-8 h-8 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center mb-3">
-                <i class="bi bi-graph-up-arrow"></i>
+    {# ---------- ÚLTIMOS PAGAMENTOS ---------- #}
+    <h3 class="titulo-sat mb-3">Últimos pagamentos</h3>
+    <div class="space-y-2">
+        {% for pagamento in ultimos_pagamentos %}
+        <div class="cartao-sat fundo-card border border-suave p-3 flex items-center gap-3">
+            <span class="w-9 h-9 rounded-full bg-green-500/15 text-green-600 flex items-center justify-center shrink-0"><i class="bi bi-check-lg"></i></span>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-black texto-main truncate">{{ pagamento.assinatura.perfil.user.get_full_name|default:pagamento.assinatura.perfil.user.username }}</p>
+                <p class="text-[10px] texto-main opacity-50 font-bold uppercase">{{ pagamento.assinatura.plano.nome }} · {{ pagamento.metodo_pagamento|default:"PIX" }} · {{ pagamento.data_pagamento|date:"d/m" }}</p>
             </div>
-            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mb-1">Receita Mensal</p>
-            <h3 class="text-xl font-black texto-main">R$ {{ receita_mensal|floatformat:2 }}</h3>
-            <p class="text-[8px] text-green-500 font-bold mt-1">Arrecadado este mês</p>
+            <span class="text-sm font-black text-green-600 shrink-0">+ R$ {{ pagamento.valor|floatformat:2 }}</span>
         </div>
-
-        <div class="fundo-card border border-red-500/30 rounded-3xl p-5 shadow-sm">
-            <div class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-3">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-            <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mb-1">Inadimplentes</p>
-            <h3 class="text-xl font-black texto-main">{{ qtd_inadimplentes }} <span
-                    class="text-xs font-medium opacity-50">sócios</span></h3>
-            <p class="text-[8px] text-red-500 font-bold mt-1">R$ {{ valor_receber|floatformat:2 }} a receber</p>
+        {% empty %}
+        <div class="vazio-sat texto-main">
+            <i class="bi bi-receipt text-3xl block mb-2"></i>
+            <p class="text-[10px] font-black uppercase tracking-widest">Nenhum pagamento ainda.</p>
         </div>
+        {% endfor %}
     </div>
-
-    <div class="grid grid-cols-2 gap-3 mb-8">
-        <a href="{% url 'painel_planos' %}"
-            class="bg-dinamico text-white rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-md active:scale-95 transition-transform border-0">
-            <i class="bi bi-gift-fill text-2xl mb-2"></i>
-            <span class="text-[10px] font-black uppercase tracking-widest">Benefícios por Plano</span>
-        </a>
-
-        <a href="{% url 'exportar_financeiro_csv' %}"
-            class="fundo-card border border-suave rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm active:scale-95 transition-transform">
-            <i class="bi bi-file-earmark-spreadsheet texto-main text-2xl mb-2 opacity-70"></i>
-            <span class="text-[10px] font-black texto-main opacity-70 uppercase tracking-widest">Exportar
-                Relatório</span>
-        </a>
-    </div>
-
-    <div class="mb-8">
-        <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest mb-4">Planos Disponíveis</h3>
-        <div class="space-y-3">
-            {% for plano in planos %}
-            <div class="fundo-card border border-suave rounded-2xl p-4 flex justify-between items-center shadow-sm">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center text-dinamico">
-                        <i class="bi bi-tag-fill"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-black texto-main uppercase leading-none mb-1">{{ plano.nome }}</h4>
-                        <p class="text-[10px] font-bold text-dinamico uppercase tracking-wider">R$ {{
-                            plano.preco|floatformat:2 }} / mês</p>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <p class="text-lg font-black texto-main leading-none">{{ plano.qtd_socios }}</p>
-                    <p class="text-[8px] font-bold texto-main opacity-50 uppercase tracking-widest">sócios</p>
-                </div>
-            </div>
-            {% empty %}
-            <div class="text-center py-6 border border-dashed border-suave rounded-2xl opacity-40">
-                <p class="text-[10px] font-black uppercase">Nenhum plano configurado.</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="mb-8">
-        <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest mb-4">Mensalidades em Atraso
-        </h3>
-        <div class="space-y-3">
-            {% for fatura in faturas_atrasadas %}
-            <div
-                class="w-full fundo-card border border-red-500/20 rounded-[20px] p-4 flex justify-between items-center shadow-sm">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-black/5 overflow-hidden">
-                        {% if fatura.assinatura.perfil.foto %}
-                        <img src="{{ fatura.assinatura.perfil.foto.url }}" class="w-full h-full object-cover">
-                        {% else %}
-                        <i class="bi bi-person-fill text-2xl texto-main opacity-20 relative top-1 left-2"></i>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold texto-main leading-none mb-1">
-                            {{ fatura.assinatura.perfil.user.first_name|default:fatura.assinatura.perfil.user.username
-                            }}
-                        </h4>
-                        <p class="text-[9px] text-red-500 font-bold uppercase tracking-wider">Venceu: {{
-                            fatura.data_vencimento|date:"d/m/Y" }}</p>
-                    </div>
-                </div>
-                <a href="https://wa.me/{{ fatura.assinatura.perfil.whatsapp|cut:' ' }}" target="_blank"
-                    class="w-8 h-8 rounded-full bg-green-500/20 text-green-600 flex items-center justify-center">
-                    <i class="bi bi-whatsapp"></i>
-                </a>
-            </div>
-            {% empty %}
-            <div class="text-center py-6 border border-dashed border-suave rounded-2xl opacity-40">
-                <p class="text-[10px] font-black uppercase">Tudo em dia!</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div>
-        <h3 class="text-[11px] font-black texto-main opacity-40 uppercase tracking-widest mb-4">Últimos Pagamentos
-            (Hoje)</h3>
-        <div class="space-y-3">
-            {% for pagamento in ultimos_pagamentos %}
-            <div
-                class="w-full fundo-card border border-suave rounded-[20px] p-4 flex justify-between items-center shadow-sm">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
-                        <i class="bi bi-check-lg"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold texto-main leading-none mb-1">
-                            {{
-                            pagamento.assinatura.perfil.user.first_name|default:pagamento.assinatura.perfil.user.username
-                            }}
-                        </h4>
-                        <p class="text-[9px] texto-main opacity-50 font-bold uppercase tracking-wider">
-                            {{ pagamento.assinatura.plano.nome }} • {{ pagamento.metodo_pagamento|default:"PIX" }}
-                        </p>
-                    </div>
-                </div>
-                <span class="text-sm font-black text-green-500">+ R$ {{ pagamento.valor|floatformat:2 }}</span>
-            </div>
-            {% empty %}
-            <p class="text-[10px] texto-main opacity-40 uppercase text-center py-4">Sem novos pagamentos hoje.</p>
-            {% endfor %}
-        </div>
-    </div>
-
 </div>
-
-<script>
-    function abrirModal(modalId) {
-        const modal = document.getElementById(modalId);
-        const content = modal.querySelector('div');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        setTimeout(() => {
-            modal.classList.remove('opacity-0');
-            content.classList.remove('translate-y-full');
-        }, 10);
-    }
-
-    function fecharModal(modalId) {
-        const modal = document.getElementById(modalId);
-        const content = modal.querySelector('div');
-        content.classList.add('translate-y-full');
-        modal.classList.add('opacity-0');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }, 300);
-    }
-</script>
 {% endblock %}

@@ -16,4 +16,6 @@ urlpatterns = [
     path('seguidor/<int:usuario_id>/remover/', views.remover_seguidor, name='remover_seguidor'),
     path('notificacoes/', views.notificacoes, name='notificacoes'),
     path('moderacao/', views.moderacao, name='moderacao_social'),
+    path('avisos/', views.gerenciar_avisos, name='gerenciar_avisos'),
+    path('popup/<int:popup_id>/visto/', views.popup_visto, name='popup_visto'),
 ]

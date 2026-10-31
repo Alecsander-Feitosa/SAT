@@ -1,7 +1,7 @@
 from django import forms
 
-from organizadas.models import Torcida
-from .models import RegistroProntuario, Conversa, Mensagem, Denuncia, Reuniao
+from organizadas.models import Torcida, Evento, Caravana
+from .models import RegistroProntuario, Conversa, Mensagem, Denuncia, Reuniao, DocumentoBEPE
 
 INPUT = "w-full fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main font-medium focus:outline-none focus:border-tema"
 
@@ -101,3 +101,17 @@ class ReuniaoForm(forms.ModelForm):
         for nome, field in self.fields.items():
             if nome != 'torcidas':
                 field.widget.attrs.setdefault('class', INPUT)
+
+
+class DocumentoForm(forms.ModelForm):
+    class Meta:
+        model = DocumentoBEPE
+        fields = ['titulo', 'evento', 'caravana', 'descricao', 'arquivo']
+        widgets = {'descricao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Informações para o BEPE (opcional)'})}
+        labels = {'evento': 'Evento relacionado (opcional)', 'caravana': 'Caravana relacionada (opcional)'}
+
+    def __init__(self, *args, torcida=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['evento'].queryset = Evento.objects.filter(torcida=torcida).order_by('-data')
+        self.fields['caravana'].queryset = Caravana.objects.filter(torcida=torcida).order_by('-saida_horario')
+        _estilizar(self, INPUT)

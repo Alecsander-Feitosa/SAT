@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% include 'includes/painel_sat_estilo.html' %}
 <style>
     .plano-gratis { background: linear-gradient(135deg, #e5e7eb, #9ca3af); color: #111827; }
     .plano-bronze { background: linear-gradient(135deg, #e0a36b, #8c4a1c); color: #fff; }
@@ -8,18 +9,13 @@
     .plano-ouro   { background: linear-gradient(135deg, #fde68a, #b8860b); color: #1f1300; }
 </style>
 
-<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
-    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex items-center gap-4">
-        <a href="{% url 'painel_moderador' %}" class="texto-main text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
-        <div>
-            <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">Benefícios <span class="texto-tema">por Plano</span></h1>
-            <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">{{ torcida.nome }}</p>
-        </div>
-    </div>
+<div class="painel-sat w-full min-h-screen fundo-app flex flex-col pb-32 px-4 pt-3">
+    {% url 'painel_moderador' as url_voltar %}{% url 'novo_beneficio' as url_novo %}
+    {% include 'includes/painel_sat_topo.html' with titulo="Planos e Benefícios" icone="bi-gem" voltar=url_voltar acao_url=url_novo acao_texto="Benefício" acao_icone="bi-plus-lg" %}
 
-    <div class="px-5 pt-5 space-y-5">
-        <div class="fundo-card border border-suave rounded-2xl p-4 flex gap-3 items-start">
-            <i class="bi bi-info-circle-fill texto-tema text-lg"></i>
+    <div class="space-y-5">
+        <div class="cartao-sat fundo-card border border-suave p-4 flex gap-3 items-start">
+            <i class="bi bi-info-circle-fill text-lg" style="color: var(--destaque)"></i>
             <p class="text-[11px] texto-main opacity-80 leading-relaxed">
                 Os planos <b>Grátis, Bronze, Prata e Ouro</b> e os preços são oficiais da SAT e iguais para todas as torcidas.
                 Aqui a {{ torcida.nome }} <b>adiciona benefícios próprios</b> a cada plano. Um benefício do Bronze também vale para Prata e Ouro.
@@ -27,7 +23,7 @@
         </div>
 
         {% for n in niveis %}
-        <section class="fundo-card border border-suave rounded-[20px] overflow-hidden shadow-sm">
+        <section class="cartao-sat fundo-card border border-suave overflow-hidden shadow-sm">
             <div class="plano-{{ n.nivel }} px-5 py-4 flex items-center justify-between">
                 <div>
                     <h2 class="text-lg font-black italic uppercase tracking-tighter leading-none">{{ n.nome }}</h2>
@@ -49,20 +45,20 @@
                 <p class="text-[8px] font-black uppercase tracking-widest texto-main opacity-40 mb-2">Da {{ torcida.nome }}</p>
                 <div class="space-y-2">
                     {% for b in n.torcida %}
-                    <div class="flex items-center gap-3 bg-black/5 rounded-xl px-3 py-2.5">
-                        <i class="bi bi-star-fill texto-tema"></i>
+                    <div class="flex items-center gap-3 rounded-xl px-3 py-2.5" style="background: rgba(120,120,120,.08);">
+                        <i class="bi bi-star-fill" style="color: var(--destaque)"></i>
                         <div class="flex-1 min-w-0">
                             <p class="text-[11px] font-black texto-main truncate">{{ b.titulo }}</p>
                             {% if b.descricao %}<p class="text-[10px] texto-main opacity-60 truncate">{{ b.descricao }}</p>{% endif %}
                         </div>
-                        <a href="{% url 'editar_beneficio' b.id %}" class="w-8 h-8 rounded-full fundo-card border border-suave flex items-center justify-center texto-main"><i class="bi bi-pencil-fill text-[11px]"></i></a>
+                        <a href="{% url 'editar_beneficio' b.id %}" class="w-8 h-8 rounded-full btn-sat" aria-label="Editar benefício"><i class="bi bi-pencil-fill text-[11px]"></i></a>
                         <form method="post" action="{% url 'excluir_beneficio' b.id %}" onsubmit="return confirm('Remover este benefício?');">
                             {% csrf_token %}
                             <button class="w-8 h-8 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-600"><i class="bi bi-trash-fill text-[11px]"></i></button>
                         </form>
                     </div>
                     {% empty %}
-                    <p class="text-[11px] texto-main opacity-40">Nenhum benefício extra ainda.</p>
+                    <a href="{% url 'novo_beneficio' %}?nivel={{ n.nivel }}" class="block text-center text-[10px] font-black uppercase tracking-widest texto-main opacity-50 border border-dashed border-suave rounded-xl py-3 no-underline hover:opacity-100">+ Adicionar o primeiro benefício {{ n.nome }}</a>
                     {% endfor %}
                 </div>
             </div>

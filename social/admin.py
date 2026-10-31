@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Post, Comentario, DenunciaPost, Notificacao, Penalidade, CPFBloqueado
+from .models import Post, Comentario, DenunciaPost, Notificacao, Penalidade, CPFBloqueado, Popup, AvisoCabecalho
 
 
 @admin.register(Post)
@@ -30,3 +30,16 @@ class CPFBloqueadoAdmin(admin.ModelAdmin):
 
 admin.site.register(Notificacao)
 admin.site.register(Comentario)
+
+
+@admin.register(Popup)
+class PopupAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'torcida', 'modo', 'exibir_em', 'exibir_ate', 'ativo')
+    list_filter = ('ativo', 'modo', 'torcida')
+    search_fields = ('titulo', 'mensagem')
+
+
+@admin.register(AvisoCabecalho)
+class AvisoCabecalhoAdmin(admin.ModelAdmin):
+    list_display = ('texto', 'cor', 'ativo', 'atualizado_em')
+    list_editable = ('ativo',)

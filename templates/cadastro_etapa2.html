@@ -163,6 +163,13 @@
                 <form method="POST" action="{% url 'seja_socio' %}" onsubmit="return confirm('Tem certeza absoluta que deseja sair?');">
                     {% csrf_token %}
                     <input type="hidden" name="torcida_id" value="neutro">
+                    {% if perfil.aprovado %}
+                        {% if perfil.user.has_usable_password %}
+                        <input type="password" name="senha_confirmacao" required autocomplete="current-password" placeholder="Digite sua senha de login" class="w-full mb-3 px-4 py-3 rounded-full border border-red-500/40 bg-transparent texto-main text-xs font-bold text-center outline-none focus:border-red-500">
+                        {% else %}
+                        <input type="text" name="senha_confirmacao" required autocomplete="off" placeholder="Digite SAIR para confirmar" class="w-full mb-3 px-4 py-3 rounded-full border border-red-500/40 bg-transparent texto-main text-xs font-bold text-center uppercase outline-none focus:border-red-500">
+                        {% endif %}
+                    {% endif %}
                     <button type="submit" class="w-full py-3 border border-red-500 text-red-500 rounded-full font-black uppercase text-xs tracking-widest hover:bg-red-500 hover:text-white transition-colors">
                         {% if perfil.aprovado %}Sair da Torcida{% else %}Cancelar Solicitação{% endif %}
                     </button>

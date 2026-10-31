@@ -96,7 +96,12 @@ class Pedido(models.Model):
         ('cartao', 'Cartão de Crédito'),
         ('sede', 'Pagar na Sede'),
     ]
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    # Vazio = compra pelo link de venda, sem cadastro (os dados ficam em comprador_*)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    comprador_nome = models.CharField("Nome do comprador", max_length=150, blank=True)
+    comprador_email = models.EmailField("E-mail do comprador", blank=True)
+    comprador_cpf = models.CharField("CPF do comprador", max_length=14, blank=True)
+    comprador_telefone = models.CharField("Telefone do comprador", max_length=20, blank=True)
     data_pedido = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pendente')
@@ -107,6 +112,17 @@ class Pedido(models.Model):
     # --- Acompanhamento pelo cliente (Perfil > Meus pedidos) ---
     codigo_rastreio = models.CharField("Código de rastreio", max_length=40, blank=True)
     nota_fiscal = models.FileField("Nota fiscal (PDF)", upload_to='notas_fiscais/', blank=True, null=True)
+
+    @property
+    def nome_comprador(self):
+        if self.usuario_id:
+            return self.usuario.get_full_name() or self.usuario.username
+        return self.comprador_nome or 'Visitante'
+
+    @property
+    def whatsapp_comprador(self):
+        perfil = getattr(self.usuario, 'perfil', None) if self.usuario_id else None
+        return (perfil.whatsapp if perfil else '') or self.comprador_telefone
 
     # --- Status separados para o cliente: pagamento x entrega ---
     @property

@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from django.contrib import messages
 from django.utils.dateparse import parse_datetime
 from django.core.paginator import Paginator
@@ -616,6 +617,7 @@ def painel_moderador(request):
 
 
 
+
 @login_required
 def reservar_caravana(request, caravana_id):
     caravana = get_object_or_404(Caravana, id=caravana_id)
@@ -646,10 +648,20 @@ from accounts.models import Fatura, Assinatura # Certifique-se de importar os no
 from accounts.planos import planos_oficiais
 from django.db.models import Q
 
+def _torcida_do_moderador(request):
+    """Torcida que o usuário modera (staff vinculado a uma torcida); None se não for moderador."""
+    perfil = getattr(request.user, 'perfil', None)
+    if request.user.is_staff and perfil and perfil.torcida_id:
+        return perfil.torcida
+    return None
+
+
 @login_required
 def admin_financeiro(request):
-    perfil_moderador = request.user.perfil
-    torcida_mod = perfil_moderador.torcida
+    torcida_mod = _torcida_do_moderador(request)
+    if not torcida_mod:
+        messages.error(request, "Acesso restrito a moderadores.")
+        return redirect('dashboard')
     hoje = timezone.now()
 
     # --- BUSCA DE DADOS ---
@@ -665,8 +677,9 @@ def admin_financeiro(request):
         ).filter(Q(valida_ate__isnull=True) | Q(valida_ate__gte=hoje_data)).count()
 
     receita_mensal = faturas_query.filter(
-        status='pago', 
-        data_pagamento__month=hoje.month
+        status='pago',
+        data_pagamento__year=hoje.year,
+        data_pagamento__month=hoje.month,
     ).aggregate(total=Sum('valor'))['total'] or 0.00
 
     faturas_atrasadas = faturas_query.filter(
@@ -680,8 +693,10 @@ def admin_financeiro(request):
         'receita_mensal': receita_mensal,
         'qtd_inadimplentes': faturas_atrasadas.values('assinatura__perfil').distinct().count(),
         'valor_receber': faturas_atrasadas.aggregate(total=Sum('valor'))['total'] or 0.00,
-        'faturas_atrasadas': faturas_atrasadas,
-        'ultimos_pagamentos': faturas_query.filter(status='pago').order_by('-data_pagamento')[:5],
+        'faturas_atrasadas': faturas_atrasadas.select_related('assinatura__perfil__user', 'assinatura__plano').order_by('data_vencimento'),
+        'ultimos_pagamentos': faturas_query.filter(status='pago').select_related('assinatura__perfil__user', 'assinatura__plano').order_by('-data_pagamento')[:10],
+        'total_assinantes': sum(p.qtd_socios for p in planos),
+        'planos_pagos_liberados': settings.PLANOS_PAGOS_LIBERADOS,
         'hoje': hoje.date(),
     }
     
@@ -689,9 +704,11 @@ def admin_financeiro(request):
 
 @login_required
 def exportar_financeiro_csv(request):
-    perfil_moderador = request.user.perfil
-    torcida_mod = perfil_moderador.torcida
-    
+    torcida_mod = _torcida_do_moderador(request)
+    if not torcida_mod:
+        messages.error(request, "Acesso restrito a moderadores.")
+        return redirect('dashboard')
+
     # Prepara o ficheiro CSV
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="relatorio_financeiro_{torcida_mod.sigla}.csv"'

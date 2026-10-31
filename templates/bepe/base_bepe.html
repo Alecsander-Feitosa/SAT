@@ -52,6 +52,7 @@
         <a href="{% url 'bepe:reunioes' %}" class="tab {% if aba == 'reunioes' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-camera-video-fill"></i> Reuniões</a>
         <a href="{% url 'bepe:conversas' %}" class="tab {% if aba == 'canal' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-chat-square-text-fill"></i> Diretorias</a>
         <a href="{% url 'bepe:denuncias' %}" class="tab {% if aba == 'denuncias' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-megaphone-fill"></i> Denúncias</a>
+        <a href="{% url 'bepe:documentos' %}" class="tab {% if aba == 'documentos' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-folder-fill"></i> Documentos</a>
         {% endblock %}
     </nav>
 

@@ -71,6 +71,9 @@ class Conversa(models.Model):
     criada_em = models.DateTimeField(auto_now_add=True)
     atualizada_em = models.DateTimeField(auto_now=True)
     encerrada = models.BooleanField(default=False)
+    # Conversas geradas automaticamente: ao excluir o plano de rota, a mensagem some também na torcida
+    plano_rota = models.ForeignKey('PlanoRota', on_delete=models.CASCADE, null=True, blank=True, related_name='conversas')
+    reuniao = models.ForeignKey('Reuniao', on_delete=models.SET_NULL, null=True, blank=True, related_name='conversas')
 
     class Meta:
         ordering = ['-atualizada_em']
@@ -86,7 +89,9 @@ class Mensagem(models.Model):
     texto = models.TextField()
     anexo = models.FileField(upload_to='bepe/mensagens/', blank=True, null=True)
     enviada_em = models.DateTimeField(auto_now_add=True)
+    editada_em = models.DateTimeField(null=True, blank=True)
     lida = models.BooleanField(default=False)
+    lida_em = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['enviada_em']
@@ -218,3 +223,30 @@ class Reuniao(models.Model):
 
     def __str__(self):
         return f"{self.titulo} ({self.data_hora:%d/%m %H:%M})"
+
+
+# --- DOCUMENTOS ENVIADOS PELAS DIRETORIAS AO BEPE (arquivos e listas de presença) ---
+class DocumentoBEPE(models.Model):
+    TIPO_CHOICES = [
+        ('arquivo', 'Arquivo'),
+        ('lista_presenca', 'Lista de presença'),
+    ]
+    torcida = models.ForeignKey('organizadas.Torcida', on_delete=models.CASCADE, related_name='documentos_bepe')
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='arquivo')
+    titulo = models.CharField("Título", max_length=150)
+    descricao = models.TextField("Descrição", blank=True)
+    arquivo = models.FileField(upload_to='bepe/documentos/')
+    evento = models.ForeignKey('organizadas.Evento', on_delete=models.SET_NULL, null=True, blank=True, related_name='documentos_bepe')
+    caravana = models.ForeignKey('organizadas.Caravana', on_delete=models.SET_NULL, null=True, blank=True, related_name='documentos_bepe')
+    total_pessoas = models.PositiveIntegerField(null=True, blank=True)
+    enviado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='documentos_bepe')
+    enviado_em = models.DateTimeField(auto_now_add=True)
+    visto_em = models.DateTimeField(null=True, blank=True, help_text="Quando o BEPE abriu o documento")
+
+    class Meta:
+        ordering = ['-enviado_em']
+        verbose_name = 'Documento enviado ao BEPE'
+        verbose_name_plural = 'Documentos enviados ao BEPE'
+
+    def __str__(self):
+        return f"{self.torcida.nome} - {self.titulo}"

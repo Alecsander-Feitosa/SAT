@@ -1,13 +1,15 @@
+import csv
 import json
 from datetime import timedelta
 from io import BytesIO
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
-from django.http import JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -15,11 +17,13 @@ from django.utils.dateparse import parse_datetime
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from accounts.models import Perfil, CheckIn as CheckInAccounts
+from accounts.models import Perfil, CheckIn as CheckInAccounts, Presenca, PresencaCaravana
 from gamification.models import CheckIn as CheckInGame
-from organizadas.models import Torcida, Evento
-from .forms import RegistroProntuarioForm, NovaConversaForm, MensagemForm, DenunciaForm, DenunciaGestaoForm, ReuniaoForm
-from .models import RegistroProntuario, Conversa, Mensagem, Denuncia, LocalizacaoTorcedor, PlanoRota, Reuniao
+from organizadas.models import Torcida, Evento, Caravana
+from .forms import (RegistroProntuarioForm, NovaConversaForm, MensagemForm, DenunciaForm, DenunciaGestaoForm,
+                    ReuniaoForm, DocumentoForm)
+from .models import (RegistroProntuario, Conversa, Mensagem, Denuncia, LocalizacaoTorcedor, PlanoRota, Reuniao,
+                     DocumentoBEPE)
 from .permissions import bepe_required, diretoria_required
 
 
@@ -34,6 +38,7 @@ def painel(request):
         'total_registros': RegistroProntuario.objects.count(),
         'denuncias_novas': Denuncia.objects.filter(status='nova').count(),
         'mensagens_nao_lidas': Mensagem.objects.filter(do_bepe=False, lida=False).count(),
+        'documentos_novos': DocumentoBEPE.objects.filter(visto_em__isnull=True).count(),
         'ultimas_denuncias': Denuncia.objects.select_related('torcida')[:5],
         'ultimos_registros': RegistroProntuario.objects.select_related('perfil__user', 'autor')[:5],
     }
@@ -272,9 +277,35 @@ def localizacao(request):
 def _render_conversa(request, conversa, lado_bepe, template_base):
     """Lógica compartilhada pelo lado BEPE e pelo lado da diretoria."""
     if request.method == 'POST':
-        if request.POST.get('acao') == 'encerrar' and lado_bepe:
+        acao = request.POST.get('acao')
+        if acao == 'encerrar' and lado_bepe:
             conversa.encerrada = not conversa.encerrada
             conversa.save()
+            return redirect(request.path)
+
+        if acao == 'excluir_conversa' and lado_bepe:
+            conversa.delete()  # some também do lado da diretoria
+            messages.success(request, "Conversa excluída para os dois lados.")
+            return redirect('bepe:conversas')
+
+        if acao in ('editar', 'excluir'):
+            # Cada lado só mexe nas próprias mensagens
+            msg = get_object_or_404(conversa.mensagens, id=request.POST.get('mensagem_id'), do_bepe=lado_bepe)
+            if acao == 'excluir':
+                msg.delete()
+                messages.success(request, "Mensagem apagada para os dois lados.")
+                if not conversa.mensagens.exists():
+                    conversa.delete()
+                    return redirect('bepe:conversas' if lado_bepe else 'bepe:diretoria_conversas')
+            else:
+                texto = request.POST.get('texto', '').strip()
+                if texto and texto != msg.texto:
+                    msg.texto = texto
+                    msg.editada_em = timezone.now()
+                    msg.lida, msg.lida_em = False, None  # avisa de novo quem recebe
+                    msg.save()
+                    conversa.save()
+                    messages.success(request, "Mensagem editada.")
             return redirect(request.path)
 
         form = MensagemForm(request.POST, request.FILES)
@@ -290,7 +321,7 @@ def _render_conversa(request, conversa, lado_bepe, template_base):
         form = MensagemForm()
 
     # Marca como lidas as mensagens que vieram do outro lado
-    conversa.mensagens.filter(do_bepe=not lado_bepe, lida=False).update(lida=True)
+    conversa.mensagens.filter(do_bepe=not lado_bepe, lida=False).update(lida=True, lida_em=timezone.now())
 
     return render(request, 'bepe/conversa.html', {
         'aba': 'canal',
@@ -443,6 +474,21 @@ def _remover_metadados(arquivo):
         return None
 
 
+# Serviços públicos da tela de Emergência: (número, nome, ícone, cor)
+SERVICOS_EMERGENCIA = [
+    ('190', 'Polícia Militar', 'bi-shield-fill', '#1d4ed8'),
+    ('192', 'SAMU', 'bi-heart-pulse-fill', '#dc2626'),
+    ('193', 'Bombeiros', 'bi-fire', '#ea580c'),
+    ('197', 'Polícia Civil', 'bi-person-badge-fill', '#334155'),
+    ('199', 'Defesa Civil', 'bi-cone-striped', '#ca8a04'),
+    ('191', 'Polícia Rodoviária Federal', 'bi-sign-turn-right-fill', '#0f766e'),
+    ('(21) 2253-1177', 'Disque Denúncia RJ', 'bi-telephone-fill', '#7c3aed'),
+    ('180', 'Central da Mulher', 'bi-gender-female', '#db2777'),
+    ('100', 'Direitos Humanos', 'bi-people-fill', '#0891b2'),
+    ('188', 'CVV (apoio emocional)', 'bi-chat-heart-fill', '#16a34a'),
+]
+
+
 def fale_com_bepe(request):
     # Sem @login_required de propósito: qualquer pessoa pode denunciar, logada ou não.
     form = DenunciaForm(request.POST or None, request.FILES or None)
@@ -451,7 +497,7 @@ def fale_com_bepe(request):
         denuncia.anexo = _remover_metadados(request.FILES.get('anexo'))
         denuncia.save()  # Nenhum dado do usuário/IP é salvo
         return render(request, 'bepe/fale_protocolo.html', {'denuncia': denuncia})
-    return render(request, 'bepe/fale_com_bepe.html', {'form': form})
+    return render(request, 'bepe/fale_com_bepe.html', {'form': form, 'servicos_emergencia': SERVICOS_EMERGENCIA})
 
 
 def acompanhar_denuncia(request):
@@ -583,7 +629,7 @@ def _link_google_maps(origem_lat, origem_lng, destino_lat, destino_lng):
 def rota_enviar(request, plano_id):
     """Envia a cada diretoria, pelo Canal BEPE, a rota que a torcida dela deve seguir."""
     plano = get_object_or_404(PlanoRota, id=plano_id)
-    enviados = []
+    enviados, atualizados = [], []
     trechos = (
         (plano.torcida_a, plano.origem_a_lat, plano.origem_a_lng, plano.origem_a_nome),
         (plano.torcida_b, plano.origem_b_lat, plano.origem_b_lng, plano.origem_b_nome),
@@ -603,11 +649,37 @@ def rota_enviar(request, plano_id):
         ]
         if plano.observacoes:
             linhas += ["", f"Observações: {plano.observacoes}"]
-        conversa = Conversa.objects.create(torcida=torcida, assunto=f"Rota: {plano.titulo}"[:150], criada_por=request.user)
-        Mensagem.objects.create(conversa=conversa, autor=request.user, do_bepe=True, texto="\n".join(linhas))
-        enviados.append(torcida.nome)
-    if enviados:
-        messages.success(request, f"Rota enviada para: {', '.join(enviados)}.")
+        texto = "\n".join(linhas)
+        assunto = f"Rota: {plano.titulo}"[:150]
+
+        # Plano já enviado antes: atualiza a mesma mensagem em vez de abrir outra conversa
+        conversa = plano.conversas.filter(torcida=torcida).first()
+        msg = conversa.mensagens.filter(do_bepe=True).first() if conversa else None
+        if msg:
+            if msg.texto != texto:
+                msg.texto = texto
+                msg.editada_em = timezone.now()
+                msg.lida, msg.lida_em = False, None
+                msg.save()
+            conversa.assunto = assunto
+            conversa.save()
+            atualizados.append(torcida.nome)
+        else:
+            conversa = conversa or Conversa.objects.create(
+                torcida=torcida, assunto=assunto, criada_por=request.user, plano_rota=plano)
+            Mensagem.objects.create(conversa=conversa, autor=request.user, do_bepe=True, texto=texto)
+            enviados.append(torcida.nome)
+
+    # Torcida trocada no plano: a rota antiga some da diretoria que saiu
+    plano.conversas.exclude(torcida__in=[t for t, *_ in trechos if t]).delete()
+
+    if enviados or atualizados:
+        partes = []
+        if enviados:
+            partes.append(f"Rota enviada para: {', '.join(enviados)}.")
+        if atualizados:
+            partes.append(f"Rota atualizada para: {', '.join(atualizados)}.")
+        messages.success(request, " ".join(partes))
     else:
         messages.error(request, "Selecione as torcidas do plano antes de enviar.")
     return redirect('bepe:rota_editar', plano_id=plano.id)
@@ -616,8 +688,9 @@ def rota_enviar(request, plano_id):
 @bepe_required
 @require_POST
 def rota_excluir(request, plano_id):
+    # As conversas da rota vão junto: a mensagem some também do lado das torcidas
     get_object_or_404(PlanoRota, id=plano_id).delete()
-    messages.success(request, "Plano de rota excluído.")
+    messages.success(request, "Plano de rota excluído e mensagens apagadas nas torcidas.")
     return redirect('bepe:rotas')
 
 
@@ -636,7 +709,8 @@ def _avisar_reuniao(reuniao, autor, texto_inicial):
         linhas += ["", f"Pauta: {reuniao.pauta}"]
     linhas += ["", f"Entrar na sala: {reuniao.link}"]
     for torcida in reuniao.torcidas.all():
-        conversa = Conversa.objects.create(torcida=torcida, assunto=f"Reunião: {reuniao.titulo}"[:150], criada_por=autor)
+        conversa = Conversa.objects.create(torcida=torcida, assunto=f"Reunião: {reuniao.titulo}"[:150], criada_por=autor,
+                                           reuniao=reuniao)
         Mensagem.objects.create(conversa=conversa, autor=autor, do_bepe=True, texto="\n".join(linhas))
 
 
@@ -696,3 +770,154 @@ def diretoria_reunioes(request):
         'lado_bepe': False,
         'template_base': 'bepe/base_diretoria.html',
     })
+
+
+# ==========================================
+# DOCUMENTOS E LISTAS DE PRESENÇA (diretoria -> BEPE)
+# ==========================================
+def _eventos_da_torcida(torcida):
+    """Eventos e caravanas da torcida (próximos primeiro), com quantos confirmaram presença."""
+    limite = timezone.now() - timedelta(days=7)
+    eventos = Evento.objects.filter(torcida=torcida, data__gte=limite).order_by('data')
+    caravanas = Caravana.objects.filter(torcida=torcida, saida_horario__gte=limite).order_by('saida_horario')
+    itens = [{'tipo': 'evento', 'obj': e, 'titulo': e.titulo, 'data': e.data,
+              'total': len(_confirmados('evento', e))} for e in eventos]
+    itens += [{'tipo': 'caravana', 'obj': c, 'titulo': c.titulo, 'data': c.saida_horario,
+               'total': len(_confirmados('caravana', c))} for c in caravanas]
+    return sorted(itens, key=lambda i: i['data'])
+
+
+def _confirmados(tipo, obj):
+    """Usuários que confirmaram presença (evento) ou reservaram/confirmaram vaga (caravana), sem repetir."""
+    if tipo == 'evento':
+        ids = Presenca.objects.filter(evento=obj).order_by('data_confirmacao').values_list('user_id', flat=True)
+    else:
+        ids = list(PresencaCaravana.objects.filter(caravana=obj).order_by('data_confirmacao').values_list('user_id', flat=True))
+        ids += list(obj.passageiros.values_list('id', flat=True))
+    ordem = list(dict.fromkeys(ids))
+    perfis = {p.user_id: p for p in Perfil.objects.filter(user_id__in=ordem).select_related('user')}
+    return [perfis[i] for i in ordem if i in perfis]
+
+
+def _alvo_lista(torcida, tipo, alvo_id):
+    if tipo == 'evento':
+        return get_object_or_404(Evento, id=alvo_id, torcida=torcida)
+    if tipo == 'caravana':
+        return get_object_or_404(Caravana, id=alvo_id, torcida=torcida)
+    raise Http404
+
+
+COLUNAS_LISTA = ['Nome', 'Vulgo', 'CPF', 'RG/CNH', 'Data de nascimento', 'WhatsApp', 'Matrícula']
+
+
+def _csv_lista(perfis):
+    """Planilha (CSV com ; e BOM, abre direto no Excel) com os dados que o BEPE usa."""
+    from io import StringIO
+    buffer = StringIO()
+    buffer.write('\ufeff')
+    escritor = csv.writer(buffer, delimiter=';')
+    escritor.writerow(COLUNAS_LISTA)
+    for p in perfis:
+        escritor.writerow([
+            p.user.get_full_name() or p.user.username, p.vulgo, p.cpf or '', p.rg_cnh,
+            p.data_nascimento.strftime('%d/%m/%Y') if getattr(p, 'data_nascimento', None) else '',
+            p.whatsapp, getattr(p, 'matricula', '') or '',
+        ])
+    return buffer.getvalue()
+
+
+@diretoria_required
+def diretoria_documentos(request):
+    torcida = request.torcida_diretoria
+    form = DocumentoForm(request.POST or None, request.FILES or None, torcida=torcida)
+    if request.method == 'POST' and form.is_valid():
+        doc = form.save(commit=False)
+        doc.torcida = torcida
+        doc.enviado_por = request.user
+        doc.save()
+        messages.success(request, "Documento enviado ao BEPE.")
+        return redirect('bepe:diretoria_documentos')
+    return render(request, 'bepe/documentos.html', {
+        'aba': 'documentos',
+        'form': form,
+        'documentos': DocumentoBEPE.objects.filter(torcida=torcida).select_related('evento', 'caravana'),
+        'listas': _eventos_da_torcida(torcida),
+        'lado_bepe': False,
+        'template_base': 'bepe/base_diretoria.html',
+    })
+
+
+@diretoria_required
+def diretoria_lista_presenca(request, tipo, alvo_id):
+    torcida = request.torcida_diretoria
+    alvo = _alvo_lista(torcida, tipo, alvo_id)
+    perfis = _confirmados(tipo, alvo)
+    data = alvo.data if tipo == 'evento' else alvo.saida_horario
+    nome_arquivo = f"presenca-{tipo}-{alvo.id}-{timezone.localtime(data):%Y%m%d}.csv"
+
+    if request.GET.get('formato') == 'csv':
+        resposta = HttpResponse(_csv_lista(perfis), content_type='text/csv; charset=utf-8')
+        resposta['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
+        return resposta
+
+    if request.method == 'POST':
+        if not perfis:
+            messages.error(request, "Ninguém confirmou presença ainda.")
+            return redirect(request.path)
+        doc = DocumentoBEPE(
+            torcida=torcida, tipo='lista_presenca', enviado_por=request.user, total_pessoas=len(perfis),
+            titulo=f"Lista de presença: {alvo.titulo}"[:150],
+            descricao=request.POST.get('descricao', '').strip(),
+            **{tipo: alvo},
+        )
+        doc.arquivo.save(nome_arquivo, ContentFile(_csv_lista(perfis).encode('utf-8')), save=False)
+        doc.save()
+        messages.success(request, f"Lista com {len(perfis)} pessoa{'s' if len(perfis) != 1 else ''} enviada ao BEPE.")
+        return redirect('bepe:diretoria_documentos')
+
+    return render(request, 'bepe/lista_presenca.html', {
+        'aba': 'documentos',
+        'alvo': alvo,
+        'tipo': tipo,
+        'data': data,
+        'perfis': perfis,
+        'ja_enviadas': DocumentoBEPE.objects.filter(torcida=torcida, tipo='lista_presenca', **{tipo: alvo}),
+        'lado_bepe': False,
+        'template_base': 'bepe/base_diretoria.html',
+    })
+
+
+@diretoria_required
+@require_POST
+def diretoria_documento_excluir(request, documento_id):
+    get_object_or_404(DocumentoBEPE, id=documento_id, torcida=request.torcida_diretoria).delete()
+    messages.success(request, "Documento removido.")
+    return redirect('bepe:diretoria_documentos')
+
+
+# --- Lado do BEPE ---
+@bepe_required
+def documentos(request):
+    lista = DocumentoBEPE.objects.select_related('torcida', 'evento', 'caravana', 'enviado_por')
+    torcida_id = request.GET.get('torcida', '')
+    if torcida_id:
+        lista = lista.filter(torcida_id=torcida_id)
+    pagina = Paginator(lista, 30).get_page(request.GET.get('page'))
+    return render(request, 'bepe/documentos.html', {
+        'aba': 'documentos',
+        'pagina': pagina,
+        'documentos': pagina,
+        'torcidas': Torcida.objects.order_by('nome'),
+        'torcida_id': torcida_id,
+        'lado_bepe': True,
+        'template_base': 'bepe/base_bepe.html',
+    })
+
+
+@bepe_required
+def documento_abrir(request, documento_id):
+    doc = get_object_or_404(DocumentoBEPE, id=documento_id)
+    if not doc.visto_em:
+        doc.visto_em = timezone.now()
+        doc.save(update_fields=['visto_em'])
+    return redirect(doc.arquivo.url)

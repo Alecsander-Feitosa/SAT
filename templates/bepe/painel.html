@@ -1,6 +1,6 @@
 {% extends 'bepe/base_bepe.html' %}
 {% block bepe_content %}
-<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
     <a href="{% url 'bepe:cadastrados' %}" class="card p-4 flex flex-col gap-2 no-underline active:scale-[0.98] transition-transform">
         <div class="w-9 h-9 rounded-xl fundo-tema flex items-center justify-center"><i class="bi bi-people-fill texto-claro"></i></div>
         <span class="text-2xl font-black texto-main leading-none">{{ total_cadastrados }}</span>
@@ -20,6 +20,11 @@
         <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center"><i class="bi bi-chat-dots-fill text-white"></i></div>
         <span class="text-2xl font-black leading-none {% if mensagens_nao_lidas %}text-blue-600{% else %}texto-main{% endif %}">{{ mensagens_nao_lidas }}</span>
         <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Mensagens não lidas</span>
+    </a>
+    <a href="{% url 'bepe:documentos' %}" class="card p-4 flex flex-col gap-2 no-underline active:scale-[0.98] transition-transform">
+        <div class="w-9 h-9 rounded-xl bg-green-600 flex items-center justify-center"><i class="bi bi-folder-fill text-white"></i></div>
+        <span class="text-2xl font-black leading-none {% if documentos_novos %}text-green-600{% else %}texto-main{% endif %}">{{ documentos_novos }}</span>
+        <span class="text-[8px] texto-main opacity-50 font-bold uppercase tracking-widest">Documentos novos</span>
     </a>
 </div>
 

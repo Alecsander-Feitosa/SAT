@@ -2,80 +2,75 @@
 {% load static %}
 
 {% block content %}
-<div class="w-full min-h-screen fundo-app flex flex-col pb-32 px-5 pt-8">
-    <div class="flex items-center gap-4 mb-8">
-        <a href="{% url 'painel_loja' %}" class="w-10 h-10 fundo-card rounded-full flex items-center justify-center texto-main border border-suave shadow-sm">
-            <i class="bi bi-arrow-left text-lg"></i>
-        </a>
-        <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">
-            {% if produto %}EDITAR{% else %}NOVO{% endif %} <span class="texto-tema">PRODUTO</span>
-        </h1>
-    </div>
+{% include 'includes/painel_sat_estilo.html' %}
+<div class="painel-sat w-full min-h-screen fundo-app flex flex-col pb-32 px-4 pt-3">
+    {% url 'painel_loja' as url_voltar %}
+    {% if produto %}{% include 'includes/painel_sat_topo.html' with titulo="Editar produto" icone="bi-box-seam" voltar=url_voltar subtitulo="Loja" %}{% else %}{% include 'includes/painel_sat_topo.html' with titulo="Novo produto" icone="bi-box-seam" voltar=url_voltar subtitulo="Loja" %}{% endif %}
 
     <form method="POST" enctype="multipart/form-data" class="flex flex-col gap-5">
         {% csrf_token %}
 
         {# ---------- DADOS BÁSICOS ---------- #}
-        <div class="fundo-card border border-suave rounded-[25px] p-5 shadow-sm flex flex-col gap-5">
+        <div class="cartao-sat fundo-card border border-suave p-5 shadow-sm flex flex-col gap-5">
             <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Nome do Produto</label>
-                <input type="text" name="nome" value="{{ produto.nome|default:'' }}" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                <label class="rotulo-sat">Nome do Produto</label>
+                <input type="text" name="nome" value="{{ produto.nome|default:'' }}" required class="campo-sat">
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Preço (R$)</label>
-                    <input type="number" step="0.01" min="0" name="preco" value="{{ produto.preco|default:''|stringformat:'s' }}" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                    <label class="rotulo-sat">Preço (R$)</label>
+                    <input type="number" step="0.01" min="0" name="preco" value="{{ produto.preco|default:''|stringformat:'s' }}" required class="campo-sat">
                 </div>
                 <div>
-                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Promocional (R$)</label>
-                    <input type="number" step="0.01" min="0" name="preco_promocional" value="{{ produto.preco_promocional|default:''|stringformat:'s' }}" placeholder="Opcional" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                    <label class="rotulo-sat">Promocional (R$)</label>
+                    <input type="number" step="0.01" min="0" name="preco_promocional" value="{{ produto.preco_promocional|default:''|stringformat:'s' }}" placeholder="Opcional" class="campo-sat">
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Estoque</label>
-                    <input type="number" min="0" name="estoque" id="estoque_produto" value="{{ produto.estoque|default:'0' }}" required class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                    <label class="rotulo-sat">Estoque</label>
+                    <input type="number" min="0" name="estoque" id="estoque_produto" value="{{ produto.estoque|default:'0' }}" required class="campo-sat">
                     <p id="aviso_estoque" class="text-[8px] font-bold texto-main opacity-40 mt-1 ml-2 hidden">Com variações, o estoque é a soma delas.</p>
                 </div>
                 <div>
-                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Peso (kg)</label>
-                    <input type="number" step="0.001" min="0" name="peso" value="{{ produto.peso|default:'0.5'|stringformat:'s' }}" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                    <label class="rotulo-sat">Peso (kg)</label>
+                    <input type="number" step="0.001" min="0" name="peso" value="{{ produto.peso|default:'0.5'|stringformat:'s' }}" class="campo-sat">
                     <p class="text-[8px] font-bold texto-main opacity-40 mt-1 ml-2">Usado no cálculo do frete.</p>
                 </div>
             </div>
 
             <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Categoria</label>
-                <input type="text" name="categoria" list="lista_categorias" value="{{ produto.categoria|default:'' }}" placeholder="Ex: Camisas, Bonés..." class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                <label class="rotulo-sat">Categoria</label>
+                <input type="text" name="categoria" list="lista_categorias" value="{{ produto.categoria|default:'' }}" placeholder="Ex: Camisas, Bonés..." class="campo-sat">
                 <datalist id="lista_categorias">{% for c in categorias %}<option value="{{ c }}">{% endfor %}</datalist>
             </div>
 
             <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Descrição</label>
-                <textarea name="descricao" rows="3" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">{{ produto.descricao|default:'' }}</textarea>
+                <label class="rotulo-sat">Descrição</label>
+                <textarea name="descricao" rows="3" class="campo-sat">{{ produto.descricao|default:'' }}</textarea>
             </div>
 
             <div class="flex items-center gap-3 bg-black/5 p-4 rounded-xl border border-suave">
-                <input type="checkbox" name="destaque" id="destaque" {% if produto.destaque %}checked{% endif %} class="w-5 h-5 accent-[#D37129]">
+                <input type="checkbox" name="destaque" id="destaque" {% if produto.destaque %}checked{% endif %} class="w-5 h-5">
                 <label for="destaque" class="text-xs font-bold texto-main uppercase">Produto em Destaque (Hot)</label>
             </div>
         </div>
 
         {# ---------- FOTOS ---------- #}
-        <div class="fundo-card border border-suave rounded-[25px] p-5 shadow-sm flex flex-col gap-4">
-            <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em]">Fotos</h4>
+        <div class="cartao-sat fundo-card border border-suave p-5 shadow-sm flex flex-col gap-4">
+            <h4 class="titulo-sat">Fotos</h4>
             <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Foto principal</label>
+                <label class="rotulo-sat">Foto principal</label>
                 {% if produto.imagem %}
                     <img src="{{ produto.imagem.url }}" class="w-20 h-20 object-cover rounded-xl border border-suave mb-2">
                 {% endif %}
-                <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
+                <input type="file" name="imagem" accept="image/*" class="campo-sat text-[11px]">
             </div>
 
             <div>
-                <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">Mais fotos (pode escolher várias)</label>
+                <label class="rotulo-sat">Mais fotos (pode escolher várias)</label>
                 {% if produto %}
                 <div class="grid grid-cols-4 gap-2 mb-2">
                     {% for foto in produto.imagens_extra.all %}
@@ -89,24 +84,24 @@
                 </div>
                 {% if produto.imagens_extra.exists %}<p class="text-[8px] font-bold texto-main opacity-40 mb-2 ml-2">Toque numa foto para marcar para remover.</p>{% endif %}
                 {% endif %}
-                <input type="file" name="fotos_extra" accept="image/*" multiple class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
+                <input type="file" name="fotos_extra" accept="image/*" multiple class="campo-sat text-[11px]">
             </div>
         </div>
 
         {# ---------- VARIAÇÕES ---------- #}
-        <div class="fundo-card border border-suave rounded-[25px] p-5 shadow-sm flex flex-col gap-4">
+        <div class="cartao-sat fundo-card border border-suave p-5 shadow-sm flex flex-col gap-4">
             <div>
-                <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em]">Variações</h4>
+                <h4 class="titulo-sat">Variações</h4>
                 <p class="text-[9px] font-bold texto-main opacity-40 mt-1">Cada linha é uma combinação com estoque próprio. Ex: P + Preta, G + Branca. Deixe sem linhas se o produto não tem variação.</p>
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">1ª variação</label>
-                    <input type="text" name="rotulo_opcao1" id="rotulo_opcao1" value="{{ produto.rotulo_opcao1|default:'Tamanho' }}" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                    <label class="rotulo-sat">1ª variação</label>
+                    <input type="text" name="rotulo_opcao1" id="rotulo_opcao1" value="{{ produto.rotulo_opcao1|default:'Tamanho' }}" class="campo-sat">
                 </div>
                 <div>
-                    <label class="text-[9px] font-black texto-main opacity-50 uppercase tracking-widest ml-2 mb-1 block">2ª variação (opcional)</label>
-                    <input type="text" name="rotulo_opcao2" id="rotulo_opcao2" value="{{ produto.rotulo_opcao2|default:'' }}" placeholder="Ex: Cor, Tipo" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-sm focus:outline-none focus:border-tema">
+                    <label class="rotulo-sat">2ª variação (opcional)</label>
+                    <input type="text" name="rotulo_opcao2" id="rotulo_opcao2" value="{{ produto.rotulo_opcao2|default:'' }}" placeholder="Ex: Cor, Tipo" class="campo-sat">
                 </div>
             </div>
 
@@ -114,9 +109,9 @@
                 {% for v in variacoes %}
                 <div class="linha-variacao grid grid-cols-12 gap-2 items-center">
                     <input type="hidden" name="var_id" value="{{ v.id }}">
-                    <input type="text" name="var_op1" value="{{ v.nome }}" placeholder="P" class="col-span-4 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
-                    <input type="text" name="var_op2" value="{{ v.opcao2 }}" placeholder="Preta" class="campo-op2 col-span-4 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
-                    <input type="number" min="0" name="var_estoque" value="{{ v.estoque }}" placeholder="Qtd" class="col-span-3 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+                    <input type="text" name="var_op1" value="{{ v.nome }}" placeholder="P" class="col-span-4 campo-sat campo-compacto">
+                    <input type="text" name="var_op2" value="{{ v.opcao2 }}" placeholder="Preta" class="campo-op2 col-span-4 campo-sat campo-compacto">
+                    <input type="number" min="0" name="var_estoque" value="{{ v.estoque }}" placeholder="Qtd" class="col-span-3 campo-sat campo-compacto">
                     <button type="button" onclick="removerLinha(this)" class="col-span-1 text-red-500" aria-label="Remover variação"><i class="bi bi-trash"></i></button>
                 </div>
                 {% endfor %}
@@ -126,26 +121,26 @@
                 <span class="col-span-4" id="leg_op2">{{ produto.rotulo_opcao2|default:'—' }}</span>
                 <span class="col-span-3">Estoque</span>
             </div>
-            <button type="button" onclick="adicionarLinha()" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2.5 rounded-full font-black uppercase border border-suave texto-main">+ Adicionar variação</button>
+            <button type="button" onclick="adicionarLinha()" class="btn-novo text-[10px] px-4 py-2.5 rounded-full font-black uppercase border border-suave texto-main">+ Adicionar variação</button>
         </div>
 
         {# ---------- TABELA DE MEDIDAS ---------- #}
-        <div class="fundo-card border border-suave rounded-[25px] p-5 shadow-sm flex flex-col gap-4">
+        <div class="cartao-sat fundo-card border border-suave p-5 shadow-sm flex flex-col gap-4">
             <div>
-                <h4 class="text-[10px] font-black texto-main uppercase tracking-[0.2em]">Tabela de medidas</h4>
+                <h4 class="titulo-sat">Tabela de medidas</h4>
                 <p class="text-[9px] font-bold texto-main opacity-40 mt-1">Envie uma imagem pronta ou escreva a tabela: uma linha por tamanho, colunas separadas por |. A 1ª linha é o cabeçalho.</p>
             </div>
-            <textarea name="tabela_medidas_texto" rows="4" placeholder="Tamanho | Largura | Altura&#10;P | 50 cm | 70 cm&#10;M | 53 cm | 72 cm" class="w-full bg-black/5 border border-suave rounded-xl py-3 px-4 texto-main text-xs font-mono focus:outline-none focus:border-tema">{{ produto.tabela_medidas_texto|default:'' }}</textarea>
+            <textarea name="tabela_medidas_texto" rows="4" placeholder="Tamanho | Largura | Altura&#10;P | 50 cm | 70 cm&#10;M | 53 cm | 72 cm" class="campo-sat font-mono text-xs">{{ produto.tabela_medidas_texto|default:'' }}</textarea>
             {% if produto.tabela_medidas %}
             <div class="flex items-center gap-3">
                 <img src="{{ produto.tabela_medidas.url }}" class="w-20 h-20 object-cover rounded-xl border border-suave">
                 <label class="text-[10px] font-bold texto-main flex items-center gap-2"><input type="checkbox" name="remover_tabela_medidas" value="1"> Remover imagem</label>
             </div>
             {% endif %}
-            <input type="file" name="tabela_medidas" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl py-2 px-4 texto-main text-xs">
+            <input type="file" name="tabela_medidas" accept="image/*" class="campo-sat text-[11px]">
         </div>
 
-        <button type="submit" class="w-full py-4 mt-2 fundo-tema texto-claro rounded-xl font-black uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-transform">
+        <button type="submit" class="btn-sat w-full py-4 mt-2 rounded-2xl text-xs">
             Salvar Produto
         </button>
     </form>
@@ -154,9 +149,9 @@
 <template id="modelo_linha">
     <div class="linha-variacao grid grid-cols-12 gap-2 items-center">
         <input type="hidden" name="var_id" value="">
-        <input type="text" name="var_op1" placeholder="P" class="col-span-4 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
-        <input type="text" name="var_op2" placeholder="Preta" class="campo-op2 col-span-4 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
-        <input type="number" min="0" name="var_estoque" value="0" placeholder="Qtd" class="col-span-3 bg-black/5 border border-suave rounded-xl py-2.5 px-3 texto-main text-xs font-bold focus:outline-none focus:border-tema">
+        <input type="text" name="var_op1" placeholder="P" class="col-span-4 campo-sat campo-compacto">
+        <input type="text" name="var_op2" placeholder="Preta" class="campo-op2 col-span-4 campo-sat campo-compacto">
+        <input type="number" min="0" name="var_estoque" value="0" placeholder="Qtd" class="col-span-3 campo-sat campo-compacto">
         <button type="button" onclick="removerLinha(this)" class="col-span-1 text-red-500" aria-label="Remover variação"><i class="bi bi-trash"></i></button>
     </div>
 </template>

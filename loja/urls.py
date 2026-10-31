@@ -12,6 +12,7 @@ urlpatterns = [
     path('checkout/calcular-frete/', views.calcular_frete, name='calcular_frete'),
     path('produto/<int:produto_id>/', views.detalhe_produto, name='detalhe_produto'),
     path('produto/<int:produto_id>/avaliar/', views.avaliar_produto, name='avaliar_produto'),
+    path('comprar/<int:produto_id>/', views.comprar_link, name='comprar_link'),
     path('checkout/exemplo/', views.checkout_exemplo_view, name='checkout_exemplo'),
     path('painel/', views.painel_loja, name='painel_loja'),
     path('painel/novo/', views.form_produto, name='novo_produto'),

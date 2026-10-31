@@ -4,7 +4,7 @@ from decimal import Decimal, InvalidOperation
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Avg, Count, F, Q, Sum, Value
+from django.db.models import Avg, Count, F, Prefetch, Q, Sum, Value
 from django.db.models.functions import Greatest
 from django.http import JsonResponse
 from django.urls import reverse
@@ -223,10 +223,9 @@ def atualizar_quantidade(request, item_id):
         item.save(update_fields=['quantidade'])
     return redirect('ver_carrinho')
 
-@login_required
 @require_POST
 def calcular_frete(request):
-    """Cota o frete do carrinho, ou de um produto só (página do produto: produto_id + quantidade)."""
+    """Cota o frete do carrinho, ou de um produto só (página do produto / link de venda: produto_id + quantidade)."""
     try:
         data = json.loads(request.body)
     except ValueError:
@@ -235,6 +234,8 @@ def calcular_frete(request):
     if data.get('produto_id'):
         produto = get_object_or_404(Produto, id=data['produto_id'])
         itens = [(produto, max(_inteiro(data.get('quantidade'), 1), 1))]
+    elif not request.user.is_authenticated:
+        return JsonResponse({'sucesso': False, 'erro': 'Entre na sua conta.'}, status=403)
     else:
         itens = [(i.produto, i.quantidade) for i in ItemCarrinho.objects.filter(usuario=request.user).select_related('produto')]
         if not itens:
@@ -422,6 +423,10 @@ def painel_loja(request):
     torcida = request.user.perfil.torcida
     config, _ = ConfigLoja.objects.get_or_create(torcida=torcida)
 
+    if request.method == 'POST' and request.POST.get('acao') == 'atualizar_pedido':
+        _atualizar_pedido(request, torcida)
+        return redirect(f"{reverse('painel_loja')}?aba=pedidos&status={request.POST.get('filtro', '')}")
+
     # Banner e CEP de envio da loja da torcida
     if request.method == 'POST':
         config.banner_selo = request.POST.get('banner_selo', '').strip()
@@ -435,10 +440,84 @@ def painel_loja(request):
             config.banner_imagem = None
         config.save()
         messages.success(request, 'Banner e dados de envio salvos!')
-        return redirect('painel_loja')
+        return redirect(f"{reverse('painel_loja')}?aba=config")
 
-    produtos = Produto.objects.filter(torcida=torcida).select_related('categoria').order_by('-id')
-    return render(request, 'loja/painel.html', {'produtos': produtos, 'config': config})
+    produtos = (Produto.objects.filter(torcida=torcida).select_related('categoria')
+                .annotate(vendidos=Sum('itempedido__quantidade',
+                                       filter=Q(itempedido__pedido__status__in=STATUS_COMPRA_CONFIRMADA)))
+                .order_by('-id'))
+
+    # Pedidos que têm produtos desta torcida (mostra só os itens dela)
+    pedidos = (Pedido.objects.filter(itens__produto__torcida=torcida).distinct()
+               .select_related('usuario', 'usuario__perfil')
+               .prefetch_related(Prefetch('itens', queryset=ItemPedido.objects.filter(produto__torcida=torcida)
+                                          .select_related('produto'), to_attr='itens_torcida'))
+               .order_by('-data_pedido'))
+    contagem = {s: 0 for s, _ in Pedido.STATUS_CHOICES}
+    for s in pedidos.values_list('status', flat=True):
+        contagem[s] += 1
+    filtro = request.GET.get('status', '')
+    if filtro in contagem:
+        pedidos = pedidos.filter(status=filtro)
+
+    return render(request, 'loja/painel.html', {
+        'torcida': torcida,
+        'produtos': produtos,
+        'config': config,
+        'pedidos': pedidos[:60],
+        'contagem': contagem,
+        'a_despachar': contagem['pago'],
+        'filtro': filtro,
+        'aba': request.GET.get('aba', 'produtos'),
+        'status_choices': Pedido.STATUS_CHOICES,
+        'sem_estoque': sum(1 for p in produtos if p.estoque <= 0),
+    })
+
+
+# O que o comprador recebe no sininho quando o moderador muda o status
+AVISO_STATUS_PEDIDO = {
+    'pago': 'Pagamento do pedido #{id} confirmado!',
+    'enviado': 'Seu pedido #{id} foi enviado!',
+    'aguardando_retirada': 'Seu pedido #{id} está pronto para retirada na sede.',
+    'concluido': 'Pedido #{id} concluído. Que tal avaliar os produtos?',
+    'cancelado': 'O pedido #{id} foi cancelado.',
+}
+
+
+def _atualizar_pedido(request, torcida):
+    """Moderador muda status / rastreio / nota fiscal de um pedido com produtos da torcida dele."""
+    from social.notificacoes import notificar
+    pedido = get_object_or_404(Pedido.objects.filter(itens__produto__torcida=torcida).distinct(), id=request.POST.get('pedido_id'))
+    novo_status = request.POST.get('status') or pedido.status
+    if novo_status not in dict(Pedido.STATUS_CHOICES):
+        messages.error(request, 'Status inválido.')
+        return
+    if novo_status == 'cancelado' and pedido.status in ('pago', 'enviado', 'concluido'):
+        messages.error(request, 'Pedido já pago: o cancelamento precisa de estorno. Fale com a SAT.')
+        return
+
+    with transaction.atomic():
+        status_antigo = pedido.status
+        pedido.status = novo_status
+        pedido.codigo_rastreio = request.POST.get('codigo_rastreio', pedido.codigo_rastreio or '').strip()[:40]
+        if request.FILES.get('nota_fiscal'):
+            pedido.nota_fiscal = request.FILES['nota_fiscal']
+        pedido.save()
+        # Cancelou: devolve as peças ao estoque
+        if novo_status == 'cancelado' and status_antigo != 'cancelado':
+            for item in pedido.itens.all():
+                if item.variacao_id:
+                    Variacao.objects.filter(id=item.variacao_id).update(estoque=F('estoque') + item.quantidade)
+                if item.produto_id:
+                    Produto.objects.filter(id=item.produto_id).update(estoque=F('estoque') + item.quantidade)
+
+    if novo_status != status_antigo and novo_status in AVISO_STATUS_PEDIDO:
+        texto = AVISO_STATUS_PEDIDO[novo_status].format(id=pedido.id)
+        if novo_status == 'enviado' and pedido.codigo_rastreio:
+            texto += f' Rastreio: {pedido.codigo_rastreio}'
+        if pedido.usuario_id:
+            notificar(pedido.usuario, 'pedido', texto, ator=request.user, link=reverse('detalhe_pedido', args=[pedido.id]))
+    messages.success(request, f'Pedido #{pedido.id} atualizado.')
 
 def _salvar_variacoes(request, produto):
     """Linhas do editor: var_id[], var_op1[], var_op2[], var_estoque[]. Linha sem 1ª opção é apagada."""
@@ -508,12 +587,14 @@ def form_produto(request, produto_id=None):
         return redirect('painel_loja')
 
     return render(request, 'loja/form_produto.html', {
+        'torcida': torcida,
         'produto': produto,
         'variacoes': produto.variacoes.all() if produto else [],
         'categorias': CategoriaProduto.objects.filter(torcida=torcida).values_list('nome', flat=True),
     })
 
 @login_required
+@require_POST
 def excluir_produto(request, produto_id):
     if _pode_gerir_loja(request.user):
         produto = get_object_or_404(Produto, id=produto_id, torcida=request.user.perfil.torcida)
@@ -703,3 +784,131 @@ def finalizar_checkout_caravana(request, caravana_id):
     except Exception as e:
         messages.error(request, f"Erro ao processar pagamento: {str(e)}")
         return redirect('checkout_caravana', caravana_id=caravana.id)
+
+
+# ==========================================
+# LINK DE VENDA (compra sem cadastro)
+# ==========================================
+METODOS_LINK_VENDA = ('pix', 'boleto', 'sede')
+
+
+def comprar_link(request, produto_id):
+    """Página pública de um produto: qualquer pessoa compra sem conta e, no fim, é convidada a se cadastrar."""
+    produto = get_object_or_404(Produto.objects.select_related('torcida'), id=produto_id)
+    variacoes = list(produto.variacoes.all())
+    logado = request.user.is_authenticated
+    if request.method == 'POST':
+        dados = request.POST
+    else:
+        # Logado: já vem com os dados do perfil
+        perfil = getattr(request.user, 'perfil', None) if logado else None
+        dados = {
+            'nome_completo': request.user.get_full_name() if logado else '',
+            'email': request.user.email if logado else '',
+            'cpf': (perfil.cpf or '') if perfil else '',
+            'telefone': perfil.whatsapp if perfil else '',
+        }
+    erro = None
+
+    if request.method == 'POST':
+        variacao = None
+        if variacoes:
+            variacao = next((v for v in variacoes if str(v.id) == request.POST.get('variacao_id')), None)
+        quantidade = max(_inteiro(request.POST.get('quantidade'), 1), 1)
+        retirada_sede = request.POST.get('tipo_entrega') == 'sede'
+        metodo = request.POST.get('metodo_pagamento', 'pix')
+
+        nome = request.POST.get('nome_completo', '').strip()
+        email = request.POST.get('email', '').strip()
+        cpf = ''.join(c for c in request.POST.get('cpf', '') if c.isdigit())
+        telefone = request.POST.get('telefone', '').strip()
+
+        endereco = {k: request.POST.get(k, '').strip() for k in ('cep', 'rua', 'numero', 'complemento', 'bairro', 'cidade', 'estado')}
+
+        if variacoes and not variacao:
+            erro = 'Escolha as opções do produto.'
+        elif quantidade > _estoque_disponivel(produto, variacao):
+            erro = 'Produto sem estoque suficiente.'
+        elif not (nome and email and len(cpf) == 11 and telefone):
+            erro = 'Preencha nome, e-mail, CPF e telefone.'
+        elif metodo not in METODOS_LINK_VENDA or (metodo == 'sede' and not retirada_sede):
+            erro = 'Forma de pagamento inválida.'
+        elif not retirada_sede and not all(endereco[k] for k in ('cep', 'rua', 'numero', 'bairro', 'cidade', 'estado')):
+            erro = 'Preencha o endereço de entrega.'
+
+        valor_frete, modalidade = 0.0, 'Retirada na Sede'
+        if not erro and not retirada_sede:
+            # O frete é recalculado aqui: o valor que veio do navegador não é confiável
+            try:
+                opcoes = frete.cotar(endereco['cep'], [(produto, quantidade)])
+                escolhida = next((o for o in opcoes if o['tipo'] == request.POST.get('modalidade_frete')), None)
+                if escolhida:
+                    valor_frete, modalidade = escolhida['valor'], escolhida['tipo']
+                else:
+                    erro = 'Calcule e escolha a forma de envio.'
+            except ValueError as e:
+                erro = str(e)
+
+        if not erro:
+            cpf_formatado = f"{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}"
+            preco = produto.preco_atual()
+            try:
+                with transaction.atomic():
+                    pedido = Pedido.objects.create(
+                        usuario=request.user if logado else None,
+                        comprador_nome=nome[:150], comprador_email=email, comprador_cpf=cpf_formatado,
+                        comprador_telefone=telefone[:20],
+                        total=float(preco * quantidade) + valor_frete,
+                        status='aguardando_retirada' if metodo == 'sede' else 'pendente',
+                        retirada_sede=retirada_sede, metodo_pagamento=metodo,
+                        valor_frete=valor_frete, modalidade_frete=modalidade,
+                        **({} if retirada_sede else {
+                            'cep': endereco['cep'], 'endereco': endereco['rua'], 'numero': endereco['numero'],
+                            'complemento': endereco['complemento'], 'bairro': endereco['bairro'],
+                            'cidade': endereco['cidade'], 'estado': endereco['estado'][:2].upper(),
+                        }),
+                    )
+                    ItemPedido.objects.create(
+                        pedido=pedido, produto=produto, quantidade=quantidade, preco_unitario=preco,
+                        variacao=variacao, variacao_descricao=variacao.descricao if variacao else '',
+                    )
+                    baixa = Greatest(F('estoque') - quantidade, Value(0))
+                    if variacao:
+                        Variacao.objects.filter(id=variacao.id).update(estoque=baixa)
+                    Produto.objects.filter(id=produto.id).update(estoque=baixa)
+
+                    pix_data = boleto_data = None
+                    if metodo == 'pix':
+                        from accounts.efi_utils import gerar_cobranca_pix
+                        pix_data = gerar_cobranca_pix(pedido, tipo='pedido')
+                        if not pix_data.get('sucesso'):
+                            raise Exception(pix_data.get('erro', 'Erro ao gerar PIX'))
+                    elif metodo == 'boleto':
+                        from accounts.efi_utils import gerar_cobranca_boleto
+                        boleto_data = gerar_cobranca_boleto(pedido, cpf_formatado, nome, email)
+                        if not boleto_data.get('sucesso'):
+                            raise Exception(boleto_data.get('erro', 'Erro ao gerar boleto'))
+            except Exception as e:
+                erro = f"Erro ao processar pedido: {e}"
+            else:
+                if not logado and produto.torcida_id:
+                    # O convite de cadastro já leva a pessoa para a torcida que vendeu
+                    request.session['torcida_pre_selecionada'] = produto.torcida_id
+                return render(request, 'loja/sucesso.html', {
+                    'pedido': pedido,
+                    'pix_data': pix_data,
+                    'boleto_data': boleto_data,
+                    'metodo_pagamento': metodo,
+                    'retirada_sede': retirada_sede,
+                    'link_venda': True,
+                    'torcida_venda': produto.torcida,
+                })
+
+    return render(request, 'loja/comprar.html', {
+        'produto': produto,
+        'imagens': ([produto.imagem] if produto.imagem else []) + [i.imagem for i in produto.imagens_extra.all()],
+        'variacoes': variacoes,
+        'dados': dados,
+        'erro': erro,
+        'logado': logado,
+    })

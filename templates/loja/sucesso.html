@@ -103,6 +103,18 @@
     </div>
     {% endif %}
 
+    {% if link_venda and not user.is_authenticated %}
+    <!-- Convite para se cadastrar (compra feita pelo link de venda, sem conta) -->
+    <div class="mt-8 w-full max-w-sm rounded-2xl p-5 text-center shadow-md border border-suave fundo-card">
+        <i class="bi bi-person-plus-fill text-3xl" style="color: var(--cor-primaria)"></i>
+        <h2 class="text-lg font-black italic uppercase texto-main mt-2">Faça parte da {% if torcida_venda %}{{ torcida_venda.sigla|default:torcida_venda.nome }}{% else %}SAT{% endif %}!</h2>
+        <p class="text-xs texto-main opacity-70 mt-1">Cadastre-se grátis para acompanhar seus pedidos, ganhar descontos de sócio, ver eventos e caravanas.</p>
+        <p class="text-[10px] texto-main opacity-50 mt-2">Guarde o número do pedido: <b>#{{ pedido.id }}</b>. Para dúvidas, fale com a torcida informando esse número.</p>
+        <a href="{% url 'cadastro' %}" class="block w-full mt-4 py-4 text-white text-center rounded-2xl font-black italic uppercase text-xs shadow-md no-underline active:scale-95 transition-transform" style="background-color: var(--cor-primaria)">
+            <i class="bi bi-person-plus mr-1"></i> Quero me cadastrar
+        </a>
+    </div>
+    {% else %}
     <!-- Botões -->
     <div class="mt-8 w-full max-w-sm space-y-3">
         <a href="{% url 'meus_pedidos' %}" class="block w-full py-4 text-white text-center rounded-2xl font-black italic uppercase text-xs shadow-md no-underline active:scale-95 transition-transform" style="background-color: var(--cor-primaria)">
@@ -112,6 +124,7 @@
             Continuar Comprando
         </a>
     </div>
+    {% endif %}
 </div>
 
 <script>

@@ -2,6 +2,7 @@
 {% block marca %}Canal <span class="text-blue-300">BEPE</span>{% endblock %}
 {% block submarca %}<i class="bi bi-people-fill"></i> Diretoria · {{ request.torcida_diretoria.nome }}{% endblock %}
 {% block nav %}
-<a href="{% url 'bepe:diretoria_conversas' %}" class="tab {% if aba != 'reunioes' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-chat-square-text-fill"></i> Conversas com o BEPE</a>
+<a href="{% url 'bepe:diretoria_conversas' %}" class="tab {% if aba != 'reunioes' and aba != 'documentos' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-chat-square-text-fill"></i> Conversas com o BEPE</a>
 <a href="{% url 'bepe:diretoria_reunioes' %}" class="tab {% if aba == 'reunioes' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-camera-video-fill"></i> Reuniões</a>
+<a href="{% url 'bepe:diretoria_documentos' %}" class="tab {% if aba == 'documentos' %}ativa{% endif %} whitespace-nowrap px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-folder-fill"></i> Documentos e presença</a>
 {% endblock %}

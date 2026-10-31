@@ -1,126 +1,142 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static painel_sat %}
 
 {% block content %}
-<style>
-    :root { --cor-primaria: {{ torcida.cor_primaria|default:"#D37129" }}; }
+{% include 'includes/painel_sat_estilo.html' %}
 
-    @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .texto-main { color: var(--cor-terciaria) !important; text-shadow: 
-        0px 1px 2px rgba(0, 0, 0, 0.6), 
-        0px -1px 1px rgba(255, 255, 255, 0.2);
-    }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+<div class="painel-sat w-full min-h-screen fundo-app flex flex-col pb-32">
 
-    .tab-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .tab-active { background-color: var(--cor-primaria); color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transform: scale(1.02); }
-    .tab-inactive { background-color: rgba(150,150,150,0.08); color: inherit; opacity: 0.6; border: 1px solid rgba(150,150,150,0.1); }
-    
-    .secao-conteudo { display: none; }
-    .secao-ativa { display: block; animation: slideUpFade 0.4s ease forwards; }
-    .modal-backdrop { background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); }
-</style>
+    {# ===== TOPO: marca SAT + torcida moderada + números rápidos ===== #}
+    <header class="hero-sat px-5 pt-9 pb-6 mb-2">
+        <div class="hero-escudo"></div>
 
-<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
-
-    <div class="px-5 pt-10 pb-6 flex justify-between items-center z-30 relative">
-        <div class="flex items-center gap-4">
-            <a href="{% url 'dashboard' %}" class="w-10 h-10 fundo-card rounded-2xl flex items-center justify-center texto-main border border-suave shadow-sm hover:opacity-80 transition-opacity">
+        <div class="relative z-10 flex items-center justify-between gap-3">
+            <a href="{% url 'dashboard' %}" class="vidro-sat w-10 h-10 rounded-2xl flex items-center justify-center text-white no-underline hover:opacity-80 transition-opacity" aria-label="Voltar">
                 <i class="bi bi-arrow-left text-lg"></i>
             </a>
-            <div>
-                <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-none">
-                    MODERAÇÃO <span style="color: var(--cor-primaria)">SAT</span>
-                </h1>
-                <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1 flex items-center gap-1">
-                    <i class="bi bi-shield-check"></i> {{ torcida.nome }}
+            <img src="{% static 'img/logo-text.png' %}" alt="SAT" class="logo-sat-branco h-9 object-contain opacity-95">
+            <a href="{% url 'gerenciar_avisos' %}" class="vidro-sat w-10 h-10 rounded-2xl flex items-center justify-center text-white no-underline hover:opacity-80 transition-opacity" aria-label="Pop-ups e avisos">
+                <i class="bi bi-megaphone-fill"></i>
+            </a>
+        </div>
+
+        <div class="relative z-10 flex items-center gap-4 mt-6">
+            <div class="w-16 h-16 shrink-0 rounded-2xl bg-white/95 p-1.5 shadow-lg flex items-center justify-center">
+                {% if torcida.logo %}
+                    <img src="{{ torcida.logo.url }}" alt="{{ torcida.nome }}" class="max-w-full max-h-full object-contain">
+                {% else %}
+                    <img src="{% static 'img/logo-shield.png' %}" alt="" class="max-w-full max-h-full object-contain">
+                {% endif %}
+            </div>
+            <div class="min-w-0">
+                <p class="text-[9px] font-black uppercase tracking-[.25em]" style="color: color-mix(in srgb, var(--destaque) 60%, white)">Painel do Moderador</p>
+                <h1 class="text-2xl font-black italic uppercase tracking-tighter leading-none truncate">{{ torcida.nome }}</h1>
+                <p class="text-[9px] font-bold uppercase tracking-widest text-white/50 mt-1.5 flex items-center gap-1">
+                    <i class="bi bi-shield-fill-check text-green-400"></i> Torcida verificada · Torcer é pertencer
                 </p>
             </div>
         </div>
-    </div>
 
-    <div class="px-5 pb-6 flex overflow-x-auto gap-3 no-scrollbar py-2">
-        <button onclick="mudarAba('visao-geral')" id="btn-visao-geral" class="tab-btn tab-active px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+        <div class="relative z-10 grid grid-cols-4 gap-2 mt-6">
+            <button type="button" onclick="mudarAba('socios')" class="stat-sat py-3 text-center">
+                <p class="text-xl font-black leading-none">{{ membros_ativos|length }}</p>
+                <p class="text-[8px] font-bold uppercase tracking-widest text-white/50 mt-1">Sócios</p>
+            </button>
+            <button type="button" onclick="mudarAba('socios')" class="stat-sat {% if membros_pendentes %}alerta{% endif %} py-3 text-center">
+                <p class="text-xl font-black leading-none">{{ membros_pendentes|length }}</p>
+                <p class="text-[8px] font-bold uppercase tracking-widest text-white/50 mt-1">Pendentes</p>
+            </button>
+            <button type="button" onclick="mudarAba('eventos')" class="stat-sat py-3 text-center">
+                <p class="text-xl font-black leading-none">{{ eventos|length }}</p>
+                <p class="text-[8px] font-bold uppercase tracking-widest text-white/50 mt-1">Eventos</p>
+            </button>
+            <button type="button" onclick="mudarAba('loja')" class="stat-sat py-3 text-center">
+                <p class="text-xl font-black leading-none">{{ produtos|length }}</p>
+                <p class="text-[8px] font-bold uppercase tracking-widest text-white/50 mt-1">Produtos</p>
+            </button>
+        </div>
+    </header>
+
+    {# ===== ABAS ===== #}
+    <nav class="abas-sat px-4 py-3 flex overflow-x-auto gap-1.5 no-scrollbar mb-4 border-b border-suave">
+        <button onclick="mudarAba('visao-geral')" id="btn-visao-geral" class="tab-btn tab-active py-2.5 text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
             <i class="bi bi-grid-1x2-fill"></i> Início
         </button>
-        <button onclick="mudarAba('socios')" id="btn-socios" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2 relative">
+        <button onclick="mudarAba('socios')" id="btn-socios" class="tab-btn tab-inactive py-2.5 text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
             <i class="bi bi-person-lines-fill"></i> Sócios / KYC
-            {% if membros_pendentes.count > 0 %}<span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>{% endif %}
+            {% if membros_pendentes.count > 0 %}<span class="tab-badge animate-pulse"></span>{% endif %}
         </button>
-        <button onclick="mudarAba('eventos')" id="btn-eventos" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+        <button onclick="mudarAba('eventos')" id="btn-eventos" class="tab-btn tab-inactive py-2.5 text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
             <i class="bi bi-calendar-event"></i> Eventos
         </button>
-        <button onclick="mudarAba('loja')" id="btn-loja" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+        <button onclick="mudarAba('loja')" id="btn-loja" class="tab-btn tab-inactive py-2.5 text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
             <i class="bi bi-cart-fill"></i> Loja
         </button>
-        <button onclick="mudarAba('cultura')" id="btn-cultura" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+        <button onclick="mudarAba('cultura')" id="btn-cultura" class="tab-btn tab-inactive py-2.5 text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
             <i class="bi bi-music-note-beamed"></i> Cultura
         </button>
-        <button onclick="mudarAba('institucional')" id="btn-institucional" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+        <button onclick="mudarAba('institucional')" id="btn-institucional" class="tab-btn tab-inactive py-2.5 text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
             <i class="bi bi-building"></i> Torcida
         </button>
-        <button onclick="mudarAba('identidade')" id="btn-identidade" class="tab-btn tab-inactive px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
+        <button onclick="mudarAba('identidade')" id="btn-identidade" class="tab-btn tab-inactive py-2.5 text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2">
             <i class="bi bi-palette-fill"></i> Marca
         </button>
-    </div>
+        <a href="{% url 'gerenciar_avisos' %}" class="tab-btn tab-inactive py-2.5 text-[10px] font-black uppercase whitespace-nowrap flex items-center gap-2 no-underline">
+            <i class="bi bi-window-stack"></i> Pop-ups
+        </a>
+    </nav>
 
     <div class="px-5 flex flex-col gap-6">
 
         <div id="visao-geral" class="secao-conteudo secao-ativa">
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="fundo-card p-5 rounded-[24px] border border-suave flex flex-col items-center">
-                    <h3 class="text-3xl font-black texto-main leading-none mb-1">{{ membros_ativos|length }}</h3>
-                    <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest">Sócios Ativos</p>
+            {% if membros_pendentes or docs_para_verificar %}
+            <button type="button" onclick="mudarAba('socios')" class="w-full mb-5 p-4 rounded-[22px] flex items-center gap-3 text-left shadow-lg" style="color: var(--texto-destaque); background: linear-gradient(135deg, var(--destaque-claro), var(--destaque));">
+                <i class="bi bi-bell-fill text-2xl animate-pulse"></i>
+                <div class="flex-1">
+                    <p class="text-sm font-black italic uppercase leading-none">Tem gente esperando</p>
+                    <p class="text-[10px] font-bold uppercase tracking-widest opacity-80 mt-1">
+                        {% if membros_pendentes %}{{ membros_pendentes|length }} aprovaç{{ membros_pendentes|length|pluralize:"ão,ões" }}{% endif %}{% if membros_pendentes and docs_para_verificar %} · {% endif %}{% if docs_para_verificar %}{{ docs_para_verificar|length }} documento{{ docs_para_verificar|length|pluralize }}{% endif %}
+                    </p>
                 </div>
-                <div class="fundo-card p-5 rounded-[24px] border border-suave flex flex-col items-center">
-                    <h3 class="text-3xl font-black texto-main leading-none mb-1">{{ produtos.count }}</h3>
-                    <p class="text-[9px] font-bold texto-main opacity-50 uppercase tracking-widest">Produtos Loja</p>
-                </div>
-            </div>
-            
-            <a href="{% url 'admin_financeiro' %}" class="fundo-card border border-suave rounded-[24px] p-5 shadow-sm hover:scale-[1.02] transition-transform flex flex-col justify-between block w-full mb-3">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center">
-                        <i class="bi bi-currency-dollar text-2xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mb-1">Gestão</p>
-                        <h3 class="text-xl font-black texto-main leading-none">FINANCEIRO</h3>
-                        <p class="text-[9px] text-green-500 font-bold mt-1">Ver mensalidades e faturas</p>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="{% url 'painel_loja' %}" class="fundo-card border border-suave rounded-[24px] p-5 shadow-sm hover:scale-[1.02] transition-transform flex flex-col justify-between block w-full mb-3">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center">
-                        <i class="bi bi-shop text-2xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mb-1">Gestão</p>
-                        <h3 class="text-xl font-black texto-main leading-none">LOJA E PRODUTOS</h3>
-                        <p class="text-[9px] text-orange-500 font-bold mt-1">Adicionar e editar produtos</p>
-                    </div>
-                </div>
-            </a>
+                <i class="bi bi-chevron-right text-lg"></i>
+            </button>
+            {% endif %}
 
-            <a href="{% url 'painel_planos' %}" class="fundo-card border border-suave rounded-[24px] p-5 shadow-sm hover:scale-[1.02] transition-transform flex flex-col justify-between block w-full mb-6">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                        <i class="bi bi-card-checklist text-2xl"></i>
+            <h3 class="text-[12px] font-black texto-main uppercase tracking-widest border-l-4 mb-4">Gestão</h3>
+            <div class="flex flex-col gap-3">
+                <a href="{% url 'admin_financeiro' %}" class="atalho-sat fundo-card border border-suave">
+                    <span class="icone"><i class="bi bi-cash-coin"></i></span>
+                    <div class="flex-1">
+                        <h4 class="text-base font-black italic uppercase tracking-tight texto-main leading-none">Financeiro</h4>
+                        <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Mensalidades e faturas</p>
                     </div>
-                    <div>
-                        <p class="text-[10px] texto-main opacity-50 font-bold uppercase tracking-widest mb-1">Gestão</p>
-                        <h3 class="text-xl font-black texto-main leading-none">PLANOS E BENEFÍCIOS</h3>
-                        <p class="text-[9px] text-blue-500 font-bold mt-1">Criar e editar planos de sócio</p>
+                    <i class="bi bi-chevron-right texto-main opacity-40"></i>
+                </a>
+                <a href="{% url 'painel_loja' %}" class="atalho-sat fundo-card border border-suave">
+                    <span class="icone"><i class="bi bi-shop"></i></span>
+                    <div class="flex-1">
+                        <h4 class="text-base font-black italic uppercase tracking-tight texto-main leading-none">Loja e Produtos</h4>
+                        <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Produtos, banner e pedidos</p>
                     </div>
-                </div>
-            </a>
+                    <i class="bi bi-chevron-right texto-main opacity-40"></i>
+                </a>
+                <a href="{% url 'painel_planos' %}" class="atalho-sat fundo-card border border-suave">
+                    <span class="icone grafite"><i class="bi bi-gem"></i></span>
+                    <div class="flex-1">
+                        <h4 class="text-base font-black italic uppercase tracking-tight texto-main leading-none">Planos e Benefícios</h4>
+                        <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Benefícios extras para sócios</p>
+                    </div>
+                    <i class="bi bi-chevron-right texto-main opacity-40"></i>
+                </a>
+                <a href="{% url 'gerenciar_avisos' %}" class="atalho-sat fundo-card border border-suave">
+                    <span class="icone grafite"><i class="bi bi-window-stack"></i></span>
+                    <div class="flex-1">
+                        <h4 class="text-base font-black italic uppercase tracking-tight texto-main leading-none">Pop-ups</h4>
+                        <p class="text-[10px] font-bold texto-main opacity-50 uppercase tracking-widest mt-1">Avisos para os membros · até 3 por dia</p>
+                    </div>
+                    <i class="bi bi-chevron-right texto-main opacity-40"></i>
+                </a>
+            </div>
         </div>
 
         <div id="socios" class="secao-conteudo">
@@ -293,13 +309,13 @@
                     <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Campos de Registo (KYC)</h3>
                     <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Perguntas extras no perfil do sócio</p>
                 </div>
-                <button onclick="abrirModal('modalCampoCustom')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Novo Campo</button>            </div>
+                <button onclick="abrirModal('modalCampoCustom')" class="btn-novo text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Novo Campo</button>            </div>
             
             <div class="space-y-3">
                 {% for campo in campos_kyc %}
                 <div class="fundo-card p-4 rounded-2xl border border-suave flex justify-between items-center group">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center text-lg shadow-inner" style="color: var(--cor-primaria)">
+                        <div class="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center text-lg shadow-inner" style="color: var(--destaque-texto)">
                             <i class="bi bi-input-cursor-text"></i>
                         </div>
                         <div>
@@ -333,7 +349,7 @@
                         <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Gestão de Eventos</h3>
                         <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Jogos, Festas e Reuniões</p>
                     </div>
-                    <button onclick="abrirModal('modalEvento')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Novo Evento</button>
+                    <button onclick="abrirModal('modalEvento')" class="btn-novo text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Novo Evento</button>
                 </div>
 
                 <div class="space-y-3">
@@ -344,7 +360,7 @@
                                 {% if ev.imagem_capa %}
                                     <img src="{{ ev.imagem_capa.url }}" class="w-full h-full object-cover">
                                 {% else %}
-                                    <i class="bi bi-calendar-event text-xl opacity-30" style="color: var(--cor-primaria)"></i>
+                                    <i class="bi bi-calendar-event text-xl opacity-30" style="color: var(--destaque-texto)"></i>
                                 {% endif %}
                             </div>
                             <div class="flex-1">
@@ -403,7 +419,7 @@
                         <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Caravanas e Viagens</h3>
                         <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Deslocamentos da Torcida</p>
                     </div>
-                    <button onclick="abrirModal('modalCaravana')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Caravana</button>
+                    <button onclick="abrirModal('modalCaravana')" class="btn-novo text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Caravana</button>
                 </div>
 
                 <div class="space-y-3">
@@ -412,7 +428,7 @@
                         <div class="flex items-center justify-between gap-4">
                             <div class="flex items-center gap-4 flex-1">
                                 <div class="w-12 h-12 rounded-xl bg-black/5 flex items-center justify-center shrink-0 border border-suave">
-                                    <i class="bi bi-bus-front text-xl opacity-50" style="color: var(--cor-primaria)"></i>
+                                    <i class="bi bi-bus-front text-xl opacity-50" style="color: var(--destaque-texto)"></i>
                                 </div>
                                 <div>
                                     <h4 class="text-xs font-black uppercase texto-main leading-tight">{{ caravana.titulo }}</h4>
@@ -470,142 +486,13 @@
             </div>
         </div>
 
-        <div id="eventos" class="secao-conteudo">
-            <div class="mb-10">
-                <div class="flex justify-between items-center mb-5">
-                    <div>
-                        <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Gestão de Eventos</h3>
-                        <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Jogos, Festas e Reuniões</p>
-                    </div>
-                    <button onclick="abrirModal('modalEvento')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Novo Evento</button>
-                </div>
-
-                <div class="space-y-3">
-                    {% for ev in eventos %}
-                    <div class="fundo-card p-4 rounded-2xl border border-suave flex items-center justify-between gap-4 group">
-                        <div class="flex items-center gap-4 flex-1">
-                            <div class="w-12 h-12 rounded-xl bg-black/5 flex items-center justify-center overflow-hidden shrink-0 border border-suave">
-                                {% if ev.imagem_capa %}
-                                    <img src="{{ ev.imagem_capa.url }}" class="w-full h-full object-cover">
-                                {% else %}
-                                    <i class="bi bi-calendar-event text-xl opacity-30" style="color: var(--cor-primaria)"></i>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-black uppercase texto-main leading-tight">{{ ev.titulo }}</h4>
-                                <p class="text-[10px] font-bold opacity-60 uppercase flex items-center gap-1 mt-0.5">
-                                    <i class="bi bi-clock"></i> {{ ev.data|date:"d/m H:i" }} | <i class="bi bi-geo-alt ml-1"></i> {{ ev.local }}
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center gap-2 shrink-0 ml-3">
-                            <button type="button" onclick="abrirModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center">
-                                <i class="bi bi-people-fill text-xs"></i>
-                            </button>
-                            
-                            <button type="button" onclick="abrirModal('modalEditarEvento{{ ev.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
-                                <i class="bi bi-pencil-fill text-xs"></i>
-                            </button>
-
-                            <form method="POST" onsubmit="return confirm('Apagar este evento definitivamente?');" class="m-0">
-                                {% csrf_token %}
-                                <input type="hidden" name="item_id" value="{{ ev.id }}">
-                                <button type="submit" name="acao" value="deletar_evento" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 flex items-center justify-center">
-                                    <i class="bi bi-trash text-xs"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center py-8 opacity-40 border border-dashed border-suave rounded-[24px] bg-black/5">
-                        <i class="bi bi-calendar-x text-3xl mb-2 block"></i>
-                        <p class="text-[10px] font-bold uppercase tracking-widest">Nenhum evento agendado.</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div>
-                <div class="flex justify-between items-center mb-5">
-                    <div>
-                        <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Caravanas e Viagens</h3>
-                        <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Deslocamentos da Torcida</p>
-                    </div>
-                    <button onclick="abrirModal('modalCaravana')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Caravana</button>
-                </div>
-
-                <div class="space-y-3">
-                    {% for caravana in caravanas %}
-                    <div class="fundo-card p-4 rounded-2xl border border-suave flex flex-col gap-4 group">
-                        <div class="flex items-center justify-between gap-4">
-                            <div class="flex items-center gap-4 flex-1">
-                                <div class="w-12 h-12 rounded-xl bg-black/5 flex items-center justify-center shrink-0 border border-suave">
-                                    <i class="bi bi-bus-front text-xl opacity-50" style="color: var(--cor-primaria)"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-xs font-black uppercase texto-main leading-tight">{{ caravana.titulo }}</h4>
-                                    <p class="text-[10px] font-bold opacity-60 uppercase flex items-center gap-1 mt-0.5">
-                                        <i class="bi bi-signpost-split"></i> {{ caravana.saida_local }} | R$ {{ caravana.valor }}
-                                    </p>
-                                    <p class="text-[10px] font-black uppercase flex items-center gap-1 mt-1 text-orange-500">
-                                        <i class="bi bi-people-fill"></i> {{ caravana.passageiros.count }} / {{ caravana.vagas_totais }} Vagas Ocupadas
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0">
-                                <button type="button" onclick="abrirModal('modalListaCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Ver Confirmados">
-                                    <i class="bi bi-people-fill text-xs"></i>
-                                </button>
-                                <a href="{% url 'exportar_csv_moderacao' tipo='caravana' item_id=caravana.id %}" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Baixar CSV">
-                                    <i class="bi bi-filetype-csv text-xs"></i>
-                                </a>
-                                <button type="button" onclick="abrirModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
-                                    <i class="bi bi-pencil-fill text-xs"></i>
-                                </button>
-                                <form method="POST" onsubmit="return confirm('Cancelar caravana?');" class="m-0">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="item_id" value="{{ caravana.id }}">
-                                    <button type="submit" name="acao" value="deletar_caravana" class="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 flex items-center justify-center">
-                                        <i class="bi bi-trash text-xs"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-wrap gap-1.5 pt-3 border-t border-suave/50">
-                            {% for passageiro in caravana.passageiros.all %}
-                                <div class="flex items-center gap-1.5 bg-black/5 border border-suave px-2 py-1 rounded-full">
-                                    {% if passageiro.perfil.foto %}
-                                        <img src="{{ passageiro.perfil.foto.url }}" class="w-4 h-4 rounded-full object-cover border border-suave">
-                                    {% else %}
-                                        <i class="bi bi-person-circle text-[10px] opacity-40"></i>
-                                    {% endif %}
-                                    <span class="text-[8px] font-black uppercase texto-main opacity-70">{{ passageiro.first_name|default:passageiro.username }}</span>
-                                </div>
-                            {% empty %}
-                                <span class="text-[8px] font-bold uppercase opacity-30 italic">Aguardando confirmações...</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center py-8 opacity-40 border border-dashed border-suave rounded-[24px] bg-black/5">
-                        <i class="bi bi-bus-front text-3xl mb-2 block"></i>
-                        <p class="text-[10px] font-bold uppercase tracking-widest">Nenhuma caravana agendada.</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
         <div id="loja" class="secao-conteudo">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Loja</h3>
                 <div class="flex gap-2">
-                    <button onclick="abrirModal('modalCategoriaLoja')" class="text-[9px] bg-black/5 hover:bg-black/10 transition-colors px-3 py-1.5 rounded-full font-black uppercase border border-suave">+ Categoria</button>
+                    <button onclick="abrirModal('modalCategoriaLoja')" class="btn-novo text-[9px] bg-black/5 hover:bg-black/10 transition-colors px-3 py-1.5 rounded-full font-black uppercase border border-suave">+ Categoria</button>
                     <a href="{% url 'painel_loja' %}" class="text-[9px] bg-black/5 hover:bg-black/10 transition-colors px-3 py-1.5 rounded-full font-black uppercase border border-suave no-underline texto-main">Banner</a>
-                    <a href="{% url 'novo_produto' %}" class="text-[9px] bg-green-600 hover:bg-green-700 transition-colors text-white px-3 py-1.5 rounded-full font-black uppercase no-underline">+ Produto</a>
+                    <a href="{% url 'novo_produto' %}" class="btn-novo text-[9px] bg-green-600 hover:bg-green-700 transition-colors text-white px-3 py-1.5 rounded-full font-black uppercase no-underline">+ Produto</a>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -625,7 +512,7 @@
                     </div>
                     <h4 class="text-[10px] font-black uppercase truncate">{{ prod.nome }}</h4>
                     <div class="flex justify-between items-center">
-                        <p class="text-[11px] font-black" style="color: var(--cor-primaria)">R$ {{ prod.preco_atual }}</p>
+                        <p class="text-[11px] font-black" style="color: var(--destaque-texto)">R$ {{ prod.preco_atual }}</p>
                         <a href="{% url 'editar_produto' prod.id %}" class="text-[9px] text-orange-500 font-black uppercase no-underline flex items-center gap-1"><i class="bi bi-pencil-fill"></i> Editar</a>
                     </div>
                 </div>
@@ -645,7 +532,7 @@
                         <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Galeria de Fotos</h3>
                         <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Registros históricos da torcida</p>
                     </div>
-                    <button onclick="abrirModal('modalFotoGaleria')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Adicionar Foto</button>
+                    <button onclick="abrirModal('modalFotoGaleria')" class="btn-novo text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Adicionar Foto</button>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -682,7 +569,7 @@
                         <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Canções e Gritos</h3>
                         <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Músicas e letras da arquibancada</p>
                     </div>
-                    <button onclick="abrirModal('modalCancao')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Canção</button>
+                    <button onclick="abrirModal('modalCancao')" class="btn-novo text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Canção</button>
                 </div>
 
                 <div class="space-y-3">
@@ -725,13 +612,13 @@
                         <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Conquistas e Glórias</h3>
                         <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Troféus, prêmios e marcos</p>
                     </div>
-                    <button onclick="abrirModal('modalConquista')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Conquista</button>
+                    <button onclick="abrirModal('modalConquista')" class="btn-novo text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Conquista</button>
                 </div>
 
                 <div class="space-y-3">
                     {% for conquista in conquistas %}
                     <div class="fundo-card p-4 rounded-2xl border border-suave flex items-center gap-4 relative overflow-hidden">
-                        <div class="w-12 h-12 rounded-xl bg-black/5 flex items-center justify-center text-2xl" style="color: var(--cor-primaria)">
+                        <div class="w-12 h-12 rounded-xl bg-black/5 flex items-center justify-center text-2xl" style="color: var(--destaque-texto)">
                             <i class="bi {{ conquista.icone }}"></i>
                         </div>
                         <div class="flex-1">
@@ -771,8 +658,8 @@
                         <p class="text-[9px] font-bold opacity-40 uppercase ml-4">Lideranças e Gestão</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="abrirModal('modalCategoriaDiretoria')" class="text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Categoria</button>
-                        <button onclick="abrirModal('modalMembroDiretoria')" class="text-[10px] bg-green-600 hover:bg-green-700 transition-colors text-white px-4 py-2 rounded-full font-black uppercase shadow-sm">+ Novo Membro</button>
+                        <button onclick="abrirModal('modalCategoriaDiretoria')" class="btn-novo text-[10px] bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 rounded-full font-black uppercase border border-suave">+ Categoria</button>
+                        <button onclick="abrirModal('modalMembroDiretoria')" class="btn-novo text-[10px] bg-green-600 hover:bg-green-700 transition-colors text-white px-4 py-2 rounded-full font-black uppercase shadow-sm">+ Novo Membro</button>
                     </div>
                 </div>
 
@@ -784,7 +671,7 @@
                             <form method="POST" onsubmit="return confirm('Apagar categoria e todos os membros vinculados?');">
                                 {% csrf_token %}
                                 <input type="hidden" name="item_id" value="{{ cat.id }}">
-                                <button type="submit" name="acao" value="novo_membro_diretoria" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg" style="background-color: var(--cor-primaria)">Salvar Membro</button>
+                                <button type="submit" name="acao" value="novo_membro_diretoria" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg" style="background-color: var(--cor-primaria)">Salvar Membro</button>
                             </form>
                         </div>
                         
@@ -801,7 +688,7 @@
                                     {% endif %}
                                     <div>
                                         <h5 class="text-xs font-black uppercase texto-main leading-tight">{{ membro.nome }}</h5>
-                                        <p class="text-[10px] font-bold opacity-60 uppercase" style="color: var(--cor-primaria)">{{ membro.cargo }}</p>
+                                        <p class="text-[10px] font-bold opacity-60 uppercase" style="color: var(--destaque-texto)">{{ membro.cargo }}</p>
                                     </div>
                                 </div>
                                 <div class="flex flex-col gap-2">
@@ -834,12 +721,12 @@
            <div class="mb-12">
                 <div class="flex justify-between items-center mb-5">
                     <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Regras e Estatuto</h3>
-                    <button onclick="abrirModal('modalRegra')" class="text-[10px] bg-black/5 px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Regra</button>
+                    <button onclick="abrirModal('modalRegra')" class="btn-novo text-[10px] bg-black/5 px-4 py-2 rounded-full font-black uppercase border border-suave">+ Nova Regra</button>
                 </div>
                 <div class="space-y-3">
                     {% for regra in regras|dictsort:"ordem" %}
                     <div class="fundo-card p-4 rounded-2xl border border-suave flex gap-4">
-                        <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-black text-white text-sm" style="background-color: var(--cor-primaria)">{{ regra.ordem }}</div>
+                        <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-black text-sm" style="background-color: var(--destaque); color: var(--texto-destaque)">{{ regra.ordem }}</div>
                         <div class="flex-1 flex justify-between items-start gap-4">
                             <div>
                                 <h4 class="text-xs font-black uppercase texto-main leading-tight">{{ regra.titulo }}</h4>
@@ -881,7 +768,7 @@
                         {% if aliada.logo %}<img src="{{ aliada.logo.url }}" class="w-12 h-12 rounded-full object-cover">{% endif %}
                         <div class="flex-1">
                             <h5 class="text-xs font-black uppercase texto-main">{{ aliada.nome_organizada }}</h5>
-                            <p class="text-[10px] font-bold uppercase" style="color: var(--cor-primaria)">{{ aliada.clube }}</p>
+                            <p class="text-[10px] font-bold uppercase" style="color: var(--destaque-texto)">{{ aliada.clube }}</p>
                         </div>
                         
                         <div class="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -909,7 +796,7 @@
 
         <div id="identidade" class="secao-conteudo">
             <div class="fundo-card p-6 rounded-[24px] border border-suave shadow-sm relative overflow-hidden">
-                <h3 class="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2" style="color: var(--cor-primaria)">
+                <h3 class="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2" style="color: var(--destaque-texto)">
                     <i class="bi bi-palette-fill"></i> Marca e Identidade
                 </h3>
                 
@@ -1030,7 +917,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-4 mt-8 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg hover:opacity-90 transition-all active:scale-95 flex justify-center items-center gap-2" style="background-color: var(--cor-primaria)">
+                    <button type="submit" class="btn-sat w-full py-4 mt-8 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg hover:opacity-90 transition-all active:scale-95 flex justify-center items-center gap-2" style="background-color: var(--cor-primaria)">
                         <i class="bi bi-cloud-arrow-up-fill text-sm"></i> Salvar Identidade da Torcida
                     </button>
                 </form>
@@ -1097,7 +984,7 @@
                 <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Valor do Ingresso (R$)</label>
                 <input type="number" step="0.01" name="valor" value="0.00" placeholder="Deixe 0.00 se for Grátis" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
             </div>
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 shadow-lg" style="background-color: var(--cor-primaria)">Publicar Evento</button>
+            <button type="submit" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 shadow-lg" style="background-color: var(--cor-primaria)">Publicar Evento</button>
         </form>
     </div>
 </div>
@@ -1133,7 +1020,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 shadow-lg" style="background-color: var(--cor-primaria)">Publicar Caravana</button>
+            <button type="submit" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 shadow-lg" style="background-color: var(--cor-primaria)">Publicar Caravana</button>
         </form>
     </div>
 </div>
@@ -1159,7 +1046,7 @@
                 </label>
             </div>
             
-            <button type="submit" name="acao" value="novo_campo_custom" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity shadow-lg" style="background-color: var(--cor-primaria)">
+            <button type="submit" name="acao" value="novo_campo_custom" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity shadow-lg" style="background-color: var(--cor-primaria)">
                 Criar Campo
             </button>
         </form>
@@ -1175,7 +1062,7 @@
         <form method="POST" class="space-y-4">
             {% csrf_token %}
             <input type="text" name="nome" required placeholder="Nome (Ex: T-Shirts, Acessórios)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-            <button type="submit" name="acao" value="nova_categoria_loja" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Criar Categoria</button>
+            <button type="submit" name="acao" value="nova_categoria_loja" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity" style="background-color: var(--cor-primaria)">Criar Categoria</button>
         </form>
     </div>
 </div>
@@ -1191,7 +1078,7 @@
             <input type="text" name="titulo" required placeholder="Título da Foto (Ex: Invasão Maracanã)" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
             <textarea name="legenda" rows="3" placeholder="Descrição / História da foto..." class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none"></textarea>
             <input type="file" name="imagem" accept="image/*" required class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
-            <button type="submit" name="acao" value="nova_foto_galeria" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity shadow-lg" style="background-color: var(--cor-primaria)">Publicar Registro</button>
+            <button type="submit" name="acao" value="nova_foto_galeria" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity shadow-lg" style="background-color: var(--cor-primaria)">Publicar Registro</button>
         </form>
     </div>
 </div>
@@ -1233,7 +1120,7 @@
                 <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
             </div>
 
-            <button type="submit" name="acao" value="nova_conquista" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity shadow-lg" style="background-color: var(--cor-primaria)">Registrar Glória</button>
+            <button type="submit" name="acao" value="nova_conquista" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity shadow-lg" style="background-color: var(--cor-primaria)">Registrar Glória</button>
         </form>
     </div>
 </div>
@@ -1272,7 +1159,7 @@
                 </div>
             </div>
 
-            <button type="submit" name="acao" value="nova_cancao" class="w-full py-4 mt-2 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2" style="background-color: var(--cor-primaria)">
+            <button type="submit" name="acao" value="nova_cancao" class="btn-sat w-full py-4 mt-2 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2" style="background-color: var(--cor-primaria)">
                 <i class="bi bi-mic-fill"></i> Guardar Canção
             </button>
         </form>
@@ -1433,7 +1320,7 @@
                 <textarea name="descricao" required rows="4" placeholder="Descreva os detalhes e punições (se aplicável)..." class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none"></textarea>
             </div>
             
-            <button type="submit" name="acao" value="nova_regra" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity shadow-lg" style="background-color: var(--cor-primaria)">
+            <button type="submit" name="acao" value="nova_regra" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:opacity-90 transition-opacity shadow-lg" style="background-color: var(--cor-primaria)">
                 Salvar Regra
             </button>
         </form>
@@ -1450,7 +1337,7 @@
             {% csrf_token %}
             <input type="text" name="nome" required placeholder="Ex: Presidência, Bateria..." class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
             <input type="number" name="ordem" value="0" placeholder="Ordem de Exibição" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
-            <button type="submit" name="acao" value="nova_categoria_diretoria" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg" style="background-color: var(--cor-primaria)">Criar Categoria</button>
+            <button type="submit" name="acao" value="nova_categoria_diretoria" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg" style="background-color: var(--cor-primaria)">Criar Categoria</button>
         </form>
     </div>
 </div>
@@ -1478,7 +1365,7 @@
             </div>
 
             <input type="file" name="foto" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
-            <button type="submit" name="acao" value="novo_membro_diretoria" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg" style="background-color: var(--cor-primaria)">Salvar Membro</button>
+            <button type="submit" name="acao" value="novo_membro_diretoria" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg" style="background-color: var(--cor-primaria)">Salvar Membro</button>
         </form>
     </div>
 </div>
@@ -1495,7 +1382,7 @@
             <input type="text" name="nome_organizada" required placeholder="Nome da Torcida" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
             <input type="text" name="clube" required placeholder="Clube que apoiam" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
             <input type="file" name="logo" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest" style="background-color: var(--cor-primaria)">Confirmar Aliança</button>
+            <button type="submit" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest" style="background-color: var(--cor-primaria)">Confirmar Aliança</button>
         </form>
     </div>
 </div>
@@ -1627,7 +1514,7 @@
             </div>
             <!-- FIM DO CAMPO DE VALOR -->
 
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Edição</button>
+            <button type="submit" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] shadow-lg">Salvar Edição</button>
         </form>
     </div>
 </div>
@@ -1665,7 +1552,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 bg-orange-500 shadow-lg">Salvar Edição</button>
+            <button type="submit" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] tracking-widest mt-2 bg-orange-500 shadow-lg">Salvar Edição</button>
         </form>
     </div>
 </div>
@@ -1684,7 +1571,7 @@
             <input type="hidden" name="item_id" value="{{ cancao.id }}">
             <input type="text" name="titulo" value="{{ cancao.titulo }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none">
             <textarea name="descricao" required rows="4" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none">{{ cancao.descricao }}</textarea>
-            <input type="url" name="url_youtube" value="{{ cancao.video_url|default:'' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none" placeholder="Link do YouTube">            <button type="submit" class="w-full py-4 mt-2 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Alterações</button>
+            <input type="url" name="url_youtube" value="{{ cancao.video_url|default:'' }}" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none" placeholder="Link do YouTube">            <button type="submit" class="btn-sat w-full py-4 mt-2 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Alterações</button>
         </form>
     </div>
 </div>
@@ -1707,7 +1594,7 @@
                 <input type="number" name="ordem" value="{{ regra.ordem }}" required class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3 text-xs font-bold outline-none">
             </div>
             <textarea name="descricao" required rows="4" class="w-full bg-black/5 border border-suave rounded-xl px-4 py-3.5 text-xs font-bold outline-none resize-none">{{ regra.descricao }}</textarea>
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Regra</button>
+            <button type="submit" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] shadow-lg">Salvar Regra</button>
         </form>
     </div>
 </div>
@@ -1737,7 +1624,7 @@
             </div>
             <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Alterar Foto (Vazio para manter atual)</label>
             <input type="file" name="foto" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Membro</button>
+            <button type="submit" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] shadow-lg">Salvar Membro</button>
         </form>
     </div>
 </div>
@@ -1757,7 +1644,7 @@
             
             <label class="text-[9px] font-black opacity-50 uppercase mb-1 block">Alterar Logo (Deixe vazio para manter o atual)</label>
             <input type="file" name="logo" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Aliança</button>
+            <button type="submit" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] shadow-lg">Salvar Aliança</button>
         </form>
     </div>
 </div>
@@ -1789,7 +1676,7 @@
                 <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
             </div>
 
-            <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Alterações</button>
+            <button type="submit" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] shadow-lg">Salvar Alterações</button>
         </form>
     </div>
 </div>
@@ -1837,7 +1724,7 @@
                 <input type="file" name="imagem" accept="image/*" class="w-full bg-black/5 border border-suave rounded-xl px-3 py-3 text-[10px] font-bold">
             </div>
 
-           <button type="submit" class="w-full py-4 text-white rounded-xl font-black uppercase text-[11px] bg-orange-500 shadow-lg">Salvar Alterações</button>
+           <button type="submit" class="btn-sat w-full py-4 text-white rounded-xl font-black uppercase text-[11px] shadow-lg">Salvar Alterações</button>
         </form>
     </div>
 </div>
@@ -1900,6 +1787,7 @@
         document.getElementById(idSecao).classList.add('secao-ativa');
         document.getElementById('btn-' + idSecao).classList.remove('tab-inactive');
         document.getElementById('btn-' + idSecao).classList.add('tab-active');
+        document.getElementById('btn-' + idSecao).scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
         sessionStorage.setItem('abaAtivaModeracao', idSecao);
     }
 

@@ -16,8 +16,8 @@
                         {% else %}<i class="bi bi-{% if n.tipo == 'nivel' or n.tipo == 'xp' %}stars{% elif n.tipo == 'moderacao' %}shield-exclamation{% else %}person-fill{% endif %} texto-main opacity-40 text-lg"></i>{% endif %}
                     </div>
                     <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] text-white border-2 border-white
-                        {% if n.tipo == 'curtida' %}bg-red-500{% elif n.tipo == 'comentario' %}bg-blue-500{% elif n.tipo == 'seguidor' or n.tipo == 'amigo' %}bg-green-500{% elif n.tipo == 'convocacao' %}bg-orange-500{% elif n.tipo == 'moderacao' %}bg-gray-700{% else %}bg-yellow-500{% endif %}">
-                        <i class="bi bi-{% if n.tipo == 'curtida' %}heart-fill{% elif n.tipo == 'comentario' %}chat-fill{% elif n.tipo == 'seguidor' %}person-plus-fill{% elif n.tipo == 'amigo' %}people-fill{% elif n.tipo == 'convocacao' %}megaphone-fill{% elif n.tipo == 'moderacao' %}shield-fill{% elif n.tipo == 'evento_epico' %}lightning-fill{% else %}star-fill{% endif %}"></i>
+                        {% if n.tipo == 'curtida' %}bg-red-500{% elif n.tipo == 'comentario' %}bg-blue-500{% elif n.tipo == 'seguidor' or n.tipo == 'amigo' %}bg-green-500{% elif n.tipo == 'convocacao' %}bg-orange-500{% elif n.tipo == 'moderacao' %}bg-gray-700{% elif n.tipo == 'pedido' %}bg-green-600{% else %}bg-yellow-500{% endif %}">
+                        <i class="bi bi-{% if n.tipo == 'curtida' %}heart-fill{% elif n.tipo == 'comentario' %}chat-fill{% elif n.tipo == 'seguidor' %}person-plus-fill{% elif n.tipo == 'amigo' %}people-fill{% elif n.tipo == 'convocacao' %}megaphone-fill{% elif n.tipo == 'moderacao' %}shield-fill{% elif n.tipo == 'pedido' %}bag-check-fill{% elif n.tipo == 'evento_epico' %}lightning-fill{% else %}star-fill{% endif %}"></i>
                     </span>
                 </div>
                 <div class="flex-1 min-w-0">

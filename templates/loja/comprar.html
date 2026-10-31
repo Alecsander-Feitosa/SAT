@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-6">
+    {# ---------- PRODUTO ---------- #}
+    <div class="fundo-card rounded-2xl border border-suave shadow-sm overflow-hidden mb-4">
+        {% if imagens %}
+        <div class="flex overflow-x-auto snap-x snap-mandatory bg-white">
+            {% for img in imagens %}<img src="{{ img.url }}" alt="{{ produto.nome }}" class="w-full shrink-0 snap-center aspect-square object-contain">{% endfor %}
+        </div>
+        {% endif %}
+        <div class="p-5">
+            <p class="text-[10px] font-black uppercase tracking-widest texto-main opacity-50">{{ produto.vendedor }}</p>
+            <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-tight mt-1">{{ produto.nome }}</h1>
+            <div class="flex items-baseline gap-2 mt-2">
+                <span class="text-2xl font-black texto-tema">R$ {{ produto.preco_atual|floatformat:2 }}</span>
+                {% if produto.preco_atual != produto.preco %}<span class="text-sm texto-main opacity-40 line-through">R$ {{ produto.preco|floatformat:2 }}</span>{% endif %}
+            </div>
+            {% if produto.descricao %}<p class="text-sm texto-main opacity-70 mt-3 whitespace-pre-line">{{ produto.descricao }}</p>{% endif %}
+        </div>
+    </div>
+
+    {% if erro %}
+    <div class="bg-red-500/10 border border-red-500/30 text-red-600 rounded-xl px-4 py-3 text-sm font-bold mb-4"><i class="bi bi-exclamation-triangle-fill"></i> {{ erro }}</div>
+    {% endif %}
+
+    {% if produto.estoque > 0 or variacoes %}
+    <form method="post" id="form_compra" class="fundo-card rounded-2xl border border-suave shadow-sm p-5 space-y-5">
+        {% csrf_token %}
+
+        {# Opções e quantidade #}
+        <section class="space-y-3">
+            {% if variacoes %}
+            <div>
+                <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">{{ produto.rotulo_opcao1|default:"Opção" }}{% if produto.rotulo_opcao2 %} / {{ produto.rotulo_opcao2 }}{% endif %} *</label>
+                <select name="variacao_id" required class="campo">
+                    <option value="">Escolha...</option>
+                    {% for v in variacoes %}
+                    <option value="{{ v.id }}" {% if v.estoque == 0 %}disabled{% endif %} {% if dados.variacao_id == v.id|stringformat:"s" %}selected{% endif %}>{{ v.descricao }}{% if v.estoque == 0 %} (esgotado){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div>
+                <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60">Quantidade</label>
+                <input type="number" name="quantidade" id="quantidade" min="1" value="{{ dados.quantidade|default:1 }}" class="campo">
+            </div>
+        </section>
+
+        {# Dados do comprador #}
+        <section class="space-y-3">
+            <h2 class="text-sm font-black uppercase tracking-widest texto-main">Seus dados</h2>
+            {% if not logado %}<p class="text-xs texto-main opacity-60 -mt-2">Não precisa ter conta para comprar.</p>{% endif %}
+            <input type="text" name="nome_completo" required placeholder="Nome completo" value="{{ dados.nome_completo }}" class="campo">
+            <input type="email" name="email" required placeholder="E-mail" value="{{ dados.email }}" class="campo">
+            <div class="grid grid-cols-2 gap-3">
+                <input type="text" name="cpf" required inputmode="numeric" placeholder="CPF" value="{{ dados.cpf }}" class="campo">
+                <input type="tel" name="telefone" required placeholder="WhatsApp" value="{{ dados.telefone }}" class="campo">
+            </div>
+        </section>
+
+        {# Entrega #}
+        <section class="space-y-3">
+            <h2 class="text-sm font-black uppercase tracking-widest texto-main">Entrega</h2>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="opcao"><input type="radio" name="tipo_entrega" value="envio" {% if dados.tipo_entrega != 'sede' %}checked{% endif %}> <i class="bi bi-truck"></i> Receber em casa</label>
+                <label class="opcao"><input type="radio" name="tipo_entrega" value="sede" {% if dados.tipo_entrega == 'sede' %}checked{% endif %}> <i class="bi bi-shop"></i> Retirar na sede</label>
+            </div>
+            <div id="bloco_endereco" class="space-y-3">
+                <div class="flex gap-2">
+                    <input type="text" name="cep" id="cep" inputmode="numeric" placeholder="CEP" value="{{ dados.cep }}" class="campo">
+                    <button type="button" onclick="calcularFrete()" class="fundo-tema texto-claro font-black uppercase text-[11px] tracking-wider rounded-xl px-4 whitespace-nowrap">Calcular frete</button>
+                </div>
+                <div id="opcoes_frete" class="space-y-2"></div>
+                <input type="text" name="rua" placeholder="Rua" value="{{ dados.rua }}" class="campo">
+                <div class="grid grid-cols-3 gap-3">
+                    <input type="text" name="numero" placeholder="Número" value="{{ dados.numero }}" class="campo">
+                    <input type="text" name="complemento" placeholder="Complemento" value="{{ dados.complemento }}" class="campo col-span-2">
+                </div>
+                <input type="text" name="bairro" placeholder="Bairro" value="{{ dados.bairro }}" class="campo">
+                <div class="grid grid-cols-3 gap-3">
+                    <input type="text" name="cidade" placeholder="Cidade" value="{{ dados.cidade }}" class="campo col-span-2">
+                    <input type="text" name="estado" maxlength="2" placeholder="UF" value="{{ dados.estado }}" class="campo uppercase">
+                </div>
+            </div>
+        </section>
+
+        {# Pagamento #}
+        <section class="space-y-3">
+            <h2 class="text-sm font-black uppercase tracking-widest texto-main">Pagamento</h2>
+            <div class="grid grid-cols-3 gap-2">
+                <label class="opcao"><input type="radio" name="metodo_pagamento" value="pix" {% if dados.metodo_pagamento != 'boleto' and dados.metodo_pagamento != 'sede' %}checked{% endif %}> PIX</label>
+                <label class="opcao"><input type="radio" name="metodo_pagamento" value="boleto" {% if dados.metodo_pagamento == 'boleto' %}checked{% endif %}> Boleto</label>
+                <label class="opcao" id="opcao_sede"><input type="radio" name="metodo_pagamento" value="sede" {% if dados.metodo_pagamento == 'sede' %}checked{% endif %}> Na sede</label>
+            </div>
+        </section>
+
+        <div class="flex justify-between items-center border-t border-suave pt-4">
+            <span class="text-xs font-black uppercase tracking-widest texto-main opacity-60">Total</span>
+            <span class="text-2xl font-black texto-main" id="total">R$ {{ produto.preco_atual|floatformat:2 }}</span>
+        </div>
+        <button class="w-full fundo-tema texto-claro font-black uppercase tracking-widest rounded-xl py-4 text-sm shadow-lg hover:opacity-90 transition"><i class="bi bi-bag-check-fill"></i> Finalizar compra</button>
+    </form>
+    {% else %}
+    <p class="fundo-card rounded-2xl border border-suave p-6 text-center texto-main font-bold">Produto esgotado.</p>
+    {% endif %}
+
+    {% if not logado %}
+    <p class="text-center text-xs texto-main opacity-60 mt-5">Já tem conta no SAT? <a href="{% url 'login' %}?next={{ request.path|urlencode }}" class="font-black texto-tema">Entrar</a></p>
+    {% endif %}
+</div>
+
+<style>
+    .campo { width: 100%; border: 1px solid rgba(150,150,150,.3); border-radius: .75rem; padding: .75rem 1rem; font-size: .875rem; background: transparent; color: inherit; }
+    .campo:focus { outline: none; border-color: var(--cor-primaria); }
+    .opcao { display: flex; align-items: center; gap: .4rem; border: 1px solid rgba(150,150,150,.3); border-radius: .75rem; padding: .7rem .8rem; font-size: .75rem; font-weight: 800; cursor: pointer; }
+    .opcao:has(input:checked) { border-color: var(--cor-primaria); background: rgba(120,120,120,.08); }
+</style>
+<script>
+(function () {
+    const preco = {{ produto.preco_atual|stringformat:"s" }};
+    const form = document.getElementById('form_compra');
+    if (!form) return;
+    let frete = 0;
+
+    function sede() { return form.tipo_entrega.value === 'sede'; }
+    function atualizar() {
+        const qtd = parseInt(form.quantidade.value, 10) || 1;
+        document.getElementById('bloco_endereco').classList.toggle('hidden', sede());
+        document.getElementById('opcao_sede').classList.toggle('hidden', !sede());
+        if (!sede() && form.metodo_pagamento.value === 'sede') form.querySelector('[name=metodo_pagamento][value=pix]').checked = true;
+        const total = preco * qtd + (sede() ? 0 : frete);
+        document.getElementById('total').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+    }
+    form.addEventListener('change', atualizar);
+    form.quantidade.addEventListener('input', function () { frete = 0; document.getElementById('opcoes_frete').innerHTML = ''; atualizar(); });
+
+    window.calcularFrete = function () {
+        const saida = document.getElementById('opcoes_frete');
+        const cep = form.cep.value.replace(/\D/g, '');
+        if (cep.length !== 8) { saida.innerHTML = '<p class="text-red-500 text-xs font-bold">Digite um CEP com 8 números.</p>'; return; }
+        saida.innerHTML = '<p class="text-[10px] font-bold uppercase texto-main opacity-50">Calculando...</p>';
+        fetch("{% url 'calcular_frete' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ cep: cep, produto_id: {{ produto.id }}, quantidade: parseInt(form.quantidade.value, 10) || 1 }),
+        }).then((r) => r.json()).then((data) => {
+            saida.innerHTML = '';
+            if (!data.sucesso) { const p = document.createElement('p'); p.className = 'text-red-500 text-xs font-bold'; p.textContent = data.erro; saida.appendChild(p); return; }
+            data.opcoes.forEach((o, i) => {
+                const l = document.createElement('label');
+                l.className = 'opcao justify-between';
+                l.innerHTML = '<span><input type="radio" name="modalidade_frete"> <span class="nome"></span> <small class="opacity-50 prazo"></small></span><span class="valor"></span>';
+                const r = l.querySelector('input');
+                r.value = o.tipo; r.required = true;
+                r.addEventListener('change', () => { frete = o.valor; atualizar(); });
+                l.querySelector('.nome').textContent = o.tipo;
+                l.querySelector('.prazo').textContent = o.prazo;
+                l.querySelector('.valor').textContent = 'R$ ' + o.valor.toFixed(2).replace('.', ',');
+                saida.appendChild(l);
+                if (i === 0) { r.checked = true; frete = o.valor; }
+            });
+            atualizar();
+        }).catch(() => { saida.innerHTML = '<p class="text-red-500 text-xs font-bold">Não foi possível calcular agora.</p>'; });
+    };
+
+    // Endereço é obrigatório só para envio
+    form.addEventListener('submit', function (e) {
+        if (!sede() && !form.querySelector('[name=modalidade_frete]:checked')) {
+            e.preventDefault();
+            alert('Calcule e escolha a forma de envio.');
+        }
+    });
+    atualizar();
+    if (form.cep.value) calcularFrete();
+})();
+</script>
+{% endblock %}

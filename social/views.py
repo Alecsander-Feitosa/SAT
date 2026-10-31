@@ -525,3 +525,136 @@ def _aplicar_moderacao(request):
         quando = f'até {timezone.localtime(fim):%d/%m/%Y}' if fim else 'permanentemente'
         notificar(autor, 'moderacao', f'Sua conta foi banida da SAT Social {quando}. Motivo: {motivo}')
         messages.success(request, f'{nome(autor)} banido {quando}' + (' (CPF na lista negra).' if cpf else '.'))
+
+
+# ==========================================================
+# POP-UPS E AVISO DO CABEÇALHO
+# ==========================================================
+@login_required
+@require_POST
+def popup_visto(request, popup_id):
+    from .models import PopupVisto
+    PopupVisto.objects.get_or_create(popup_id=popup_id, usuario=request.user)
+    return JsonResponse({'ok': True})
+
+
+def _ler_data_hora(valor):
+    """Converte o valor de um <input type="datetime-local"> em data/hora com fuso."""
+    from django.utils.dateparse import parse_datetime
+    dt = parse_datetime(valor or '')
+    if dt and timezone.is_naive(dt):
+        dt = timezone.make_aware(dt)
+    return dt
+
+
+def _link_seguro(valor):
+    """Só aceita links do próprio site (/...) ou http(s); bloqueia javascript: e afins."""
+    valor = (valor or '').strip()[:255]
+    return valor if valor.startswith(('/', 'https://', 'http://')) and not valor.startswith('//') else ''
+
+
+@login_required
+def gerenciar_avisos(request):
+    """Moderadores: pop-ups para os membros da torcida (até 3 por dia).
+    Admins da SAT: pop-ups para todos e a faixa fixa do cabeçalho."""
+    from .avisos import popups_no_dia
+    from .models import Popup, AvisoCabecalho
+
+    perfil = getattr(request.user, 'perfil', None)
+    torcida = perfil.torcida if perfil and pode_moderar_torcida(request.user, perfil.torcida) else None
+    admin = is_admin_sat(request.user)
+    # Admin escolhe entre os avisos da SAT e os da própria torcida
+    escopo_sat = admin and (request.GET.get('escopo') == 'sat' or not torcida)
+    if not escopo_sat and not torcida:
+        messages.error(request, 'Acesso restrito a moderadores.')
+        return redirect('dashboard')
+    alvo = None if escopo_sat else torcida
+    url_volta = f"{request.path}?escopo={'sat' if escopo_sat else 'torcida'}"
+
+    if request.method == 'POST':
+        acao = request.POST.get('acao')
+
+        if acao == 'salvar_popup':
+            popup = get_object_or_404(Popup, id=request.POST['popup_id'], torcida=alvo) if request.POST.get('popup_id') else Popup(torcida=alvo, criado_por=request.user)
+            titulo = request.POST.get('titulo', '').strip()
+            exibir_em = _ler_data_hora(request.POST.get('exibir_em')) or timezone.now()
+            exibir_ate = _ler_data_hora(request.POST.get('exibir_ate'))
+            try:
+                duracao = min(max(int(request.POST.get('duracao') or 5), 1), 10)
+            except ValueError:
+                duracao = 5
+            if not titulo:
+                messages.error(request, 'Dê um título ao pop-up.')
+            elif exibir_ate and exibir_ate <= exibir_em:
+                messages.error(request, 'O fim precisa ser depois do início.')
+            elif alvo and popups_no_dia(alvo, timezone.localtime(exibir_em).date(), ignorar_id=popup.id) >= Popup.LIMITE_DIARIO_TORCIDA:
+                messages.error(request, f'Limite de {Popup.LIMITE_DIARIO_TORCIDA} pop-ups por dia atingido em {timezone.localtime(exibir_em):%d/%m}. Escolha outro dia.')
+            else:
+                popup.titulo = titulo[:80]
+                popup.mensagem = request.POST.get('mensagem', '').strip()[:500]
+                popup.link = _link_seguro(request.POST.get('link'))
+                popup.texto_botao = request.POST.get('texto_botao', '').strip()[:30]
+                popup.modo = 'tempo' if request.POST.get('modo') == 'tempo' else 'manual'
+                popup.duracao = duracao
+                popup.exibir_em = exibir_em
+                popup.exibir_ate = exibir_ate
+                popup.ativo = True
+                if request.FILES.get('imagem'):
+                    popup.imagem = request.FILES['imagem']
+                elif request.POST.get('remover_imagem'):
+                    popup.imagem = None
+                popup.save()
+                messages.success(request, 'Pop-up salvo! Ele aparece uma vez para cada usuário.')
+
+        elif acao in ('pausar_popup', 'reativar_popup', 'excluir_popup'):
+            popup = get_object_or_404(Popup, id=request.POST.get('popup_id'), torcida=alvo)
+            if acao == 'excluir_popup':
+                popup.delete()
+                messages.success(request, 'Pop-up excluído.')
+            elif acao == 'reativar_popup' and alvo and popups_no_dia(alvo, timezone.localtime(popup.exibir_em).date(), ignorar_id=popup.id) >= Popup.LIMITE_DIARIO_TORCIDA:
+                messages.error(request, f'Já há {Popup.LIMITE_DIARIO_TORCIDA} pop-ups ativos nesse dia.')
+            else:
+                popup.ativo = acao == 'reativar_popup'
+                popup.save(update_fields=['ativo'])
+                messages.success(request, 'Pop-up reativado.' if popup.ativo else 'Pop-up pausado.')
+
+        elif admin and acao == 'salvar_cabecalho':
+            texto = request.POST.get('texto', '').strip()
+            if not texto:
+                messages.error(request, 'Escreva o texto do aviso.')
+            else:
+                aviso = AvisoCabecalho.objects.filter(id=request.POST.get('aviso_id')).first() or AvisoCabecalho()
+                aviso.texto = texto[:160]
+                aviso.link = _link_seguro(request.POST.get('link'))
+                aviso.cor = request.POST.get('cor') if request.POST.get('cor') in dict(AvisoCabecalho.CORES) else 'info'
+                aviso.ativo = bool(request.POST.get('ativo'))
+                aviso.save()
+                if aviso.ativo:  # só uma faixa no ar por vez
+                    AvisoCabecalho.objects.exclude(id=aviso.id).update(ativo=False)
+                messages.success(request, 'Aviso do cabeçalho salvo.')
+
+        elif admin and acao in ('ligar_cabecalho', 'desligar_cabecalho', 'excluir_cabecalho'):
+            aviso = get_object_or_404(AvisoCabecalho, id=request.POST.get('aviso_id'))
+            if acao == 'excluir_cabecalho':
+                aviso.delete()
+            else:
+                aviso.ativo = acao == 'ligar_cabecalho'
+                aviso.save(update_fields=['ativo', 'atualizado_em'])
+                if aviso.ativo:
+                    AvisoCabecalho.objects.exclude(id=aviso.id).update(ativo=False)
+            messages.success(request, {'ligar_cabecalho': 'Aviso ligado.', 'desligar_cabecalho': 'Aviso desligado.'}.get(acao, 'Aviso excluído.'))
+
+        return redirect(url_volta)
+
+    popups = (Popup.objects.filter(torcida=alvo).select_related('criado_por')
+              .annotate(total_vistos=Count('vistos')).order_by('-exibir_em')[:50])
+    return render(request, 'social/avisos.html', {
+        'popups': popups,
+        'escopo_sat': escopo_sat,
+        'torcida': torcida,
+        'admin': admin,
+        'limite_diario': Popup.LIMITE_DIARIO_TORCIDA,
+        'hoje_usados': popups_no_dia(alvo, timezone.localdate()) if alvo else 0,
+        'avisos_cabecalho': AvisoCabecalho.objects.all() if admin and escopo_sat else [],
+        'agora': timezone.localtime(),
+    })

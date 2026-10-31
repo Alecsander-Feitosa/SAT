@@ -9,10 +9,16 @@
             <p class="text-xs texto-main opacity-50">{% if lado_bepe %}Diretoria · {{ conversa.torcida.nome }}{% else %}BEPE{% endif %}{% if conversa.encerrada %} · encerrada{% endif %}</p>
         </div>
         {% if lado_bepe %}
-        <form method="post">{% csrf_token %}
-            <input type="hidden" name="acao" value="encerrar">
-            <button class="text-xs font-bold px-3 py-2 rounded-lg border border-suave linha">{% if conversa.encerrada %}<i class="bi bi-unlock"></i> Reabrir{% else %}<i class="bi bi-lock"></i> Encerrar{% endif %}</button>
-        </form>
+        <div class="flex gap-2">
+            <form method="post">{% csrf_token %}
+                <input type="hidden" name="acao" value="encerrar">
+                <button class="text-xs font-bold px-3 py-2 rounded-lg border border-suave linha">{% if conversa.encerrada %}<i class="bi bi-unlock"></i> Reabrir{% else %}<i class="bi bi-lock"></i> Encerrar{% endif %}</button>
+            </form>
+            <form method="post" onsubmit="return confirm('Excluir a conversa inteira? Ela some também para a diretoria da {{ conversa.torcida.nome|escapejs }}.');">{% csrf_token %}
+                <input type="hidden" name="acao" value="excluir_conversa">
+                <button class="text-xs font-bold px-3 py-2 rounded-lg border border-red-500/40 text-red-600 linha" aria-label="Excluir conversa"><i class="bi bi-trash"></i></button>
+            </form>
+        </div>
         {% endif %}
     </div>
 
@@ -26,9 +32,38 @@
             <div class="max-w-[85%] bg-black/5 rounded-2xl rounded-bl-sm px-4 py-2">
         {% endif %}
                 <p class="text-[10px] font-black uppercase tracking-widest opacity-60">{% if m.do_bepe %}BEPE{% else %}Diretoria{% endif %}{% if m.autor %} · {{ m.autor.get_full_name|default:m.autor.username }}{% endif %}</p>
-                <p class="text-sm whitespace-pre-line break-words [&_a]:underline [&_a]:font-bold">{{ m.texto|urlize }}</p>
+                <p class="text-sm whitespace-pre-line break-words [&_a]:underline [&_a]:font-bold" id="texto-{{ m.id }}">{{ m.texto|urlize }}</p>
                 {% if m.anexo %}<a href="{{ m.anexo.url }}" target="_blank" rel="noopener" class="text-xs underline"><i class="bi bi-paperclip"></i> anexo</a>{% endif %}
-                <p class="text-[10px] opacity-60 text-right mt-1">{{ m.enviada_em|date:"d/m H:i" }}</p>
+                <p class="text-[10px] opacity-60 text-right mt-1 flex items-center justify-end gap-1">
+                    {% if m.editada_em %}<span class="italic">editada ·</span>{% endif %}
+                    {{ m.enviada_em|date:"d/m H:i" }}
+                    {% if m.do_bepe == lado_bepe %}
+                        {% if m.lida %}
+                        <span class="font-black text-sky-300 opacity-100" title="Lida em {{ m.lida_em|date:'d/m H:i' }}"><i class="bi bi-check2-all text-sm"></i> Lida{% if m.lida_em %} {{ m.lida_em|date:"H:i" }}{% endif %}</span>
+                        {% else %}
+                        <span title="Enviada, ainda não lida"><i class="bi bi-check2 text-sm"></i></span>
+                        {% endif %}
+                    {% endif %}
+                </p>
+                {% if m.do_bepe == lado_bepe %}
+                <div class="flex justify-end gap-3 mt-1 text-[10px] font-bold uppercase tracking-wider opacity-70">
+                    <button type="button" onclick="editarMensagem({{ m.id }})" class="hover:opacity-100"><i class="bi bi-pencil"></i> Editar</button>
+                    <form method="post" onsubmit="return confirm('Apagar esta mensagem? Ela some também do outro lado.');">{% csrf_token %}
+                        <input type="hidden" name="acao" value="excluir">
+                        <input type="hidden" name="mensagem_id" value="{{ m.id }}">
+                        <button class="hover:opacity-100"><i class="bi bi-trash"></i> Apagar</button>
+                    </form>
+                </div>
+                <form method="post" id="editar-{{ m.id }}" class="hidden mt-2 space-y-2">{% csrf_token %}
+                    <input type="hidden" name="acao" value="editar">
+                    <input type="hidden" name="mensagem_id" value="{{ m.id }}">
+                    <textarea name="texto" rows="4" class="w-full rounded-xl px-3 py-2 text-sm text-black">{{ m.texto }}</textarea>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" onclick="editarMensagem({{ m.id }})" class="text-[10px] font-bold uppercase px-3 py-1.5 rounded-lg bg-white/20">Cancelar</button>
+                        <button class="text-[10px] font-black uppercase px-3 py-1.5 rounded-lg bg-white text-black">Salvar</button>
+                    </div>
+                </form>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
@@ -49,5 +84,11 @@
 </div>
 {% endblock %}
 {% block bepe_scripts %}
-<script>const box = document.getElementById('mensagens'); box.scrollTop = box.scrollHeight;</script>
+<script>
+const box = document.getElementById('mensagens'); box.scrollTop = box.scrollHeight;
+function editarMensagem(id) {
+    document.getElementById('editar-' + id).classList.toggle('hidden');
+    document.getElementById('texto-' + id).classList.toggle('hidden');
+}
+</script>
 {% endblock %}

@@ -57,13 +57,26 @@
         .texto-emboss { text-shadow: 0px 1px 1px rgba(255,255,255,0.3), 0px -1px 1px rgba(0,0,0,0.8); letter-spacing: 2px; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .aviso-cabecalho { color: #fff; }
+        .aviso-info { background: #2563eb; }
+        .aviso-alerta { background: #eab308; color: #1a1a1a; }
+        .aviso-urgente { background: #dc2626; }
+        .aviso-tema { background: var(--cor-primaria); }
     </style>
 </head>
 <body class="fundo-app">
     
    {% if user.is_authenticated and "/moderacao/" not in request.path %}
-    <div class="fixed top-0 left-0 w-full fundo-card pt-6 shadow-md z-[90] border-b border-suave transition-colors duration-500">
-        
+    <div class="fixed top-0 left-0 w-full fundo-card {% if aviso_cabecalho %}pt-0{% else %}pt-6{% endif %} shadow-md z-[90] border-b border-suave transition-colors duration-500">
+        {% if aviso_cabecalho %}
+        {# ===== AVISO FIXO DA SAT (ligado/desligado pelos admins em Pop-ups e Avisos) ===== #}
+        <a {% if aviso_cabecalho.link %}href="{{ aviso_cabecalho.link }}"{% endif %} class="aviso-cabecalho aviso-{{ aviso_cabecalho.cor }} flex items-center justify-center gap-2 h-8 px-4 mb-3 text-[11px] font-black uppercase tracking-wide no-underline overflow-hidden">
+            <i class="bi bi-megaphone-fill shrink-0"></i>
+            <span class="truncate">{{ aviso_cabecalho.texto }}</span>
+            {% if aviso_cabecalho.link %}<i class="bi bi-chevron-right shrink-0"></i>{% endif %}
+        </a>
+        {% endif %}
+
         <div class="flex justify-between items-center px-4 mb-4 relative min-h-[40px]">
             <button onclick="toggleSearch()" class="flex items-center gap-2 texto-main hover:opacity-70 transition-opacity relative z-10">
                 <i class="bi bi-search text-xl font-bold"></i>
@@ -83,8 +96,15 @@
                     <span class="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center border-2 border-white">{% if notificacoes_nao_lidas > 99 %}99+{% else %}{{ notificacoes_nao_lidas }}{% endif %}</span>
                     {% endif %}
                 </a>
-                <button onclick="toggleSidebar()" class="texto-main hover:opacity-70 transition-opacity">
+                <button onclick="toggleSidebar()" class="relative texto-main hover:opacity-70 transition-opacity">
                     <i class="bi bi-list text-3xl"></i>
+                    {% if bepe_msgs_diretoria %}
+                    {# Mensagem nova do BEPE: bolinha piscando até a diretoria abrir #}
+                    <span class="absolute top-0.5 -right-0.5 flex h-3.5 w-3.5" aria-label="Mensagem nova do BEPE">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-white"></span>
+                    </span>
+                    {% endif %}
                 </button>
             </div>
         </div>
@@ -155,6 +175,11 @@
                     <i class="bi bi-shield-lock-fill text-lg group-hover:scale-110 transition-transform"></i>
                     <span class="text-main font-black uppercase tracking-widest">Painel do Moderador</span>
                 </a>
+            {% endif %}
+            {% if request.user.is_staff or request.user.is_superuser or request.user.perfil.cargo_especial == 'presidente' %}
+                <a href="{% url 'gerenciar_avisos' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
+                    <i class="bi bi-window-stack texto-main text-lg"></i><span class="text-sm font-bold texto-main">Pop-ups e Avisos</span>
+                </a>
                 <hr class="border-suave my-4">
             {% endif %}
 
@@ -188,6 +213,7 @@
             {% if acesso_canal_diretoria %}
                 <a href="{% url 'bepe:diretoria_conversas' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
                     <i class="bi bi-chat-square-text texto-main text-lg"></i><span class="text-sm font-bold texto-main">Canal BEPE (Diretoria)</span>
+                    {% if bepe_msgs_diretoria %}<span class="ml-auto bg-red-500 text-white text-[10px] font-black rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center animate-pulse">{{ bepe_msgs_diretoria }}</span>{% endif %}
                 </a>
             {% endif %}
             <a href="{% url 'bepe:fale_com_bepe' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
@@ -216,7 +242,7 @@
     </div>
     {% endif %}
 
-    <main class="{% if user.is_authenticated and "/moderacao/" not in request.path %}pt-[140px] pb-28{% endif %} w-full min-h-screen">
+    <main class="{% if user.is_authenticated and "/moderacao/" not in request.path %}{% if aviso_cabecalho %}pt-[160px]{% else %}pt-[140px]{% endif %} pb-28{% endif %} w-full min-h-screen">
         {% if user.is_authenticated and not user.perfil.is_completo and "/perfil/" not in request.path and "/cadastro" not in request.path %}
         <div class="mx-4 mb-4 bg-orange-600/20 border border-orange-500 rounded-xl p-3 flex items-start gap-3 shadow-sm">
             <i class="bi bi-exclamation-triangle-fill text-orange-500 text-lg mt-0.5"></i>
@@ -234,7 +260,7 @@
         {# Botão flutuante do carrinho — aparece em todas as páginas da loja #}
         {% if user.is_authenticated %}
             {% with url_name=request.resolver_match.url_name %}
-            {% if url_name == 'loja' or url_name == 'detalhe_produto' or url_name == 'ver_carrinho' or url_name == 'checkout_exemplo' or url_name == 'painel_loja' or url_name == 'novo_produto' or url_name == 'editar_produto' %}
+            {% if url_name == 'loja' or url_name == 'detalhe_produto' or url_name == 'ver_carrinho' or url_name == 'checkout_exemplo' %}
             <a href="{% url 'ver_carrinho' %}" id="btn-carrinho-flutuante" class="fixed bottom-24 right-5 w-14 h-14 fundo-card border-2 border-tema rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all z-50 group">
                 <i class="bi bi-cart3 text-xl texto-main group-hover:scale-110 transition-transform"></i>
                 <span id="badge-carrinho" class="absolute -top-2 -right-2 fundo-tema texto-claro text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-fundo-app shadow-md {% if total_itens_carrinho == 0 %}hidden{% endif %}">
@@ -478,6 +504,100 @@
     {% endif %}
     {% endwith %}
     {% endif %}
+    {% endif %}
+
+    {# ===== MENSAGEM NOVA DO BEPE PARA A DIRETORIA (uma vez por mensagem; a bolinha segue até abrir) ===== #}
+    {% if bepe_msg_alerta and '/bepe/diretoria/' not in request.path %}
+    <script>
+    (function () {
+        var chave = 'sat_bepe_alerta_{{ bepe_msg_alerta.id }}_{{ bepe_msg_alerta.editada_em|date:"U"|default:"0" }}';
+        try { if (sessionStorage.getItem(chave)) return; } catch (e) {}
+        setTimeout(function () {
+            if (!window.Swal || Swal.isVisible()) return;
+            try { sessionStorage.setItem(chave, '1'); } catch (e) {}
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            Swal.fire({
+                icon: 'warning',
+                title: '{% if bepe_msgs_diretoria > 1 %}{{ bepe_msgs_diretoria }} mensagens novas do BEPE{% else %}Mensagem nova do BEPE{% endif %}',
+                html: '<b>{{ bepe_msg_alerta.conversa.assunto|escapejs }}</b><br><small style="opacity:.7">{{ bepe_msg_alerta.texto|truncatechars:120|escapejs }}</small>',
+                showCancelButton: true,
+                confirmButtonText: 'Ler agora',
+                cancelButtonText: 'Depois',
+                allowOutsideClick: false,
+                confirmButtonColor: '{{ user.perfil.torcida.cor_primaria|default:"#D37129" }}',
+                background: '{{ user.perfil.torcida.cor_fundo|default:"#121212" }}',
+                color: '#FFFFFF',
+                customClass: {
+                    popup: 'rounded-[2rem] border border-suave shadow-2xl',
+                    confirmButton: 'rounded-xl px-6 py-3 font-black uppercase tracking-widest',
+                    cancelButton: 'rounded-xl px-6 py-3 font-black uppercase tracking-widest'
+                }
+            }).then(function (r) {
+                if (r.isConfirmed) window.location.href = "{% url 'bepe:diretoria_conversa' bepe_msg_alerta.conversa_id %}";
+            });
+        }, 800);
+    })();
+    </script>
+    {% endif %}
+
+    {# ===== POP-UPS (torcida/SAT) E AVISO AUTOMÁTICO DE VENCIMENTO DO PLANO ===== #}
+    {% if popup_pendente or aviso_vencimento %}
+    <script>
+    (function () {
+        var cor = '{{ user.perfil.torcida.cor_primaria|default:"#D37129"|escapejs }}';
+        var fila = [];
+        {% if popup_pendente %}
+        fila.push(function () {
+            fetch("{% url 'popup_visto' popup_pendente.id %}", { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' } }).catch(function () {});
+            var temLink = {{ popup_pendente.link|yesno:"true,false" }};
+            var porTempo = '{{ popup_pendente.modo }}' === 'tempo';
+            return Swal.fire({
+                titleText: '{{ popup_pendente.titulo|escapejs }}',
+                text: '{{ popup_pendente.mensagem|escapejs }}',
+                {% if popup_pendente.imagem %}imageUrl: '{{ popup_pendente.imagem.url|escapejs }}', imageAlt: '',{% endif %}
+                footer: '<span style="font-size:10px;font-weight:800;text-transform:uppercase;opacity:.5">{% if popup_pendente.torcida %}{{ popup_pendente.torcida.nome|escapejs }}{% else %}SAT{% endif %}</span>',
+                showConfirmButton: temLink || !porTempo,
+                confirmButtonText: temLink ? '{{ popup_pendente.texto_botao|default:"Ver mais"|escapejs }}' : 'Fechar',
+                confirmButtonColor: cor,
+                showCloseButton: true,
+                timer: porTempo ? {{ popup_pendente.duracao }} * 1000 : undefined,
+                timerProgressBar: porTempo,
+            }).then(function (r) {
+                if (r.isConfirmed && temLink) window.location.href = '{{ popup_pendente.link|escapejs }}';
+            });
+        });
+        {% endif %}
+        {% if aviso_vencimento %}
+        fila.push(function () {
+            // Avisa no máximo uma vez por dia
+            var chave = 'sat_aviso_venc_{{ aviso_vencimento.data|date:"Ymd" }}_' + new Date().toDateString();
+            try { if (localStorage.getItem(chave)) return Promise.resolve(); localStorage.setItem(chave, '1'); } catch (e) {}
+            return Swal.fire({
+                icon: '{% if aviso_vencimento.vencido %}error{% else %}warning{% endif %}',
+                title: '{% if aviso_vencimento.vencido %}Seu plano venceu{% elif aviso_vencimento.dias == 0 %}Seu plano vence hoje{% else %}Seu plano vence em {{ aviso_vencimento.dias }} dia{{ aviso_vencimento.dias|pluralize }}{% endif %}',
+                text: 'Plano {{ aviso_vencimento.plano|escapejs }} · {% if aviso_vencimento.vencido %}venceu em{% else %}válido até{% endif %} {{ aviso_vencimento.data|date:"d/m/Y" }}. Renove para não perder seus benefícios.',
+                showCancelButton: true,
+                confirmButtonText: 'Renovar',
+                cancelButtonText: 'Depois',
+                confirmButtonColor: cor,
+            }).then(function (r) { if (r.isConfirmed) window.location.href = "{% url 'seja_socio' %}"; });
+        });
+        {% endif %}
+
+        // Mostra um de cada vez, esperando outro pop-up (localização etc.) fechar
+        var tentativas = 0;
+        function proximo() {
+            if (!fila.length) return;
+            if (!window.Swal || Swal.isVisible()) {
+                if (++tentativas < 60) setTimeout(proximo, 1000);
+                return;
+            }
+            var p = fila.shift()();
+            (p && p.then ? p : Promise.resolve()).then(function () { setTimeout(proximo, 600); });
+        }
+        setTimeout(proximo, 800);
+    })();
+    </script>
     {% endif %}
 
     <script>

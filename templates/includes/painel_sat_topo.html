@@ -1,0 +1,24 @@
+{% load static %}
+{# Topo das telas do moderador. Parâmetros: titulo, subtitulo, voltar (url), icone (bi-*), acao_url/acao_texto/acao_icone (botão opcional) #}
+<header class="hero-sat compacto px-5 pt-7 pb-5 mb-5">
+    <div class="hero-escudo"></div>
+    <div class="relative z-10 flex items-center gap-3">
+        <a href="{{ voltar }}" class="vidro-sat w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center text-white no-underline hover:opacity-80 transition-opacity" aria-label="Voltar">
+            <i class="bi bi-arrow-left text-lg"></i>
+        </a>
+        <div class="flex-1 min-w-0">
+            <p class="rotulo-hero text-[9px] font-black uppercase tracking-[.25em] flex items-center gap-1.5">
+                {% if torcida.logo %}<img src="{{ torcida.logo.url }}" alt="" class="w-4 h-4 object-contain rounded bg-white/90 p-[1px]">{% endif %}
+                {{ subtitulo|default:torcida.nome|default:"SAT" }}
+            </p>
+            <h1 class="text-xl font-black italic uppercase tracking-tighter leading-[1.05] line-clamp-2 break-words mt-1">
+                {% if icone %}<i class="bi {{ icone }} mr-1 opacity-80"></i>{% endif %}{{ titulo }}
+            </h1>
+        </div>
+        {% if acao_url %}
+        <a href="{{ acao_url }}" class="btn-sat shrink-0 px-4 py-2.5 rounded-full text-[10px]">
+            {% if acao_icone %}<i class="bi {{ acao_icone }}"></i>{% endif %} {{ acao_texto }}
+        </a>
+        {% endif %}
+    </div>
+</header>

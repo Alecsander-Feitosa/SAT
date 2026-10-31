@@ -76,6 +76,7 @@
         <h1 class="text-2xl font-black italic uppercase tracking-tighter texto-main leading-tight mb-2">
             {{ produto.nome }}
         </h1>
+        <button type="button" onclick="linkVenda('{{ request.scheme }}://{{ request.get_host }}{% url 'comprar_link' produto.id %}', '{{ produto.nome|escapejs }}')" class="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest texto-tema mb-3"><i class="bi bi-link-45deg text-sm"></i> Compartilhar link de venda</button>
 
         {% if total_avaliacoes %}
         <a href="#avaliacoes" class="flex items-center gap-1 mb-4 no-underline w-fit">
@@ -397,6 +398,14 @@
                 });
             })
             .catch(() => { saida.innerHTML = '<p class="text-red-500 text-xs font-bold">Não foi possível calcular agora.</p>'; });
+    }
+
+    // ---------- Link de venda: quem receber compra sem precisar de conta ----------
+    function linkVenda(url, nome) {
+        if (navigator.share) { navigator.share({ title: nome, text: 'Compre ' + nome + ':', url: url }).catch(() => {}); return; }
+        navigator.clipboard.writeText(url).then(() => {
+            if (window.Swal) Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'Link de venda copiado!', showConfirmButton: false, timer: 2500 });
+        });
     }
 
     // ---------- Estrelas da avaliação (toque de novo na mesma estrela = 0) ----------

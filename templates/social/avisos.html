@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if escopo_sat %}{% include 'includes/painel_sat_estilo.html' with torcida=None %}{% else %}{% include 'includes/painel_sat_estilo.html' %}{% endif %}
+<div class="painel-sat w-full min-h-screen fundo-app flex flex-col pb-32 px-4 pt-3">
+    {% if escopo_sat %}{% url 'dashboard' as url_voltar %}{% else %}{% url 'painel_moderador' as url_voltar %}{% endif %}
+    {% if escopo_sat %}
+        {% include 'includes/painel_sat_topo.html' with titulo="Pop-ups e Avisos" icone="bi-megaphone-fill" voltar=url_voltar subtitulo="SAT · para todos os usuários" torcida=None %}
+    {% else %}
+        {% include 'includes/painel_sat_topo.html' with titulo="Pop-ups" icone="bi-window-stack" voltar=url_voltar %}
+    {% endif %}
+
+    <div class="max-w-3xl w-full mx-auto space-y-6">
+
+        {% if admin and torcida %}
+        <div class="flex gap-2">
+            <a href="?escopo=torcida" class="tab-btn flex-1 text-center py-2.5 text-[10px] font-black uppercase {% if not escopo_sat %}tab-active{% else %}tab-inactive{% endif %}">{{ torcida.sigla|default:torcida.nome }}</a>
+            <a href="?escopo=sat" class="tab-btn flex-1 text-center py-2.5 text-[10px] font-black uppercase {% if escopo_sat %}tab-active{% else %}tab-inactive{% endif %}">SAT (todos)</a>
+        </div>
+        {% endif %}
+
+        {% if escopo_sat %}
+        {# ===== FAIXA FIXA DO CABEÇALHO ===== #}
+        <section class="cartao-sat fundo-card border border-suave p-4 shadow-sm">
+            <h2 class="titulo-sat mb-1"><i class="bi bi-megaphone-fill"></i> Aviso no cabeçalho</h2>
+            <p class="text-[10px] texto-main opacity-50 mb-3">Faixa fixa no topo do app para todos. Só uma fica no ar por vez.</p>
+
+            <div class="space-y-2 mb-4">
+                {% for a in avisos_cabecalho %}
+                <div class="flex items-center gap-3 p-3 rounded-xl border {% if a.ativo %}border-green-500/50 bg-green-500/5{% else %}border-suave{% endif %}">
+                    <span class="w-3 h-3 rounded-full shrink-0 aviso-cor-{{ a.cor }}"></span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold texto-main truncate">{{ a.texto }}</p>
+                        <p class="text-[9px] texto-main opacity-50 uppercase font-bold">{% if a.ativo %}No ar{% else %}Desligado{% endif %}{% if a.link %} · com link{% endif %}</p>
+                    </div>
+                    <form method="post" class="flex gap-1 shrink-0">
+                        {% csrf_token %}
+                        <input type="hidden" name="aviso_id" value="{{ a.id }}">
+                        {% if a.ativo %}
+                            <button name="acao" value="desligar_cabecalho" class="px-3 py-1.5 rounded-full border border-suave text-[9px] font-black uppercase texto-main">Desligar</button>
+                        {% else %}
+                            <button name="acao" value="ligar_cabecalho" class="px-3 py-1.5 rounded-full bg-green-600 text-white text-[9px] font-black uppercase">Ligar</button>
+                        {% endif %}
+                        <button name="acao" value="excluir_cabecalho" onclick="return confirm('Excluir este aviso?')" class="w-7 h-7 rounded-full text-red-500 border border-red-500/30"><i class="bi bi-trash3 text-xs"></i></button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="text-[11px] texto-main opacity-50">Nenhum aviso criado ainda.</p>
+                {% endfor %}
+            </div>
+
+            <form method="post" class="space-y-2 border-t border-suave pt-3">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="salvar_cabecalho">
+                <input name="texto" maxlength="160" required placeholder="Ex: Manutenção hoje às 23h" class="campo-sat">
+                <input name="link" maxlength="255" placeholder="Link (opcional)" class="campo-sat">
+                <div class="flex gap-2 items-center">
+                    <select name="cor" class="campo-sat flex-1">
+                        <option value="info">Azul (informação)</option>
+                        <option value="alerta">Amarelo (atenção)</option>
+                        <option value="urgente">Vermelho (urgente)</option>
+                        <option value="tema">Cor da SAT</option>
+                    </select>
+                    <label class="flex items-center gap-2 text-[10px] font-black uppercase texto-main shrink-0"><input type="checkbox" name="ativo" value="1" checked> Já ligar</label>
+                </div>
+                <button class="w-full py-3 btn-sat rounded-full text-[10px]">Criar aviso</button>
+            </form>
+        </section>
+        {% endif %}
+
+        {# ===== NOVO POP-UP ===== #}
+        <section class="cartao-sat fundo-card border border-suave p-4 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="titulo-sat"><i class="bi bi-window-stack"></i> Novo pop-up</h2>
+                {% if not escopo_sat %}<span class="text-[9px] font-black uppercase px-2 py-1 rounded-full {% if hoje_usados >= limite_diario %}bg-red-500/15 text-red-600{% else %}bg-black/5 texto-main{% endif %}">Hoje: {{ hoje_usados }}/{{ limite_diario }}</span>{% endif %}
+            </div>
+            <form method="post" enctype="multipart/form-data" class="space-y-2" id="form-popup">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="salvar_popup">
+                <input type="hidden" name="popup_id" value="">
+                <input name="titulo" maxlength="80" required placeholder="Título" class="campo-sat">
+                <textarea name="mensagem" maxlength="500" rows="3" placeholder="Mensagem (opcional)" class="campo-sat"></textarea>
+                <label class="block text-[9px] font-black uppercase texto-main opacity-60">Imagem (opcional)</label>
+                <input type="file" name="imagem" accept="image/*" class="campo-sat">
+                <div class="grid grid-cols-2 gap-2">
+                    <input name="link" maxlength="255" placeholder="Link (opcional)" class="campo-sat">
+                    <input name="texto_botao" maxlength="30" placeholder="Texto do botão" class="campo-sat">
+                </div>
+
+                <p class="text-[9px] font-black uppercase texto-main opacity-60 pt-2">Como fecha</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="opcao-modo"><input type="radio" name="modo" value="manual" checked> <span><b>Usuário fecha</b><small>Fica até a pessoa fechar</small></span></label>
+                    <label class="opcao-modo"><input type="radio" name="modo" value="tempo"> <span><b>Fecha sozinho</b><small>Some depois de alguns segundos</small></span></label>
+                </div>
+                <div id="campo-duracao" class="hidden">
+                    <label class="flex items-center justify-between text-[10px] font-black uppercase texto-main">Duração <span><output id="duracao-valor">5</output>s</span></label>
+                    <input type="range" name="duracao" min="1" max="10" value="5" class="w-full" oninput="document.getElementById('duracao-valor').value=this.value">
+                </div>
+
+                <p class="text-[9px] font-black uppercase texto-main opacity-60 pt-2">Quando aparece</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[9px] font-bold texto-main opacity-50 mb-1">A partir de</label>
+                        <input type="datetime-local" name="exibir_em" value="{{ agora|date:'Y-m-d\TH:i' }}" class="campo-sat">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold texto-main opacity-50 mb-1">Até (opcional)</label>
+                        <input type="datetime-local" name="exibir_ate" class="campo-sat">
+                    </div>
+                </div>
+                <p class="text-[10px] texto-main opacity-50">Cada pessoa vê o pop-up uma vez, na primeira página que abrir dentro desse período.</p>
+                <button class="w-full py-3 btn-sat rounded-full text-[10px]">Publicar pop-up</button>
+            </form>
+        </section>
+
+        {# ===== LISTA ===== #}
+        <section>
+            <h2 class="titulo-sat mb-3"><i class="bi bi-clock-history"></i> Pop-ups programados</h2>
+            <div class="space-y-3">
+                {% for p in popups %}
+                <div class="fundo-card border border-suave rounded-[20px] p-4 shadow-sm flex gap-3 {% if not p.ativo %}opacity-60{% endif %}">
+                    {% if p.imagem %}<img src="{{ p.imagem.url }}" class="w-14 h-14 rounded-xl object-cover shrink-0" alt="">{% endif %}
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-black texto-main truncate">{{ p.titulo }}</p>
+                        {% if p.mensagem %}<p class="text-[11px] texto-main opacity-70 line-clamp-2">{{ p.mensagem }}</p>{% endif %}
+                        <p class="text-[9px] font-bold uppercase texto-main opacity-50 mt-1">
+                            {{ p.exibir_em|date:"d/m H:i" }}{% if p.exibir_ate %} até {{ p.exibir_ate|date:"d/m H:i" }}{% endif %}
+                            · {% if p.modo == 'tempo' %}{{ p.duracao }}s{% else %}usuário fecha{% endif %}
+                            · {{ p.total_vistos }} visto{{ p.total_vistos|pluralize }}
+                            {% if not p.ativo %}· pausado{% elif p.exibir_em > agora %}· agendado{% elif p.exibir_ate and p.exibir_ate < agora %}· encerrado{% else %}· no ar{% endif %}
+                        </p>
+                    </div>
+                    <form method="post" class="flex flex-col gap-1 shrink-0">
+                        {% csrf_token %}
+                        <input type="hidden" name="popup_id" value="{{ p.id }}">
+                        {% if p.ativo %}
+                            <button name="acao" value="pausar_popup" class="px-3 py-1.5 rounded-full border border-suave text-[9px] font-black uppercase texto-main">Pausar</button>
+                        {% else %}
+                            <button name="acao" value="reativar_popup" class="px-3 py-1.5 rounded-full bg-green-600 text-white text-[9px] font-black uppercase">Reativar</button>
+                        {% endif %}
+                        <button name="acao" value="excluir_popup" onclick="return confirm('Excluir este pop-up?')" class="px-3 py-1.5 rounded-full text-red-500 border border-red-500/30 text-[9px] font-black uppercase">Excluir</button>
+                    </form>
+                </div>
+                {% empty %}
+                <div class="vazio-sat texto-main"><i class="bi bi-window-stack text-3xl block mb-2"></i><p class="text-[10px] font-black uppercase tracking-widest">Nenhum pop-up ainda</p></div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<style>
+    .opcao-modo { display: flex; gap: .5rem; align-items: flex-start; padding: .7rem; border: 1px solid rgba(150,150,150,.25); border-radius: .9rem; cursor: pointer; }
+    .opcao-modo:has(input:checked) { border-color: var(--destaque); background: rgba(150,150,150,.08); }
+    .opcao-modo b { display: block; font-size: .7rem; text-transform: uppercase; }
+    .opcao-modo small { display: block; font-size: .6rem; opacity: .6; }
+    .aviso-cor-info { background: #2563eb; } .aviso-cor-alerta { background: #eab308; }
+    .aviso-cor-urgente { background: #dc2626; } .aviso-cor-tema { background: #D37129; }
+</style>
+<script>
+    document.querySelectorAll('input[name="modo"]').forEach(function (r) {
+        r.addEventListener('change', function () {
+            document.getElementById('campo-duracao').classList.toggle('hidden', this.value !== 'tempo');
+        });
+    });
+</script>
+{% endblock %}

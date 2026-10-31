@@ -495,7 +495,20 @@ def seja_socio(request):
     if request.method == 'POST':
         time_coracao = request.POST.get('time_coracao')
         torcida_id = request.POST.get('torcida_id')
-        
+
+        # Sair (ou trocar) de uma torcida em que já é membro aprovado exige a senha de login
+        if (torcida_id and perfil.torcida and perfil.aprovado
+                and torcida_id != str(perfil.torcida.id)):
+            confirmacao = request.POST.get('senha_confirmacao', '')
+            if request.user.has_usable_password():
+                confirmado = request.user.check_password(confirmacao)
+            else:
+                # Conta criada por login social (sem senha): confirma digitando SAIR
+                confirmado = confirmacao.strip().upper() == 'SAIR'
+            if not confirmado:
+                messages.error(request, 'Senha incorreta. Você continua na torcida.')
+                return redirect('seja_socio')
+
         # 1. Atualiza o Time do Coração
         if time_coracao:
             perfil.time_coracao = time_coracao
@@ -530,6 +543,7 @@ def seja_socio(request):
         'perfil': perfil,
         'torcidas': torcidas,
         'times_brasil': times_brasil,
+        'escudo_time': escudo_do_time(perfil.time_coracao),
         'planos': planos,
         'niveis': niveis,
         'nivel_atual': perfil.nivel_plano,
@@ -1622,8 +1636,9 @@ def webhook_efi(request):
                         if pedido:
                             pedido.status = 'pago'
                             pedido.save()
-                            from gamification.xp import conceder_xp
-                            conceder_xp(pedido.usuario, 'compra', referencia=pedido.id)
+                            if pedido.usuario_id:
+                                from gamification.xp import conceder_xp
+                                conceder_xp(pedido.usuario, 'compra', referencia=pedido.id)
                             continue
                             
                         # Tenta encontrar e atualizar nos Planos (ativa/renova e sincroniza com o club_ben)

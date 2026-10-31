@@ -1,0 +1,100 @@
+{% extends template_base %}
+{% block bepe_content %}
+<div class="mb-4">
+    <h1 class="text-xl font-black texto-main">{% if lado_bepe %}Documentos das diretorias{% else %}Documentos e listas de presença{% endif %}</h1>
+    <p class="text-sm texto-main opacity-50">{% if lado_bepe %}Arquivos e listas de presença enviados pelas torcidas.{% else %}Envie arquivos ao BEPE e mande a lista de quem confirmou presença nos eventos e caravanas.{% endif %}</p>
+</div>
+
+{% if not lado_bepe %}
+<div class="grid md:grid-cols-2 gap-4 mb-6">
+    {# ---------- LISTAS DE PRESENÇA (montadas sozinhas conforme a torcida confirma) ---------- #}
+    <section class="card overflow-hidden">
+        <div class="px-5 pt-4 pb-3">
+            <h2 class="text-sm font-black italic uppercase tracking-tighter texto-main">Listas de presença</h2>
+            <p class="text-[11px] texto-main opacity-50 mt-1">Quem confirma presença no app entra aqui automaticamente.</p>
+        </div>
+        <div class="divide-suave border-t border-suave">
+        {% for item in listas %}
+        <a href="{% url 'bepe:diretoria_lista_presenca' item.tipo item.obj.id %}" class="flex items-center gap-3 px-5 py-3 linha">
+            <div class="w-9 h-9 rounded-xl bg-black/5 flex items-center justify-center shrink-0">
+                <i class="bi {% if item.tipo == 'caravana' %}bi-bus-front-fill{% else %}bi-calendar-event-fill{% endif %} texto-main opacity-60"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold texto-main truncate">{{ item.titulo }}</p>
+                <p class="text-[11px] texto-main opacity-50">{% if item.tipo == 'caravana' %}Caravana{% else %}Evento{% endif %} · {{ item.data|date:"d/m/Y H:i" }}</p>
+            </div>
+            <span class="text-[11px] font-black px-2 py-1 rounded-lg {% if item.total %}fundo-tema texto-claro{% else %}bg-black/5 texto-main opacity-50{% endif %} whitespace-nowrap"><i class="bi bi-people-fill"></i> {{ item.total }}</span>
+        </a>
+        {% empty %}
+        <p class="px-5 py-6 text-sm texto-main opacity-50 text-center">Nenhum evento ou caravana próximo.</p>
+        {% endfor %}
+        </div>
+    </section>
+
+    {# ---------- ENVIAR ARQUIVO ---------- #}
+    <form method="post" enctype="multipart/form-data" class="card p-5 space-y-3">
+        {% csrf_token %}
+        <h2 class="text-sm font-black italic uppercase tracking-tighter texto-main">Enviar arquivo ao BEPE</h2>
+        <div><label class="rotulo">Título *</label>{{ form.titulo }}{{ form.titulo.errors }}</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div><label class="rotulo">{{ form.evento.label }}</label>{{ form.evento }}</div>
+            <div><label class="rotulo">{{ form.caravana.label }}</label>{{ form.caravana }}</div>
+        </div>
+        <div><label class="rotulo">Descrição</label>{{ form.descricao }}</div>
+        <div><label class="rotulo">Arquivo (PDF, foto, planilha) *</label>{{ form.arquivo }}{{ form.arquivo.errors }}</div>
+        <button class="btn-tema w-full px-6 py-3"><i class="bi bi-send-fill"></i> Enviar ao BEPE</button>
+    </form>
+</div>
+{% endif %}
+
+{% if lado_bepe %}
+<form method="get" class="mb-4">
+    <select name="torcida" onchange="this.form.submit()" class="fundo-card border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+        <option value="">Todas as torcidas</option>
+        {% for t in torcidas %}<option value="{{ t.id }}" {% if torcida_id == t.id|stringformat:"s" %}selected{% endif %}>{{ t.nome }}</option>{% endfor %}
+    </select>
+</form>
+{% else %}
+<h2 class="text-sm font-black italic uppercase tracking-tighter texto-main mb-2">Enviados ao BEPE</h2>
+{% endif %}
+
+<div class="card divide-suave">
+    {% for d in documentos %}
+    <div class="flex items-center gap-3 p-4">
+        <div class="w-10 h-10 rounded-xl {% if d.tipo == 'lista_presenca' %}bg-green-600{% else %}bg-blue-600{% endif %} flex items-center justify-center shrink-0">
+            <i class="bi {% if d.tipo == 'lista_presenca' %}bi-list-check{% else %}bi-file-earmark-text-fill{% endif %} text-white"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold texto-main truncate">{{ d.titulo }}</p>
+            <p class="text-[11px] texto-main opacity-50 truncate">
+                {% if lado_bepe %}{{ d.torcida.nome }} · {% endif %}{{ d.enviado_em|date:"d/m/Y H:i" }}
+                {% if d.total_pessoas %} · {{ d.total_pessoas }} pessoa{{ d.total_pessoas|pluralize }}{% endif %}
+                {% if d.evento %} · {{ d.evento.titulo }}{% elif d.caravana %} · {{ d.caravana.titulo }}{% endif %}
+            </p>
+            {% if d.descricao %}<p class="text-xs texto-main opacity-70 mt-1 whitespace-pre-line">{{ d.descricao }}</p>{% endif %}
+        </div>
+        {% if lado_bepe %}
+            {% if not d.visto_em %}<span class="text-[9px] font-black uppercase px-2 py-1 rounded-lg bg-red-500/15 text-red-600 whitespace-nowrap">Novo</span>{% endif %}
+            <a href="{% url 'bepe:documento_abrir' d.id %}" target="_blank" rel="noopener" class="btn-tema px-3 py-2 whitespace-nowrap"><i class="bi bi-download"></i> Abrir</a>
+        {% else %}
+            <span class="text-[10px] font-bold whitespace-nowrap {% if d.visto_em %}text-sky-500{% else %}texto-main opacity-50{% endif %}" title="{% if d.visto_em %}Aberto pelo BEPE em {{ d.visto_em|date:'d/m H:i' }}{% else %}Ainda não aberto pelo BEPE{% endif %}">
+                {% if d.visto_em %}<i class="bi bi-check2-all"></i> Visto{% else %}<i class="bi bi-check2"></i> Enviado{% endif %}
+            </span>
+            <a href="{{ d.arquivo.url }}" target="_blank" rel="noopener" class="texto-main opacity-60 hover:opacity-100" aria-label="Abrir"><i class="bi bi-download"></i></a>
+            <form method="post" action="{% url 'bepe:diretoria_documento_excluir' d.id %}" onsubmit="return confirm('Remover este documento?');">{% csrf_token %}
+                <button class="text-red-600 opacity-70 hover:opacity-100" aria-label="Remover"><i class="bi bi-trash"></i></button>
+            </form>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p class="p-6 text-center text-sm texto-main opacity-50">Nenhum documento ainda.</p>
+    {% endfor %}
+</div>
+
+{% if lado_bepe and pagina.has_other_pages %}
+<div class="flex justify-center gap-2 mt-4 text-sm">
+    {% if pagina.has_previous %}<a href="?page={{ pagina.previous_page_number }}{% if torcida_id %}&torcida={{ torcida_id }}{% endif %}" class="tab px-4 py-2 rounded-full">Anterior</a>{% endif %}
+    {% if pagina.has_next %}<a href="?page={{ pagina.next_page_number }}{% if torcida_id %}&torcida={{ torcida_id }}{% endif %}" class="tab px-4 py-2 rounded-full">Próxima</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
