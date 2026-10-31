@@ -10,7 +10,14 @@ Precisa no contexto: perfil, nivel_plano, qr_code, passagens, badges_conquistada
     .cartao-inner { position: relative; width: 100%; height: 100%; transition: transform .8s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
     .cartao-flip.virado .cartao-inner { transform: rotateY(180deg); }
     .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 1.4rem; overflow: hidden; }
-    .face.verso { transform: rotateY(180deg); }
+    .face.verso { transform: rotateY(180deg) translateZ(1px); }
+    /* Filtros e animações dentro da face (escudo, nome metálico, brilho do Ouro) furam o backface-visibility
+       no Chrome Android/Safari e aparecem espelhados. Por isso a face escondida também some com
+       visibility, trocando na metade do giro (.4s de .8s). */
+    .face.frente { visibility: visible; transition: visibility 0s linear .4s; }
+    .face.verso { visibility: hidden; transition: visibility 0s linear .4s; }
+    .cartao-flip.virado .face.frente { visibility: hidden; }
+    .cartao-flip.virado .face.verso { visibility: visible; }
 
     /* =====================================================================
        ESTILO POR PLANO — a base é sempre a da torcida (cores, escudo, layout);
@@ -170,7 +177,7 @@ Precisa no contexto: perfil, nivel_plano, qr_code, passagens, badges_conquistada
                             <div class="textura"></div>
                             <div class="brilho"></div>
                             <div class="faixa-magnetica mt-3 relative z-10"></div>
-                            <div class="flex gap-3 px-4 pt-2.5 relative z-10 flex-1 min-h-0">
+                            <div class="flex gap-3 px-4 pt-2.5 relative z-10 flex-1 min-h-0 overflow-hidden">
                                 <div class="flex-1 min-w-0 grid grid-cols-2 gap-x-3 gap-y-1.5 content-start">
                                     <div class="col-span-2"><p class="texto-mini">Nome completo</p><p class="dado truncate uppercase">{{ user.get_full_name|default:user.username }}</p></div>
                                     <div>
