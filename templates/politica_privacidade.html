@@ -1,36 +1,181 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    .politica section { background-color: var(--cor-secundaria); border: 1px solid rgba(150,150,150,.2); border-radius: 24px; padding: 1.25rem; scroll-margin-top: 150px; }
+    .politica h2 { font-size: .875rem; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; margin-bottom: .5rem; }
+    .politica h3 { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; margin: .9rem 0 .25rem; opacity: .9; }
+    .politica p, .politica li { font-size: 13px; line-height: 1.6; opacity: .85; }
+    .politica ul { list-style: disc; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .3rem; margin-top: .35rem; }
+    .politica a { font-weight: 800; text-decoration: underline; }
+</style>
+
 <div class="w-full min-h-screen fundo-app flex flex-col pb-32">
     <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex items-center gap-4">
-        <a href="javascript:history.back()" class="texto-main text-2xl no-underline"><i class="bi bi-arrow-left"></i></a>
-        <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">Privacidade <span class="texto-tema">e segurança</span></h1>
+        <a href="javascript:history.back()" class="texto-main text-2xl no-underline" aria-label="Voltar"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">Política de <span class="texto-tema">Privacidade</span></h1>
     </div>
 
-    <article class="px-5 pt-6 max-w-2xl w-full mx-auto space-y-5 texto-main">
-        <div class="p-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 text-[11px] font-bold">
-            <i class="bi bi-info-circle-fill"></i> Texto-modelo: revise com o jurídico da SAT antes da publicação oficial.
-        </div>
+    <article class="politica px-5 pt-6 max-w-2xl w-full mx-auto space-y-4 texto-main">
+        <p class="text-[11px] font-bold opacity-60 uppercase tracking-widest">Última atualização: {{ atualizada_em|date:"d/m/Y" }}</p>
 
-        <section class="fundo-card border border-suave rounded-[24px] p-5 space-y-2">
-            <h2 class="text-sm font-black uppercase tracking-widest">1. Quais dados coletamos</h2>
-            <p class="text-[13px] opacity-80 leading-relaxed">Cadastro (nome, e-mail, CPF, data de nascimento, telefone, endereço), documentos de identificação e selfie para verificação, foto de perfil, vínculo com a torcida, publicações e interações na SAT Social, pedidos da loja e pagamentos, e — <b>somente se você ativar</b> — sua localização enquanto usa o app.</p>
+        <section>
+            <p>Esta política explica quais dados pessoais o <b>SAT</b> (site e aplicativo para Android e iPhone) coleta, para que usa, com quem compartilha e como você exerce seus direitos, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, "LGPD"). Ao usar o SAT, você declara ter lido esta política.</p>
+            <nav class="mt-3">
+                <ul>
+                    <li><a href="#controlador">1. Quem é o responsável</a></li>
+                    <li><a href="#dados">2. Dados que coletamos</a></li>
+                    <li><a href="#finalidades">3. Para que usamos e bases legais</a></li>
+                    <li><a href="#localizacao">4. Localização</a></li>
+                    <li><a href="#seguranca-publica">5. Segurança pública (BEPE)</a></li>
+                    <li><a href="#compartilhamento">6. Com quem compartilhamos</a></li>
+                    <li><a href="#publico">7. O que fica visível para outros usuários</a></li>
+                    <li><a href="#retencao">8. Por quanto tempo guardamos</a></li>
+                    <li><a href="#direitos">9. Seus direitos e exclusão da conta</a></li>
+                    <li><a href="#protecao">10. Como protegemos seus dados</a></li>
+                    <li><a href="#cookies">11. Cookies e armazenamento no aparelho</a></li>
+                    <li><a href="#menores">12. Menores de idade</a></li>
+                    <li><a href="#alteracoes">13. Alterações e contato</a></li>
+                </ul>
+            </nav>
         </section>
-        <section class="fundo-card border border-suave rounded-[24px] p-5 space-y-2">
-            <h2 class="text-sm font-black uppercase tracking-widest">2. Para que usamos</h2>
-            <p class="text-[13px] opacity-80 leading-relaxed">Identificar você como sócio (carteirinha e matrícula), confirmar sua identidade, processar planos e compras, entregar pedidos, operar a rede social e a gamificação, e colaborar com a segurança em eventos. Dados cadastrais podem ser compartilhados com as autoridades de segurança pública (BEPE) para a segurança dos torcedores.</p>
+
+        <section id="controlador">
+            <h2>1. Quem é o responsável</h2>
+            <p>O controlador dos dados é <b>{{ controlador }}</b>, inscrito sob o nº <b>{{ controlador_documento }}</b>, com sede em {{ controlador_endereco }}. Para qualquer assunto sobre privacidade, fale com o nosso encarregado de dados pelo e-mail <a href="mailto:{{ email_privacidade }}">{{ email_privacidade }}</a>.</p>
+            <p class="mt-2">Cada torcida organizada cadastrada administra seus próprios membros dentro do SAT (aprovação, eventos, caravanas e loja). Os dados que a torcida acessa são usados por ela para essas atividades.</p>
         </section>
-        <section class="fundo-card border border-suave rounded-[24px] p-5 space-y-2">
-            <h2 class="text-sm font-black uppercase tracking-widest">3. Localização</h2>
-            <p class="text-[13px] opacity-80 leading-relaxed">O compartilhamento é opcional e pode ser desligado a qualquer momento no menu lateral. Ao desligar, sua última posição é apagada imediatamente.</p>
+
+        <section id="dados">
+            <h2>2. Dados que coletamos</h2>
+            <h3>Que você informa</h3>
+            <ul>
+                <li><b>Cadastro:</b> nome, usuário, e-mail, senha (guardada criptografada), CPF, data de nascimento, telefone e WhatsApp, nome da mãe e do pai, RG ou CNH e órgão expedidor, endereço, time do coração, torcida, apelido (vulgo) e pelotão.</li>
+                <li><b>Verificação de identidade:</b> fotos da frente e do verso do documento e uma selfie.</li>
+                <li><b>Perfil e rede social:</b> foto de perfil, rede social informada, publicações, comentários, curtidas, quem você segue e mensagens.</li>
+                <li><b>Compras e planos:</b> itens comprados, endereço de entrega, CPF, nome e e-mail para emissão de cobrança. Dados de cartão são digitados direto no ambiente da instituição de pagamento; o SAT não armazena o número do cartão.</li>
+                <li><b>Compras sem cadastro</b> (link de venda): nome, e-mail, CPF, telefone e endereço de entrega informados no pedido.</li>
+                <li><b>Participação:</b> compra de ingressos, confirmações de presença em eventos e caravanas, check-ins e a leitura do QR Code da sua carteirinha pelo moderador na entrada.</li>
+            </ul>
+            <h3>Coletados automaticamente</h3>
+            <ul>
+                <li><b>Localização:</b> no momento do check-in em eventos e, somente se você ativar, durante o uso do app (veja o item 4).</li>
+                <li><b>Aparelhos e sessões:</b> endereço IP, modelo do aparelho/navegador e data de acesso, para você ver e desconectar os aparelhos com sua conta aberta.</li>
+                <li><b>Atividade no app:</b> pontos de experiência (EXP), nível, conquistas e notificações.</li>
+            </ul>
+            <h3>De terceiros</h3>
+            <ul>
+                <li><b>Login com Google, Apple ou Facebook:</b> nome, e-mail e identificador da conta. Na Apple, você pode escolher ocultar seu e-mail.</li>
+                <li><b>Instituição de pagamento:</b> confirmação de que o pagamento foi feito.</li>
+            </ul>
+            <h3>Denúncias anônimas</h3>
+            <p>A tela de Emergência permite denunciar sem se identificar. Nesse caso <b>não</b> guardamos seu usuário, nome ou IP junto da denúncia, e removemos automaticamente os metadados das fotos (como a localização do GPS). O acompanhamento é feito só pelo número de protocolo.</p>
         </section>
-        <section class="fundo-card border border-suave rounded-[24px] p-5 space-y-2">
-            <h2 class="text-sm font-black uppercase tracking-widest">4. Segurança</h2>
-            <p class="text-[13px] opacity-80 leading-relaxed">Senhas são armazenadas criptografadas. Você pode ver e desconectar os aparelhos com sessão aberta em Segurança e senha. Documentos só são vistos pela moderação da sua torcida e pela administração.</p>
+
+        <section id="finalidades">
+            <h2>3. Para que usamos e bases legais</h2>
+            <ul>
+                <li><b>Criar e manter sua conta, carteirinha e matrícula de sócio, e vincular você à torcida</b>: execução do contrato (art. 7º, V).</li>
+                <li><b>Verificar sua identidade e evitar contas falsas ou duplicadas</b>: legítimo interesse e prevenção à fraude (art. 7º, IX e art. 11, II, "g", para a selfie).</li>
+                <li><b>Processar planos, compras, entregas e reembolsos</b>: execução do contrato (art. 7º, V).</li>
+                <li><b>Guardar registros fiscais e de acesso</b>: cumprimento de obrigação legal (art. 7º, II), inclusive o Marco Civil da Internet.</li>
+                <li><b>Operar a rede social, a gamificação e as notificações</b>: execução do contrato e legítimo interesse (art. 7º, V e IX).</li>
+                <li><b>Compartilhar localização durante o uso do app</b>: seu consentimento (art. 7º, I), que pode ser retirado a qualquer momento.</li>
+                <li><b>Colaborar com a segurança de torcedores em jogos e deslocamentos</b>: proteção da vida e da incolumidade física (art. 7º, VII) e execução de políticas públicas de segurança (art. 7º, III), além do Estatuto de Defesa do Torcedor / Lei Geral do Esporte (Lei nº 14.597/2023), que exige o cadastro de membros de torcidas organizadas.</li>
+                <li><b>Atender pedidos dos titulares e da Justiça, e defender direitos</b>: exercício regular de direitos (art. 7º, VI).</li>
+            </ul>
+            <p class="mt-2">Não vendemos seus dados e não usamos seus dados para publicidade de terceiros.</p>
         </section>
-        <section class="fundo-card border border-suave rounded-[24px] p-5 space-y-2">
-            <h2 class="text-sm font-black uppercase tracking-widest">5. Seus direitos (LGPD)</h2>
-            <p class="text-[13px] opacity-80 leading-relaxed">Você pode acessar, corrigir e excluir seus dados. A exclusão da conta está em Perfil &gt; Sistema &gt; Deletar conta. Registros de pedidos e pagamentos são mantidos de forma anônima pelo prazo exigido em lei.</p>
+
+        <section id="localizacao">
+            <h2>4. Localização</h2>
+            <ul>
+                <li><b>Check-in:</b> ao fazer check-in em um evento, registramos a localização daquele momento para confirmar que você está no local.</li>
+                <li><b>Compartilhamento durante o uso:</b> é <b>opcional</b>. Só acontece se você permitir no app e enquanto o app estiver aberto. Não coletamos localização com o app fechado ou em segundo plano.</li>
+                <li>Você pode desligar o compartilhamento a qualquer momento no menu lateral ("Compartilhar localização") ou nas permissões do celular. <b>Ao desligar, sua última posição é apagada na hora.</b></li>
+            </ul>
+        </section>
+
+        <section id="seguranca-publica">
+            <h2>5. Segurança pública (BEPE)</h2>
+            <p>O SAT colabora com o <b>BEPE</b>, unidade da Polícia Militar do Estado do Rio de Janeiro responsável pelo policiamento em estádios, para prevenir violência entre torcidas. Para isso, o BEPE tem acesso, em área restrita, a:</p>
+            <ul>
+                <li>dados cadastrais dos membros de torcidas (nome, apelido, CPF, RG/CNH, data de nascimento, contato, torcida e foto);</li>
+                <li>check-ins em eventos e, de quem ativou o compartilhamento, a localização durante o uso do app;</li>
+                <li>listas de presença de eventos e caravanas e documentos enviados pelas diretorias das torcidas;</li>
+                <li>mensagens trocadas entre o BEPE e as diretorias, e denúncias anônimas.</li>
+            </ul>
+            <p class="mt-2">O BEPE pode registrar ocorrências ligadas ao cadastro. Esses registros e as informações acessadas pelo BEPE também seguem as regras e os prazos de guarda próprios da autoridade pública.</p>
+        </section>
+
+        <section id="compartilhamento">
+            <h2>6. Com quem compartilhamos</h2>
+            <ul>
+                <li><b>Sua torcida organizada:</b> moderadores e diretoria veem seu cadastro e documentos para aprovar sua entrada, organizar eventos, caravanas e entregas da loja.</li>
+                <li><b>Autoridades de segurança pública:</b> como descrito no item 5, e quando houver ordem judicial ou requisição legal.</li>
+                <li><b>Prestadores de serviço</b> que tratam dados em nosso nome, só para operar o SAT:
+                    <ul>
+                        <li>hospedagem do sistema (Render) e banco de dados (Supabase);</li>
+                        <li>armazenamento de fotos e arquivos (Cloudinary);</li>
+                        <li>pagamentos por PIX, boleto e cartão (Efí Bank), que recebe nome, CPF, e-mail e valor da cobrança;</li>
+                        <li>cálculo de frete (Melhor Envio), que recebe o CEP e as medidas do pacote;</li>
+                        <li>login social (Google, Apple e Facebook);</li>
+                        <li>videochamadas de reuniões entre o BEPE e as diretorias (Jitsi Meet ou o serviço escolhido pela reunião);</li>
+                        <li>clube de benefícios parceiro dos planos de sócio, quando ativo: nome, e-mail, CPF, telefone, torcida e nível do plano, para liberar os descontos.</li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="mt-2">Alguns desses prestadores podem armazenar dados fora do Brasil. Nesses casos, exigimos que adotem garantias de proteção compatíveis com a LGPD (art. 33).</p>
+        </section>
+
+        <section id="publico">
+            <h2>7. O que fica visível para outros usuários</h2>
+            <p>Seu perfil público mostra nome ou apelido, foto, torcida, nível, conquistas e selos (como "identidade verificada"), além das suas publicações e comentários. <b>CPF, documentos, endereço, telefone e localização nunca aparecem para outros torcedores.</b></p>
+        </section>
+
+        <section id="retencao">
+            <h2>8. Por quanto tempo guardamos</h2>
+            <ul>
+                <li>Enquanto sua conta estiver ativa.</li>
+                <li>Ao excluir a conta, apagamos seus dados pessoais, fotos, documentos e publicações.</li>
+                <li>Pedidos, faturas e pagamentos ficam guardados <b>sem identificar você</b> pelo prazo exigido pela legislação fiscal (em geral, 5 anos).</li>
+                <li>Registros de acesso (IP, data e hora) são guardados por no mínimo 6 meses, como exige o Marco Civil da Internet (Lei nº 12.965/2014).</li>
+                <li>A localização compartilhada fica guardada apenas como última posição e é apagada quando você desliga o compartilhamento.</li>
+            </ul>
+        </section>
+
+        <section id="direitos">
+            <h2>9. Seus direitos e exclusão da conta</h2>
+            <p>Pela LGPD (art. 18), você pode pedir: confirmação de que tratamos seus dados, acesso, correção, anonimização ou eliminação de dados desnecessários, portabilidade, informação sobre com quem compartilhamos, e revogação do consentimento.</p>
+            <ul class="mt-2">
+                <li><b>Corrigir dados:</b> em Perfil &gt; Editar perfil.</li>
+                <li><b>Desligar a localização:</b> no menu lateral.</li>
+                <li><b>Ver e desconectar aparelhos:</b> em Segurança e senha.</li>
+                <li><b>Excluir a conta:</b> em Perfil &gt; Sistema &gt; Deletar conta{% if user.is_authenticated %} (<a href="{% url 'deletar_conta' %}">abrir agora</a>){% endif %}. Sem acesso ao app? Peça a exclusão pelo e-mail abaixo.</li>
+                <li><b>Demais pedidos:</b> pelo e-mail <a href="mailto:{{ email_privacidade }}">{{ email_privacidade }}</a>. Respondemos em até 15 dias.</li>
+            </ul>
+            <p class="mt-2">Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD), em <a href="https://www.gov.br/anpd" target="_blank" rel="noopener">gov.br/anpd</a>.</p>
+        </section>
+
+        <section id="protecao">
+            <h2>10. Como protegemos seus dados</h2>
+            <p>Usamos conexão criptografada (HTTPS), senhas armazenadas com criptografia, acesso a documentos restrito à moderação da sua torcida e à administração, área do BEPE com acesso restrito e controle dos aparelhos conectados à sua conta. Nenhum sistema é 100% seguro: se acontecer um incidente com risco para você, avisaremos você e a ANPD.</p>
+        </section>
+
+        <section id="cookies">
+            <h2>11. Cookies e armazenamento no aparelho</h2>
+            <p>Usamos apenas cookies necessários para manter você logado e proteger os formulários, e o armazenamento do aparelho para lembrar preferências (como avisos já vistos). Não usamos cookies de publicidade nem ferramentas de rastreamento de terceiros.</p>
+        </section>
+
+        <section id="menores">
+            <h2>12. Menores de idade</h2>
+            <p>O SAT não é destinado a menores de 13 anos. Adolescentes de 13 a 17 anos só podem se cadastrar com a autorização dos pais ou responsáveis, que podem pedir acesso ou exclusão dos dados pelo e-mail de privacidade.</p>
+        </section>
+
+        <section id="alteracoes">
+            <h2>13. Alterações e contato</h2>
+            <p>Podemos atualizar esta política. Quando a mudança for importante, avisaremos no app. A data da última atualização fica no topo desta página.</p>
+            <p class="mt-2">Dúvidas: <a href="mailto:{{ email_privacidade }}">{{ email_privacidade }}</a> · {{ controlador }}</p>
         </section>
     </article>
 </div>

@@ -124,6 +124,7 @@
                 {% for produto in produtos %}
                 <div class="fundo-card border border-suave rounded-[28px] p-2 flex flex-col shadow-sm hover:shadow-md transition-shadow relative">
                     
+                    <button type="button" onclick="linkVenda('{{ request.scheme }}://{{ request.get_host }}{% url 'comprar_link' produto.id %}', '{{ produto.nome|escapejs }}')" aria-label="Compartilhar {{ produto.nome }}" class="absolute top-2 left-2 z-20 w-8 h-8 rounded-full bg-white/90 text-black shadow flex items-center justify-center active:scale-90 transition-transform"><i class="bi bi-share-fill text-xs"></i></button>
                     <a href="{% url 'detalhe_produto' produto.id %}" class="w-full aspect-square bg-white rounded-[20px] overflow-hidden relative flex items-center justify-center p-3">
                         {% if produto.estoque <= 0 %}
                             <span class="absolute top-2 left-2 z-10 bg-black/80 backdrop-blur-md text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full">Esgotado</span>

@@ -3,6 +3,10 @@
 
 TIMES_BRASIL = [
     # ==========================================
+    # SELEÇÃO
+    # ==========================================
+    {"nome": "Seleção Brasileira", "escudo": "https://s.sde.globo.com/media/organizations/2018/03/11/brasil.svg"},
+    # ==========================================
     # SÉRIE A (2026)
     # ==========================================
     {"nome": "Athletico-PR", "escudo": "https://s.sde.globo.com/media/organizations/2019/09/09/Athletico-PR.svg"},

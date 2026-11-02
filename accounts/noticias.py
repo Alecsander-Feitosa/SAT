@@ -30,6 +30,7 @@ FEED_GERAL = 'futebol'
 
 # Caminho do feed de cada time no ge (nome igual ao de accounts/times.py)
 FEEDS_TIMES = {
+    'Seleção Brasileira': 'futebol/selecao-brasileira',
     'Athletico-PR': 'pr/futebol/times/athletico-pr', 'Atlético-MG': 'futebol/times/atletico-mg',
     'Bahia': 'ba/futebol/times/bahia', 'Botafogo': 'futebol/times/botafogo',
     'Chapecoense': 'sc/futebol/times/chapecoense', 'Corinthians': 'futebol/times/corinthians',

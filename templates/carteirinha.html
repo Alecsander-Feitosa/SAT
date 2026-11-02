@@ -48,33 +48,18 @@
             </div>
         </div>
 
-        {# ======================= HISTÓRICO DE TORCIDAS ======================= #}
+        {# ======================= MEDALHAS ======================= #}
         <div class="w-full max-w-sm mt-6">
-            <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-3 flex items-center gap-2"><i class="bi bi-clock-history"></i> Histórico de torcidas</h3>
+            <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-3 flex items-center gap-2"><i class="bi bi-award-fill"></i> Minhas medalhas</h3>
             <div class="fundo-card border border-suave rounded-[20px] p-4">
-                {% for p in passagens %}
-                <div class="flex items-center gap-3 {% if not forloop.last %}pb-3 mb-3 border-b border-suave{% endif %}">
-                    <span class="w-10 h-10 rounded-full bg-black/5 border border-suave p-1 shrink-0 flex items-center justify-center">
-                        {% if p.torcida.logo %}<img src="{{ p.torcida.logo.url }}" alt="" class="w-full h-full object-contain">{% else %}<i class="bi bi-shield-fill texto-main opacity-40"></i>{% endif %}
-                    </span>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-black texto-main truncate">{{ p.torcida_nome }}</p>
-                        <p class="text-[10px] texto-main opacity-60">{{ p.entrada|date:"m/Y" }} — {% if p.atual %}atual{% else %}{{ p.saida|date:"m/Y" }}{% endif %}</p>
-                    </div>
-                    {% if p.atual %}<span class="text-[8px] font-black uppercase tracking-widest text-green-600 bg-green-500/10 px-2 py-1 rounded-full">Atual</span>{% endif %}
-                </div>
-                {% empty %}
-                <p class="text-[11px] texto-main opacity-50 text-center py-2">Você ainda não faz parte de nenhuma torcida.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        {# ======================= SELOS / CONQUISTAS ======================= #}
-        <div class="w-full max-w-sm mt-6">
-            <h3 class="text-xs font-black texto-main uppercase tracking-widest mb-3 flex items-center gap-2"><i class="bi bi-award-fill"></i> Selos e conquistas</h3>
-            <div class="fundo-card border border-suave rounded-[20px] p-4">
-                {% if badges_conquistadas %}
+                {% if medalhas or badges_conquistadas %}
                 <div class="grid grid-cols-4 gap-3">
+                    {% for m in medalhas %}
+                    <div class="flex flex-col items-center text-center gap-1" title="{{ m.descricao }}">
+                        <span class="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl shadow-md" style="background: {{ m.cor }}"><i class="bi {{ m.icone }}"></i></span>
+                        <span class="text-[8px] font-black texto-main uppercase leading-tight">{{ m.nome }}</span>
+                    </div>
+                    {% endfor %}
                     {% for b in badges_conquistadas %}
                     <div class="flex flex-col items-center text-center gap-1">
                         <span class="w-12 h-12 rounded-full bg-yellow-400/20 border border-yellow-500/30 overflow-hidden flex items-center justify-center">
@@ -85,7 +70,7 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-[11px] texto-main opacity-50 text-center py-2">Faça check-in nos eventos da torcida para ganhar selos.</p>
+                <p class="text-[11px] texto-main opacity-50 text-center py-2">Interaja no app e vá a eventos e caravanas para ganhar medalhas.</p>
                 {% endif %}
             </div>
         </div>

@@ -1,0 +1,21 @@
+{# Um jogo da tela Jogos e Tabela. Precisa no contexto: j (accounts.futebol._converter) #}
+<div class="fundo-card border border-suave rounded-[20px] p-3 shadow-sm">
+    <div class="flex justify-between items-center gap-2 mb-2 text-[9px] font-black uppercase tracking-widest texto-main">
+        <span class="opacity-50 truncate">{{ j.campeonato }}</span>
+        {% if j.ao_vivo %}<span class="text-red-600 animate-pulse whitespace-nowrap">● Ao vivo · {{ j.status }}</span>
+        {% elif j.encerrado %}<span class="opacity-50 whitespace-nowrap">Encerrado · {{ j.data|date:"d/m" }}</span>
+        {% else %}<span class="opacity-70 whitespace-nowrap">{{ j.data|date:"D d/m · H:i" }}</span>{% endif %}
+    </div>
+    <div class="flex items-center gap-2">
+        <div class="flex-1 min-w-0 flex items-center justify-end gap-2 text-right">
+            <span class="text-[12px] font-black texto-main truncate">{{ j.mandante.nome }}</span>
+            {% if j.mandante.logo %}<img src="{{ j.mandante.logo }}" alt="" loading="lazy" class="w-7 h-7 object-contain shrink-0">{% endif %}
+        </div>
+        <span class="text-sm font-black texto-main px-2 whitespace-nowrap">{% if j.mandante.placar != None %}{{ j.mandante.placar }} × {{ j.visitante.placar }}{% else %}×{% endif %}</span>
+        <div class="flex-1 min-w-0 flex items-center gap-2">
+            {% if j.visitante.logo %}<img src="{{ j.visitante.logo }}" alt="" loading="lazy" class="w-7 h-7 object-contain shrink-0">{% endif %}
+            <span class="text-[12px] font-black texto-main truncate">{{ j.visitante.nome }}</span>
+        </div>
+    </div>
+    {% if j.estadio %}<p class="text-[10px] texto-main opacity-50 text-center mt-2 truncate"><i class="bi bi-geo-alt"></i> {{ j.estadio }}{% if j.cidade %} · {{ j.cidade }}{% endif %}</p>{% endif %}
+</div>

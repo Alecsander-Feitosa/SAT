@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'includes/painel_sat_estilo.html' %}
+
+<div class="painel-sat w-full min-h-screen fundo-app flex flex-col pb-32 px-4 pt-3">
+    {% url 'painel_moderador' as url_voltar %}
+    {% include 'includes/painel_sat_topo.html' with titulo="Leitor de QR" icone="bi-qr-code-scan" voltar=url_voltar %}
+
+    <div class="max-w-md w-full mx-auto space-y-4">
+        {% if not opcoes %}
+        <div class="cartao-sat fundo-card border border-suave p-6 text-center">
+            <i class="bi bi-calendar-x texto-main opacity-40 text-3xl"></i>
+            <p class="text-sm font-black texto-main mt-2">Nenhum evento ou caravana próximo</p>
+            <p class="text-[11px] texto-main opacity-60 mt-1">Crie um evento no painel para confirmar presenças.</p>
+        </div>
+        {% else %}
+        <form method="get">
+            <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60" for="alvo">Confirmar presença em</label>
+            <select name="alvo" id="alvo" onchange="this.form.submit()" class="w-full mt-1 fundo-card border border-suave rounded-xl px-4 py-3 text-sm font-bold texto-main">
+                {% for o in opcoes %}
+                <option value="{{ o.valor }}" {% if o.valor == selecionado %}selected{% endif %}>{{ o.data|date:"d/m H:i" }} · {{ o.tipo }}: {{ o.titulo }}</option>
+                {% endfor %}
+            </select>
+        </form>
+
+        {# ---------- CÂMERA ---------- #}
+        <div class="cartao-sat fundo-card border border-suave overflow-hidden">
+            <div id="leitor" class="w-full bg-black" style="min-height: 240px;"></div>
+            <div class="p-3">
+                <button type="button" id="btn-camera" class="w-full fundo-tema texto-claro rounded-xl py-3 text-[11px] font-black uppercase tracking-widest"><i class="bi bi-camera-fill"></i> Abrir câmera</button>
+                <p id="erro-camera" class="hidden text-[11px] text-red-600 font-bold text-center mt-2"></p>
+            </div>
+        </div>
+
+        {# ---------- RESULTADO DA LEITURA ---------- #}
+        <div id="resultado" class="hidden rounded-[20px] p-4 border-2" role="status" aria-live="polite">
+            <div class="flex items-center gap-3">
+                <div id="res-foto" class="w-16 h-16 rounded-2xl overflow-hidden bg-black/10 shrink-0 flex items-center justify-center"></div>
+                <div class="min-w-0 flex-1">
+                    <p id="res-titulo" class="text-sm font-black uppercase"></p>
+                    <p id="res-nome" class="text-sm font-bold truncate"></p>
+                    <p id="res-matricula" class="text-[10px] font-mono opacity-70"></p>
+                </div>
+            </div>
+            <ul id="res-avisos" class="mt-2 text-[11px] font-bold text-yellow-700 space-y-0.5"></ul>
+        </div>
+
+        {# ---------- DIGITAR A MATRÍCULA ---------- #}
+        <form id="form-manual" class="flex gap-2">
+            <input type="text" id="matricula" placeholder="Ou digite a matrícula: 2026.000046-9" class="flex-1 min-w-0 fundo-card border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+            <button class="fundo-tema texto-claro rounded-xl px-5 text-[11px] font-black uppercase" aria-label="Confirmar matrícula"><i class="bi bi-check-lg"></i></button>
+        </form>
+
+        {# ---------- PRESENÇAS CONFIRMADAS ---------- #}
+        <section>
+            <h2 class="text-xs font-black uppercase tracking-widest texto-main mb-2">Presenças confirmadas: <span id="total">{{ total }}</span></h2>
+            <div id="lista" class="cartao-sat fundo-card border border-suave overflow-hidden">
+                {% for v in validados %}
+                <div class="flex justify-between gap-3 px-4 py-2.5 text-sm texto-main {% if not forloop.first %}border-t border-suave{% endif %}">
+                    <span class="font-bold truncate">{{ v.user.get_full_name|default:v.user.username }}</span>
+                    <span class="text-[11px] opacity-60 whitespace-nowrap">{{ v.validado_em|date:"H:i" }}</span>
+                </div>
+                {% empty %}
+                <p id="lista-vazia" class="px-4 py-5 text-center text-[12px] texto-main opacity-50">Ninguém confirmado ainda.</p>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</div>
+
+{% if opcoes %}
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+(function () {
+    const URL_VALIDAR = "{% url 'validar_qr' %}";
+    const ALVO = "{{ selecionado|escapejs }}";
+    const CSRF = "{{ csrf_token }}";
+    const resultado = document.getElementById('resultado');
+    let leitor = null;
+    let ocupado = false;
+    let ultimoCodigo = '';
+    let ultimoEm = 0;
+
+    function mostrar(dados) {
+        const certo = dados.ok;
+        const comAviso = certo && dados.avisos.length > 0;
+        resultado.className = 'rounded-[20px] p-4 border-2 ' +
+            (!certo ? 'bg-red-500/10 border-red-500 text-red-700' : comAviso ? 'bg-yellow-500/10 border-yellow-500 texto-main' : 'bg-green-500/10 border-green-500 texto-main');
+        document.getElementById('res-titulo').textContent = !certo ? dados.erro : dados.nova ? 'Presença confirmada' : 'Já confirmado às ' + dados.horario;
+        document.getElementById('res-nome').textContent = certo ? dados.nome + (dados.vulgo ? ' “' + dados.vulgo + '”' : '') : '';
+        document.getElementById('res-matricula').textContent = certo ? dados.matricula : '';
+
+        const foto = document.getElementById('res-foto');
+        foto.innerHTML = '';
+        if (certo && dados.foto) {
+            const img = document.createElement('img');
+            img.src = dados.foto; img.alt = ''; img.className = 'w-full h-full object-cover';
+            foto.appendChild(img);
+        } else {
+            foto.innerHTML = '<i class="bi ' + (certo ? 'bi-person-fill' : 'bi-x-octagon-fill') + ' text-3xl opacity-50"></i>';
+        }
+
+        const avisos = document.getElementById('res-avisos');
+        avisos.innerHTML = '';
+        (dados.avisos || []).forEach(function (texto) {
+            const li = document.createElement('li');
+            li.textContent = '⚠ ' + texto;
+            avisos.appendChild(li);
+        });
+
+        if (navigator.vibrate) navigator.vibrate(certo ? 120 : [200, 100, 200]);
+
+        if (certo) {
+            document.getElementById('total').textContent = dados.total;
+            if (dados.nova) adicionarNaLista(dados);
+        }
+    }
+
+    function adicionarNaLista(dados) {
+        const vazia = document.getElementById('lista-vazia');
+        if (vazia) vazia.remove();
+        const linha = document.createElement('div');
+        linha.className = 'flex justify-between gap-3 px-4 py-2.5 text-sm texto-main border-b border-suave';
+        const nome = document.createElement('span');
+        nome.className = 'font-bold truncate';
+        nome.textContent = dados.nome;
+        const hora = document.createElement('span');
+        hora.className = 'text-[11px] opacity-60 whitespace-nowrap';
+        hora.textContent = dados.horario;
+        linha.append(nome, hora);
+        document.getElementById('lista').prepend(linha);
+    }
+
+    function enviar(codigo) {
+        if (ocupado) return Promise.resolve();
+        ocupado = true;
+        const corpo = new URLSearchParams({ alvo: ALVO, codigo: codigo });
+        return fetch(URL_VALIDAR, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest' },
+            body: corpo,
+        }).then(function (r) { return r.json(); })
+          .then(mostrar)
+          .catch(function () { mostrar({ ok: false, erro: 'Sem conexão. Tente de novo.' }); })
+          .finally(function () { ocupado = false; });
+    }
+
+    function aoLer(codigo) {
+        // A câmera lê o mesmo QR várias vezes por segundo: ignora a repetição por alguns segundos
+        const agora = Date.now();
+        if (codigo === ultimoCodigo && agora - ultimoEm < 4000) return;
+        ultimoCodigo = codigo;
+        ultimoEm = agora;
+        enviar(codigo);
+    }
+
+    const btnCamera = document.getElementById('btn-camera');
+    const erroCamera = document.getElementById('erro-camera');
+
+    function pararCamera() {
+        if (!leitor) return Promise.resolve();
+        const atual = leitor;
+        leitor = null;
+        return atual.stop().catch(function () {}).then(function () { atual.clear(); });
+    }
+
+    btnCamera.addEventListener('click', function () {
+        erroCamera.classList.add('hidden');
+        if (leitor) {
+            pararCamera();
+            btnCamera.innerHTML = '<i class="bi bi-camera-fill"></i> Abrir câmera';
+            return;
+        }
+        if (!window.Html5Qrcode) {
+            erroCamera.textContent = 'Não foi possível carregar o leitor. Confira a internet ou digite a matrícula.';
+            erroCamera.classList.remove('hidden');
+            return;
+        }
+        leitor = new Html5Qrcode('leitor');
+        leitor.start({ facingMode: 'environment' }, { fps: 10, qrbox: 220 }, aoLer, function () {})
+            .then(function () { btnCamera.innerHTML = '<i class="bi bi-stop-circle-fill"></i> Fechar câmera'; })
+            .catch(function () {
+                leitor = null;
+                erroCamera.textContent = 'Não foi possível abrir a câmera. Libere a permissão nas configurações ou digite a matrícula.';
+                erroCamera.classList.remove('hidden');
+            });
+    });
+
+    document.getElementById('form-manual').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const campo = document.getElementById('matricula');
+        if (campo.value.trim()) enviar(campo.value.trim()).then(function () { campo.value = ''; });
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -24,10 +24,12 @@
 
             <form method="POST" class="space-y-3 pt-2 border-t border-suave">
                 {% csrf_token %}
+                {% if user.has_usable_password %}
                 <div>
                     <label class="text-[9px] font-black texto-main opacity-50 uppercase ml-1">Sua senha</label>
                     <input type="password" name="senha" required autocomplete="current-password" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm texto-main focus:outline-none">
                 </div>
+                {% endif %}
                 <div>
                     <label class="text-[9px] font-black texto-main opacity-50 uppercase ml-1">Digite EXCLUIR para confirmar</label>
                     <input type="text" name="confirmacao" required autocomplete="off" class="w-full fundo-app border border-suave rounded-2xl px-4 py-3 text-sm texto-main uppercase focus:outline-none">

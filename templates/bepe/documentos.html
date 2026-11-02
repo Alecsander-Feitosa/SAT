@@ -11,7 +11,7 @@
     <section class="card overflow-hidden">
         <div class="px-5 pt-4 pb-3">
             <h2 class="text-sm font-black italic uppercase tracking-tighter texto-main">Listas de presença</h2>
-            <p class="text-[11px] texto-main opacity-50 mt-1">Quem confirma presença no app entra aqui automaticamente.</p>
+            <p class="text-[11px] texto-main opacity-50 mt-1">Quem compra ingresso ou confirma presença entra aqui automaticamente, marcado para você enviar.</p>
         </div>
         <div class="divide-suave border-t border-suave">
         {% for item in listas %}
@@ -23,7 +23,8 @@
                 <p class="text-sm font-bold texto-main truncate">{{ item.titulo }}</p>
                 <p class="text-[11px] texto-main opacity-50">{% if item.tipo == 'caravana' %}Caravana{% else %}Evento{% endif %} · {{ item.data|date:"d/m/Y H:i" }}</p>
             </div>
-            <span class="text-[11px] font-black px-2 py-1 rounded-lg {% if item.total %}fundo-tema texto-claro{% else %}bg-black/5 texto-main opacity-50{% endif %} whitespace-nowrap"><i class="bi bi-people-fill"></i> {{ item.total }}</span>
+            {% if item.a_enviar %}<span class="text-[10px] font-black px-2 py-1 rounded-lg bg-red-500 text-white whitespace-nowrap animate-pulse">{{ item.a_enviar }} a enviar</span>{% endif %}
+            <span class="text-[11px] font-black px-2 py-1 rounded-lg bg-black/5 texto-main opacity-60 whitespace-nowrap"><i class="bi bi-people-fill"></i> {{ item.total }}</span>
         </a>
         {% empty %}
         <p class="px-5 py-6 text-sm texto-main opacity-50 text-center">Nenhum evento ou caravana próximo.</p>

@@ -1,6 +1,19 @@
+import re
+from datetime import timedelta
+
+from django import forms
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.http import JsonResponse
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+from accounts.models import CheckIn as CheckInAccounts, PresencaCaravana, PresencaValidada
+from bepe.permissions import diretoria_required
+from bepe.views import listas_presenca
+from gamification.models import CheckIn as CheckInGame
+from social.permissoes import pode_moderar_torcida
+from .models import Caravana, InscricaoPagamento
 from django.contrib import messages
 from django.utils.dateparse import parse_datetime
 from django.core.paginator import Paginator
@@ -38,7 +51,7 @@ def hub_view(request, slug):
         'perfil_game': perfil_game,
         'eventos': Evento.objects.filter(torcida=torcida, ativo=True).order_by('data'),
         'caravanas': Caravana.objects.filter(torcida=torcida),
-        'parceiros': Parceiro.objects.filter(torcida=torcida),
+        'parceiros': Parceiro.objects.filter(torcida=torcida, ativo=True),
         'publicidades': Publicidade.objects.filter(torcida=torcida),
         
         # Dados institucionais
@@ -599,6 +612,7 @@ def painel_moderador(request):
         # Institucional e Marca
         'regras': Regra.objects.filter(torcida=minha_torcida).order_by('categoria', 'ordem'),
         'parceiros': Parceiro.objects.filter(torcida=minha_torcida),
+        'pessoas_a_enviar': sum(lista['a_enviar'] for lista in listas_presenca(minha_torcida)),
         'diretoria': MembroDiretoria.objects.filter(torcida=minha_torcida).select_related('categoria').order_by('categoria__ordem', 'ordem'),
         'categorias_diretoria': CategoriaDiretoria.objects.filter(torcida=minha_torcida).order_by('ordem'),
         
@@ -760,3 +774,137 @@ def cancelar_vinculo(request):
     perfil.aprovado = False
     perfil.save()
     return redirect('torcidas')
+
+
+# ==========================================
+# LEITOR DE QR CODE DA CARTEIRINHA (moderador confirma presença)
+# ==========================================
+def _alvo_qr(torcida, valor):
+    """Interpreta 'evento-5' / 'caravana-3', sempre dentro da torcida do moderador."""
+    tipo, _, alvo_id = (valor or '').partition('-')
+    if not alvo_id.isdigit():
+        return None, None
+    if tipo == 'evento':
+        return tipo, Evento.objects.filter(id=alvo_id, torcida=torcida).first()
+    if tipo == 'caravana':
+        return tipo, Caravana.objects.filter(id=alvo_id, torcida=torcida).first()
+    return None, None
+
+
+def _validados(tipo, alvo):
+    return PresencaValidada.objects.filter(**{tipo: alvo}).select_related('user', 'user__perfil')
+
+
+@diretoria_required
+def leitor_qr(request):
+    torcida = request.torcida_diretoria
+    limite = timezone.now() - timedelta(days=1)
+    eventos = Evento.objects.filter(torcida=torcida, data__gte=limite).order_by('data')
+    caravanas = Caravana.objects.filter(torcida=torcida, saida_horario__gte=limite).order_by('saida_horario')
+    opcoes = sorted(
+        [{'valor': f'evento-{e.id}', 'titulo': e.titulo, 'data': e.data, 'tipo': 'Evento'} for e in eventos] +
+        [{'valor': f'caravana-{c.id}', 'titulo': c.titulo, 'data': c.saida_horario, 'tipo': 'Caravana'} for c in caravanas],
+        key=lambda o: o['data'],
+    )
+    selecionado = request.GET.get('alvo') or (opcoes[0]['valor'] if opcoes else '')
+    tipo, alvo = _alvo_qr(torcida, selecionado)
+    return render(request, 'leitor_qr.html', {
+        'torcida': torcida,
+        'opcoes': opcoes,
+        'selecionado': selecionado if alvo else '',
+        'validados': _validados(tipo, alvo)[:30] if alvo else [],
+        'total': _validados(tipo, alvo).count() if alvo else 0,
+    })
+
+
+@diretoria_required
+@require_POST
+def validar_qr(request):
+    """Recebe o conteúdo do QR (URL de validação) ou a matrícula digitada e registra a presença."""
+    torcida = request.torcida_diretoria
+    tipo, alvo = _alvo_qr(torcida, request.POST.get('alvo'))
+    if not alvo:
+        return JsonResponse({'ok': False, 'erro': 'Escolha o evento ou a caravana.'}, status=400)
+
+    achado = re.search(r'\d{4}\.?\d{6}-?\d', request.POST.get('codigo', ''))
+    perfil = Perfil.por_matricula(achado.group(0)) if achado else None
+    if not perfil or not perfil.user.is_active:
+        return JsonResponse({'ok': False, 'erro': 'Carteirinha inválida.'})
+    if perfil.torcida_id != torcida.id:
+        # Não mostra os dados de quem é de outra torcida
+        return JsonResponse({'ok': False, 'erro': 'Este sócio não é da sua torcida.'})
+
+    user = perfil.user
+    validacao, nova = PresencaValidada.objects.get_or_create(user=user, **{tipo: alvo}, defaults={'validado_por': request.user})
+    if nova:
+        # Entra também nas confirmações normais: lista do BEPE, EXP e medalhas
+        if tipo == 'evento':
+            CheckInAccounts.objects.get_or_create(user=user, evento=alvo, defaults={'validado': True})
+            if not CheckInGame.objects.filter(user=user, evento=alvo).exists():
+                CheckInGame.objects.create(user=user, evento=alvo, validado=True)
+        else:
+            PresencaCaravana.objects.get_or_create(user=user, caravana=alvo)
+            from gamification.xp import xp_participacao_caravana
+            xp_participacao_caravana(user, alvo)
+
+    avisos = []
+    if not perfil.aprovado:
+        avisos.append('Sócio ainda não aprovado pela torcida.')
+    if alvo.valor and not InscricaoPagamento.objects.filter(usuario=user, status='pago', **{tipo: alvo}).exists():
+        avisos.append('Sem ingresso pago no app.')
+    return JsonResponse({
+        'ok': True,
+        'nova': nova,
+        'nome': user.get_full_name() or user.username,
+        'vulgo': perfil.vulgo,
+        'matricula': perfil.matricula,
+        'foto': perfil.foto.url if perfil.foto else '',
+        'verificado': perfil.docs_status == 'verificado',
+        'horario': timezone.localtime(validacao.validado_em).strftime('%H:%M'),
+        'avisos': avisos,
+        'total': _validados(tipo, alvo).count(),
+    })
+
+
+# ==========================================
+# PARCEIROS DA TORCIDA (presidente e moderadores)
+# ==========================================
+class ParceiroForm(forms.ModelForm):
+    class Meta:
+        model = Parceiro
+        fields = ['nome', 'beneficio', 'link', 'logo', 'ativo']
+
+
+@login_required
+def gerenciar_parceiros(request):
+    perfil = getattr(request.user, 'perfil', None)
+    torcida = perfil.torcida if perfil else None
+    if not pode_moderar_torcida(request.user, torcida):
+        messages.error(request, "Acesso restrito ao presidente e aos moderadores da torcida.")
+        return redirect('dashboard')
+
+    editando = None
+    if request.GET.get('editar', '').isdigit():
+        editando = get_object_or_404(Parceiro, id=request.GET['editar'], torcida=torcida)
+
+    if request.method == 'POST':
+        if request.POST.get('acao') == 'excluir':
+            get_object_or_404(Parceiro, id=request.POST.get('parceiro_id'), torcida=torcida).delete()
+            messages.success(request, "Anúncio removido.")
+            return redirect('gerenciar_parceiros')
+        form = ParceiroForm(request.POST, request.FILES, instance=editando)
+        if form.is_valid():
+            parceiro = form.save(commit=False)
+            parceiro.torcida = torcida
+            parceiro.save()
+            messages.success(request, "Anúncio salvo.")
+            return redirect('gerenciar_parceiros')
+    else:
+        form = ParceiroForm(instance=editando)
+
+    return render(request, 'gerenciar_parceiros.html', {
+        'torcida': torcida,
+        'form': form,
+        'editando': editando,
+        'parceiros': Parceiro.objects.filter(torcida=torcida).order_by('-ativo', 'nome'),
+    })

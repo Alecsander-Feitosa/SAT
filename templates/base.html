@@ -167,6 +167,9 @@
             <a href="{% url 'loja' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
                 <i class="bi bi-cart3 texto-main text-lg"></i><span class="text-sm font-bold texto-main">Loja Oficial</span>
             </a>
+            <a href="{% url 'jogos_tabela' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
+                <i class="bi bi-trophy-fill texto-main text-lg"></i><span class="text-sm font-bold texto-main">Jogos e Tabela</span>
+            </a>
             <hr class="border-suave my-4">
             
             {% if request.user.is_staff %}
@@ -180,6 +183,11 @@
                 <a href="{% url 'gerenciar_avisos' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
                     <i class="bi bi-window-stack texto-main text-lg"></i><span class="text-sm font-bold texto-main">Pop-ups e Avisos</span>
                 </a>
+                {% if request.user.perfil.torcida %}
+                <a href="{% url 'gerenciar_parceiros' %}" class="flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-black/5 no-underline group transition-all">
+                    <i class="bi bi-gem texto-main text-lg"></i><span class="text-sm font-bold texto-main">Parceiros da Torcida</span>
+                </a>
+                {% endif %}
                 <hr class="border-suave my-4">
             {% endif %}
 
@@ -599,6 +607,71 @@
     })();
     </script>
     {% endif %}
+
+    {# Compartilhar produto: o link abre a compra sem cadastro. O WebView do Android não tem navigator.share, então cai nas opções abaixo #}
+    <script>
+    function linkVenda(url, nome) {
+        if (navigator.share) { navigator.share({ title: nome, text: 'Olha esse produto: ' + nome, url: url }).catch(function () {}); return; }
+        var whatsapp = 'https://wa.me/?text=' + encodeURIComponent('Olha esse produto: ' + nome + ' ' + url);
+        Swal.fire({
+            title: 'Compartilhar',
+            text: nome,
+            input: 'text',
+            inputValue: url,
+            inputAttributes: { readonly: true },
+            showDenyButton: true,
+            confirmButtonText: '<i class="bi bi-whatsapp"></i> WhatsApp',
+            denyButtonText: '<i class="bi bi-copy"></i> Copiar link',
+            denyButtonColor: '#555',
+            confirmButtonColor: '#16a34a',
+            showCloseButton: true,
+            preDeny: function () {
+                Swal.getInput().select();
+                try { document.execCommand('copy'); } catch (e) {}
+                if (navigator.clipboard) navigator.clipboard.writeText(url).catch(function () {});
+            }
+        }).then(function (r) { if (r.isConfirmed) window.location.href = whatsapp; });
+    }
+    </script>
+
+    {# App iPhone: o WebView do iOS não baixa arquivos. Busca a planilha e abre a folha de compartilhar (Salvar em Arquivos, WhatsApp...) #}
+    <script>
+    (function () {
+        var ua = navigator.userAgent;
+        if (ua.indexOf('SATApp') === -1 || !(/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1))) return;
+        document.addEventListener('click', function (e) {
+            var link = e.target.closest('a[download]');
+            if (!link) return;
+            e.preventDefault();
+            fetch(link.href, { credentials: 'same-origin' }).then(function (r) {
+                if (!r.ok) throw new Error();
+                var nome = ((r.headers.get('Content-Disposition') || '').match(/filename="?([^";]+)"?/) || [])[1] || 'arquivo.csv';
+                return r.blob().then(function (b) { return new File([b], nome, { type: b.type || 'text/csv' }); });
+            }).then(function (arquivo) {
+                // O compartilhar precisa de um toque do usuário: o do link já passou durante o download
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Arquivo pronto',
+                    text: arquivo.name,
+                    confirmButtonText: '<i class="bi bi-share"></i> Salvar ou compartilhar',
+                    showCloseButton: true,
+                    confirmButtonColor: '{{ user.perfil.torcida.cor_primaria|default:"#D37129" }}',
+                    didOpen: function () {
+                        Swal.getConfirmButton().addEventListener('click', function () {
+                            if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+                                navigator.share({ files: [arquivo] }).catch(function () {});
+                            } else {
+                                alert('Este iPhone não permite salvar arquivos pelo app. Use o site no Safari.');
+                            }
+                        });
+                    }
+                });
+            }).catch(function () {
+                Swal.fire({ icon: 'error', title: 'Não foi possível baixar o arquivo.' });
+            });
+        });
+    })();
+    </script>
 
     <script>
     if ('serviceWorker' in navigator) {

@@ -157,6 +157,8 @@ class Parceiro(models.Model):
     nome = models.CharField("Nome do Parceiro", max_length=100)
     logo = models.ImageField("Logo", upload_to='parceiros/', blank=True, null=True)
     link = models.URLField("Link do Parceiro", blank=True, null=True, help_text="Link para o site ou Instagram do parceiro")
+    beneficio = models.CharField("Oferta / benefício", max_length=200, blank=True, help_text="Ex: 10% de desconto para membros da torcida")
+    ativo = models.BooleanField("Anúncio no ar", default=True)
     torcida = models.ForeignKey(
         Torcida, 
         on_delete=models.CASCADE, 

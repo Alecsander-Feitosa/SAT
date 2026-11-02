@@ -202,12 +202,4 @@
     </div>
     {% endif %}
 </div>
-<script>
-function linkVenda(url, nome) {
-    if (navigator.share) { navigator.share({ title: nome, text: 'Compre ' + nome + ':', url: url }).catch(function () {}); return; }
-    navigator.clipboard.writeText(url).then(function () {
-        if (window.Swal) Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'Link de venda copiado!', showConfirmButton: false, timer: 2500 });
-    });
-}
-</script>
 {% endblock %}

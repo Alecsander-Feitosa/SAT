@@ -266,6 +266,10 @@ def finalizar_checkout(request):
     # --- Tipo de entrega ---
     retirada_sede = request.POST.get('tipo_entrega') == 'sede'
     metodo_pagamento = request.POST.get('metodo_pagamento', 'pix')
+    # Retirar na sede continua valendo, mas o pagamento é sempre pelo app
+    if metodo_pagamento not in ('pix', 'boleto', 'cartao'):
+        messages.error(request, 'Escolha PIX, boleto ou cartão para pagar.')
+        return redirect('checkout_exemplo')
 
     # --- Dados de endereço (só se for envio) ---
     cep = endereco = numero = complemento = bairro = cidade = estado = None
@@ -306,7 +310,7 @@ def finalizar_checkout(request):
             pedido = Pedido.objects.create(
                 usuario=request.user,
                 total=total_geral,
-                status='aguardando_retirada' if (retirada_sede and metodo_pagamento == 'sede') else 'pendente',
+                status='pendente',
                 retirada_sede=retirada_sede,
                 metodo_pagamento=metodo_pagamento,
                 cep=cep,
@@ -789,7 +793,7 @@ def finalizar_checkout_caravana(request, caravana_id):
 # ==========================================
 # LINK DE VENDA (compra sem cadastro)
 # ==========================================
-METODOS_LINK_VENDA = ('pix', 'boleto', 'sede')
+METODOS_LINK_VENDA = ('pix', 'boleto')
 
 
 def comprar_link(request, produto_id):
@@ -831,7 +835,7 @@ def comprar_link(request, produto_id):
             erro = 'Produto sem estoque suficiente.'
         elif not (nome and email and len(cpf) == 11 and telefone):
             erro = 'Preencha nome, e-mail, CPF e telefone.'
-        elif metodo not in METODOS_LINK_VENDA or (metodo == 'sede' and not retirada_sede):
+        elif metodo not in METODOS_LINK_VENDA:
             erro = 'Forma de pagamento inválida.'
         elif not retirada_sede and not all(endereco[k] for k in ('cep', 'rua', 'numero', 'bairro', 'cidade', 'estado')):
             erro = 'Preencha o endereço de entrega.'
@@ -859,7 +863,7 @@ def comprar_link(request, produto_id):
                         comprador_nome=nome[:150], comprador_email=email, comprador_cpf=cpf_formatado,
                         comprador_telefone=telefone[:20],
                         total=float(preco * quantidade) + valor_frete,
-                        status='aguardando_retirada' if metodo == 'sede' else 'pendente',
+                        status='pendente',
                         retirada_sede=retirada_sede, metodo_pagamento=metodo,
                         valor_frete=valor_frete, modalidade_frete=modalidade,
                         **({} if retirada_sede else {

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex items-center gap-4">
+        <a href="javascript:history.back()" class="texto-main text-2xl no-underline" aria-label="Voltar"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">Jogos <span class="texto-tema">e Tabela</span></h1>
+    </div>
+
+    <div class="px-4 pt-5 max-w-2xl w-full mx-auto space-y-6">
+        {# ---------- JOGOS DO MEU TIME ---------- #}
+        <section>
+            <div class="flex items-center gap-3 mb-3">
+                {% if escudo %}<img src="{{ escudo }}" alt="" class="w-9 h-9 object-contain">{% endif %}
+                <div class="min-w-0">
+                    <h2 class="text-sm font-black uppercase tracking-widest texto-main">{% if time %}Jogos · {{ time }}{% else %}Jogos do seu time{% endif %}</h2>
+                    <p class="text-[10px] texto-main opacity-50">Horários de Brasília</p>
+                </div>
+            </div>
+
+            {% if not time %}
+            <div class="fundo-card border border-suave rounded-[20px] p-5 text-center">
+                <p class="text-sm font-bold texto-main">Você ainda não escolheu seu time do coração.</p>
+                <a href="{% url 'seja_socio' %}" class="inline-block mt-3 fundo-tema texto-claro rounded-xl px-5 py-3 text-[11px] font-black uppercase tracking-wider no-underline">Escolher time</a>
+            </div>
+            {% else %}
+            <div class="space-y-2">
+                {% for j in proximos %}{% include 'includes/jogo_card.html' %}
+                {% empty %}
+                <p class="fundo-card border border-suave rounded-[20px] p-5 text-center text-[12px] texto-main opacity-60">Nenhum jogo marcado nos próximos meses.</p>
+                {% endfor %}
+            </div>
+
+            {% if resultados %}
+            <h3 class="text-[10px] font-black uppercase tracking-widest texto-main opacity-50 mt-5 mb-2">Últimos resultados</h3>
+            <div class="space-y-2">
+                {% for j in resultados %}{% include 'includes/jogo_card.html' %}{% endfor %}
+            </div>
+            {% endif %}
+            {% endif %}
+        </section>
+
+        {# ---------- CLASSIFICAÇÃO POR CAMPEONATO ---------- #}
+        <section id="tabela">
+            <h2 class="text-sm font-black uppercase tracking-widest texto-main mb-3">Classificação</h2>
+            <nav class="flex gap-2 overflow-x-auto pb-2" style="scrollbar-width: none;">
+                {% for codigo, nome in campeonatos %}
+                <a href="?liga={{ codigo }}#tabela" class="whitespace-nowrap px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-wider no-underline border {% if codigo == liga %}fundo-tema texto-claro border-transparent{% else %}fundo-card texto-main border-suave{% endif %}">{{ nome }}</a>
+                {% endfor %}
+            </nav>
+
+            {% if sem_tabela %}
+            <p class="text-[11px] texto-main opacity-60 mt-2 mb-3">{{ liga_nome }} não tem tabela de pontos. Veja os confrontos:</p>
+            <div class="space-y-2">
+                {% for j in mata_mata|slice:":20" %}{% include 'includes/jogo_card.html' %}
+                {% empty %}
+                <p class="fundo-card border border-suave rounded-[20px] p-5 text-center text-[12px] texto-main opacity-60">Nenhum jogo neste período.</p>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="space-y-4 mt-2">
+                {% for grupo in grupos %}
+                <div class="fundo-card border border-suave rounded-[20px] overflow-hidden shadow-sm">
+                    {% if grupo.nome %}<p class="px-4 pt-3 text-[11px] font-black uppercase tracking-widest texto-main">{{ grupo.nome }}</p>{% endif %}
+                    <table class="w-full text-[12px] texto-main">
+                        <thead>
+                            <tr class="text-[9px] font-black uppercase tracking-wider opacity-50 text-center">
+                                <th class="py-2 pl-3 w-7">#</th><th class="py-2 text-left">Time</th><th class="py-2 w-8">P</th><th class="py-2 w-7">J</th><th class="py-2 w-7">V</th><th class="py-2 w-7">E</th><th class="py-2 w-7">D</th><th class="py-2 pr-3 w-9">SG</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for l in grupo.linhas %}
+                            <tr class="border-t border-suave text-center {% if l.nome_normalizado == nome_na_tabela %}font-black{% endif %}" {% if l.nome_normalizado == nome_na_tabela %}style="background: color-mix(in srgb, var(--cor-primaria) 15%, transparent);"{% endif %}>
+                                <td class="py-2 pl-3 font-bold opacity-60">{{ l.posicao }}</td>
+                                <td class="py-2 text-left">
+                                    <span class="flex items-center gap-2 min-w-0">
+                                        {% if l.logo %}<img src="{{ l.logo }}" alt="" loading="lazy" class="w-5 h-5 object-contain shrink-0">{% endif %}
+                                        <span class="truncate max-w-[130px] sm:max-w-none">{{ l.nome }}</span>
+                                    </span>
+                                </td>
+                                <td class="py-2 font-black">{{ l.pontos }}</td>
+                                <td class="py-2 opacity-70">{{ l.jogos }}</td>
+                                <td class="py-2 opacity-70">{{ l.vitorias }}</td>
+                                <td class="py-2 opacity-70">{{ l.empates }}</td>
+                                <td class="py-2 opacity-70">{{ l.derrotas }}</td>
+                                <td class="py-2 pr-3 opacity-70">{{ l.saldo }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% empty %}
+                <p class="fundo-card border border-suave rounded-[20px] p-5 text-center text-[12px] texto-main opacity-60">Tabela indisponível no momento. Tente de novo mais tarde.</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

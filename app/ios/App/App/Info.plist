@@ -5,7 +5,7 @@
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>pt-BR</string>
 	<key>CFBundleDisplayName</key>
         <string>SAT</string>
 	<key>CFBundleExecutable</key>
@@ -49,7 +49,7 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
@@ -66,10 +66,12 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>O SAT usa sua localização para validar o check-in nos jogos e, se você permitir, para a segurança da torcida em deslocamentos.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>O SAT usa a câmera para fotos de documentos, selfie de verificação e publicações no mural.</string>
+	<string>O SAT usa a câmera para fotos de documentos, selfie de verificação, publicações no mural e leitura do QR Code da carteirinha.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>O SAT acessa suas fotos para você enviar documentos e publicações no mural.</string>
 </dict>

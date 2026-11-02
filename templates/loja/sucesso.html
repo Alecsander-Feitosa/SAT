@@ -78,29 +78,6 @@
         {% endif %}
     </div>
 
-    <!-- ===== PAGAR NA SEDE ===== -->
-    {% elif metodo_pagamento == 'sede' %}
-    <div class="mt-8 fundo-card p-6 rounded-2xl shadow-sm border border-suave w-full max-w-sm text-center">
-        <div class="w-14 h-14 mx-auto bg-green-500/10 text-green-600 rounded-full flex items-center justify-center mb-4 border border-green-500/20">
-            <i class="bi bi-cash-stack text-2xl"></i>
-        </div>
-        <h2 class="text-lg font-black italic uppercase texto-main mb-2">Pagamento na Sede</h2>
-        <p class="text-sm texto-main opacity-60 mb-4 font-bold">R$ {{ pedido.total }}</p>
-        <div class="space-y-3 text-left fundo-app p-4 rounded-xl border border-suave">
-            <div class="flex items-center gap-3">
-                <i class="bi bi-1-circle-fill text-lg" style="color: var(--cor-primaria)"></i>
-                <p class="text-[11px] font-bold texto-main opacity-70">Vá até a sede da torcida</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <i class="bi bi-2-circle-fill text-lg" style="color: var(--cor-primaria)"></i>
-                <p class="text-[11px] font-bold texto-main opacity-70">Informe o pedido <b>#{{ pedido.id }}</b></p>
-            </div>
-            <div class="flex items-center gap-3">
-                <i class="bi bi-3-circle-fill text-lg" style="color: var(--cor-primaria)"></i>
-                <p class="text-[11px] font-bold texto-main opacity-70">Pague com Dinheiro, Cartão ou PIX</p>
-            </div>
-        </div>
-    </div>
     {% endif %}
 
     {% if link_venda and not user.is_authenticated %}

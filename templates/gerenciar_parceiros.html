@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'includes/painel_sat_estilo.html' %}
+
+<div class="painel-sat w-full min-h-screen fundo-app flex flex-col pb-32 px-4 pt-3">
+    {% url 'dashboard' as url_voltar %}
+    {% include 'includes/painel_sat_topo.html' with titulo="Parceiros" icone="bi-gem" voltar=url_voltar %}
+
+    <div class="max-w-xl w-full mx-auto space-y-5">
+        <p class="text-[11px] texto-main opacity-70">Os anúncios aparecem só para os membros da {{ torcida.nome }}: no início do app e em Torcida › Parceiros.</p>
+
+        <form method="post" enctype="multipart/form-data" class="cartao-sat fundo-card border border-suave p-5 space-y-3">
+            {% csrf_token %}
+            <h2 class="text-sm font-black italic uppercase tracking-tighter texto-main">{% if editando %}Editar {{ editando.nome }}{% else %}Novo anúncio{% endif %}</h2>
+            <div>
+                <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60" for="{{ form.nome.id_for_label }}">Nome do parceiro *</label>
+                <input type="text" name="nome" id="{{ form.nome.id_for_label }}" required maxlength="100" value="{{ form.nome.value|default:'' }}" class="w-full mt-1 fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+                {{ form.nome.errors }}
+            </div>
+            <div>
+                <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60" for="{{ form.beneficio.id_for_label }}">Oferta ou benefício</label>
+                <input type="text" name="beneficio" id="{{ form.beneficio.id_for_label }}" maxlength="200" placeholder="Ex: 10% de desconto para membros" value="{{ form.beneficio.value|default:'' }}" class="w-full mt-1 fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+                {{ form.beneficio.errors }}
+            </div>
+            <div>
+                <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60" for="{{ form.link.id_for_label }}">Link (site, Instagram ou WhatsApp)</label>
+                <input type="url" name="link" id="{{ form.link.id_for_label }}" placeholder="https://" value="{{ form.link.value|default:'' }}" class="w-full mt-1 fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+                {{ form.link.errors }}
+            </div>
+            <div>
+                <label class="text-[10px] font-black uppercase tracking-widest texto-main opacity-60" for="{{ form.logo.id_for_label }}">Logo</label>
+                {% if editando.logo %}<img src="{{ editando.logo.url }}" alt="" class="h-14 w-auto object-contain my-2">{% endif %}
+                <input type="file" name="logo" id="{{ form.logo.id_for_label }}" accept="image/*" class="block w-full mt-1 text-xs texto-main">
+                {{ form.logo.errors }}
+            </div>
+            <label class="flex items-center gap-2 text-sm font-bold texto-main">
+                <input type="checkbox" name="ativo" class="w-4 h-4" {% if form.ativo.value %}checked{% endif %}> Anúncio no ar
+            </label>
+            <div class="flex gap-2">
+                {% if editando %}<a href="{% url 'gerenciar_parceiros' %}" class="flex-1 text-center border border-suave rounded-xl py-3 text-[11px] font-black uppercase tracking-widest texto-main no-underline">Cancelar</a>{% endif %}
+                <button class="flex-1 fundo-tema texto-claro rounded-xl py-3 text-[11px] font-black uppercase tracking-widest"><i class="bi bi-check-lg"></i> Salvar anúncio</button>
+            </div>
+        </form>
+
+        <section>
+            <h2 class="text-xs font-black uppercase tracking-widest texto-main mb-2">Anúncios da torcida</h2>
+            <div class="cartao-sat fundo-card border border-suave overflow-hidden">
+                {% for p in parceiros %}
+                <div class="flex items-center gap-3 p-3 {% if not forloop.first %}border-t border-suave{% endif %}">
+                    <div class="w-12 h-12 rounded-xl bg-white border border-suave shrink-0 overflow-hidden flex items-center justify-center p-1">
+                        {% if p.logo %}<img src="{{ p.logo.url }}" alt="" class="w-full h-full object-contain">{% else %}<i class="bi bi-gem text-black/30 text-lg"></i>{% endif %}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-black texto-main truncate">{{ p.nome }}</p>
+                        <p class="text-[11px] texto-main opacity-60 truncate">{% if not p.ativo %}<b>Fora do ar</b> · {% endif %}{{ p.beneficio|default:"Sem oferta informada" }}</p>
+                    </div>
+                    <a href="?editar={{ p.id }}" class="w-9 h-9 rounded-full fundo-app border border-suave flex items-center justify-center texto-main no-underline" aria-label="Editar {{ p.nome }}"><i class="bi bi-pencil-fill text-[11px]"></i></a>
+                    <form method="post" onsubmit="return confirm('Excluir o anúncio de {{ p.nome|escapejs }}?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="excluir">
+                        <input type="hidden" name="parceiro_id" value="{{ p.id }}">
+                        <button class="w-9 h-9 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center" aria-label="Excluir {{ p.nome }}"><i class="bi bi-trash-fill text-[11px]"></i></button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="p-6 text-center text-[12px] texto-main opacity-50">Nenhum anúncio ainda.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

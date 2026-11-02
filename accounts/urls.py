@@ -29,6 +29,9 @@ urlpatterns = [
     
     # MODERAÇÃO
     path('moderacao/', organizadas_views.painel_moderador, name='moderacao_torcida'),
+    path('moderacao/leitor-qr/', organizadas_views.leitor_qr, name='leitor_qr'),
+    path('moderacao/leitor-qr/validar/', organizadas_views.validar_qr, name='validar_qr'),
+    path('moderacao/parceiros/', organizadas_views.gerenciar_parceiros, name='gerenciar_parceiros'),
     path('moderacao/exportar/<str:tipo>/<int:item_id>/', views.exportar_csv_moderacao, name='exportar_csv_moderacao'),
     path('aprovar/<int:perfil_id>/', views.aprovar_membro, name='aprovar_membro'),
     path('torcida/', views.area_torcida, name='torcida'),
@@ -46,6 +49,8 @@ urlpatterns = [
     path('torcida/cancoes/', views.cancoes_torcida, name='cancoes'),
     path('torcida/regras/', views.regras_view, name='regras'),
     path('torcida/aliadas/', views.aliadas_view, name='aliadas'),
+    path('torcida/parceiros/', views.parceiros_view, name='parceiros_torcida'),
+    path('jogos/', views.jogos_tabela, name='jogos_tabela'),
     path('viagens/', views.viagens_view, name='viagens_view'),
     path('hub-socio/', views.hub_socio, name='hub_socio'),
     path('torcidas/', views.torcidas, name='torcidas'),

@@ -1,6 +1,6 @@
 {% comment %}
 Cartão de sócio (frente e verso, estilo por plano). Usado na Carteirinha e no Início.
-Precisa no contexto: perfil, nivel_plano, qr_code, passagens, badges_conquistadas, assinatura_vigente
+Precisa no contexto: perfil, nivel_plano, qr_code, medalhas, assinatura_vigente
 (veja accounts.views.contexto_carteirinha).
 {% endcomment %}
 {% with t=perfil.torcida %}
@@ -194,20 +194,13 @@ Precisa no contexto: perfil, nivel_plano, qr_code, passagens, badges_conquistada
                                     <p class="texto-mini mt-1 text-center">Validação</p>
                                 </div>
                             </div>
-                            {# Selos: torcidas por onde passou + conquistas #}
+                            {# Medalhas conquistadas #}
                             <div class="px-4 pb-3 pt-1 relative z-10 flex items-center gap-1.5 overflow-hidden">
-                                <p class="texto-mini mr-1 shrink-0">Selos</p>
-                                {% for p in passagens|slice:":4" %}
-                                <span class="w-6 h-6 rounded-full bg-white/90 p-0.5 shrink-0 flex items-center justify-center {% if p.atual %}ring-2 ring-white{% else %}opacity-70{% endif %}" title="{{ p.torcida_nome }}">
-                                    {% if p.torcida.logo %}<img src="{{ p.torcida.logo.url }}" alt="" class="w-full h-full object-contain">{% else %}<i class="bi bi-shield-fill text-black/60 text-[10px]"></i>{% endif %}
-                                </span>
+                                <p class="texto-mini mr-1 shrink-0">Medalhas</p>
+                                {% for m in medalhas|slice:":7" %}
+                                <span class="w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-white text-[10px]" style="background: {{ m.cor }}" title="{{ m.nome }}"><i class="bi {{ m.icone }}"></i></span>
                                 {% endfor %}
-                                {% for b in badges_conquistadas|slice:":4" %}
-                                <span class="w-6 h-6 rounded-full bg-yellow-400/90 p-0.5 shrink-0 overflow-hidden" title="{{ b.badge.nome }}">
-                                    {% if b.badge.imagem %}<img src="{{ b.badge.imagem.url }}" alt="" class="w-full h-full object-cover rounded-full">{% else %}<i class="bi bi-award-fill text-black/70 text-[10px]"></i>{% endif %}
-                                </span>
-                                {% endfor %}
-                                {% if not passagens and not badges_conquistadas %}<p class="text-[9px] text-white/40">Participe de eventos para ganhar selos</p>{% endif %}
+                                {% if not medalhas %}<p class="text-[9px] text-white/40">Participe de eventos para ganhar medalhas</p>{% endif %}
                                 <span class="selo-holo ml-auto shrink-0" title="Selo de autenticidade {{ perfil.plano }}">SAT</span>
                                 {% if nivel_plano == 'gratis' %}<span class="ml-auto text-[7px] font-black tracking-widest text-white/40 uppercase shrink-0">SAT</span>{% endif %}
                             </div>

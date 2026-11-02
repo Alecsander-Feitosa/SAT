@@ -288,7 +288,7 @@
             {% endfor %}
 
             {% for parceiro in parceiros %}
-            <a href="#" class="snap-center-item shrink-0 w-[80%] max-w-[300px] h-28 bg-dinamico rounded-2xl shadow-sm overflow-hidden relative group">
+            <a href="{{ parceiro.link|default:'#' }}" {% if parceiro.link %}target="_blank" rel="noopener"{% endif %} class="snap-center-item shrink-0 w-[80%] max-w-[300px] h-28 bg-dinamico rounded-2xl shadow-sm overflow-hidden relative group">
                 <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
                 <span class="absolute top-2 right-2 bg-black/20 backdrop-blur-sm text-white/90 text-[7px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm border border-white/10">Parceiro Oficial</span>
                 <div class="absolute inset-0 flex flex-col justify-center p-4">

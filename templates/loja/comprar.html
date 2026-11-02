@@ -11,6 +11,7 @@
         <div class="p-5">
             <p class="text-[10px] font-black uppercase tracking-widest texto-main opacity-50">{{ produto.vendedor }}</p>
             <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-tight mt-1">{{ produto.nome }}</h1>
+            <button type="button" onclick="linkVenda('{{ request.build_absolute_uri }}', '{{ produto.nome|escapejs }}')" class="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest texto-tema mt-2"><i class="bi bi-share-fill"></i> Compartilhar</button>
             <div class="flex items-baseline gap-2 mt-2">
                 <span class="text-2xl font-black texto-tema">R$ {{ produto.preco_atual|floatformat:2 }}</span>
                 {% if produto.preco_atual != produto.preco %}<span class="text-sm texto-main opacity-40 line-through">R$ {{ produto.preco|floatformat:2 }}</span>{% endif %}
@@ -87,10 +88,9 @@
         {# Pagamento #}
         <section class="space-y-3">
             <h2 class="text-sm font-black uppercase tracking-widest texto-main">Pagamento</h2>
-            <div class="grid grid-cols-3 gap-2">
-                <label class="opcao"><input type="radio" name="metodo_pagamento" value="pix" {% if dados.metodo_pagamento != 'boleto' and dados.metodo_pagamento != 'sede' %}checked{% endif %}> PIX</label>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="opcao"><input type="radio" name="metodo_pagamento" value="pix" {% if dados.metodo_pagamento != 'boleto' %}checked{% endif %}> PIX</label>
                 <label class="opcao"><input type="radio" name="metodo_pagamento" value="boleto" {% if dados.metodo_pagamento == 'boleto' %}checked{% endif %}> Boleto</label>
-                <label class="opcao" id="opcao_sede"><input type="radio" name="metodo_pagamento" value="sede" {% if dados.metodo_pagamento == 'sede' %}checked{% endif %}> Na sede</label>
             </div>
         </section>
 
@@ -126,8 +126,6 @@
     function atualizar() {
         const qtd = parseInt(form.quantidade.value, 10) || 1;
         document.getElementById('bloco_endereco').classList.toggle('hidden', sede());
-        document.getElementById('opcao_sede').classList.toggle('hidden', !sede());
-        if (!sede() && form.metodo_pagamento.value === 'sede') form.querySelector('[name=metodo_pagamento][value=pix]').checked = true;
         const total = preco * qtd + (sede() ? 0 : frete);
         document.getElementById('total').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
     }

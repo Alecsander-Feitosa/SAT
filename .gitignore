@@ -15,3 +15,6 @@ db_dev.sqlite3
 # Chaves de assinatura do app (NUNCA versionar)
 *.jks
 *.keystore
+
+# Senhas da chave de upload do app
+keystore.properties

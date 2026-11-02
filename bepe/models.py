@@ -250,3 +250,12 @@ class DocumentoBEPE(models.Model):
 
     def __str__(self):
         return f"{self.torcida.nome} - {self.titulo}"
+
+
+class EnvioPresenca(models.Model):
+    """Quem já foi enviado ao BEPE em cada lista. Se a diretoria remover o documento, a pessoa volta para "a enviar"."""
+    documento = models.ForeignKey(DocumentoBEPE, on_delete=models.CASCADE, related_name='pessoas')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='envios_bepe')
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['documento', 'user'], name='envio_presenca_unico')]

@@ -402,3 +402,19 @@ class DispositivoSessao(models.Model):
     @property
     def movel(self):
         return any(x in self.user_agent.lower() for x in ('android', 'iphone', 'ipad', 'mobile'))
+
+
+class PresencaValidada(models.Model):
+    """Presença conferida pelo moderador com o leitor de QR Code da carteirinha."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='presencas_validadas')
+    evento = models.ForeignKey('organizadas.Evento', on_delete=models.CASCADE, null=True, blank=True, related_name='presencas_validadas')
+    caravana = models.ForeignKey('organizadas.Caravana', on_delete=models.CASCADE, null=True, blank=True, related_name='presencas_validadas')
+    validado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='presencas_que_validou')
+    validado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-validado_em']
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'evento'], condition=models.Q(evento__isnull=False), name='presenca_validada_evento_unica'),
+            models.UniqueConstraint(fields=['user', 'caravana'], condition=models.Q(caravana__isnull=False), name='presenca_validada_caravana_unica'),
+        ]

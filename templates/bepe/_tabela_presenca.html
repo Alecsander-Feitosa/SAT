@@ -1,0 +1,33 @@
+{# Parâmetros: pessoas (bepe.views.participantes), marcar (mostra checkbox), marcado (já vem marcado), vazio (texto) #}
+<div class="overflow-x-auto">
+    <table class="w-full text-sm texto-main">
+        <thead>
+            <tr class="text-left text-[9px] font-black uppercase tracking-widest opacity-50">
+                {% if marcar %}<th class="pl-4 py-2 w-8"></th>{% endif %}
+                <th class="px-4 py-2">Nome</th><th class="px-4 py-2">Situação</th><th class="px-4 py-2">CPF</th><th class="px-4 py-2">RG/CNH</th><th class="px-4 py-2">WhatsApp</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for pessoa in pessoas %}
+        {% with p=pessoa.perfil %}
+            <tr class="border-t border-suave">
+                {% if marcar %}<td class="pl-4 py-2"><input type="checkbox" name="pessoas" value="{{ p.user_id }}" {% if marcado %}checked{% endif %} class="w-4 h-4" aria-label="Enviar {{ p.user.get_full_name|default:p.user.username }}"></td>{% endif %}
+                <td class="px-4 py-2 whitespace-nowrap">
+                    <span class="font-bold">{{ p.user.get_full_name|default:p.user.username }}</span>{% if p.vulgo %} <span class="opacity-60">“{{ p.vulgo }}”</span>{% endif %}
+                </td>
+                <td class="px-4 py-2 text-[11px] whitespace-nowrap">
+                    {{ pessoa.origem }}
+                    {% if pessoa.validado_em %}<span class="block text-green-600 font-bold"><i class="bi bi-qr-code-scan"></i> Na entrada {{ pessoa.validado_em|date:"d/m H:i" }}</span>{% endif %}
+                    {% if pessoa.enviado_em %}<span class="block text-sky-500 font-bold"><i class="bi bi-check2-all"></i> Enviado {{ pessoa.enviado_em|date:"d/m H:i" }}</span>{% endif %}
+                </td>
+                <td class="px-4 py-2 whitespace-nowrap">{{ p.cpf|default:"—" }}</td>
+                <td class="px-4 py-2">{{ p.rg_cnh|default:"—" }}</td>
+                <td class="px-4 py-2 whitespace-nowrap">{{ p.whatsapp|default:"—" }}</td>
+            </tr>
+        {% endwith %}
+        {% empty %}
+            {% if vazio %}<tr class="border-t border-suave"><td colspan="6" class="px-4 py-5 text-center opacity-50">{{ vazio }}</td></tr>{% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,5 +1,5 @@
 {% load static %}
-{# Topo das telas do moderador. Parâmetros: titulo, subtitulo, voltar (url), icone (bi-*), acao_url/acao_texto/acao_icone (botão opcional) #}
+{# Topo das telas do moderador. Parâmetros: titulo, subtitulo, voltar (url), icone (bi-*), acao_url/acao_texto/acao_icone/acao_download (botão opcional) #}
 <header class="hero-sat compacto px-5 pt-7 pb-5 mb-5">
     <div class="hero-escudo"></div>
     <div class="relative z-10 flex items-center gap-3">
@@ -16,7 +16,7 @@
             </h1>
         </div>
         {% if acao_url %}
-        <a href="{{ acao_url }}" class="btn-sat shrink-0 px-4 py-2.5 rounded-full text-[10px]">
+        <a href="{{ acao_url }}" {% if acao_download %}download {% endif %}class="btn-sat shrink-0 px-4 py-2.5 rounded-full text-[10px]">
             {% if acao_icone %}<i class="bi {{ acao_icone }}"></i>{% endif %} {{ acao_texto }}
         </a>
         {% endif %}

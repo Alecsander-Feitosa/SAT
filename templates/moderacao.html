@@ -89,6 +89,21 @@
     <div class="px-5 flex flex-col gap-6">
 
         <div id="visao-geral" class="secao-conteudo secao-ativa">
+            <div class="grid grid-cols-3 gap-2 mb-5">
+                <a href="{% url 'leitor_qr' %}" class="fundo-card border border-suave rounded-[20px] p-3 flex flex-col items-center gap-1.5 text-center no-underline shadow-sm active:scale-[0.98] transition-transform">
+                    <i class="bi bi-qr-code-scan texto-main text-2xl"></i>
+                    <span class="text-[9px] font-black uppercase tracking-wider texto-main leading-tight">Ler QR da carteirinha</span>
+                </a>
+                <a href="{% url 'bepe:diretoria_documentos' %}" class="relative fundo-card border border-suave rounded-[20px] p-3 flex flex-col items-center gap-1.5 text-center no-underline shadow-sm active:scale-[0.98] transition-transform">
+                    {% if pessoas_a_enviar %}<span class="absolute -top-1.5 -right-1 bg-red-500 text-white text-[9px] font-black rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center animate-pulse">{{ pessoas_a_enviar }}</span>{% endif %}
+                    <i class="bi bi-list-check texto-main text-2xl"></i>
+                    <span class="text-[9px] font-black uppercase tracking-wider texto-main leading-tight">Listas para o BEPE</span>
+                </a>
+                <a href="{% url 'gerenciar_parceiros' %}" class="fundo-card border border-suave rounded-[20px] p-3 flex flex-col items-center gap-1.5 text-center no-underline shadow-sm active:scale-[0.98] transition-transform">
+                    <i class="bi bi-gem texto-main text-2xl"></i>
+                    <span class="text-[9px] font-black uppercase tracking-wider texto-main leading-tight">Parceiros</span>
+                </a>
+            </div>
             {% if membros_pendentes or docs_para_verificar %}
             <button type="button" onclick="mudarAba('socios')" class="w-full mb-5 p-4 rounded-[22px] flex items-center gap-3 text-left shadow-lg" style="color: var(--texto-destaque); background: linear-gradient(135deg, var(--destaque-claro), var(--destaque));">
                 <i class="bi bi-bell-fill text-2xl animate-pulse"></i>
@@ -256,7 +271,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-[12px] font-black texto-main opacity-60 uppercase tracking-widest border-l-4 pl-3" style="border-color: var(--cor-primaria)">Gestão de Sócios</h3>
                 <div class="flex items-center gap-2">
-                    <a href="{% url 'exportar_csv_moderacao' tipo='socios' item_id=0 %}" class="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 px-3 py-1 rounded-md text-[10px] font-black uppercase border border-blue-500/20 transition-colors flex items-center gap-1">
+                    <a href="{% url 'exportar_csv_moderacao' tipo='socios' item_id=0 %}" download class="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 px-3 py-1 rounded-md text-[10px] font-black uppercase border border-blue-500/20 transition-colors flex items-center gap-1">
                         <i class="bi bi-filetype-csv text-sm"></i> Exportar
                     </a>
                     <span class="bg-green-500/10 text-green-600 px-3 py-1 rounded-md text-[10px] font-black uppercase border border-green-500/20">{{ membros_ativos.count }} Ativos</span>
@@ -445,7 +460,7 @@
                                 <button type="button" onclick="abrirModal('modalListaCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Ver Confirmados">
                                     <i class="bi bi-people-fill text-xs"></i>
                                 </button>
-                                <a href="{% url 'exportar_csv_moderacao' tipo='caravana' item_id=caravana.id %}" class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Baixar CSV">
+                                <a href="{% url 'exportar_csv_moderacao' tipo='caravana' item_id=caravana.id %}" download class="w-8 h-8 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center" title="Baixar CSV">
                                     <i class="bi bi-filetype-csv text-xs"></i>
                                 </a>
                                 <button type="button" onclick="abrirModal('modalEditarCaravana{{ caravana.id }}')" class="w-8 h-8 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 flex items-center justify-center">
@@ -1392,7 +1407,7 @@
         <div class="flex justify-between items-center mb-5 pb-3 border-b border-suave">
             <div>
                 <h3 class="font-black texto-main text-sm uppercase tracking-widest text-orange-500">Confirmados: {{ ev.titulo }}</h3>
-                <a href="{% url 'exportar_csv_moderacao' tipo='evento' item_id=ev.id %}" class="mt-2 inline-flex items-center gap-1 text-[9px] font-black uppercase bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 px-2 py-1 rounded transition-colors"><i class="bi bi-filetype-csv text-xs"></i> Baixar Lista em CSV</a>
+                <a href="{% url 'exportar_csv_moderacao' tipo='evento' item_id=ev.id %}" download class="mt-2 inline-flex items-center gap-1 text-[9px] font-black uppercase bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 px-2 py-1 rounded transition-colors"><i class="bi bi-filetype-csv text-xs"></i> Baixar Lista em CSV</a>
             </div>
             <button type="button" onclick="fecharModal('modalListaEvento{{ ev.id }}')" class="w-8 h-8 rounded-full flex items-center justify-center bg-black/5 hover:bg-black/10 transition-colors">
                 <i class="bi bi-x-lg texto-main"></i>

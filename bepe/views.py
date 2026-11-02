@@ -1,7 +1,7 @@
 import csv
 import json
 from datetime import timedelta
-from io import BytesIO
+from io import BytesIO, StringIO
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -17,13 +17,13 @@ from django.utils.dateparse import parse_datetime
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from accounts.models import Perfil, CheckIn as CheckInAccounts, Presenca, PresencaCaravana
+from accounts.models import Perfil, CheckIn as CheckInAccounts, Presenca, PresencaCaravana, PresencaValidada
 from gamification.models import CheckIn as CheckInGame
-from organizadas.models import Torcida, Evento, Caravana
+from organizadas.models import Torcida, Evento, Caravana, InscricaoPagamento
 from .forms import (RegistroProntuarioForm, NovaConversaForm, MensagemForm, DenunciaForm, DenunciaGestaoForm,
                     ReuniaoForm, DocumentoForm)
 from .models import (RegistroProntuario, Conversa, Mensagem, Denuncia, LocalizacaoTorcedor, PlanoRota, Reuniao,
-                     DocumentoBEPE)
+                     DocumentoBEPE, EnvioPresenca)
 from .permissions import bepe_required, diretoria_required
 
 
@@ -775,28 +775,66 @@ def diretoria_reunioes(request):
 # ==========================================
 # DOCUMENTOS E LISTAS DE PRESENÇA (diretoria -> BEPE)
 # ==========================================
-def _eventos_da_torcida(torcida):
-    """Eventos e caravanas da torcida (próximos primeiro), com quantos confirmaram presença."""
-    limite = timezone.now() - timedelta(days=7)
-    eventos = Evento.objects.filter(torcida=torcida, data__gte=limite).order_by('data')
-    caravanas = Caravana.objects.filter(torcida=torcida, saida_horario__gte=limite).order_by('saida_horario')
-    itens = [{'tipo': 'evento', 'obj': e, 'titulo': e.titulo, 'data': e.data,
-              'total': len(_confirmados('evento', e))} for e in eventos]
-    itens += [{'tipo': 'caravana', 'obj': c, 'titulo': c.titulo, 'data': c.saida_horario,
-               'total': len(_confirmados('caravana', c))} for c in caravanas]
-    return sorted(itens, key=lambda i: i['data'])
-
-
-def _confirmados(tipo, obj):
-    """Usuários que confirmaram presença (evento) ou reservaram/confirmaram vaga (caravana), sem repetir."""
+def participantes(tipo, obj):
+    """
+    Todo mundo que comprou ingresso/vaga ou confirmou presença, sem repetir, marcando quem já foi enviado ao BEPE.
+    O projeto guarda a confirmação em vários modelos (Presenca e os dois CheckIn; PresencaCaravana e passageiros).
+    """
+    confirmados = set()
     if tipo == 'evento':
-        ids = Presenca.objects.filter(evento=obj).order_by('data_confirmacao').values_list('user_id', flat=True)
+        confirmados |= set(Presenca.objects.filter(evento=obj).values_list('user_id', flat=True))
+        confirmados |= set(CheckInAccounts.objects.filter(evento=obj).values_list('user_id', flat=True))
+        confirmados |= set(CheckInGame.objects.filter(evento=obj, user__isnull=False).values_list('user_id', flat=True))
     else:
-        ids = list(PresencaCaravana.objects.filter(caravana=obj).order_by('data_confirmacao').values_list('user_id', flat=True))
-        ids += list(obj.passageiros.values_list('id', flat=True))
-    ordem = list(dict.fromkeys(ids))
-    perfis = {p.user_id: p for p in Perfil.objects.filter(user_id__in=ordem).select_related('user')}
-    return [perfis[i] for i in ordem if i in perfis]
+        confirmados |= set(PresencaCaravana.objects.filter(caravana=obj).values_list('user_id', flat=True))
+        confirmados |= set(obj.passageiros.values_list('id', flat=True))
+
+    ingressos = {}
+    for user_id, status in InscricaoPagamento.objects.filter(**{tipo: obj}).exclude(status='cancelado').values_list('usuario_id', 'status'):
+        if ingressos.get(user_id) != 'pago':
+            ingressos[user_id] = status
+
+    enviados = {}
+    for user_id, quando in (EnvioPresenca.objects.filter(**{f'documento__{tipo}': obj})
+                            .order_by('documento__enviado_em').values_list('user_id', 'documento__enviado_em')):
+        enviados[user_id] = quando
+    validados = dict(PresencaValidada.objects.filter(**{tipo: obj}).values_list('user_id', 'validado_em'))
+
+    ids = confirmados | set(ingressos)
+    pessoas = []
+    for perfil in Perfil.objects.filter(user_id__in=ids).select_related('user'):
+        uid = perfil.user_id
+        pago = ingressos.get(uid) == 'pago'
+        origens = []
+        if uid in ingressos:
+            origens.append('Ingresso pago' if pago else 'Ingresso aguardando pagamento')
+        if uid in confirmados:
+            origens.append('Confirmou presença')
+        pessoas.append({
+            'perfil': perfil,
+            'origem': ' + '.join(origens),
+            'aguardando_pagamento': uid in ingressos and not pago and uid not in confirmados,
+            'enviado_em': enviados.get(uid),
+            'validado_em': validados.get(uid),
+        })
+    return sorted(pessoas, key=lambda p: (p['perfil'].user.get_full_name() or p['perfil'].user.username).lower())
+
+
+def _a_enviar(pessoa):
+    return not pessoa['enviado_em'] and not pessoa['aguardando_pagamento']
+
+
+def listas_presenca(torcida):
+    """Eventos e caravanas da torcida (próximos primeiro), com quantos confirmaram e quantos faltam enviar."""
+    limite = timezone.now() - timedelta(days=7)
+    itens = [('evento', e, e.data) for e in Evento.objects.filter(torcida=torcida, data__gte=limite)]
+    itens += [('caravana', c, c.saida_horario) for c in Caravana.objects.filter(torcida=torcida, saida_horario__gte=limite)]
+    listas = []
+    for tipo, obj, data in sorted(itens, key=lambda i: i[2]):
+        pessoas = participantes(tipo, obj)
+        listas.append({'tipo': tipo, 'obj': obj, 'titulo': obj.titulo, 'data': data, 'total': len(pessoas),
+                       'a_enviar': sum(1 for p in pessoas if _a_enviar(p))})
+    return listas
 
 
 def _alvo_lista(torcida, tipo, alvo_id):
@@ -807,21 +845,22 @@ def _alvo_lista(torcida, tipo, alvo_id):
     raise Http404
 
 
-COLUNAS_LISTA = ['Nome', 'Vulgo', 'CPF', 'RG/CNH', 'Data de nascimento', 'WhatsApp', 'Matrícula']
+COLUNAS_LISTA = ['Nome', 'Vulgo', 'CPF', 'RG/CNH', 'Data de nascimento', 'WhatsApp', 'Matrícula', 'Situação', 'Presença validada']
 
 
-def _csv_lista(perfis):
+def _csv_lista(pessoas):
     """Planilha (CSV com ; e BOM, abre direto no Excel) com os dados que o BEPE usa."""
-    from io import StringIO
     buffer = StringIO()
     buffer.write('\ufeff')
     escritor = csv.writer(buffer, delimiter=';')
     escritor.writerow(COLUNAS_LISTA)
-    for p in perfis:
+    for pessoa in pessoas:
+        p = pessoa['perfil']
         escritor.writerow([
             p.user.get_full_name() or p.user.username, p.vulgo, p.cpf or '', p.rg_cnh,
-            p.data_nascimento.strftime('%d/%m/%Y') if getattr(p, 'data_nascimento', None) else '',
-            p.whatsapp, getattr(p, 'matricula', '') or '',
+            p.data_nascimento.strftime('%d/%m/%Y') if p.data_nascimento else '',
+            p.whatsapp, p.matricula, pessoa['origem'],
+            timezone.localtime(pessoa['validado_em']).strftime('%d/%m/%Y %H:%M') if pessoa['validado_em'] else '',
         ])
     return buffer.getvalue()
 
@@ -841,7 +880,7 @@ def diretoria_documentos(request):
         'aba': 'documentos',
         'form': form,
         'documentos': DocumentoBEPE.objects.filter(torcida=torcida).select_related('evento', 'caravana'),
-        'listas': _eventos_da_torcida(torcida),
+        'listas': listas_presenca(torcida),
         'lado_bepe': False,
         'template_base': 'bepe/base_diretoria.html',
     })
@@ -851,37 +890,43 @@ def diretoria_documentos(request):
 def diretoria_lista_presenca(request, tipo, alvo_id):
     torcida = request.torcida_diretoria
     alvo = _alvo_lista(torcida, tipo, alvo_id)
-    perfis = _confirmados(tipo, alvo)
+    pessoas = participantes(tipo, alvo)
     data = alvo.data if tipo == 'evento' else alvo.saida_horario
     nome_arquivo = f"presenca-{tipo}-{alvo.id}-{timezone.localtime(data):%Y%m%d}.csv"
 
     if request.GET.get('formato') == 'csv':
-        resposta = HttpResponse(_csv_lista(perfis), content_type='text/csv; charset=utf-8')
+        resposta = HttpResponse(_csv_lista(pessoas), content_type='text/csv; charset=utf-8')
         resposta['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
         return resposta
 
     if request.method == 'POST':
-        if not perfis:
-            messages.error(request, "Ninguém confirmou presença ainda.")
+        marcados = set(request.POST.getlist('pessoas'))
+        selecionados = [p for p in pessoas if str(p['perfil'].user_id) in marcados]
+        if not selecionados:
+            messages.error(request, "Marque pelo menos uma pessoa para enviar.")
             return redirect(request.path)
         doc = DocumentoBEPE(
-            torcida=torcida, tipo='lista_presenca', enviado_por=request.user, total_pessoas=len(perfis),
+            torcida=torcida, tipo='lista_presenca', enviado_por=request.user, total_pessoas=len(selecionados),
             titulo=f"Lista de presença: {alvo.titulo}"[:150],
             descricao=request.POST.get('descricao', '').strip(),
             **{tipo: alvo},
         )
-        doc.arquivo.save(nome_arquivo, ContentFile(_csv_lista(perfis).encode('utf-8')), save=False)
+        doc.arquivo.save(nome_arquivo, ContentFile(_csv_lista(selecionados).encode('utf-8')), save=False)
         doc.save()
-        messages.success(request, f"Lista com {len(perfis)} pessoa{'s' if len(perfis) != 1 else ''} enviada ao BEPE.")
-        return redirect('bepe:diretoria_documentos')
+        EnvioPresenca.objects.bulk_create([EnvioPresenca(documento=doc, user_id=p['perfil'].user_id) for p in selecionados])
+        messages.success(request, f"Lista com {len(selecionados)} pessoa{'s' if len(selecionados) != 1 else ''} enviada ao BEPE.")
+        return redirect(request.path)
 
+    a_enviar = [p for p in pessoas if _a_enviar(p)]
     return render(request, 'bepe/lista_presenca.html', {
         'aba': 'documentos',
         'alvo': alvo,
         'tipo': tipo,
         'data': data,
-        'perfis': perfis,
-        'ja_enviadas': DocumentoBEPE.objects.filter(torcida=torcida, tipo='lista_presenca', **{tipo: alvo}),
+        'total': len(pessoas),
+        'a_enviar': a_enviar,
+        'aguardando': [p for p in pessoas if p['aguardando_pagamento'] and not p['enviado_em']],
+        'ja_enviados': [p for p in pessoas if p['enviado_em']],
         'lado_bepe': False,
         'template_base': 'bepe/base_diretoria.html',
     })

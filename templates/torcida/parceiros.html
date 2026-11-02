@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen fundo-app px-4 md:px-8 pt-10 pb-40">
+    <div class="mb-8 flex items-center gap-5">
+        <a href="javascript:history.back()" class="w-12 h-12 shrink-0 flex items-center justify-center rounded-2xl fundo-card border border-suave texto-main no-underline" aria-label="Voltar">
+            <i class="bi bi-arrow-left text-xl"></i>
+        </a>
+        <div>
+            <h1 class="text-3xl font-black italic uppercase tracking-tighter texto-main leading-none">Nossos <span class="texto-tema">Parceiros</span></h1>
+            <p class="text-[10px] uppercase tracking-[0.3em] texto-main opacity-60 font-black mt-2">Exclusivo {{ torcida.sigla|default:torcida.nome }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+        {% for p in parceiros %}
+        <a {% if p.link %}href="{{ p.link }}" target="_blank" rel="noopener"{% endif %} class="fundo-card border border-suave rounded-[24px] p-4 flex items-center gap-4 shadow-sm no-underline">
+            <div class="w-16 h-16 rounded-2xl bg-white border border-suave shrink-0 overflow-hidden flex items-center justify-center p-1.5">
+                {% if p.logo %}<img src="{{ p.logo.url }}" alt="" class="w-full h-full object-contain">{% else %}<i class="bi bi-gem text-black/30 text-2xl"></i>{% endif %}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-base font-black uppercase tracking-tight texto-main leading-tight">{{ p.nome }}</p>
+                {% if p.beneficio %}<p class="text-[12px] font-bold texto-tema mt-1">{{ p.beneficio }}</p>{% endif %}
+            </div>
+            {% if p.link %}<i class="bi bi-box-arrow-up-right texto-main opacity-40"></i>{% endif %}
+        </a>
+        {% empty %}
+        <div class="md:col-span-2 fundo-card border border-suave rounded-[24px] p-8 text-center">
+            <i class="bi bi-gem texto-main opacity-30 text-3xl"></i>
+            <p class="text-sm font-black texto-main mt-2">Nenhum parceiro ainda</p>
+            <p class="text-[11px] texto-main opacity-60 mt-1">Em breve, ofertas exclusivas para a torcida.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

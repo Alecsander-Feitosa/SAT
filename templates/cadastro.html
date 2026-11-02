@@ -84,7 +84,7 @@
                             <input id="terms_torcida" type="checkbox" class="w-4 h-4 rounded" required style="accent-color: var(--tema-cor);">
                         </div>
                         <label for="terms_torcida" class="ml-2 text-[10px] text-gray-400 uppercase tracking-wider leading-relaxed">
-                            Declaro que li e aceito os termos e política de privacidade.
+                            Declaro que li e aceito os termos e <a href="{% url 'politica_privacidade' %}" target="_blank" class="underline font-black">política de privacidade</a>.
                         </label>
                     </div>
 
@@ -182,7 +182,7 @@
                     </div>
                     <label for="terms" class="ml-3 text-[9px] font-bold text-gray-400 uppercase tracking-wider leading-relaxed" style="margin-top: 2px;">
                         Declaro que li e aceito os <br>
-                        <a href="#" class="text-[#D37129] hover:underline font-black">termos e política de privacidade</a>.
+                        <a href="{% url 'politica_privacidade' %}" target="_blank" class="text-[#D37129] hover:underline font-black">termos e política de privacidade</a>.
                     </label>
                 </div>
 

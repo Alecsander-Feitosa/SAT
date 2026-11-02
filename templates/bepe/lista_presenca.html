@@ -5,42 +5,47 @@
 <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mt-3 mb-4">
     <div>
         <h1 class="text-xl font-black texto-main">{{ alvo.titulo }}</h1>
-        <p class="text-sm texto-main opacity-50">{% if tipo == 'caravana' %}Caravana{% else %}Evento{% endif %} · {{ data|date:"d/m/Y H:i" }} · <b>{{ perfis|length }}</b> confirmado{{ perfis|length|pluralize }}</p>
+        <p class="text-sm texto-main opacity-50">{% if tipo == 'caravana' %}Caravana{% else %}Evento{% endif %} · {{ data|date:"d/m/Y H:i" }} · <b>{{ total }}</b> na lista · <b>{{ ja_enviados|length }}</b> já enviado{{ ja_enviados|length|pluralize }}</p>
     </div>
-    <a href="?formato=csv" class="tab px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider text-center"><i class="bi bi-file-earmark-spreadsheet"></i> Baixar planilha</a>
+    <a href="?formato=csv" download class="tab px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider text-center"><i class="bi bi-file-earmark-spreadsheet"></i> Baixar planilha</a>
 </div>
 
-<form method="post" class="card p-4 mb-4 flex flex-col sm:flex-row gap-3" onsubmit="return confirm('Enviar a lista com {{ perfis|length }} pessoa{{ perfis|length|pluralize }} ao BEPE?');">
+<form method="post" onsubmit="return confirm('Enviar as pessoas marcadas ao BEPE?');">
     {% csrf_token %}
-    <input type="text" name="descricao" placeholder="Observação para o BEPE (opcional)" class="flex-1 fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main">
-    <button class="btn-tema px-6 py-3 whitespace-nowrap" {% if not perfis %}disabled{% endif %}><i class="bi bi-send-fill"></i> Enviar lista ao BEPE</button>
-</form>
-{% if ja_enviadas %}
-<p class="text-[11px] texto-main opacity-60 mb-4"><i class="bi bi-info-circle"></i> Já enviada {{ ja_enviadas|length }} vez{{ ja_enviadas|length|pluralize:"es" }} (última em {{ ja_enviadas.0.enviado_em|date:"d/m H:i" }}, com {{ ja_enviadas.0.total_pessoas }}). Envie de novo para mandar a lista atualizada.</p>
-{% endif %}
 
-<div class="card overflow-x-auto">
-    <table class="w-full text-sm texto-main">
-        <thead>
-            <tr class="text-left text-[9px] font-black uppercase tracking-widest opacity-50">
-                <th class="px-4 py-3">#</th><th class="px-4 py-3">Nome</th><th class="px-4 py-3">Vulgo</th>
-                <th class="px-4 py-3">CPF</th><th class="px-4 py-3">RG/CNH</th><th class="px-4 py-3">WhatsApp</th>
-            </tr>
-        </thead>
-        <tbody class="divide-suave">
-        {% for p in perfis %}
-            <tr class="border-t border-suave">
-                <td class="px-4 py-2 opacity-50">{{ forloop.counter }}</td>
-                <td class="px-4 py-2 font-bold whitespace-nowrap">{{ p.user.get_full_name|default:p.user.username }}</td>
-                <td class="px-4 py-2">{{ p.vulgo|default:"—" }}</td>
-                <td class="px-4 py-2 whitespace-nowrap">{{ p.cpf|default:"—" }}</td>
-                <td class="px-4 py-2">{{ p.rg_cnh|default:"—" }}</td>
-                <td class="px-4 py-2 whitespace-nowrap">{{ p.whatsapp|default:"—" }}</td>
-            </tr>
-        {% empty %}
-            <tr><td colspan="6" class="px-4 py-6 text-center opacity-50">Ninguém confirmou presença ainda.</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+    {# ---------- A ENVIAR ---------- #}
+    <section class="card overflow-hidden mb-4">
+        <div class="px-4 pt-4 pb-3 flex items-center gap-2">
+            {% if a_enviar %}<span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>{% endif %}
+            <h2 class="text-sm font-black italic uppercase tracking-tighter texto-main">A enviar ao BEPE ({{ a_enviar|length }})</h2>
+        </div>
+        {% include 'bepe/_tabela_presenca.html' with pessoas=a_enviar marcar=True marcado=True vazio="Ninguém novo para enviar." %}
+    </section>
+
+    {# ---------- AGUARDANDO PAGAMENTO ---------- #}
+    {% if aguardando %}
+    <section class="card overflow-hidden mb-4">
+        <div class="px-4 pt-4 pb-3">
+            <h2 class="text-sm font-black italic uppercase tracking-tighter texto-main">Ingresso aguardando pagamento ({{ aguardando|length }})</h2>
+            <p class="text-[11px] texto-main opacity-50 mt-1">Não vão marcados. Marque se quiser enviar mesmo assim (ex: boleto já pago).</p>
+        </div>
+        {% include 'bepe/_tabela_presenca.html' with pessoas=aguardando marcar=True marcado=False vazio="" %}
+    </section>
+    {% endif %}
+
+    {% if a_enviar or aguardando %}
+    <div class="card p-4 mb-4 flex flex-col sm:flex-row gap-3">
+        <input type="text" name="descricao" placeholder="Observação para o BEPE (opcional)" class="flex-1 fundo-app border border-suave rounded-xl px-4 py-3 text-sm texto-main">
+        <button class="btn-tema px-6 py-3 whitespace-nowrap"><i class="bi bi-send-fill"></i> Enviar marcados ao BEPE</button>
+    </div>
+    {% endif %}
+</form>
+
+{# ---------- JÁ ENVIADOS ---------- #}
+<section class="card overflow-hidden">
+    <div class="px-4 pt-4 pb-3">
+        <h2 class="text-sm font-black italic uppercase tracking-tighter texto-main"><i class="bi bi-check2-all text-sky-500"></i> Já enviados ({{ ja_enviados|length }})</h2>
+    </div>
+    {% include 'bepe/_tabela_presenca.html' with pessoas=ja_enviados marcar=False vazio="Nenhuma pessoa enviada ainda." %}
+</section>
 {% endblock %}

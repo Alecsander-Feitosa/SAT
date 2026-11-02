@@ -28,6 +28,12 @@ PLANOS_PAGOS_LIBERADOS = os.getenv('PLANOS_PAGOS_LIBERADOS', 'False') == 'True'
 MELHOR_ENVIO_TOKEN = os.getenv('MELHOR_ENVIO_TOKEN', '')
 MELHOR_ENVIO_SANDBOX = os.getenv('MELHOR_ENVIO_SANDBOX', 'False') == 'True'
 MELHOR_ENVIO_EMAIL = os.getenv('MELHOR_ENVIO_EMAIL', '')  # contato técnico exigido no User-Agent da API
+
+# Política de Privacidade (LGPD): responsável pelos dados (controlador) e canal do titular
+PRIVACIDADE_CONTROLADOR = os.getenv('PRIVACIDADE_CONTROLADOR', '[RAZÃO SOCIAL]')
+PRIVACIDADE_DOCUMENTO = os.getenv('PRIVACIDADE_DOCUMENTO', '[CNPJ]')
+PRIVACIDADE_ENDERECO = os.getenv('PRIVACIDADE_ENDERECO', '[CIDADE/UF]')
+PRIVACIDADE_EMAIL = os.getenv('PRIVACIDADE_EMAIL', '[E-MAIL DE PRIVACIDADE]')
 LOJA_CEP_ORIGEM = os.getenv('LOJA_CEP_ORIGEM', '')  # CEP padrão de envio, se a torcida não cadastrar o dela
 
 # Certificado: prioriza Base64 (para Render/produção), depois caminho local
