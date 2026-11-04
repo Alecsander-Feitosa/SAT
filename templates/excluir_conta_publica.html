@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .politica section { background-color: var(--cor-secundaria); border: 1px solid rgba(150,150,150,.2); border-radius: 24px; padding: 1.25rem; }
+    .politica h2 { font-size: .875rem; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; margin-bottom: .5rem; }
+    .politica p, .politica li { font-size: 13px; line-height: 1.6; opacity: .85; }
+    .politica ul, .politica ol { padding-left: 1.1rem; display: flex; flex-direction: column; gap: .3rem; margin-top: .35rem; }
+    .politica ul { list-style: disc; }
+    .politica ol { list-style: decimal; }
+    .politica a { font-weight: 800; text-decoration: underline; }
+</style>
+
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex items-center gap-4">
+        <a href="javascript:history.back()" class="texto-main text-2xl no-underline" aria-label="Voltar"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">Excluir <span class="texto-tema">conta</span></h1>
+    </div>
+
+    <article class="politica px-5 pt-6 max-w-2xl w-full mx-auto space-y-4 texto-main">
+        <section>
+            <p>Esta página explica como excluir sua conta do app <b>SAT</b>, mantido por <b>{{ controlador }}</b>, e o que acontece com seus dados.</p>
+        </section>
+
+        <section id="como-excluir">
+            <h2>Como excluir</h2>
+            <p><b>Pelo app:</b></p>
+            <ol>
+                <li>Entre na sua conta e abra <b>Perfil</b>.</li>
+                <li>Em <b>Sistema</b>, toque em <b>Deletar conta</b>.</li>
+                <li>Informe sua senha, se a conta tiver uma, digite <b>EXCLUIR</b> e confirme.</li>
+            </ol>
+            <p class="mt-2"><b>Pelo navegador:</b> <a href="{% url 'deletar_conta' %}">entre na sua conta e abra a tela de exclusão</a>.</p>
+            <p class="mt-2"><b>Sem acesso à conta:</b> escreva para <a href="mailto:{{ email_privacidade }}?subject=Excluir%20minha%20conta%20SAT">{{ email_privacidade }}</a> usando o e-mail do cadastro e informe seu nome de usuário. Respondemos em até 15 dias.</p>
+        </section>
+
+        <section id="apagados">
+            <h2>O que é apagado</h2>
+            <ul>
+                <li>Foto de perfil, fotos dos documentos e selfie.</li>
+                <li>CPF, RG ou CNH, data de nascimento, telefone, WhatsApp, nome da mãe e do pai, endereço, apelido e pelotão.</li>
+                <li>Suas publicações, seus seguidores e seu vínculo com a torcida.</li>
+                <li>Nome, e-mail e senha da conta, além da conexão com login social.</li>
+            </ul>
+        </section>
+
+        <section id="guardados">
+            <h2>O que continua guardado</h2>
+            <ul>
+                <li><b>Pedidos e pagamentos:</b> ficam com os dados informados na compra (como nome, CPF, e-mail e endereço de entrega) pelo prazo exigido pela legislação fiscal, em geral 5 anos.</li>
+                <li><b>Registros de acesso:</b> IP, data e hora, por no mínimo 6 meses, como exige o Marco Civil da Internet.</li>
+                <li><b>Registros do BEPE:</b> seguem as regras e os prazos próprios da autoridade pública.</li>
+                <li><b>Atividade ligada à conta excluída:</b> comentários, check-ins com foto e localização, última localização compartilhada, presenças, EXP, medalhas e notificações. Esses registros não mostram mais seu nome ou usuário, mas não são apagados automaticamente. Para pedir a eliminação, use o e-mail acima.</li>
+            </ul>
+            <p class="mt-2">Mais detalhes na <a href="{% url 'politica_privacidade' %}">Política de Privacidade</a>.</p>
+        </section>
+    </article>
+</div>
+{% endblock %}

@@ -71,6 +71,7 @@ urlpatterns = [
     path('perfil/seguranca/', views.seguranca, name='seguranca'),
     path('perfil/deletar-conta/', views.deletar_conta, name='deletar_conta'),
     path('privacidade/', views.politica_privacidade, name='politica_privacidade'),
+    path('excluir-conta/', views.excluir_conta_publica, name='excluir_conta_publica'),
     
     path('perfil/', views.perfil_view, name='perfil'),
     path('cancoes/excluir/<int:cancao_id>/', organizadas_views.excluir_cancao, name='excluir_cancao'),

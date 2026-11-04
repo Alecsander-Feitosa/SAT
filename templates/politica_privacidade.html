@@ -151,7 +151,7 @@
                 <li><b>Corrigir dados:</b> em Perfil &gt; Editar perfil.</li>
                 <li><b>Desligar a localização:</b> no menu lateral.</li>
                 <li><b>Ver e desconectar aparelhos:</b> em Segurança e senha.</li>
-                <li><b>Excluir a conta:</b> em Perfil &gt; Sistema &gt; Deletar conta{% if user.is_authenticated %} (<a href="{% url 'deletar_conta' %}">abrir agora</a>){% endif %}. Sem acesso ao app? Peça a exclusão pelo e-mail abaixo.</li>
+                <li><b>Excluir a conta:</b> em Perfil &gt; Sistema &gt; Deletar conta{% if user.is_authenticated %} (<a href="{% url 'deletar_conta' %}">abrir agora</a>){% endif %}. Sem acesso ao app? Peça a exclusão pelo e-mail abaixo. <a href="{% url 'excluir_conta_publica' %}">Veja o passo a passo</a>.</li>
                 <li><b>Demais pedidos:</b> pelo e-mail <a href="mailto:{{ email_privacidade }}">{{ email_privacidade }}</a>. Respondemos em até 15 dias.</li>
             </ul>
             <p class="mt-2">Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD), em <a href="https://www.gov.br/anpd" target="_blank" rel="noopener">gov.br/anpd</a>.</p>
