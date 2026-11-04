@@ -1369,6 +1369,14 @@ def politica_privacidade(request):
     })
 
 
+def seguranca_infantil(request):
+    """Padrões públicos contra abuso e exploração sexual infantil (CSAE), exigidos pelo Google Play."""
+    return render(request, 'seguranca_infantil.html', {
+        'controlador': settings.PRIVACIDADE_CONTROLADOR,
+        'email_privacidade': settings.PRIVACIDADE_EMAIL,
+    })
+
+
 def excluir_conta_publica(request):
     """Instruções públicas de exclusão de conta: o Google Play exige um link que funcione sem login."""
     return render(request, 'excluir_conta_publica.html', {

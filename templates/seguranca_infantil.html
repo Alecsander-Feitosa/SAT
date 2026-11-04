@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .politica section { background-color: var(--cor-secundaria); border: 1px solid rgba(150,150,150,.2); border-radius: 24px; padding: 1.25rem; }
+    .politica h2 { font-size: .875rem; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; margin-bottom: .5rem; }
+    .politica p, .politica li { font-size: 13px; line-height: 1.6; opacity: .85; }
+    .politica ul { list-style: disc; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .3rem; margin-top: .35rem; }
+    .politica a { font-weight: 800; text-decoration: underline; }
+</style>
+
+<div class="w-full min-h-screen fundo-app flex flex-col pb-32">
+    <div class="sticky top-[70px] z-40 fundo-card border-b border-suave shadow-sm px-5 py-4 flex items-center gap-4">
+        <a href="javascript:history.back()" class="texto-main text-2xl no-underline" aria-label="Voltar"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="text-xl font-black italic uppercase tracking-tighter texto-main leading-none">Segurança <span class="texto-tema">infantil</span></h1>
+    </div>
+
+    <article class="politica px-5 pt-6 max-w-2xl w-full mx-auto space-y-4 texto-main">
+        <section>
+            <h2>Nossos padrões</h2>
+            <p>O app <b>SAT: Apoio a Torcidas</b> proíbe qualquer forma de abuso e exploração sexual de crianças e adolescentes (CSAE), incluindo material de abuso sexual infantil (CSAM). Estes padrões valem para todos os usuários e para tudo o que é publicado no app.</p>
+        </section>
+
+        <section id="proibido">
+            <h2>O que é proibido</h2>
+            <ul>
+                <li>Criar, publicar, pedir, compartilhar ou divulgar material de abuso sexual infantil, inclusive por meio de links ou imagens geradas ou alteradas por computador.</li>
+                <li>Sexualizar crianças ou adolescentes em textos, imagens ou vídeos.</li>
+                <li>Aliciar crianças ou adolescentes ou tentar obter deles imagens íntimas, encontros ou qualquer contato de natureza sexual.</li>
+                <li>Chantagear, ameaçar ou explorar sexualmente crianças ou adolescentes.</li>
+                <li>Promover, justificar ou facilitar qualquer uma dessas práticas.</li>
+            </ul>
+        </section>
+
+        <section id="denunciar">
+            <h2>Como denunciar</h2>
+            <ul>
+                <li><b>Publicação no app:</b> abra o menu da publicação, escolha <b>Denunciar</b> e selecione <b>Abuso ou exploração sexual de crianças</b>.</li>
+                <li><b>Comentário, perfil ou outro caso:</b> escreva para <a href="mailto:{{ email_privacidade }}?subject=Seguran%C3%A7a%20infantil%20no%20SAT">{{ email_privacidade }}</a>. Se puder, informe o usuário e onde o conteúdo apareceu. Não envie cópias do material.</li>
+            </ul>
+        </section>
+
+        <section id="medidas">
+            <h2>O que fazemos</h2>
+            <ul>
+                <li>A publicação denunciada com esse motivo sai do ar para os demais usuários e vai para a revisão dos administradores.</li>
+                <li>Ao confirmar a violação, removemos o conteúdo e aplicamos as penalidades cabíveis, incluindo o banimento da conta.</li>
+                <li>Comunicamos às autoridades competentes e preservamos as informações necessárias, conforme a legislação brasileira, incluindo o Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).</li>
+            </ul>
+        </section>
+
+        <section id="ajuda">
+            <h2>Ajuda fora do app</h2>
+            <p>Se uma criança ou um adolescente estiver em perigo agora, ligue <b>190</b>. Você também pode denunciar pelo <b>Disque 100</b> ou pela <a href="https://new.safernet.org.br/denuncie" target="_blank" rel="noopener">SaferNet Brasil</a>.</p>
+        </section>
+
+        <section id="contato">
+            <h2>Contato de segurança infantil</h2>
+            <p>{{ controlador }} · <a href="mailto:{{ email_privacidade }}">{{ email_privacidade }}</a></p>
+        </section>
+    </article>
+</div>
+{% endblock %}

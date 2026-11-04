@@ -79,6 +79,7 @@ class DenunciaPost(models.Model):
         ('violencia', 'Incitação à violência'),
         ('spam', 'Spam / golpe'),
         ('nudez', 'Nudez ou conteúdo sexual'),
+        ('csae', 'Abuso ou exploração sexual de crianças'),
         ('falso', 'Informação falsa'),
         ('outro', 'Outro'),
     ]

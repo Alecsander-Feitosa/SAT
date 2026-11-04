@@ -284,7 +284,16 @@ def denunciar_post(request, post_id):
     _, criada = DenunciaPost.objects.get_or_create(
         post=post, autor=request.user, defaults={'motivo': motivo, 'detalhe': request.POST.get('detalhe', '')[:300]}
     )
-    if criada and not post.em_revisao and post.denuncias.count() >= LIMITE_DENUNCIAS:
+    # Segurança infantil: uma única denúncia já tira o post do ar e pede revisão urgente
+    if motivo == 'csae':
+        DenunciaPost.objects.filter(post=post, autor=request.user).update(motivo='csae')
+        if not post.em_revisao:
+            post.em_revisao = True
+            post.save(update_fields=['em_revisao'])
+        notificar_muitos(User.objects.filter(is_superuser=True), 'moderacao',
+                         f'URGENTE: post de {nome(post.autor_s)} denunciado por segurança infantil e fora do ar para revisão.',
+                         post=post, link='/social/moderacao/')
+    elif criada and not post.em_revisao and post.denuncias.count() >= LIMITE_DENUNCIAS:
         post.em_revisao = True
         post.save(update_fields=['em_revisao'])
         notificar_muitos(User.objects.filter(is_superuser=True), 'moderacao',
